@@ -10,7 +10,7 @@ export interface RoomSettings {
 
 export type GameState =
   | { state: 'waiting'; genres: string[]; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number }
-  | { state: 'playing'; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; timeLeft: number; previewUrl: string; trackId: string }
+  | { state: 'playing'; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; timeLeft: number; youtubeVideoId: string | null; trackId: string }
   | { state: 'round_result'; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; roundResult: RoundResult }
   | { state: 'finished'; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; rankings: Ranking[] };
 
@@ -99,5 +99,11 @@ export async function fetchGameState(code: string): Promise<GameState> {
 export async function checkRoom(code: string): Promise<{ code: string; state: string; playerCount: number }> {
   const res = await fetch(`${API_URL}/api/rooms/${code}`);
   if (!res.ok) throw new Error('Room not found');
+  return res.json();
+}
+
+export async function searchYouTube(name: string, artist: string): Promise<{ videoId: string | null; name: string; artist: string }> {
+  const res = await fetch(`${API_URL}/api/youtube/search?name=${encodeURIComponent(name)}&artist=${encodeURIComponent(artist)}`);
+  if (!res.ok) throw new Error('YouTube search failed');
   return res.json();
 }

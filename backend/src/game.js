@@ -81,10 +81,24 @@ export class GameRoom {
     return null;
   }
 
-  startRound() {
+  async startRound() {
     if (this.currentRound >= this.tracks.length) {
       this.endGame();
       return;
+    }
+
+    const track = this.tracks[this.currentRound];
+    if (!track.youtubeVideoId) {
+      const { searchYouTubeVideo } = await import('./youtube.js');
+      track.youtubeVideoId = await searchYouTubeVideo(track.name, track.artist);
+    }
+
+    const nextTrack = this.tracks[this.currentRound + 1];
+    if (nextTrack && !nextTrack.youtubeVideoId) {
+      const { searchYouTubeVideo } = await import('./youtube.js');
+      searchYouTubeVideo(nextTrack.name, nextTrack.artist)
+        .then(id => { nextTrack.youtubeVideoId = id; })
+        .catch(() => {});
     }
 
     this.roundStartTime = Date.now();
@@ -171,7 +185,7 @@ export class GameRoom {
       return {
         ...base,
         timeLeft,
-        previewUrl: track.previewUrl,
+        youtubeVideoId: track.youtubeVideoId,
         trackId: track.id,
       };
     }

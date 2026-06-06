@@ -131,6 +131,21 @@ app.get('/api/rooms/:code', (req, res) => {
   });
 });
 
+app.get('/api/youtube/search', async (req, res) => {
+  const { name, artist } = req.query;
+  if (!name || !artist) {
+    return res.status(400).json({ error: 'name and artist query params required' });
+  }
+
+  try {
+    const { searchYouTubeVideo } = await import('./youtube.js');
+    const videoId = await searchYouTubeVideo(name, artist);
+    res.json({ videoId, name, artist });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`BlindTest server running on port ${PORT}`);

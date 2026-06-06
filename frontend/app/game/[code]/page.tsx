@@ -4,6 +4,96 @@ import { useEffect, useState, useRef, use, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { GameState, RoomSettings, startGame, submitAnswer, fetchGameState, updateSettings, fetchGenres } from '@/lib/api';
 
+declare global {
+  interface Window {
+    YT: any;
+    onYouTubeIframeAPIReady: () => void;
+  }
+}
+
+let apiReadyPromise: Promise<void> | null = null;
+
+function loadYouTubeAPI(): Promise<void> {
+  if (apiReadyPromise) return apiReadyPromise;
+  if (window.YT?.Player) return Promise.resolve();
+
+  apiReadyPromise = new Promise<void>((resolve) => {
+    const tag = document.createElement('script');
+    tag.src = 'https://www.youtube.com/iframe_api';
+    tag.onload = () => {
+      window.onYouTubeIframeAPIReady = () => resolve();
+    };
+    document.head.appendChild(tag);
+  });
+
+  return apiReadyPromise;
+}
+
+function YouTubePlayer({ videoId, playing }: { videoId: string | null; playing: boolean }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const playerRef = useRef<any>(null);
+  const currentIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!videoId || !playing) {
+      if (playerRef.current) {
+        playerRef.current.stopVideo();
+      }
+      return;
+    }
+
+    if (videoId === currentIdRef.current && playerRef.current) {
+      playerRef.current.playVideo();
+      return;
+    }
+
+    currentIdRef.current = videoId;
+
+    loadYouTubeAPI().then(() => {
+      if (!containerRef.current) return;
+
+      if (playerRef.current) {
+        playerRef.current.destroy();
+      }
+
+      playerRef.current = new window.YT.Player(containerRef.current, {
+        height: 0,
+        width: 0,
+        videoId,
+        playerVars: {
+          autoplay: 1,
+          controls: 0,
+          disablekb: 1,
+          fs: 0,
+          modestbranding: 1,
+          playsinline: 1,
+        },
+        events: {
+          onReady: (e: any) => e.target.playVideo(),
+          onStateChange: (e: any) => {
+            if (e.data === window.YT.PlayerState.ENDED) {
+              e.target.playVideo();
+            }
+          },
+        },
+      });
+    });
+
+    return () => {
+      if (playerRef.current) {
+        playerRef.current.stopVideo();
+      }
+    };
+  }, [videoId, playing]);
+
+  return (
+    <div
+      ref={containerRef}
+      style={{ position: 'absolute', width: 0, height: 0, opacity: 0, pointerEvents: 'none', overflow: 'hidden' }}
+    />
+  );
+}
+
 export default function GamePage({
   params,
 }: {
@@ -11,7 +101,6 @@ export default function GamePage({
 }) {
   const { code } = use(params);
   const router = useRouter();
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [gameState, setGameState] = useState<GameState | null>(null);
@@ -19,6 +108,8 @@ export default function GamePage({
   const [guess, setGuess] = useState('');
   const [guessResult, setGuessResult] = useState<{ correct: boolean; points: number } | null>(null);
   const [error, setError] = useState('');
+  const [youtubeVideoId, setYoutubeVideoId] = useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
     const pid = localStorage.getItem(`blindtest_player_${code}`);
@@ -33,14 +124,11 @@ export default function GamePage({
         setGameState(state);
 
         if (state.state === 'playing') {
-          if (audioRef.current && audioRef.current.src !== state.previewUrl) {
-            audioRef.current.pause();
-            audioRef.current.src = state.previewUrl;
-            audioRef.current.play().catch(() => {});
-          }
+          setYoutubeVideoId(state.youtubeVideoId);
+          setIsPlaying(true);
         }
         if (state.state !== 'playing') {
-          if (audioRef.current) audioRef.current.pause();
+          setIsPlaying(false);
         }
         if (state.state === 'finished' || state.state === 'round_result') {
           setGuess('');
@@ -59,7 +147,6 @@ export default function GamePage({
 
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
-      if (audioRef.current) audioRef.current.pause();
     };
   }, [code, router]);
 
@@ -157,7 +244,7 @@ export default function GamePage({
         <GameFinished rankings={gameState.rankings} onPlayAgain={() => router.push('/')} />
       )}
 
-      <audio ref={audioRef} />
+      <YouTubePlayer videoId={youtubeVideoId} playing={isPlaying} />
     </div>
   );
 }
