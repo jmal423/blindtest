@@ -7,6 +7,41 @@ function generateId() {
   return crypto.randomUUID();
 }
 
+function normalize(str) {
+  return str
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s]/g, '')
+    .replace(/\s+/g, ' ')
+    .replace(/\(feat\..*\)|\(ft\..*\)|\(remastered\)|\(.*?version\)/g, '')
+    .trim();
+}
+
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      dp[i][j] = a[i - 1] === b[j - 1] ? dp[i - 1][j - 1] : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+    }
+  }
+  return dp[m][n];
+}
+
+function isCorrectGuess(answer, trackName) {
+  const a = normalize(answer);
+  const t = normalize(trackName);
+  if (!a || !t) return false;
+  if (a === t) return true;
+  if (a.includes(t) || t.includes(a)) return true;
+  const dist = levenshtein(a, t);
+  if (dist <= 2) return true;
+  if (dist / Math.max(a.length, t.length) <= 0.25) return true;
+  return false;
+}
+
 function shuffle(array) {
   const arr = [...array];
   for (let i = arr.length - 1; i > 0; i--) {
@@ -107,7 +142,7 @@ export class GameRoom {
 
     this.roundTimer = setTimeout(() => {
       this.endRound();
-    }, this.settings.roundTime * 1000);
+    }, (this.settings.roundTime + 3) * 1000);
   }
 
   submitAnswer(playerId, answer) {
@@ -117,7 +152,7 @@ export class GameRoom {
     const track = this.tracks[this.currentRound];
     if (!track) return;
 
-    const isCorrect = answer.toLowerCase().trim() === track.name.toLowerCase().trim();
+    const isCorrect = isCorrectGuess(answer, track.name);
     let points = 0;
 
     if (isCorrect) {
@@ -185,6 +220,7 @@ export class GameRoom {
       return {
         ...base,
         timeLeft,
+        roundTime: this.settings.roundTime,
         youtubeVideoId: track.youtubeVideoId,
         trackId: track.id,
       };

@@ -34,14 +34,18 @@ function YouTubePlayer({
   videoId,
   playing,
   onPlayerRef,
+  onPlaying,
 }: {
   videoId: string | null;
   playing: boolean;
   onPlayerRef: (p: any) => void;
+  onPlaying: () => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
   const currentIdRef = useRef<string | null>(null);
+  const onPlayingRef = useRef(onPlaying);
+  onPlayingRef.current = onPlaying;
 
   useEffect(() => {
     if (!videoId || !playing) {
@@ -78,6 +82,9 @@ function YouTubePlayer({
             e.target.playVideo();
           },
           onStateChange: (e: any) => {
+            if (e.data === window.YT.PlayerState.PLAYING) {
+              onPlayingRef.current();
+            }
             if (e.data === window.YT.PlayerState.ENDED) {
               e.target.playVideo();
             }
@@ -182,11 +189,35 @@ export default function GamePage({
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(30);
+  const [localTimeLeft, setLocalTimeLeft] = useState<number | null>(null);
   const ytPlayerRef = useRef<any>(null);
+  const localTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const guessInputRef = useRef<HTMLInputElement>(null);
 
   const handlePlayerRef = useCallback((player: any) => {
     ytPlayerRef.current = player;
   }, []);
+
+  const handleYoutubePlaying = useCallback(() => {
+    if (localTimerRef.current) return;
+    const state = gameState;
+    if (!state || state.state !== 'playing') return;
+    const roundTime = (state as any).roundTime || 15;
+    setLocalTimeLeft(roundTime);
+    guessInputRef.current?.focus();
+    localTimerRef.current = setInterval(() => {
+      setLocalTimeLeft(prev => {
+        if (prev === null || prev <= 1) {
+          if (localTimerRef.current) {
+            clearInterval(localTimerRef.current);
+            localTimerRef.current = null;
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, [gameState]);
 
   useEffect(() => {
     const pid = localStorage.getItem(`blindtest_player_${code}`);
@@ -203,9 +234,19 @@ export default function GamePage({
         if (state.state === 'playing') {
           setYoutubeVideoId(state.youtubeVideoId);
           setIsPlaying(true);
+          setLocalTimeLeft(null);
+          if (localTimerRef.current) {
+            clearInterval(localTimerRef.current);
+            localTimerRef.current = null;
+          }
         }
         if (state.state !== 'playing') {
           setIsPlaying(false);
+          setLocalTimeLeft(null);
+          if (localTimerRef.current) {
+            clearInterval(localTimerRef.current);
+            localTimerRef.current = null;
+          }
         }
         if (state.state === 'finished' || state.state === 'round_result') {
           setGuess('');
@@ -321,13 +362,14 @@ export default function GamePage({
         <PlayingPhase
           currentRound={gameState.currentRound}
           totalRounds={gameState.totalRounds}
-          timeLeft={gameState.timeLeft}
+          timeLeft={localTimeLeft ?? (gameState as any).timeLeft}
           guess={guess}
           onGuessChange={setGuess}
           onSubmit={handleSubmit}
           guessResult={guessResult}
           duration={duration}
           currentTime={currentTime}
+          inputRef={guessInputRef}
         />
       )}
 
@@ -339,7 +381,7 @@ export default function GamePage({
         <GameFinished code={code} rankings={gameState.rankings} playerId={playerId} onPlayAgain={() => router.push('/')} />
       )}
 
-      <YouTubePlayer videoId={youtubeVideoId} playing={isPlaying} onPlayerRef={handlePlayerRef} />
+      <YouTubePlayer videoId={youtubeVideoId} playing={isPlaying} onPlayerRef={handlePlayerRef} onPlaying={handleYoutubePlaying} />
     </div>
   );
 }
@@ -481,6 +523,7 @@ function PlayingPhase({
   guessResult,
   duration,
   currentTime,
+  inputRef,
 }: {
   currentRound: number;
   totalRounds: number;
@@ -491,6 +534,7 @@ function PlayingPhase({
   guessResult: { correct: boolean; points: number } | null;
   duration: number;
   currentTime: number;
+  inputRef: React.RefObject<HTMLInputElement | null>;
 }) {
   return (
     <div className="flex-1 flex flex-col items-center justify-center gap-8">
@@ -512,6 +556,7 @@ function PlayingPhase({
 
       <div className="w-full max-w-sm space-y-3">
         <input
+          ref={inputRef}
           type="text"
           value={guess}
           onChange={e => onGuessChange(e.target.value)}
