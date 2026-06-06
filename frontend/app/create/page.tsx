@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { getSocket } from '@/lib/socket';
+import { getSocket, getApiUrl } from '@/lib/socket';
 
 interface Genre {
   id: string;
@@ -18,7 +18,7 @@ export default function CreateRoom() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch('http://localhost:3001/api/genres')
+    fetch(`${getApiUrl()}/api/genres`)
       .then(res => res.json())
       .then(setGenres)
       .catch(() => setError('Failed to load genres. Is the server running?'));
@@ -41,7 +41,7 @@ export default function CreateRoom() {
     setError('');
 
     try {
-      const res = await fetch('http://localhost:3001/api/rooms', {
+      const res = await fetch(`${getApiUrl()}/api/rooms`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ genres: Array.from(selected) }),
@@ -55,6 +55,15 @@ export default function CreateRoom() {
       const { code } = await res.json();
       const socket = getSocket();
       socket.connect();
+
+      await new Promise<void>(resolve => {
+        if (socket.connected) {
+          resolve();
+        } else {
+          socket.on('connect', () => resolve());
+        }
+      });
+
       socket.emit('join_room', { code, name: name.trim() });
       router.push(`/game/${code}`);
     } catch (err: unknown) {

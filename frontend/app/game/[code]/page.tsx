@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef, use } from 'react';
+import { useEffect, useState, useRef, use, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { getSocket } from '@/lib/socket';
 
@@ -66,21 +66,18 @@ export default function GamePage({
   } | null>(null);
   const [timeLeft, setTimeLeft] = useState(0);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  useEffect(() => {
+  const setupListeners = useCallback(() => {
     const socket = getSocket();
-    if (!socket.connected) {
-      router.push('/');
-      return;
-    }
 
     setMyId(socket.id || '');
 
     socket.on('player_joined', ({ players: p }) => setPlayers(p));
     socket.on('player_left', ({ players: p }) => setPlayers(p));
 
-    socket.on('game_start', ({ players: p, totalRounds }) => {
+    socket.on('game_start', ({ players: p }) => {
       setPlayers(p);
       setPhase('playing');
     });
@@ -109,26 +106,32 @@ export default function GamePage({
     socket.on('round_end', (data: RoundEndData) => {
       setRoundEnd(data);
       setPhase('round_result');
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
+      if (audioRef.current) audioRef.current.pause();
     });
 
     socket.on('game_end', ({ rankings: r }) => {
       setRankings(r);
       setPhase('finished');
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
+      if (audioRef.current) audioRef.current.pause();
     });
 
-    socket.on('game_error', ({ message }) => {
-      setError(message);
-    });
+    socket.on('game_error', ({ message }) => setError(message));
+    socket.on('error', ({ message }) => setError(message));
+  }, []);
 
-    socket.on('error', ({ message }) => {
-      setError(message);
-    });
+  useEffect(() => {
+    const socket = getSocket();
+
+    if (!socket.connected) {
+      socket.connect();
+      socket.on('connect', () => {
+        setLoading(false);
+        setupListeners();
+      });
+    } else {
+      setLoading(false);
+      setupListeners();
+    }
 
     return () => {
       socket.off('player_joined');
@@ -142,7 +145,15 @@ export default function GamePage({
       socket.off('error');
       if (audioRef.current) audioRef.current.pause();
     };
-  }, [code, router]);
+  }, [code, setupListeners]);
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <p className="text-zinc-400 text-lg">Connecting...</p>
+      </div>
+    );
+  }
 
   useEffect(() => {
     if (phase === 'playing' && timeLeft > 0) {

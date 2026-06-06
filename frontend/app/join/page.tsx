@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getSocket } from '@/lib/socket';
+import { getSocket, getApiUrl } from '@/lib/socket';
 
 export default function JoinRoom() {
   const router = useRouter();
@@ -19,7 +19,7 @@ export default function JoinRoom() {
     setError('');
 
     try {
-      const res = await fetch('http://localhost:3001/api/rooms/join', {
+      const res = await fetch(`${API_URL}/api/rooms/join`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: code.toUpperCase() }),
@@ -32,6 +32,12 @@ export default function JoinRoom() {
 
       const socket = getSocket();
       socket.connect();
+
+      await new Promise<void>(resolve => {
+        if (socket.connected) resolve();
+        else socket.on('connect', () => resolve());
+      });
+
       socket.emit('join_room', { code: code.toUpperCase(), name: name.trim() });
       router.push(`/game/${code.toUpperCase()}`);
     } catch (err: unknown) {
