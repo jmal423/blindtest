@@ -4,7 +4,7 @@ import { generateId, get, run } from './db.js';
 const JWT_SECRET = process.env.JWT_SECRET || 'blindtest-dev-secret-change-in-production';
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
-const REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || `${process.env.NODE_ENV === 'production' ? process.env.API_URL : 'http://localhost:3001'}/api/auth/discord/callback`;
+const REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || `${process.env.RAILWAY_PUBLIC_DOMAIN ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` : 'http://localhost:3001'}/api/auth/discord/callback`;
 
 function getAuthUrl() {
   const url = new URL('https://discord.com/api/oauth2/authorize');
