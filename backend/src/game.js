@@ -58,11 +58,16 @@ export class GameRoom {
     if (this.players.length === 0) return;
     if (this.state !== 'waiting') return;
 
+    const { getTracksByGenre } = await import('./spotify.js');
+
     const allTracks = [];
     for (const genre of this.genres) {
-      const { getTracksByGenre } = await import('./spotify.js');
-      const tracks = await getTracksByGenre(genre, this.settings.rounds);
-      allTracks.push(...tracks);
+      try {
+        const tracks = await getTracksByGenre(genre, this.settings.rounds);
+        allTracks.push(...tracks);
+      } catch (err) {
+        console.error(`Failed to fetch tracks for genre "${genre}":`, err.message);
+      }
     }
 
     this.tracks = shuffle(allTracks).slice(0, this.settings.rounds);
