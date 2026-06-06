@@ -121,10 +121,16 @@ export default function GamePage({
 
   useEffect(() => {
     const socket = getSocket();
+    let timeout: ReturnType<typeof setTimeout>;
 
     if (!socket.connected) {
       socket.connect();
+      timeout = setTimeout(() => {
+        setError('Could not connect to server. Is it running?');
+        setLoading(false);
+      }, 8000);
       socket.on('connect', () => {
+        clearTimeout(timeout);
         setLoading(false);
         setupListeners();
       });
@@ -134,6 +140,7 @@ export default function GamePage({
     }
 
     return () => {
+      clearTimeout(timeout);
       socket.off('player_joined');
       socket.off('player_left');
       socket.off('game_start');
