@@ -85,9 +85,6 @@ function YouTubePlayer({
             if (e.data === window.YT.PlayerState.PLAYING) {
               onPlayingRef.current();
             }
-            if (e.data === window.YT.PlayerState.ENDED) {
-              e.target.playVideo();
-            }
           },
         },
       });
@@ -374,7 +371,7 @@ export default function GamePage({
       )}
 
       {gameState.state === 'round_result' && (
-        <RoundResult data={gameState.roundResult} players={gameState.players} />
+        <RoundResult data={gameState.roundResult} players={gameState.players} pauseTimeLeft={(gameState as any).pauseTimeLeft} />
       )}
 
       {gameState.state === 'finished' && (
@@ -500,6 +497,29 @@ function WaitingRoom({
             <p className="text-sm text-zinc-300 mt-1">{settings.roundTime}s</p>
           )}
         </div>
+
+        <div>
+          <label className="text-xs text-zinc-500">Pause between rounds: {settings.pauseTime}s</label>
+          {isHost ? (
+            <div className="flex gap-2 mt-1">
+              {[2, 4, 6, 10].map(t => (
+                <button
+                  key={t}
+                  onClick={() => onSettingsChange({ pauseTime: t })}
+                  className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    settings.pauseTime === t
+                      ? 'bg-[var(--primary)] text-white'
+                      : 'bg-[var(--surface-light)] text-zinc-300 hover:bg-zinc-600'
+                  }`}
+                >
+                  {t}s
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-zinc-300 mt-1">{settings.pauseTime}s</p>
+          )}
+        </div>
       </div>
 
       {isHost && (
@@ -590,14 +610,13 @@ function PlayingPhase({
   );
 }
 
-function RoundResult({ data, players }: { data: { correctAnswer: string; artist: string; albumImage: string }; players: { name: string; score: number }[] }) {
+function RoundResult({ data, players, pauseTimeLeft }: { data: { correctAnswer: string; artist: string; albumImage: string }; players: { name: string; score: number }[]; pauseTimeLeft: number }) {
   return (
     <div className="flex-1 flex flex-col items-center justify-center gap-6 animate-slide-up">
-      <h2 className="text-xl font-semibold">Round Result</h2>
-      <div className="text-center">
-        <p className="text-2xl font-bold text-[var(--accent)]">{data.correctAnswer}</p>
-        <p className="text-zinc-400">{data.artist}</p>
-      </div>
+      <h2 className="text-xl font-semibold">
+        <span className="text-[var(--primary)]">{data.correctAnswer}</span>
+      </h2>
+      <p className="text-lg text-zinc-400">{data.artist}</p>
       <div className="w-full max-w-xs space-y-1">
         {players.map((p, i) => (
           <div key={i} className="flex justify-between px-4 py-2 bg-[var(--surface)] rounded-lg">
@@ -606,7 +625,17 @@ function RoundResult({ data, players }: { data: { correctAnswer: string; artist:
           </div>
         ))}
       </div>
-      <p className="text-zinc-500 text-sm">Next round starting soon...</p>
+      <div className="text-center">
+        <p className="text-zinc-500 text-sm">Next round in</p>
+        <motion.p
+          key={pauseTimeLeft}
+          initial={{ scale: 1.3, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="text-2xl font-bold tabular-nums text-white"
+        >
+          {pauseTimeLeft}
+        </motion.p>
+      </div>
     </div>
   );
 }

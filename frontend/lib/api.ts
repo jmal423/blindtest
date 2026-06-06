@@ -11,7 +11,7 @@ export interface RoomSettings {
 export type GameState =
   | { state: 'waiting'; genres: string[]; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number }
   | { state: 'playing'; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; timeLeft: number; roundTime: number; youtubeVideoId: string | null; trackId: string }
-  | { state: 'round_result'; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; roundResult: RoundResult }
+  | { state: 'round_result'; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; roundResult: RoundResult; pauseTimeLeft: number }
   | { state: 'finished'; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; rankings: Ranking[] };
 
 export interface Player { id: string; name: string; score: number }

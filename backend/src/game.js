@@ -67,6 +67,7 @@ export class GameRoom {
     this.roundResult = null;
     this.rankings = null;
     this.hostId = null;
+    this.pauseStartTime = null;
   }
 
   getSettings() {
@@ -76,6 +77,7 @@ export class GameRoom {
   updateSettings(updates) {
     if (updates.rounds) this.settings.rounds = Math.max(3, Math.min(25, Math.round(updates.rounds)));
     if (updates.roundTime) this.settings.roundTime = Math.max(8, Math.min(30, Math.round(updates.roundTime)));
+    if (updates.pauseTime !== undefined) this.settings.pauseTime = Math.max(2, Math.min(15, Math.round(updates.pauseTime)));
   }
 
   addPlayer(name) {
@@ -184,6 +186,7 @@ export class GameRoom {
       albumImage: track.albumImage,
     };
 
+    this.pauseStartTime = Date.now();
     this.pauseTimer = setTimeout(() => {
       this.currentRound++;
       if (this.currentRound >= this.tracks.length) {
@@ -227,7 +230,9 @@ export class GameRoom {
     }
 
     if (this.state === 'round_result') {
-      return { ...base, roundResult: this.roundResult };
+      const pauseElapsed = this.pauseStartTime ? (Date.now() - this.pauseStartTime) / 1000 : 0;
+      const pauseTimeLeft = Math.max(0, Math.ceil(this.settings.pauseTime - pauseElapsed));
+      return { ...base, roundResult: this.roundResult, pauseTimeLeft };
     }
 
     if (this.state === 'finished') {
