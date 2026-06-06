@@ -151,6 +151,7 @@ export class GameRoom {
     const base = {
       state: this.state,
       settings: this.getSettings(),
+      genres: this.genres,
       players: this.players.map(p => ({ id: p.id, name: p.name, score: p.score })),
       currentRound: this.currentRound + 1,
       totalRounds: this.totalRounds,

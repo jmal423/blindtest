@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState, useRef, use } from 'react';
+import { useEffect, useState, useRef, use, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { GameState, RoomSettings, startGame, submitAnswer, fetchGameState, updateSettings } from '@/lib/api';
+import { GameState, RoomSettings, startGame, submitAnswer, fetchGameState, updateSettings, fetchGenres } from '@/lib/api';
 
 export default function GamePage({
   params,
@@ -17,7 +17,7 @@ export default function GamePage({
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [playerId, setPlayerId] = useState<string>('');
   const [guess, setGuess] = useState('');
-  const [guessResult, setGuessResult] = useState<{ correct: boolean; points: number; correctAnswer: string; artist: string } | null>(null);
+  const [guessResult, setGuessResult] = useState<{ correct: boolean; points: number } | null>(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -25,9 +25,11 @@ export default function GamePage({
     if (!pid) { router.push('/'); return; }
     setPlayerId(pid);
 
+    let attempts = 0;
     const poll = async () => {
       try {
         const state = await fetchGameState(code);
+        attempts = 0;
         setGameState(state);
 
         if (state.state === 'playing') {
@@ -43,9 +45,12 @@ export default function GamePage({
         if (state.state === 'finished' || state.state === 'round_result') {
           setGuess('');
         }
-      } catch {
-        setError('Lost connection to server');
-        if (pollRef.current) clearInterval(pollRef.current);
+      } catch (err) {
+        attempts++;
+        if (attempts > 5) {
+          setError(err instanceof Error ? err.message : 'Lost connection to server');
+          if (pollRef.current) clearInterval(pollRef.current);
+        }
       }
     };
 
@@ -58,23 +63,31 @@ export default function GamePage({
     };
   }, [code, router]);
 
-  const handleStart = async () => {
+  const handleStart = useCallback(async () => {
     try {
       await startGame(code, playerId);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to start');
     }
-  };
+  }, [code, playerId]);
 
-  const handleSettingsUpdate = async (settings: Partial<RoomSettings>) => {
+  const handleSettingsUpdate = useCallback(async (settings: Partial<RoomSettings>) => {
     try {
       await updateSettings(code, playerId, settings);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to update settings');
+      setError(err instanceof Error ? err.message : 'Settings update failed');
     }
-  };
+  }, [code, playerId]);
 
-  const handleSubmit = async () => {
+  const handleGenresUpdate = useCallback(async (genres: string[]) => {
+    try {
+      await updateSettings(code, playerId, { genres });
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Genre update failed');
+    }
+  }, [code, playerId]);
+
+  const handleSubmit = useCallback(async () => {
     if (!guess.trim()) return;
     try {
       const result = await submitAnswer(code, playerId, guess.trim());
@@ -83,12 +96,13 @@ export default function GamePage({
     } catch {
       // ignore duplicate submits
     }
-  };
+  }, [code, playerId, guess]);
 
   if (error) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 gap-4">
         <p className="text-red-400 text-lg">{error}</p>
+        <p className="text-zinc-500 text-sm">Server: {process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}</p>
         <button onClick={() => router.push('/')} className="px-6 py-3 bg-[var(--primary)] text-white rounded-xl">
           Back Home
         </button>
@@ -115,9 +129,11 @@ export default function GamePage({
         <WaitingRoom
           players={gameState.players}
           settings={gameState.settings}
+          genres={gameState.genres}
           isHost={playerId === gameState.players[0]?.id}
           onStart={handleStart}
           onSettingsChange={handleSettingsUpdate}
+          onGenresChange={handleGenresUpdate}
         />
       )}
 
@@ -149,24 +165,36 @@ export default function GamePage({
 function WaitingRoom({
   players,
   settings,
+  genres,
   isHost,
   onStart,
   onSettingsChange,
+  onGenresChange,
 }: {
   players: { id: string; name: string }[];
   settings: RoomSettings;
+  genres: string[];
   isHost: boolean;
   onStart: () => void;
   onSettingsChange: (s: Partial<RoomSettings>) => void;
+  onGenresChange: (g: string[]) => void;
 }) {
-  return (
-    <div className="flex-1 flex flex-col items-center gap-6">
-      <div className="text-center">
-        <h2 className="text-xl font-semibold mb-2">Waiting for players...</h2>
-        <p className="text-zinc-400">Share the room code with your friends!</p>
-      </div>
+  const [allGenres, setAllGenres] = useState<{ id: string; label: string }[]>([]);
 
-      <div className="w-full max-w-xs space-y-2">
+  useEffect(() => {
+    fetchGenres().then(setAllGenres).catch(() => {});
+  }, []);
+
+  const toggleGenre = (id: string) => {
+    const set = new Set(genres);
+    if (set.has(id)) set.delete(id);
+    else set.add(id);
+    if (set.size > 0) onGenresChange(Array.from(set));
+  };
+
+  return (
+    <div className="flex-1 flex flex-col items-center gap-6 overflow-y-auto">
+      <div className="w-full max-w-sm space-y-2">
         <p className="text-sm text-zinc-400 font-medium">Players ({players.length})</p>
         {players.map((p, i) => (
           <div key={p.id} className="flex items-center gap-3 px-4 py-3 bg-[var(--surface)] rounded-xl">
@@ -178,8 +206,30 @@ function WaitingRoom({
         ))}
       </div>
 
-      <div className="w-full max-w-xs space-y-3 bg-[var(--surface)] rounded-xl p-4">
-        <p className="text-sm text-zinc-400 font-medium">Game Settings</p>
+      <div className="w-full max-w-sm space-y-3 bg-[var(--surface)] rounded-xl p-4">
+        <p className="text-sm text-zinc-400 font-medium">Settings</p>
+
+        <div>
+          <label className="text-xs text-zinc-500">Genres</label>
+          <div className="flex flex-wrap gap-1.5 mt-1">
+            {allGenres.map(g => {
+              const selected = genres.includes(g.id);
+              return (
+                <button
+                  key={g.id}
+                  onClick={() => isHost && toggleGenre(g.id)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                    selected
+                      ? 'bg-[var(--primary)] text-white'
+                      : 'bg-[var(--surface-light)] text-zinc-400'
+                  } ${!isHost ? 'opacity-80 cursor-default' : 'hover:brightness-110'}`}
+                >
+                  {g.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         <div>
           <label className="text-xs text-zinc-500">Rounds: {settings.rounds}</label>
@@ -200,7 +250,7 @@ function WaitingRoom({
               ))}
             </div>
           ) : (
-            <p className="text-sm text-zinc-300 mt-1">{settings.rounds} rounds</p>
+            <p className="text-sm text-zinc-300 mt-1">{settings.rounds}</p>
           )}
         </div>
 
@@ -223,7 +273,7 @@ function WaitingRoom({
               ))}
             </div>
           ) : (
-            <p className="text-sm text-zinc-300 mt-1">{settings.roundTime} seconds per round</p>
+            <p className="text-sm text-zinc-300 mt-1">{settings.roundTime}s</p>
           )}
         </div>
       </div>

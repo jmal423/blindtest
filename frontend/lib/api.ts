@@ -9,7 +9,7 @@ export interface RoomSettings {
 }
 
 export type GameState =
-  | { state: 'waiting'; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number }
+  | { state: 'waiting'; genres: string[]; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number }
   | { state: 'playing'; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; timeLeft: number; previewUrl: string; trackId: string }
   | { state: 'round_result'; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; roundResult: RoundResult }
   | { state: 'finished'; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; rankings: Ranking[] };
@@ -24,18 +24,17 @@ export async function fetchGenres(): Promise<{ id: string; label: string }[]> {
 }
 
 export async function createRoom(
-  genres: string[],
   playerName: string,
-  settings?: Partial<RoomSettings>
-): Promise<{ code: string; playerId: string; settings: RoomSettings }> {
+  genres?: string[]
+): Promise<{ code: string; playerId: string; settings: RoomSettings; genres: string[] }> {
   const res = await fetch(`${API_URL}/api/rooms`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ genres, playerName: playerName.trim(), ...settings }),
+    body: JSON.stringify({ genres, playerName: playerName.trim() }),
   });
   if (!res.ok) {
     const data = await res.json();
-    throw new Error(data.error || 'Failed to create room');
+    throw new Error(`Create room failed: ${data.error || res.status}`);
   }
   return res.json();
 }
@@ -65,7 +64,7 @@ export async function startGame(code: string, playerId: string): Promise<void> {
   }
 }
 
-export async function updateSettings(code: string, playerId: string, settings: Partial<RoomSettings>): Promise<RoomSettings> {
+export async function updateSettings(code: string, playerId: string, settings: Partial<RoomSettings> & { genres?: string[] }): Promise<RoomSettings> {
   const res = await fetch(`${API_URL}/api/game/${code}/settings`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -73,7 +72,7 @@ export async function updateSettings(code: string, playerId: string, settings: P
   });
   if (!res.ok) {
     const data = await res.json();
-    throw new Error(data.error || 'Failed to update settings');
+    throw new Error(`Update settings failed: ${data.error || res.status}`);
   }
   return res.json();
 }
@@ -93,7 +92,7 @@ export async function submitAnswer(code: string, playerId: string, answer: strin
 
 export async function fetchGameState(code: string): Promise<GameState> {
   const res = await fetch(`${API_URL}/api/game/${code}`);
-  if (!res.ok) throw new Error('Room not found');
+  if (!res.ok) throw new Error(`Game state fetch failed (${res.status})`);
   return res.json();
 }
 
