@@ -19,7 +19,7 @@ export default function JoinRoom() {
     setError('');
 
     try {
-      const res = await fetch(`${API_URL}/api/rooms/join`, {
+      const res = await fetch(`${getApiUrl()}/api/rooms/join`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: code.toUpperCase() }),
