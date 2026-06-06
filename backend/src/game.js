@@ -1,3 +1,5 @@
+import crypto from 'node:crypto';
+
 const POINTS_CORRECT = 100;
 const POINTS_BONUS_PER_SECOND = 10;
 
