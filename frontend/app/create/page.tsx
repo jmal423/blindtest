@@ -1,25 +1,19 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getSocket, getApiUrl } from '@/lib/socket';
-
-interface Genre {
-  id: string;
-  label: string;
-}
+import { fetchGenres, createRoom } from '@/lib/api';
 
 export default function CreateRoom() {
   const router = useRouter();
   const [name, setName] = useState('');
-  const [genres, setGenres] = useState<Genre[]>([]);
+  const [genres, setGenres] = useState<{ id: string; label: string }[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch(`${getApiUrl()}/api/genres`)
-      .then(res => res.json())
+    fetchGenres()
       .then(setGenres)
       .catch(() => setError('Failed to load genres. Is the server running?'));
   }, []);
@@ -33,7 +27,7 @@ export default function CreateRoom() {
     });
   };
 
-  const createRoom = useCallback(async () => {
+  const handleCreate = async () => {
     if (!name.trim()) { setError('Enter your name'); return; }
     if (selected.size === 0) { setError('Select at least one genre'); return; }
 
@@ -41,36 +35,14 @@ export default function CreateRoom() {
     setError('');
 
     try {
-      const res = await fetch(`${getApiUrl()}/api/rooms`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ genres: Array.from(selected) }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Failed to create room');
-      }
-
-      const { code } = await res.json();
-      const socket = getSocket();
-      socket.connect();
-
-      await new Promise<void>(resolve => {
-        if (socket.connected) {
-          resolve();
-        } else {
-          socket.on('connect', () => resolve());
-        }
-      });
-
-      socket.emit('join_room', { code, name: name.trim() });
+      const { code, playerId } = await createRoom(Array.from(selected), name);
+      localStorage.setItem(`blindtest_player_${code}`, playerId);
       router.push(`/game/${code}`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
       setLoading(false);
     }
-  }, [name, selected, router]);
+  };
 
   return (
     <div className="flex-1 flex flex-col items-center p-8 gap-8 max-w-lg mx-auto w-full">
@@ -109,12 +81,10 @@ export default function CreateRoom() {
         </div>
       </div>
 
-      {error && (
-        <p className="text-red-400 text-sm">{error}</p>
-      )}
+      {error && <p className="text-red-400 text-sm">{error}</p>}
 
       <button
-        onClick={createRoom}
+        onClick={handleCreate}
         disabled={loading}
         className="w-full px-8 py-4 bg-[var(--primary)] hover:bg-[var(--primary-hover)] disabled:opacity-50 text-white font-semibold rounded-xl transition-colors"
       >

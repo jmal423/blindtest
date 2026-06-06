@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getSocket, getApiUrl } from '@/lib/socket';
+import { joinRoom } from '@/lib/api';
 
 export default function JoinRoom() {
   const router = useRouter();
@@ -11,7 +11,7 @@ export default function JoinRoom() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const joinRoom = async () => {
+  const handleJoin = async () => {
     if (!name.trim()) { setError('Enter your name'); return; }
     if (!code.trim()) { setError('Enter a room code'); return; }
 
@@ -19,27 +19,9 @@ export default function JoinRoom() {
     setError('');
 
     try {
-      const res = await fetch(`${getApiUrl()}/api/rooms/join`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: code.toUpperCase() }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Room not found');
-      }
-
-      const socket = getSocket();
-      socket.connect();
-
-      await new Promise<void>(resolve => {
-        if (socket.connected) resolve();
-        else socket.on('connect', () => resolve());
-      });
-
-      socket.emit('join_room', { code: code.toUpperCase(), name: name.trim() });
-      router.push(`/game/${code.toUpperCase()}`);
+      const { code: roomCode, playerId } = await joinRoom(code, name);
+      localStorage.setItem(`blindtest_player_${roomCode}`, playerId);
+      router.push(`/game/${roomCode}`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
       setLoading(false);
@@ -76,12 +58,10 @@ export default function JoinRoom() {
         </div>
       </div>
 
-      {error && (
-        <p className="text-red-400 text-sm">{error}</p>
-      )}
+      {error && <p className="text-red-400 text-sm">{error}</p>}
 
       <button
-        onClick={joinRoom}
+        onClick={handleJoin}
         disabled={loading}
         className="w-full px-8 py-4 bg-[var(--primary)] hover:bg-[var(--primary-hover)] disabled:opacity-50 text-white font-semibold rounded-xl transition-colors"
       >

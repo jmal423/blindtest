@@ -1,6 +1,4 @@
 import express from 'express';
-import { createServer } from 'http';
-import { Server } from 'socket.io';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { GameRoom } from './game.js';
@@ -9,14 +7,6 @@ import { GENRES, getGenreLabel } from './spotify.js';
 dotenv.config();
 
 const app = express();
-const server = createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: '*',
-    methods: ['GET', 'POST'],
-  },
-});
-
 app.use(cors());
 app.use(express.json());
 
@@ -35,107 +25,113 @@ function generateCode() {
 }
 
 app.get('/api/genres', (req, res) => {
-  const genreList = GENRES.map(g => ({ id: g, label: getGenreLabel(g) }));
-  res.json(genreList);
+  res.json(GENRES.map(g => ({ id: g, label: getGenreLabel(g) })));
 });
 
 app.post('/api/rooms', (req, res) => {
-  const { genres } = req.body;
+  const { genres, playerName, rounds, roundTime } = req.body;
   if (!genres || !Array.isArray(genres) || genres.length === 0) {
     return res.status(400).json({ error: 'At least one genre is required' });
+  }
+  if (!playerName || !playerName.trim()) {
+    return res.status(400).json({ error: 'Player name is required' });
   }
 
   const code = generateCode();
   const room = new GameRoom(code, genres);
+  if (rounds || roundTime) room.updateSettings({ rounds, roundTime });
+  const playerId = room.addPlayer(playerName.trim());
   rooms.set(code, room);
 
-  res.json({ code, genres });
+  res.json({ code, playerId, settings: room.getSettings() });
 });
 
 app.post('/api/rooms/join', (req, res) => {
-  const { code } = req.body;
-  const room = rooms.get(code);
+  const { code, playerName } = req.body;
+  if (!code || !playerName || !playerName.trim()) {
+    return res.status(400).json({ error: 'Code and name are required' });
+  }
 
-  if (!room) {
-    return res.status(404).json({ error: 'Room not found' });
+  const room = rooms.get(code.toUpperCase());
+  if (!room) return res.status(404).json({ error: 'Room not found' });
+  if (room.state !== 'waiting') return res.status(400).json({ error: 'Game already in progress' });
+
+  const playerId = room.addPlayer(playerName.trim());
+  res.json({ code: room.code, playerId });
+});
+
+app.get('/api/game/:code', (req, res) => {
+  const room = rooms.get(req.params.code.toUpperCase());
+  if (!room) return res.status(404).json({ error: 'Room not found' });
+  res.json(room.getState());
+});
+
+app.post('/api/game/:code/settings', (req, res) => {
+  const room = rooms.get(req.params.code.toUpperCase());
+  if (!room) return res.status(404).json({ error: 'Room not found' });
+  if (room.state !== 'waiting') return res.status(400).json({ error: 'Game already started' });
+  if (room.hostId !== req.body.playerId) return res.status(403).json({ error: 'Only the host can change settings' });
+
+  room.updateSettings(req.body);
+  res.json(room.getSettings());
+});
+
+app.post('/api/game/:code/start', async (req, res) => {
+  const room = rooms.get(req.params.code.toUpperCase());
+  if (!room) return res.status(404).json({ error: 'Room not found' });
+
+  const { playerId } = req.body;
+  if (room.hostId !== playerId) {
+    return res.status(403).json({ error: 'Only the host can start' });
   }
-  if (room.state !== 'waiting') {
-    return res.status(400).json({ error: 'Game already in progress' });
+
+  const error = await room.startGame();
+  if (error) return res.status(400).json({ error });
+  res.json({ ok: true });
+});
+
+app.post('/api/game/:code/submit', (req, res) => {
+  const room = rooms.get(req.params.code.toUpperCase());
+  if (!room) return res.status(404).json({ error: 'Room not found' });
+
+  const { playerId, answer } = req.body;
+  if (!playerId || !answer) {
+    return res.status(400).json({ error: 'playerId and answer required' });
   }
+
+  const result = room.submitAnswer(playerId, answer.trim());
+  if (!result) return res.status(400).json({ error: 'Cannot submit now' });
+  res.json(result);
+});
+
+app.post('/api/game/:code/leave', (req, res) => {
+  const room = rooms.get(req.params.code.toUpperCase());
+  if (!room) return res.status(404).json({ error: 'Room not found' });
+
+  const { playerId } = req.body;
+  room.players = room.players.filter(p => p.id !== playerId);
+
+  if (room.players.length === 0) {
+    room.destroy();
+    rooms.delete(req.params.code.toUpperCase());
+  }
+
+  res.json({ ok: true });
+});
+
+app.get('/api/rooms/:code', (req, res) => {
+  const room = rooms.get(req.params.code.toUpperCase());
+  if (!room) return res.status(404).json({ error: 'Room not found' });
 
   res.json({
     code: room.code,
     genres: room.genres,
+    state: room.state,
     playerCount: room.players.length,
   });
 });
 
-io.on('connection', (socket) => {
-  let currentRoom = null;
-  let playerName = null;
-
-  socket.on('join_room', ({ code, name }) => {
-    const room = rooms.get(code);
-    if (!room) {
-      socket.emit('error', { message: 'Room not found' });
-      return;
-    }
-    if (room.state !== 'waiting') {
-      socket.emit('error', { message: 'Game already in progress' });
-      return;
-    }
-
-    currentRoom = code;
-    playerName = name;
-    socket.join(code);
-
-    const player = room.addPlayer(socket.id, name);
-    io.to(code).emit('player_joined', {
-      players: room.players.map(p => ({ id: p.id, name: p.name })),
-    });
-  });
-
-  socket.on('start_game', async () => {
-    if (!currentRoom) return;
-    const room = rooms.get(currentRoom);
-    if (!room) return;
-
-    const host = room.players[0];
-    if (host?.id !== socket.id) {
-      socket.emit('error', { message: 'Only the host can start the game' });
-      return;
-    }
-
-    await room.startGame(io);
-  });
-
-  socket.on('submit_answer', ({ answer }) => {
-    if (!currentRoom) return;
-    const room = rooms.get(currentRoom);
-    if (!room) return;
-
-    room.submitAnswer(socket.id, answer);
-  });
-
-  socket.on('disconnect', () => {
-    if (currentRoom) {
-      const room = rooms.get(currentRoom);
-      if (room) {
-        room.removePlayer(socket.id);
-        io.to(currentRoom).emit('player_left', {
-          players: room.players.map(p => ({ id: p.id, name: p.name })),
-        });
-
-        if (room.players.length === 0) {
-          room.destroy();
-          rooms.delete(currentRoom);
-        }
-      }
-    }
-  });
-});
-
 const PORT = process.env.PORT || 3001;
-server.listen(PORT, () => {
+app.listen(PORT, () => {
   console.log(`BlindTest server running on port ${PORT}`);
 });

@@ -1,174 +1,8 @@
-const ROUND_TIME = 15;
-const ROUNDS_PER_GAME = 10;
 const POINTS_CORRECT = 100;
 const POINTS_BONUS_PER_SECOND = 10;
 
-class GameRoom {
-  constructor(code, genres) {
-    this.code = code;
-    this.genres = genres;
-    this.players = [];
-    this.state = 'waiting';
-    this.currentRound = 0;
-    this.tracks = [];
-    this.roundStartTime = null;
-    this.roundTimer = null;
-    this.io = null;
-    this.namespace = null;
-  }
-
-  addPlayer(id, name) {
-    const existing = this.players.find(p => p.id === id);
-    if (existing) return existing;
-
-    const player = { id, name, score: 0, answers: [] };
-    this.players.push(player);
-    return player;
-  }
-
-  removePlayer(id) {
-    this.players = this.players.filter(p => p.id !== id);
-  }
-
-  async startGame(io) {
-    if (this.players.length < 1) return;
-
-    this.io = io;
-
-    const allTracks = [];
-    for (const genre of this.genres) {
-      const { getTracksByGenre } = await import('./spotify.js');
-      const tracks = await getTracksByGenre(genre, 10);
-      allTracks.push(...tracks);
-    }
-
-    this.tracks = shuffle(allTracks).slice(0, ROUNDS_PER_GAME);
-
-    if (this.tracks.length === 0) {
-      this.emit('game_error', { message: 'No tracks found for the selected genres. Try different genres.' });
-      return;
-    }
-
-    this.players.forEach(p => {
-      p.score = 0;
-      p.answers = [];
-    });
-
-    this.state = 'playing';
-    this.currentRound = 0;
-    this.emit('game_start', {
-      totalRounds: this.tracks.length,
-      players: this.players.map(p => ({ id: p.id, name: p.name })),
-    });
-
-    this.startRound();
-  }
-
-  startRound() {
-    if (this.currentRound >= this.tracks.length) {
-      this.endGame();
-      return;
-    }
-
-    const track = this.tracks[this.currentRound];
-    this.roundStartTime = Date.now();
-
-    this.emit('round_start', {
-      round: this.currentRound + 1,
-      totalRounds: this.tracks.length,
-      timeLimit: ROUND_TIME,
-      previewUrl: track.previewUrl,
-      trackId: track.id,
-    });
-
-    this.roundTimer = setTimeout(() => {
-      this.endRound();
-    }, ROUND_TIME * 1000);
-  }
-
-  submitAnswer(playerId, answer) {
-    const player = this.players.find(p => p.id === playerId);
-    if (!player || this.state !== 'playing') return;
-
-    const track = this.tracks[this.currentRound];
-    const elapsed = (Date.now() - this.roundStartTime) / 1000;
-    const isCorrect = answer.toLowerCase().trim() === track.name.toLowerCase().trim();
-
-    let points = 0;
-    if (isCorrect) {
-      const timeBonus = Math.max(0, Math.floor((ROUND_TIME - elapsed) * POINTS_BONUS_PER_SECOND));
-      points = POINTS_CORRECT + timeBonus;
-    }
-
-    player.score += points;
-    player.answers.push({
-      round: this.currentRound,
-      answer,
-      correct: isCorrect,
-      points,
-    });
-
-    this.emit('answer_result', {
-      playerId,
-      correct: isCorrect,
-      points,
-      correctAnswer: track.name,
-      artist: track.artist,
-    });
-  }
-
-  endRound() {
-    if (this.roundTimer) {
-      clearTimeout(this.roundTimer);
-      this.roundTimer = null;
-    }
-
-    const track = this.tracks[this.currentRound];
-    this.emit('round_end', {
-      round: this.currentRound + 1,
-      correctAnswer: track.name,
-      artist: track.artist,
-      albumImage: track.albumImage,
-    });
-
-    setTimeout(() => {
-      this.currentRound++;
-      this.startRound();
-    }, 4000);
-  }
-
-  endGame() {
-    this.state = 'finished';
-    if (this.roundTimer) {
-      clearTimeout(this.roundTimer);
-      this.roundTimer = null;
-    }
-
-    const sorted = [...this.players].sort((a, b) => b.score - a.score);
-    this.emit('game_end', {
-      rankings: sorted.map((p, i) => ({
-        rank: i + 1,
-        name: p.name,
-        score: p.score,
-        answers: p.answers,
-      })),
-    });
-  }
-
-  emit(event, data) {
-    if (this.io) {
-      this.io.to(this.code).emit(event, data);
-    }
-  }
-
-  destroy() {
-    if (this.roundTimer) {
-      clearTimeout(this.roundTimer);
-    }
-    this.players = [];
-    this.tracks = [];
-    this.state = 'destroyed';
-  }
+function generateId() {
+  return crypto.randomUUID();
 }
 
 function shuffle(array) {
@@ -180,4 +14,175 @@ function shuffle(array) {
   return arr;
 }
 
-export { GameRoom, ROUND_TIME, ROUNDS_PER_GAME };
+export class GameRoom {
+  constructor(code, genres) {
+    this.code = code;
+    this.genres = genres;
+    this.settings = { rounds: 10, roundTime: 15, pauseTime: 4 };
+    this.tracks = [];
+    this.players = [];
+    this.state = 'waiting';
+    this.currentRound = 0;
+    this.totalRounds = 0;
+    this.roundStartTime = null;
+    this.roundTimer = null;
+    this.pauseTimer = null;
+    this.roundResult = null;
+    this.rankings = null;
+    this.hostId = null;
+  }
+
+  getSettings() {
+    return { ...this.settings };
+  }
+
+  updateSettings(updates) {
+    if (updates.rounds) this.settings.rounds = Math.max(3, Math.min(25, Math.round(updates.rounds)));
+    if (updates.roundTime) this.settings.roundTime = Math.max(8, Math.min(30, Math.round(updates.roundTime)));
+  }
+
+  addPlayer(name) {
+    const id = generateId();
+    this.players.push({ id, name, score: 0, answers: [] });
+    if (!this.hostId) this.hostId = id;
+    return id;
+  }
+
+  getPlayer(id) {
+    return this.players.find(p => p.id === id);
+  }
+
+  async startGame() {
+    if (this.players.length === 0) return;
+    if (this.state !== 'waiting') return;
+
+    const allTracks = [];
+    for (const genre of this.genres) {
+      const { getTracksByGenre } = await import('./spotify.js');
+      const tracks = await getTracksByGenre(genre, this.settings.rounds);
+      allTracks.push(...tracks);
+    }
+
+    this.tracks = shuffle(allTracks).slice(0, this.settings.rounds);
+    this.totalRounds = this.tracks.length;
+
+    if (this.tracks.length === 0) return 'No tracks found';
+
+    this.players.forEach(p => { p.score = 0; p.answers = []; });
+    this.currentRound = 0;
+    this.startRound();
+    return null;
+  }
+
+  startRound() {
+    if (this.currentRound >= this.tracks.length) {
+      this.endGame();
+      return;
+    }
+
+    this.roundStartTime = Date.now();
+    this.state = 'playing';
+    this.roundResult = null;
+
+    this.roundTimer = setTimeout(() => {
+      this.endRound();
+    }, this.settings.roundTime * 1000);
+  }
+
+  submitAnswer(playerId, answer) {
+    const player = this.getPlayer(playerId);
+    if (!player || this.state !== 'playing') return;
+
+    const track = this.tracks[this.currentRound];
+    if (!track) return;
+
+    const isCorrect = answer.toLowerCase().trim() === track.name.toLowerCase().trim();
+    let points = 0;
+
+    if (isCorrect) {
+      const elapsed = (Date.now() - this.roundStartTime) / 1000;
+      const timeBonus = Math.max(0, Math.floor((this.settings.roundTime - elapsed) * POINTS_BONUS_PER_SECOND));
+      points = POINTS_CORRECT + timeBonus;
+    }
+
+    player.score += points;
+    player.answers.push({
+      round: this.currentRound,
+      answer,
+      correct: isCorrect,
+      points,
+    });
+
+    return { correct: isCorrect, points, correctAnswer: track.name, artist: track.artist };
+  }
+
+  endRound() {
+    if (this.roundTimer) { clearTimeout(this.roundTimer); this.roundTimer = null; }
+
+    const track = this.tracks[this.currentRound];
+    this.state = 'round_result';
+    this.roundResult = {
+      round: this.currentRound + 1,
+      correctAnswer: track.name,
+      artist: track.artist,
+      albumImage: track.albumImage,
+    };
+
+    this.pauseTimer = setTimeout(() => {
+      this.currentRound++;
+      if (this.currentRound >= this.tracks.length) {
+        this.endGame();
+      } else {
+        this.startRound();
+      }
+    }, this.settings.pauseTime * 1000);
+  }
+
+  endGame() {
+    if (this.roundTimer) { clearTimeout(this.roundTimer); this.roundTimer = null; }
+    if (this.pauseTimer) { clearTimeout(this.pauseTimer); this.pauseTimer = null; }
+
+    this.state = 'finished';
+    this.rankings = [...this.players].sort((a, b) => b.score - a.score)
+      .map((p, i) => ({ rank: i + 1, name: p.name, score: p.score, answers: p.answers }));
+  }
+
+  getState() {
+    const base = {
+      state: this.state,
+      settings: this.getSettings(),
+      players: this.players.map(p => ({ id: p.id, name: p.name, score: p.score })),
+      currentRound: this.currentRound + 1,
+      totalRounds: this.totalRounds,
+    };
+
+    if (this.state === 'playing') {
+      const elapsed = (Date.now() - this.roundStartTime) / 1000;
+      const timeLeft = Math.max(0, Math.ceil(this.settings.roundTime - elapsed));
+      const track = this.tracks[this.currentRound];
+      return {
+        ...base,
+        timeLeft,
+        previewUrl: track.previewUrl,
+        trackId: track.id,
+      };
+    }
+
+    if (this.state === 'round_result') {
+      return { ...base, roundResult: this.roundResult };
+    }
+
+    if (this.state === 'finished') {
+      return { ...base, rankings: this.rankings };
+    }
+
+    return base;
+  }
+
+  destroy() {
+    if (this.roundTimer) clearTimeout(this.roundTimer);
+    if (this.pauseTimer) clearTimeout(this.pauseTimer);
+    this.players = [];
+    this.tracks = [];
+  }
+}

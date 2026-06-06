@@ -1,46 +1,8 @@
 'use client';
 
-import { useEffect, useState, useRef, use, useCallback } from 'react';
+import { useEffect, useState, useRef, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { getSocket } from '@/lib/socket';
-
-interface Player {
-  id: string;
-  name: string;
-  score: number;
-  answers: Answer[];
-}
-
-interface Answer {
-  round: number;
-  answer: string;
-  correct: boolean;
-  points: number;
-}
-
-interface RoundData {
-  round: number;
-  totalRounds: number;
-  timeLimit: number;
-  previewUrl: string;
-  trackId: string;
-}
-
-interface RoundEndData {
-  round: number;
-  correctAnswer: string;
-  artist: string;
-  albumImage: string;
-}
-
-interface Ranking {
-  rank: number;
-  name: string;
-  score: number;
-  answers: Answer[];
-}
-
-type Phase = 'waiting' | 'playing' | 'round_result' | 'finished';
+import { GameState, RoomSettings, startGame, submitAnswer, fetchGameState, updateSettings } from '@/lib/api';
 
 export default function GamePage({
   params,
@@ -50,159 +12,94 @@ export default function GamePage({
   const { code } = use(params);
   const router = useRouter();
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const [phase, setPhase] = useState<Phase>('waiting');
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [myId, setMyId] = useState<string>('');
-  const [round, setRound] = useState<RoundData | null>(null);
-  const [roundEnd, setRoundEnd] = useState<RoundEndData | null>(null);
-  const [rankings, setRankings] = useState<Ranking[]>([]);
+  const [gameState, setGameState] = useState<GameState | null>(null);
+  const [playerId, setPlayerId] = useState<string>('');
   const [guess, setGuess] = useState('');
-  const [lastResult, setLastResult] = useState<{
-    correct: boolean;
-    points: number;
-    correctAnswer: string;
-    artist: string;
-  } | null>(null);
-  const [timeLeft, setTimeLeft] = useState(0);
+  const [guessResult, setGuessResult] = useState<{ correct: boolean; points: number; correctAnswer: string; artist: string } | null>(null);
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(true);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const setupListeners = useCallback(() => {
-    const socket = getSocket();
-
-    setMyId(socket.id || '');
-
-    socket.on('player_joined', ({ players: p }) => setPlayers(p));
-    socket.on('player_left', ({ players: p }) => setPlayers(p));
-
-    socket.on('game_start', ({ players: p }) => {
-      setPlayers(p);
-      setPhase('playing');
-    });
-
-    socket.on('round_start', (data: RoundData) => {
-      setRound(data);
-      setRoundEnd(null);
-      setLastResult(null);
-      setGuess('');
-      setTimeLeft(data.timeLimit);
-      setPhase('playing');
-
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = data.previewUrl;
-        audioRef.current.play().catch(() => {});
-      }
-    });
-
-    socket.on('answer_result', ({ playerId, correct, points, correctAnswer, artist }) => {
-      if (playerId === socket.id) {
-        setLastResult({ correct, points, correctAnswer, artist });
-      }
-    });
-
-    socket.on('round_end', (data: RoundEndData) => {
-      setRoundEnd(data);
-      setPhase('round_result');
-      if (audioRef.current) audioRef.current.pause();
-    });
-
-    socket.on('game_end', ({ rankings: r }) => {
-      setRankings(r);
-      setPhase('finished');
-      if (audioRef.current) audioRef.current.pause();
-    });
-
-    socket.on('game_error', ({ message }) => setError(message));
-    socket.on('error', ({ message }) => setError(message));
-  }, []);
 
   useEffect(() => {
-    const socket = getSocket();
-    let timeout: ReturnType<typeof setTimeout>;
+    const pid = localStorage.getItem(`blindtest_player_${code}`);
+    if (!pid) { router.push('/'); return; }
+    setPlayerId(pid);
 
-    if (!socket.connected) {
-      socket.connect();
-      timeout = setTimeout(() => {
-        setError('Could not connect to server. Is it running?');
-        setLoading(false);
-      }, 8000);
-      socket.on('connect', () => {
-        clearTimeout(timeout);
-        setLoading(false);
-        setupListeners();
-      });
-    } else {
-      setLoading(false);
-      setupListeners();
-    }
+    const poll = async () => {
+      try {
+        const state = await fetchGameState(code);
+        setGameState(state);
 
-    return () => {
-      clearTimeout(timeout);
-      socket.off('player_joined');
-      socket.off('player_left');
-      socket.off('game_start');
-      socket.off('round_start');
-      socket.off('answer_result');
-      socket.off('round_end');
-      socket.off('game_end');
-      socket.off('game_error');
-      socket.off('error');
-      if (audioRef.current) audioRef.current.pause();
-    };
-  }, [code, setupListeners]);
-
-  if (loading) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <p className="text-zinc-400 text-lg">Connecting...</p>
-      </div>
-    );
-  }
-
-  useEffect(() => {
-    if (phase === 'playing' && timeLeft > 0) {
-      timerRef.current = setInterval(() => {
-        setTimeLeft(prev => {
-          if (prev <= 1) {
-            if (timerRef.current) clearInterval(timerRef.current);
-            return 0;
+        if (state.state === 'playing') {
+          if (audioRef.current && audioRef.current.src !== state.previewUrl) {
+            audioRef.current.pause();
+            audioRef.current.src = state.previewUrl;
+            audioRef.current.play().catch(() => {});
           }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
+        }
+        if (state.state !== 'playing') {
+          if (audioRef.current) audioRef.current.pause();
+        }
+        if (state.state === 'finished' || state.state === 'round_result') {
+          setGuess('');
+        }
+      } catch {
+        setError('Lost connection to server');
+        if (pollRef.current) clearInterval(pollRef.current);
+      }
     };
-  }, [phase, timeLeft]);
 
-  const startGame = () => {
-    const socket = getSocket();
-    socket.emit('start_game');
+    poll();
+    pollRef.current = setInterval(poll, 1000);
+
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+      if (audioRef.current) audioRef.current.pause();
+    };
+  }, [code, router]);
+
+  const handleStart = async () => {
+    try {
+      await startGame(code, playerId);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to start');
+    }
   };
 
-  const submitGuess = () => {
+  const handleSettingsUpdate = async (settings: Partial<RoomSettings>) => {
+    try {
+      await updateSettings(code, playerId, settings);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to update settings');
+    }
+  };
+
+  const handleSubmit = async () => {
     if (!guess.trim()) return;
-    const socket = getSocket();
-    socket.emit('submit_answer', { answer: guess.trim() });
-    setGuess('');
+    try {
+      const result = await submitAnswer(code, playerId, guess.trim());
+      setGuessResult(result);
+      setGuess('');
+    } catch {
+      // ignore duplicate submits
+    }
   };
-
-  const isHost = players.length > 0 && players[0]?.id === myId;
 
   if (error) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 gap-4">
         <p className="text-red-400 text-lg">{error}</p>
-        <button
-          onClick={() => router.push('/')}
-          className="px-6 py-3 bg-[var(--primary)] text-white rounded-xl"
-        >
+        <button onClick={() => router.push('/')} className="px-6 py-3 bg-[var(--primary)] text-white rounded-xl">
           Back Home
         </button>
+      </div>
+    );
+  }
+
+  if (!gameState) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <p className="text-zinc-400 text-lg">Loading...</p>
       </div>
     );
   }
@@ -214,31 +111,34 @@ export default function GamePage({
         <p className="text-3xl font-bold tracking-[0.3em] text-[var(--primary)]">{code}</p>
       </div>
 
-      {phase === 'waiting' && (
+      {gameState.state === 'waiting' && (
         <WaitingRoom
-          players={players}
-          isHost={isHost}
-          onStart={startGame}
+          players={gameState.players}
+          settings={gameState.settings}
+          isHost={playerId === gameState.players[0]?.id}
+          onStart={handleStart}
+          onSettingsChange={handleSettingsUpdate}
         />
       )}
 
-      {phase === 'playing' && round && (
+      {gameState.state === 'playing' && (
         <PlayingPhase
-          round={round}
-          timeLeft={timeLeft}
+          currentRound={gameState.currentRound}
+          totalRounds={gameState.totalRounds}
+          timeLeft={gameState.timeLeft}
           guess={guess}
           onGuessChange={setGuess}
-          onSubmit={submitGuess}
-          lastResult={lastResult}
+          onSubmit={handleSubmit}
+          guessResult={guessResult}
         />
       )}
 
-      {phase === 'round_result' && roundEnd && (
-        <RoundResult data={roundEnd} players={players} />
+      {gameState.state === 'round_result' && (
+        <RoundResult data={gameState.roundResult} players={gameState.players} />
       )}
 
-      {phase === 'finished' && (
-        <GameFinished rankings={rankings} onPlayAgain={() => router.push('/')} />
+      {gameState.state === 'finished' && (
+        <GameFinished rankings={gameState.rankings} onPlayAgain={() => router.push('/')} />
       )}
 
       <audio ref={audioRef} />
@@ -248,15 +148,19 @@ export default function GamePage({
 
 function WaitingRoom({
   players,
+  settings,
   isHost,
   onStart,
+  onSettingsChange,
 }: {
-  players: Player[];
+  players: { id: string; name: string }[];
+  settings: RoomSettings;
   isHost: boolean;
   onStart: () => void;
+  onSettingsChange: (s: Partial<RoomSettings>) => void;
 }) {
   return (
-    <div className="flex-1 flex flex-col items-center justify-center gap-8">
+    <div className="flex-1 flex flex-col items-center gap-6">
       <div className="text-center">
         <h2 className="text-xl font-semibold mb-2">Waiting for players...</h2>
         <p className="text-zinc-400">Share the room code with your friends!</p>
@@ -265,58 +169,97 @@ function WaitingRoom({
       <div className="w-full max-w-xs space-y-2">
         <p className="text-sm text-zinc-400 font-medium">Players ({players.length})</p>
         {players.map((p, i) => (
-          <div
-            key={p.id}
-            className="flex items-center gap-3 px-4 py-3 bg-[var(--surface)] rounded-xl"
-          >
+          <div key={p.id} className="flex items-center gap-3 px-4 py-3 bg-[var(--surface)] rounded-xl">
             <div className="w-8 h-8 rounded-full bg-[var(--primary)] flex items-center justify-center text-sm font-bold">
               {p.name[0].toUpperCase()}
             </div>
-            <span className="font-medium">
-              {p.name} {i === 0 && '(Host)'}
-            </span>
+            <span className="font-medium">{p.name} {i === 0 && '(Host)'}</span>
           </div>
         ))}
       </div>
 
+      <div className="w-full max-w-xs space-y-3 bg-[var(--surface)] rounded-xl p-4">
+        <p className="text-sm text-zinc-400 font-medium">Game Settings</p>
+
+        <div>
+          <label className="text-xs text-zinc-500">Rounds: {settings.rounds}</label>
+          {isHost ? (
+            <div className="flex gap-2 mt-1">
+              {[5, 10, 15, 20].map(n => (
+                <button
+                  key={n}
+                  onClick={() => onSettingsChange({ rounds: n })}
+                  className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    settings.rounds === n
+                      ? 'bg-[var(--primary)] text-white'
+                      : 'bg-[var(--surface-light)] text-zinc-300 hover:bg-zinc-600'
+                  }`}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-zinc-300 mt-1">{settings.rounds} rounds</p>
+          )}
+        </div>
+
+        <div>
+          <label className="text-xs text-zinc-500">Time per round: {settings.roundTime}s</label>
+          {isHost ? (
+            <div className="flex gap-2 mt-1">
+              {[10, 15, 20, 30].map(t => (
+                <button
+                  key={t}
+                  onClick={() => onSettingsChange({ roundTime: t })}
+                  className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    settings.roundTime === t
+                      ? 'bg-[var(--primary)] text-white'
+                      : 'bg-[var(--surface-light)] text-zinc-300 hover:bg-zinc-600'
+                  }`}
+                >
+                  {t}s
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-zinc-300 mt-1">{settings.roundTime} seconds per round</p>
+          )}
+        </div>
+      </div>
+
       {isHost && (
-        <button
-          onClick={onStart}
-          disabled={players.length < 1}
-          className="px-8 py-4 bg-[var(--primary)] hover:bg-[var(--primary-hover)] disabled:opacity-50 text-white font-semibold rounded-xl transition-colors animate-pulse-glow"
-        >
+        <button onClick={onStart} className="px-8 py-4 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white font-semibold rounded-xl transition-colors animate-pulse-glow">
           Start Game
         </button>
       )}
 
-      {!isHost && (
-        <p className="text-zinc-500 text-sm">Waiting for the host to start...</p>
-      )}
+      {!isHost && <p className="text-zinc-500 text-sm">Waiting for the host to start...</p>}
     </div>
   );
 }
 
 function PlayingPhase({
-  round,
+  currentRound,
+  totalRounds,
   timeLeft,
   guess,
   onGuessChange,
   onSubmit,
-  lastResult,
+  guessResult,
 }: {
-  round: RoundData;
+  currentRound: number;
+  totalRounds: number;
   timeLeft: number;
   guess: string;
   onGuessChange: (v: string) => void;
   onSubmit: () => void;
-  lastResult: { correct: boolean; points: number; correctAnswer: string; artist: string } | null;
+  guessResult: { correct: boolean; points: number } | null;
 }) {
   return (
     <div className="flex-1 flex flex-col items-center gap-6">
       <div className="flex items-center gap-4">
-        <span className="text-sm text-zinc-400">
-          Round {round.round}/{round.totalRounds}
-        </span>
+        <span className="text-sm text-zinc-400">Round {currentRound}/{totalRounds}</span>
         <div className="w-12 h-12 rounded-full bg-[var(--surface)] flex items-center justify-center">
           <span className={`text-xl font-bold ${timeLeft <= 5 ? 'text-red-400' : 'text-[var(--accent)]'}`}>
             {timeLeft}
@@ -342,59 +285,50 @@ function PlayingPhase({
         </button>
       </div>
 
-      {lastResult && (
-        <div
-          className={`px-6 py-3 rounded-xl text-center animate-slide-up ${
-            lastResult.correct
-              ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-              : 'bg-red-500/20 text-red-400 border border-red-500/30'
-          }`}
-        >
-          {lastResult.correct
-            ? `Correct! +${lastResult.points} pts`
-            : `Wrong! It was "${lastResult.correctAnswer}" by ${lastResult.artist}`}
+      {guessResult && (
+        <div className={`px-6 py-3 rounded-xl text-center animate-slide-up ${
+          guessResult.correct
+            ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+            : 'bg-red-500/20 text-red-400 border border-red-500/30'
+        }`}>
+          {guessResult.correct ? `Correct! +${guessResult.points} pts` : 'Wrong!'}
         </div>
       )}
     </div>
   );
 }
 
-function RoundResult({ data, players }: { data: RoundEndData; players: Player[] }) {
+function RoundResult({ data, players }: { data: { correctAnswer: string; artist: string; albumImage: string }; players: { name: string; score: number }[] }) {
   return (
     <div className="flex-1 flex flex-col items-center justify-center gap-6 animate-slide-up">
-      <h2 className="text-xl font-semibold">Round {data.round}</h2>
+      <h2 className="text-xl font-semibold">Round Result</h2>
       <div className="text-center">
         <p className="text-2xl font-bold text-[var(--accent)]">{data.correctAnswer}</p>
         <p className="text-zinc-400">{data.artist}</p>
+      </div>
+      <div className="w-full max-w-xs space-y-1">
+        {players.map((p, i) => (
+          <div key={i} className="flex justify-between px-4 py-2 bg-[var(--surface)] rounded-lg">
+            <span>{p.name}</span>
+            <span className="text-[var(--accent)] font-medium">{p.score}</span>
+          </div>
+        ))}
       </div>
       <p className="text-zinc-500 text-sm">Next round starting soon...</p>
     </div>
   );
 }
 
-function GameFinished({
-  rankings,
-  onPlayAgain,
-}: {
-  rankings: Ranking[];
-  onPlayAgain: () => void;
-}) {
+function GameFinished({ rankings, onPlayAgain }: { rankings: { rank: number; name: string; score: number }[]; onPlayAgain: () => void }) {
   return (
     <div className="flex-1 flex flex-col items-center gap-6 animate-slide-up">
-      <h2 className="text-2xl font-bold">
-        <span className="text-[var(--primary)]">Game</span> Over!
-      </h2>
+      <h2 className="text-2xl font-bold"><span className="text-[var(--primary)]">Game</span> Over!</h2>
 
       <div className="w-full max-w-sm space-y-2">
         {rankings.map((r, i) => (
-          <div
-            key={i}
-            className={`flex items-center gap-4 px-4 py-3 rounded-xl ${
-              i === 0
-                ? 'bg-yellow-500/20 border border-yellow-500/30'
-                : 'bg-[var(--surface)]'
-            }`}
-          >
+          <div key={i} className={`flex items-center gap-4 px-4 py-3 rounded-xl ${
+            i === 0 ? 'bg-yellow-500/20 border border-yellow-500/30' : 'bg-[var(--surface)]'
+          }`}>
             <span className="text-2xl font-bold text-zinc-500 w-8">
               {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${r.rank}`}
             </span>
@@ -407,10 +341,7 @@ function GameFinished({
         ))}
       </div>
 
-      <button
-        onClick={onPlayAgain}
-        className="px-8 py-4 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white font-semibold rounded-xl transition-colors"
-      >
+      <button onClick={onPlayAgain} className="px-8 py-4 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white font-semibold rounded-xl transition-colors">
         Play Again
       </button>
     </div>
