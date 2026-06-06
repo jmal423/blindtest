@@ -171,7 +171,7 @@ app.get('/api/youtube/search', async (req, res) => {
 
 // Auth
 app.get('/api/auth/discord', (req, res) => {
-  const url = getAuthUrl();
+  const url = getAuthUrl(req.headers.host);
   res.redirect(url);
 });
 
@@ -180,7 +180,7 @@ app.get('/api/auth/discord/callback', async (req, res) => {
   if (!code) return res.status(400).json({ error: 'Missing code' });
 
   try {
-    const result = await handleDiscordCallback(code);
+    const result = await handleDiscordCallback(code, req.headers.host);
     res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?token=${result.token}`);
   } catch (err) {
     res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?error=${encodeURIComponent(err.message)}`);

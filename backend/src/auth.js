@@ -4,18 +4,20 @@ import { generateId, get, run } from './db.js';
 const JWT_SECRET = process.env.JWT_SECRET || 'blindtest-dev-secret-change-in-production';
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
-const REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || `${process.env.RAILWAY_PUBLIC_DOMAIN ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` : 'http://localhost:3001'}/api/auth/discord/callback`;
+function getRedirectUri(host) {
+  return `https://${host}/api/auth/discord/callback`;
+}
 
-function getAuthUrl() {
+function getAuthUrl(host) {
   const url = new URL('https://discord.com/api/oauth2/authorize');
   url.searchParams.set('client_id', DISCORD_CLIENT_ID);
-  url.searchParams.set('redirect_uri', REDIRECT_URI);
+  url.searchParams.set('redirect_uri', getRedirectUri(host));
   url.searchParams.set('response_type', 'code');
   url.searchParams.set('scope', 'identify');
   return url.toString();
 }
 
-async function handleDiscordCallback(code) {
+async function handleDiscordCallback(code, host) {
   const tokenRes = await fetch('https://discord.com/api/oauth2/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -24,7 +26,7 @@ async function handleDiscordCallback(code) {
       client_secret: DISCORD_CLIENT_SECRET,
       grant_type: 'authorization_code',
       code,
-      redirect_uri: REDIRECT_URI,
+      redirect_uri: getRedirectUri(host),
     }),
   });
 
