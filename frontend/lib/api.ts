@@ -107,3 +107,116 @@ export async function searchYouTube(name: string, artist: string): Promise<{ vid
   if (!res.ok) throw new Error('YouTube search failed');
   return res.json();
 }
+
+// Auth
+export function getDiscordAuthUrl() {
+  return `${API_URL}/api/auth/discord`;
+}
+
+export function getToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('blindtest_token');
+}
+
+export async function fetchWithAuth(url: string, options?: RequestInit) {
+  const token = getToken();
+  const res = await fetch(url, {
+    ...options,
+    headers: {
+      ...options?.headers,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+  if (res.status === 401) {
+    localStorage.removeItem('blindtest_token');
+  }
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || `Request failed (${res.status})`);
+  }
+  return res.json();
+}
+
+export interface User {
+  id: string;
+  username: string;
+  avatar_url: string | null;
+  role: string;
+  created_at: string;
+}
+
+export interface GameScore {
+  id: string;
+  user_id: string;
+  game_code: string;
+  score: number;
+  total_rounds: number;
+  played_at: string;
+}
+
+export interface Friend {
+  id: string;
+  username: string;
+  avatar_url: string | null;
+  status: string;
+  created_at: string;
+}
+
+export async function getMe(): Promise<User> {
+  return fetchWithAuth(`${API_URL}/api/users/me`);
+}
+
+export async function getMyScores(): Promise<GameScore[]> {
+  return fetchWithAuth(`${API_URL}/api/users/me/scores`);
+}
+
+export async function getUserProfile(id: string): Promise<User & { scores: GameScore[]; bestScore: number }> {
+  const res = await fetch(`${API_URL}/api/users/${id}`);
+  if (!res.ok) throw new Error('User not found');
+  return res.json();
+}
+
+export async function getLeaderboard(): Promise<{ id: string; username: string; avatar_url: string; total_score: number; games_played: number }[]> {
+  const res = await fetch(`${API_URL}/api/leaderboard`);
+  return res.json();
+}
+
+export async function getFriends(): Promise<{ friends: Friend[]; pending: Friend[] }> {
+  return fetchWithAuth(`${API_URL}/api/friends`);
+}
+
+export async function sendFriendRequest(userId: string): Promise<void> {
+  await fetchWithAuth(`${API_URL}/api/friends/request/${userId}`, { method: 'POST' });
+}
+
+export async function acceptFriendRequest(userId: string): Promise<void> {
+  await fetchWithAuth(`${API_URL}/api/friends/accept/${userId}`, { method: 'POST' });
+}
+
+export async function removeFriend(userId: string): Promise<void> {
+  await fetchWithAuth(`${API_URL}/api/friends/${userId}`, { method: 'DELETE' });
+}
+
+export async function saveGameScore(code: string, playerId: string): Promise<void> {
+  await fetchWithAuth(`${API_URL}/api/game/${code}/save`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ playerId }),
+  });
+}
+
+export async function getAdminUsers(): Promise<User[]> {
+  return fetchWithAuth(`${API_URL}/api/admin/users`);
+}
+
+export async function updateUserRole(userId: string, role: string): Promise<void> {
+  await fetchWithAuth(`${API_URL}/api/admin/users/${userId}/role`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ role }),
+  });
+}
+
+export async function deleteUser(userId: string): Promise<void> {
+  await fetchWithAuth(`${API_URL}/api/admin/users/${userId}`, { method: 'DELETE' });
+}

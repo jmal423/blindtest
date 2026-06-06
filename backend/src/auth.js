@@ -1,0 +1,98 @@
+import jwt from 'jsonwebtoken';
+import { generateId, get, run } from './db.js';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'blindtest-dev-secret-change-in-production';
+const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
+const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
+const REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || `${process.env.NODE_ENV === 'production' ? process.env.API_URL : 'http://localhost:3001'}/api/auth/discord/callback`;
+
+function getAuthUrl() {
+  const url = new URL('https://discord.com/api/oauth2/authorize');
+  url.searchParams.set('client_id', DISCORD_CLIENT_ID);
+  url.searchParams.set('redirect_uri', REDIRECT_URI);
+  url.searchParams.set('response_type', 'code');
+  url.searchParams.set('scope', 'identify');
+  return url.toString();
+}
+
+async function handleDiscordCallback(code) {
+  const tokenRes = await fetch('https://discord.com/api/oauth2/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      client_id: DISCORD_CLIENT_ID,
+      client_secret: DISCORD_CLIENT_SECRET,
+      grant_type: 'authorization_code',
+      code,
+      redirect_uri: REDIRECT_URI,
+    }),
+  });
+
+  if (!tokenRes.ok) {
+    const err = await tokenRes.text();
+    throw new Error(`Discord token exchange failed: ${err}`);
+  }
+
+  const tokenData = await tokenRes.json();
+  const userRes = await fetch('https://discord.com/api/users/@me', {
+    headers: { Authorization: `Bearer ${tokenData.access_token}` },
+  });
+
+  if (!userRes.ok) throw new Error('Failed to fetch Discord user');
+
+  const discordUser = await userRes.json();
+  let user = await get('SELECT * FROM users WHERE discord_id = ?', [discordUser.id]);
+
+  if (!user) {
+    const id = generateId();
+    const adminIds = (process.env.ADMIN_DISCORD_IDS || '').split(',').map(s => s.trim()).filter(Boolean);
+    const role = adminIds.includes(discordUser.id) ? 'admin' : 'user';
+    await run(
+      'INSERT INTO users (id, discord_id, username, avatar_url, role) VALUES (?, ?, ?, ?, ?)',
+      [id, discordUser.id, discordUser.global_name || discordUser.username, discordUser.avatar, role]
+    );
+    user = await get('SELECT * FROM users WHERE id = ?', [id]);
+  }
+
+  const token = jwt.sign(
+    { userId: user.id, role: user.role },
+    JWT_SECRET,
+    { expiresIn: '7d' }
+  );
+
+  return {
+    token,
+    user: {
+      id: user.id,
+      username: user.username,
+      avatarUrl: user.avatar_url,
+      role: user.role,
+    },
+  };
+}
+
+function authenticate(req, res, next) {
+  const header = req.headers.authorization;
+  if (!header || !header.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+
+  try {
+    const decoded = jwt.verify(header.slice(7), JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch {
+    res.status(401).json({ error: 'Invalid or expired token' });
+  }
+}
+
+function requireAdmin(req, res, next) {
+  authenticate(req, res, () => {
+    if (req.user?.role !== 'admin') {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+    next();
+  });
+}
+
+export { getAuthUrl, handleDiscordCallback, authenticate, requireAdmin };

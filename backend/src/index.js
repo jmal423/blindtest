@@ -3,11 +3,13 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { GameRoom } from './game.js';
 import { GENRES, getGenreLabel } from './spotify.js';
+import { generateId, get, all, run } from './db.js';
+import { getAuthUrl, handleDiscordCallback, authenticate, requireAdmin } from './auth.js';
 
 dotenv.config();
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
 const rooms = new Map();
@@ -24,10 +26,12 @@ function generateCode() {
   return code;
 }
 
+// Genres
 app.get('/api/genres', (req, res) => {
   res.json(GENRES.map(g => ({ id: g, label: getGenreLabel(g) })));
 });
 
+// Rooms
 app.post('/api/rooms', (req, res) => {
   const { genres = ['pop', 'rock'], playerName, rounds, roundTime } = req.body;
   if (!playerName || !playerName.trim()) {
@@ -57,6 +61,19 @@ app.post('/api/rooms/join', (req, res) => {
   res.json({ code: room.code, playerId });
 });
 
+app.get('/api/rooms/:code', (req, res) => {
+  const room = rooms.get(req.params.code.toUpperCase());
+  if (!room) return res.status(404).json({ error: 'Room not found' });
+
+  res.json({
+    code: room.code,
+    genres: room.genres,
+    state: room.state,
+    playerCount: room.players.length,
+  });
+});
+
+// Game
 app.get('/api/game/:code', (req, res) => {
   const room = rooms.get(req.params.code.toUpperCase());
   if (!room) return res.status(404).json({ error: 'Room not found' });
@@ -104,6 +121,23 @@ app.post('/api/game/:code/submit', (req, res) => {
   res.json(result);
 });
 
+app.post('/api/game/:code/save', authenticate, async (req, res) => {
+  const room = rooms.get(req.params.code.toUpperCase());
+  if (!room) return res.status(404).json({ error: 'Room not found' });
+  if (room.state !== 'finished') return res.status(400).json({ error: 'Game not finished' });
+
+  const player = room.players.find(p => p.id === req.body.playerId);
+  if (!player) return res.status(404).json({ error: 'Player not in game' });
+
+  const id = generateId();
+  await run(
+    'INSERT INTO game_scores (id, user_id, game_code, score, total_rounds) VALUES (?, ?, ?, ?, ?)',
+    [id, req.user.userId, room.code, player.score, room.totalRounds]
+  );
+
+  res.json({ saved: true, score: player.score, totalRounds: room.totalRounds });
+});
+
 app.post('/api/game/:code/leave', (req, res) => {
   const room = rooms.get(req.params.code.toUpperCase());
   if (!room) return res.status(404).json({ error: 'Room not found' });
@@ -119,18 +153,7 @@ app.post('/api/game/:code/leave', (req, res) => {
   res.json({ ok: true });
 });
 
-app.get('/api/rooms/:code', (req, res) => {
-  const room = rooms.get(req.params.code.toUpperCase());
-  if (!room) return res.status(404).json({ error: 'Room not found' });
-
-  res.json({
-    code: room.code,
-    genres: room.genres,
-    state: room.state,
-    playerCount: room.players.length,
-  });
-});
-
+// YouTube
 app.get('/api/youtube/search', async (req, res) => {
   const { name, artist } = req.query;
   if (!name || !artist) {
@@ -144,6 +167,156 @@ app.get('/api/youtube/search', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// Auth
+app.get('/api/auth/discord', (req, res) => {
+  const url = getAuthUrl();
+  res.redirect(url);
+});
+
+app.get('/api/auth/discord/callback', async (req, res) => {
+  const { code } = req.query;
+  if (!code) return res.status(400).json({ error: 'Missing code' });
+
+  try {
+    const result = await handleDiscordCallback(code);
+    res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?token=${result.token}`);
+  } catch (err) {
+    res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?error=${encodeURIComponent(err.message)}`);
+  }
+});
+
+// Users
+app.get('/api/users/me', authenticate, async (req, res) => {
+  const user = await get('SELECT id, username, avatar_url, role, created_at FROM users WHERE id = ?', [req.user.userId]);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+  res.json(user);
+});
+
+app.get('/api/users/me/scores', authenticate, async (req, res) => {
+  const scores = await all(
+    'SELECT * FROM game_scores WHERE user_id = ? ORDER BY played_at DESC LIMIT 50',
+    [req.user.userId]
+  );
+  res.json(scores);
+});
+
+app.get('/api/users/:id', async (req, res) => {
+  const user = await get('SELECT id, username, avatar_url, created_at FROM users WHERE id = ?', [req.params.id]);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  const scores = await all(
+    'SELECT score, total_rounds, played_at FROM game_scores WHERE user_id = ? ORDER BY played_at DESC LIMIT 20',
+    [req.params.id]
+  );
+
+  const bestScore = await get(
+    'SELECT MAX(score) as best FROM game_scores WHERE user_id = ?',
+    [req.params.id]
+  );
+
+  res.json({ ...user, scores, bestScore: bestScore?.best || 0 });
+});
+
+// Leaderboard
+app.get('/api/leaderboard', async (req, res) => {
+  const limit = Math.min(parseInt(req.query.limit) || 50, 100);
+  const entries = await all(`
+    SELECT u.id, u.username, u.avatar_url, SUM(gs.score) as total_score, COUNT(gs.id) as games_played
+    FROM game_scores gs JOIN users u ON u.id = gs.user_id
+    GROUP BY u.id ORDER BY total_score DESC LIMIT ?
+  `, [limit]);
+  res.json(entries);
+});
+
+// Friends
+app.get('/api/friends', authenticate, async (req, res) => {
+  const friends = await all(`
+    SELECT u.id, u.username, u.avatar_url, f.status, f.created_at
+    FROM friendships f JOIN users u ON u.id = CASE WHEN f.user_id = ? THEN f.friend_id ELSE f.user_id END
+    WHERE (f.user_id = ? OR f.friend_id = ?) AND f.status = 'accepted'
+  `, [req.user.userId, req.user.userId, req.user.userId]);
+
+  const pending = await all(`
+    SELECT u.id, u.username, u.avatar_url, f.created_at
+    FROM friendships f JOIN users u ON u.id = f.user_id
+    WHERE f.friend_id = ? AND f.status = 'pending'
+  `, [req.user.userId]);
+
+  res.json({ friends, pending });
+});
+
+app.post('/api/friends/request/:userId', authenticate, async (req, res) => {
+  if (req.params.userId === req.user.userId) {
+    return res.status(400).json({ error: 'Cannot friend yourself' });
+  }
+
+  const target = await get('SELECT id FROM users WHERE id = ?', [req.params.userId]);
+  if (!target) return res.status(404).json({ error: 'User not found' });
+
+  const existing = await get(
+    'SELECT * FROM friendships WHERE (user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?)',
+    [req.user.userId, req.params.userId, req.params.userId, req.user.userId]
+  );
+
+  if (existing) {
+    return res.status(400).json({ error: 'Friendship already exists or pending' });
+  }
+
+  await run(
+    'INSERT INTO friendships (user_id, friend_id, status) VALUES (?, ?, ?)',
+    [req.user.userId, req.params.userId, 'pending']
+  );
+
+  res.json({ ok: true });
+});
+
+app.post('/api/friends/accept/:userId', authenticate, async (req, res) => {
+  const existing = await get(
+    'SELECT * FROM friendships WHERE user_id = ? AND friend_id = ? AND status = ?',
+    [req.params.userId, req.user.userId, 'pending']
+  );
+
+  if (!existing) return res.status(404).json({ error: 'No pending request' });
+
+  await run(
+    'UPDATE friendships SET status = ? WHERE user_id = ? AND friend_id = ?',
+    ['accepted', req.params.userId, req.user.userId]
+  );
+
+  res.json({ ok: true });
+});
+
+app.delete('/api/friends/:userId', authenticate, async (req, res) => {
+  await run(
+    'DELETE FROM friendships WHERE (user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?)',
+    [req.user.userId, req.params.userId, req.params.userId, req.user.userId]
+  );
+  res.json({ ok: true });
+});
+
+// Admin
+app.get('/api/admin/users', requireAdmin, async (req, res) => {
+  const users = await all('SELECT id, username, avatar_url, role, created_at FROM users ORDER BY created_at DESC');
+  res.json(users);
+});
+
+app.put('/api/admin/users/:id/role', requireAdmin, async (req, res) => {
+  const { role } = req.body;
+  if (!['user', 'admin'].includes(role)) {
+    return res.status(400).json({ error: 'Invalid role' });
+  }
+
+  await run('UPDATE users SET role = ? WHERE id = ?', [role, req.params.id]);
+  res.json({ ok: true });
+});
+
+app.delete('/api/admin/users/:id', requireAdmin, async (req, res) => {
+  await run('DELETE FROM game_scores WHERE user_id = ?', [req.params.id]);
+  await run('DELETE FROM friendships WHERE user_id = ? OR friend_id = ?', [req.params.id, req.params.id]);
+  await run('DELETE FROM users WHERE id = ?', [req.params.id]);
+  res.json({ ok: true });
 });
 
 const PORT = process.env.PORT || 3001;

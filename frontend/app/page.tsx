@@ -26,6 +26,15 @@ export default function Home() {
           Join Room
         </Link>
       </div>
+
+      <div className="flex gap-4 text-sm">
+        <Link href="/login" className="text-zinc-500 hover:text-zinc-300 transition-colors">
+          Account
+        </Link>
+        <Link href="/leaderboard" className="text-zinc-500 hover:text-zinc-300 transition-colors">
+          Leaderboard
+        </Link>
+      </div>
     </div>
   );
 }

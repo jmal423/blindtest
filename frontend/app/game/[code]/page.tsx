@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef, use, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion } from 'motion/react';
 import { GameState, RoomSettings, startGame, submitAnswer, fetchGameState, updateSettings, fetchGenres } from '@/lib/api';
 
 declare global {
@@ -29,16 +30,22 @@ function loadYouTubeAPI(): Promise<void> {
   return apiReadyPromise;
 }
 
-function YouTubePlayer({ videoId, playing }: { videoId: string | null; playing: boolean }) {
+function YouTubePlayer({
+  videoId,
+  playing,
+  onPlayerRef,
+}: {
+  videoId: string | null;
+  playing: boolean;
+  onPlayerRef: (p: any) => void;
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
   const currentIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!videoId || !playing) {
-      if (playerRef.current) {
-        playerRef.current.stopVideo();
-      }
+      if (playerRef.current) playerRef.current.stopVideo();
       return;
     }
 
@@ -51,10 +58,7 @@ function YouTubePlayer({ videoId, playing }: { videoId: string | null; playing: 
 
     loadYouTubeAPI().then(() => {
       if (!containerRef.current) return;
-
-      if (playerRef.current) {
-        playerRef.current.destroy();
-      }
+      if (playerRef.current) playerRef.current.destroy();
 
       playerRef.current = new window.YT.Player(containerRef.current, {
         height: 0,
@@ -69,7 +73,10 @@ function YouTubePlayer({ videoId, playing }: { videoId: string | null; playing: 
           playsinline: 1,
         },
         events: {
-          onReady: (e: any) => e.target.playVideo(),
+          onReady: (e: any) => {
+            onPlayerRef(e.target);
+            e.target.playVideo();
+          },
           onStateChange: (e: any) => {
             if (e.data === window.YT.PlayerState.ENDED) {
               e.target.playVideo();
@@ -80,17 +87,80 @@ function YouTubePlayer({ videoId, playing }: { videoId: string | null; playing: 
     });
 
     return () => {
-      if (playerRef.current) {
-        playerRef.current.stopVideo();
-      }
+      if (playerRef.current) playerRef.current.stopVideo();
     };
-  }, [videoId, playing]);
+  }, [videoId, playing, onPlayerRef]);
 
   return (
     <div
       ref={containerRef}
       style={{ position: 'absolute', width: 0, height: 0, opacity: 0, pointerEvents: 'none', overflow: 'hidden' }}
     />
+  );
+}
+
+const BAR_COUNT = 48;
+
+function Visualizer({ duration, currentTime }: { duration: number; currentTime: number }) {
+  const [heights, setHeights] = useState(() =>
+    Array.from({ length: BAR_COUNT }, () => 20 + Math.random() * 60)
+  );
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setHeights(() =>
+        Array.from({ length: BAR_COUNT }, () => 20 + Math.random() * 60)
+      );
+    }, 120);
+    return () => clearInterval(interval);
+  }, []);
+
+  const colors = [
+    '#6366f1', '#8b5cf6', '#a855f7', '#d946ef',
+  ];
+
+  return (
+    <div className="flex items-end justify-center gap-[3px] h-48 w-full max-w-lg mx-auto">
+      {heights.map((h, i) => (
+        <motion.div
+          key={i}
+          animate={{ height: `${h}%` }}
+          transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+          className="w-[4px] rounded-t-sm"
+          style={{
+            background: `linear-gradient(to top, ${colors[Math.floor(i / 12) % colors.length]}, ${colors[(Math.floor(i / 12) + 1) % colors.length]})`,
+            boxShadow: `0 0 6px ${colors[Math.floor(i / 12) % colors.length]}66`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function ProgressBar({ duration, currentTime }: { duration: number; currentTime: number }) {
+  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+
+  const format = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return `${m}:${sec.toString().padStart(2, '0')}`;
+  };
+
+  return (
+    <div className="w-full max-w-lg mx-auto space-y-1">
+      <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+        <motion.div
+          className="h-full rounded-full"
+          style={{ background: 'linear-gradient(90deg, #6366f1, #a855f7)' }}
+          animate={{ width: `${progress}%` }}
+          transition={{ duration: 0.3, ease: 'linear' }}
+        />
+      </div>
+      <div className="flex justify-between text-xs text-zinc-500">
+        <span>{format(currentTime)}</span>
+        <span>{format(duration)}</span>
+      </div>
+    </div>
   );
 }
 
@@ -110,6 +180,13 @@ export default function GamePage({
   const [error, setError] = useState('');
   const [youtubeVideoId, setYoutubeVideoId] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(30);
+  const ytPlayerRef = useRef<any>(null);
+
+  const handlePlayerRef = useCallback((player: any) => {
+    ytPlayerRef.current = player;
+  }, []);
 
   useEffect(() => {
     const pid = localStorage.getItem(`blindtest_player_${code}`);
@@ -149,6 +226,22 @@ export default function GamePage({
       if (pollRef.current) clearInterval(pollRef.current);
     };
   }, [code, router]);
+
+  useEffect(() => {
+    if (!isPlaying) return;
+    const interval = setInterval(() => {
+      const player = ytPlayerRef.current;
+      if (player && typeof player.getCurrentTime === 'function') {
+        const ct = player.getCurrentTime();
+        const dur = player.getDuration();
+        if (dur > 0) {
+          setCurrentTime(ct);
+          setDuration(dur);
+        }
+      }
+    }, 200);
+    return () => clearInterval(interval);
+  }, [isPlaying]);
 
   const handleStart = useCallback(async () => {
     try {
@@ -233,6 +326,8 @@ export default function GamePage({
           onGuessChange={setGuess}
           onSubmit={handleSubmit}
           guessResult={guessResult}
+          duration={duration}
+          currentTime={currentTime}
         />
       )}
 
@@ -241,10 +336,10 @@ export default function GamePage({
       )}
 
       {gameState.state === 'finished' && (
-        <GameFinished rankings={gameState.rankings} onPlayAgain={() => router.push('/')} />
+        <GameFinished code={code} rankings={gameState.rankings} playerId={playerId} onPlayAgain={() => router.push('/')} />
       )}
 
-      <YouTubePlayer videoId={youtubeVideoId} playing={isPlaying} />
+      <YouTubePlayer videoId={youtubeVideoId} playing={isPlaying} onPlayerRef={handlePlayerRef} />
     </div>
   );
 }
@@ -384,6 +479,8 @@ function PlayingPhase({
   onGuessChange,
   onSubmit,
   guessResult,
+  duration,
+  currentTime,
 }: {
   currentRound: number;
   totalRounds: number;
@@ -392,17 +489,26 @@ function PlayingPhase({
   onGuessChange: (v: string) => void;
   onSubmit: () => void;
   guessResult: { correct: boolean; points: number } | null;
+  duration: number;
+  currentTime: number;
 }) {
   return (
-    <div className="flex-1 flex flex-col items-center gap-6">
-      <div className="flex items-center gap-4">
+    <div className="flex-1 flex flex-col items-center justify-center gap-8">
+      <div className="flex items-center gap-6">
         <span className="text-sm text-zinc-400">Round {currentRound}/{totalRounds}</span>
-        <div className="w-12 h-12 rounded-full bg-[var(--surface)] flex items-center justify-center">
-          <span className={`text-xl font-bold ${timeLeft <= 5 ? 'text-red-400' : 'text-[var(--accent)]'}`}>
-            {timeLeft}
-          </span>
-        </div>
+        <motion.div
+          key={currentRound}
+          initial={{ scale: 1.3, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className={`text-3xl font-bold tabular-nums ${timeLeft <= 5 ? 'text-red-400' : 'text-white'}`}
+        >
+          {timeLeft}
+        </motion.div>
       </div>
+
+      <Visualizer duration={duration} currentTime={currentTime} />
+
+      <ProgressBar duration={duration} currentTime={currentTime} />
 
       <div className="w-full max-w-sm space-y-3">
         <input
@@ -411,7 +517,7 @@ function PlayingPhase({
           onChange={e => onGuessChange(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && onSubmit()}
           placeholder="Type the song name..."
-          className="w-full px-4 py-3 bg-[var(--surface)] border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-[var(--primary)] transition-colors"
+          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-[var(--primary)] transition-colors"
         />
         <button
           onClick={onSubmit}
@@ -423,13 +529,17 @@ function PlayingPhase({
       </div>
 
       {guessResult && (
-        <div className={`px-6 py-3 rounded-xl text-center animate-slide-up ${
-          guessResult.correct
-            ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-            : 'bg-red-500/20 text-red-400 border border-red-500/30'
-        }`}>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`px-6 py-3 rounded-xl text-center ${
+            guessResult.correct
+              ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+              : 'bg-red-500/20 text-red-400 border border-red-500/30'
+          }`}
+        >
           {guessResult.correct ? `Correct! +${guessResult.points} pts` : 'Wrong!'}
-        </div>
+        </motion.div>
       )}
     </div>
   );
@@ -456,7 +566,19 @@ function RoundResult({ data, players }: { data: { correctAnswer: string; artist:
   );
 }
 
-function GameFinished({ rankings, onPlayAgain }: { rankings: { rank: number; name: string; score: number }[]; onPlayAgain: () => void }) {
+function GameFinished({ code, rankings, playerId, onPlayAgain }: { code: string; rankings: { rank: number; name: string; score: number }[]; playerId: string; onPlayAgain: () => void }) {
+  const [saved, setSaved] = useState(false);
+  const token = typeof window !== 'undefined' ? localStorage.getItem('blindtest_token') : null;
+
+  const handleSave = async () => {
+    if (!token) return;
+    try {
+      const { saveGameScore } = await import('@/lib/api');
+      await saveGameScore(code, playerId);
+      setSaved(true);
+    } catch {}
+  };
+
   return (
     <div className="flex-1 flex flex-col items-center gap-6 animate-slide-up">
       <h2 className="text-2xl font-bold"><span className="text-[var(--primary)]">Game</span> Over!</h2>
