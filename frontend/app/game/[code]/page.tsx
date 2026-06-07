@@ -6,98 +6,12 @@ import { motion } from 'motion/react';
 import { io as socketIo, Socket } from 'socket.io-client';
 import { getToken, GameState, Player, RoomSettings, startGame, updateSettings, fetchGenres } from '@/lib/api';
 import { isDebugMode } from '@/lib/debug-context';
+import AudioPlayer from '@/app/components/AudioPlayer';
 import Chat from './Chat';
 import Podium from './Podium';
 import DebugOverlay from './DebugOverlay';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-
-function AudioPlayer({
-  previewUrl,
-  audioOffset,
-  playing,
-  preloading,
-  onPlaying,
-  onTimeUpdate,
-}: {
-  previewUrl: string | null;
-  audioOffset: number;
-  playing: boolean;
-  preloading: boolean;
-  onPlaying: () => void;
-  onTimeUpdate: (t: number) => void;
-}) {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const onPlayingRef = useRef(onPlaying);
-  const firedRef = useRef(false);
-  onPlayingRef.current = onPlaying;
-  const offsetRef = useRef(audioOffset);
-  offsetRef.current = audioOffset;
-
-  useEffect(() => {
-    if (!previewUrl) {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = '';
-        audioRef.current = null;
-      }
-      firedRef.current = false;
-      return;
-    }
-
-    firedRef.current = false;
-    const audio = new Audio(previewUrl);
-    audioRef.current = audio;
-
-    audio.addEventListener('loadedmetadata', () => {
-      const safeOffset = Math.min(offsetRef.current, (audio.duration || 30) - 1);
-      if (safeOffset > 0) audio.currentTime = safeOffset;
-    });
-
-    if (preloading) {
-      audio.preload = 'auto';
-      audio.load();
-    }
-
-    return () => {
-      audio.pause();
-      audio.src = '';
-      if (audioRef.current === audio) audioRef.current = null;
-    };
-  }, [previewUrl, preloading]);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio || !playing || !previewUrl) return;
-
-    if (audio.readyState >= 3) {
-      audio.play().catch(err => console.error('Autoplay blocked:', err));
-    } else {
-      const onCanPlay = () => {
-        audio.play().catch(err => console.error('Autoplay blocked:', err));
-      };
-      audio.addEventListener('canplay', onCanPlay, { once: true });
-      return () => audio.removeEventListener('canplay', onCanPlay);
-    }
-  }, [playing, previewUrl]);
-
-  useEffect(() => {
-    if (!playing || !audioRef.current) return;
-    const interval = setInterval(() => {
-      const a = audioRef.current;
-      if (a && !a.paused) {
-        onTimeUpdate(a.currentTime);
-        if (!firedRef.current && a.currentTime >= audioOffset + 0.1) {
-          firedRef.current = true;
-          onPlayingRef.current();
-        }
-      }
-    }, 200);
-    return () => clearInterval(interval);
-  }, [playing, audioOffset, onTimeUpdate]);
-
-  return null;
-}
 
 const BAR_COUNT = 48;
 
@@ -181,10 +95,6 @@ export default function GamePage({
   const [guessResult, setGuessResult] = useState<{ artist_result: string; title_result: string; points_awarded_this_guess: number; found_both: boolean } | null>(null);
   const [error, setError] = useState('');
   const [socketConnected, setSocketConnected] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [audioOffset, setAudioOffset] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isPreloading, setIsPreloading] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(30);
   const [localTimeLeft, setLocalTimeLeft] = useState<number | null>(null);
@@ -222,11 +132,7 @@ export default function GamePage({
   const applyGameState = useCallback((state: GameState) => {
     setGameState(state);
 
-    if (state.state === 'round_preparing') {
-      setPreviewUrl((state as any).previewUrl || null);
-      setAudioOffset((state as any).audioOffset || 0);
-      setIsPlaying(false);
-      setIsPreloading(true);
+    if (state.state === 'round_preparing' || state.state === 'playing') {
       setArtistFound(false);
       setTitleFound(false);
       setBothFound(false);
@@ -240,27 +146,6 @@ export default function GamePage({
       return;
     }
 
-    if (state.state === 'playing') {
-      setPreviewUrl((state as any).previewUrl || null);
-      setAudioOffset((state as any).audioOffset || 0);
-      setIsPlaying(true);
-      setIsPreloading(false);
-      setArtistFound(false);
-      setTitleFound(false);
-      setBothFound(false);
-      setGuess('');
-      setGuessResult(null);
-      setLocalTimeLeft(null);
-      if (localTimerRef.current) {
-        clearInterval(localTimerRef.current);
-        localTimerRef.current = null;
-      }
-      return;
-    }
-
-    setIsPlaying(false);
-    setIsPreloading(false);
-    setPreviewUrl(null);
     setLocalTimeLeft(null);
     if (localTimerRef.current) {
       clearInterval(localTimerRef.current);
@@ -353,7 +238,8 @@ export default function GamePage({
   }, [guess]);
 
   const handleInteract = () => {
-    new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAVFYAAFRWAAABAAgAZGF0YQAAAAA=').play().catch(() => {});
+    const silent = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAVFYAAFRWAAABAAgAZGF0YQAAAAA=');
+    silent.play().then(() => silent.pause()).catch(() => {});
     setHasInteracted(true);
   };
 
@@ -469,7 +355,7 @@ export default function GamePage({
         )}
       </div>
 
-      <AudioPlayer previewUrl={previewUrl} audioOffset={audioOffset} playing={isPlaying} preloading={isPreloading} onPlaying={handleAudioPlaying} onTimeUpdate={handleAudioTimeUpdate} />
+      <AudioPlayer previewUrl={(gameState as any).previewUrl || null} audioOffset={(gameState as any).audioOffset || 0} state={gameState.state} onPlaying={handleAudioPlaying} onTimeUpdate={handleAudioTimeUpdate} />
 
       {isDebugMode() && (
         <DebugOverlay gameState={gameState} socketConnected={socketConnected} />
