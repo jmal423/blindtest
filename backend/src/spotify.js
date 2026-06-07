@@ -104,6 +104,7 @@ async function getPlaylistTracks(playlistId, market = 'FR') {
         artist: item.track.artists?.[0]?.name || 'Unknown',
         albumImage: item.track.album?.images?.[0]?.url || null,
         previewUrl: item.track.preview_url || null,
+        durationMs: item.track.duration_ms || 0,
         genre: 'playlist',
       });
     }
@@ -160,7 +161,9 @@ async function getTracksByGenre(genre, count = 10) {
           id: t.id, name: t.name,
           artist: t.artists?.[0]?.name || 'Unknown',
           albumImage: t.album?.images?.[0]?.url || null,
-          previewUrl: t.preview_url || null, genre,
+          previewUrl: t.preview_url || null,
+          durationMs: t.duration_ms || 0,
+          genre,
         });
       }
       offset += MAX_PER_PAGE;

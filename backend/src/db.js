@@ -121,7 +121,9 @@ await init();
 
 async function query(sql, params = []) {
   if (process.env.DATABASE_URL) {
-    const res = await db.query(sql, params);
+    let i = 0;
+    const pgSql = sql.replace(/\?/g, () => `$${++i}`);
+    const res = await db.query(pgSql, params);
     return res.rows;
   }
   const stmt = db.db.prepare(sql);

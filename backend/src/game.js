@@ -123,7 +123,22 @@ export class GameRoom {
     if (updates.rounds) this.settings.rounds = Math.max(3, Math.min(25, Math.round(updates.rounds)));
     if (updates.roundTime) this.settings.roundTime = Math.max(8, Math.min(30, Math.round(updates.roundTime)));
     if (updates.pauseTime !== undefined) this.settings.pauseTime = Math.max(2, Math.min(15, Math.round(updates.pauseTime)));
-    if (updates.autoStart !== undefined) this.settings.autoStart = !!updates.autoStart;
+    if (updates.autoStart !== undefined) {
+      const wasAutoStart = this.settings.autoStart;
+      this.settings.autoStart = !!updates.autoStart;
+      if (!wasAutoStart && this.settings.autoStart && this.players.length >= 2 && this.state === 'waiting') {
+        clearTimeout(this.autoStartTimer);
+        if (this.io) {
+          this.io.to(this.code).emit('new_chat_message', {
+            isSystem: true,
+            content: `⏳ Auto-starting in 5 seconds...`,
+          });
+        }
+        this.autoStartTimer = setTimeout(() => {
+          if (this.state === 'waiting') this.startGame();
+        }, 5000);
+      }
+    }
   }
 
   addPlayer(name, avatarUrl = null, role = 'user', userId = null) {
@@ -192,7 +207,7 @@ export class GameRoom {
       }
     }
 
-    this.tracks = shuffle(allTracks).slice(0, this.settings.rounds * 3);
+    this.tracks = shuffle(allTracks).slice(0, this.settings.rounds * 5);
     this.totalRounds = this.settings.rounds;
 
     if (this.tracks.length === 0) {
@@ -201,6 +216,7 @@ export class GameRoom {
 
     this.players.forEach(p => { p.score = 0; p.answers = []; p.streak = 0; });
     this.currentRound = 0;
+    this.tracksPlayed = 0;
     this.startRound();
     return null;
   }
@@ -209,7 +225,6 @@ export class GameRoom {
     if (this.pauseInterval) { clearInterval(this.pauseInterval); this.pauseInterval = null; }
     this.roundStartTime = null;
 
-    const skippedTracks = [];
     while (this.currentRound < this.tracks.length && this.tracksPlayed < this.totalRounds) {
       const track = this.tracks[this.currentRound];
       if (!track.youtubeVideoId) {
@@ -221,22 +236,17 @@ export class GameRoom {
         }
       }
 
-      if (track.youtubeVideoId) {
+      if (track.youtubeVideoId || track.previewUrl) {
         break;
       }
 
-      console.warn(`Skipping track "${track.artist} - ${track.name}" - no YouTube video`);
-      skippedTracks.push(this.currentRound);
+      console.warn(`Skipping track "${track.artist} - ${track.name}" - no audio source available`);
       this.currentRound++;
     }
 
     if (this.currentRound >= this.tracks.length || this.tracksPlayed >= this.totalRounds) {
-      if (this.tracksPlayed < this.totalRounds && skippedTracks.length > 0 && this.currentRound >= this.tracks.length) {
-        this.currentRound = Math.max(0, skippedTracks[0]);
-      } else {
-        this.endGame();
-        return;
-      }
+      this.endGame();
+      return;
     }
 
     const track = this.tracks[this.currentRound];
@@ -244,7 +254,7 @@ export class GameRoom {
     const nextIdx = this.currentRound + 1;
     if (nextIdx < this.tracks.length) {
       const nextTrack = this.tracks[nextIdx];
-      if (nextTrack && !nextTrack.youtubeVideoId) {
+      if (nextTrack && !nextTrack.youtubeVideoId && !nextTrack.previewUrl) {
         const { searchYouTubeVideo } = await import('./youtube.js');
         searchYouTubeVideo(nextTrack.name, nextTrack.artist)
           .then(id => { nextTrack.youtubeVideoId = id; })
@@ -259,7 +269,11 @@ export class GameRoom {
       p.foundTitle = false;
       p.foundBoth = false;
     });
-    this.audioOffset = Math.floor(Math.random() * 15);
+    const durSec = Math.max(30, (track.durationMs || 180000) / 1000);
+    const effectiveDur = track.youtubeVideoId ? durSec : 30;
+    const minOff = Math.max(10, Math.floor(effectiveDur * 0.15));
+    const maxOff = Math.floor(effectiveDur * 0.55);
+    this.audioOffset = Math.floor(Math.random() * Math.max(1, maxOff - minOff)) + minOff;
     this.roundResult = null;
 
     this.state = 'round_preparing';
@@ -397,6 +411,7 @@ export class GameRoom {
     this.roundStartTime = null;
     this.clearPlayingInterval();
 
+    this.tracksPlayed++;
     this.currentRound++;
     if (this.currentRound >= this.tracks.length || this.tracksPlayed >= this.totalRounds) {
       this.endGame();
@@ -487,7 +502,7 @@ export class GameRoom {
         foundTitle: !!p.foundTitle,
         foundBoth: !!p.foundBoth,
       })),
-      currentRound: this.currentRound + 1,
+      currentRound: this.tracksPlayed + 1,
       totalRounds: this.totalRounds,
       trackHistory: this.trackHistory,
     };
@@ -509,6 +524,7 @@ export class GameRoom {
         _debugTrackInfo: makeDebugTrackInfo(track),
         previewUrl: track?.previewUrl || null,
         youtubeVideoId: track?.youtubeVideoId || null,
+        durationMs: track?.durationMs || 0,
         audioOffset: this.audioOffset ?? 0,
         roundTime: this.settings.roundTime,
       };
@@ -524,6 +540,7 @@ export class GameRoom {
           waitingForPlayers: true,
           roundTime: this.settings.roundTime,
           previewUrl: track.previewUrl,
+          durationMs: track.durationMs || 0,
           audioOffset: this.audioOffset ?? 0,
           youtubeVideoId: track.youtubeVideoId,
           trackId: track.id,
@@ -540,6 +557,7 @@ export class GameRoom {
         waitingForPlayers: false,
         roundTime: this.settings.roundTime,
         previewUrl: track.previewUrl,
+        durationMs: track.durationMs || 0,
         audioOffset: this.audioOffset ?? 0,
         youtubeVideoId: track.youtubeVideoId,
         trackId: track.id,
@@ -568,7 +586,6 @@ export class GameRoom {
     if (this.playbackTimeout) clearTimeout(this.playbackTimeout);
     this.clearPlayingInterval();
     this.tracks = [];
-    this.trackHistory = [];
     this.currentRound = 0;
     this.totalRounds = 0;
     this.tracksPlayed = 0;

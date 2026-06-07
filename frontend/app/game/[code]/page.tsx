@@ -178,6 +178,13 @@ export default function GamePage({
     if (d && d > 0) setDuration(d);
   }, []);
 
+  useEffect(() => {
+    if (gameState?.state === 'playing' && !bothFound) {
+      const timer = setTimeout(() => guessInputRef.current?.focus(), 350);
+      return () => clearTimeout(timer);
+    }
+  }, [gameState?.currentRound, gameState?.state, bothFound]);
+
   const applyGameState = useCallback((state: GameState) => {
     setGameState(state);
 
@@ -422,7 +429,15 @@ export default function GamePage({
       </div>
 
       {gameState.state !== 'game_over' && (
-        <AudioPlayer youtubeVideoId={(gameState as any).youtubeVideoId || null} audioOffset={(gameState as any).audioOffset || 0} state={gameState.state} onPlaying={handleAudioPlaying} onTimeUpdate={handleAudioTimeUpdate} />
+        <AudioPlayer
+          youtubeVideoId={(gameState as any).youtubeVideoId || null}
+          previewUrl={(gameState as any).previewUrl || null}
+          audioOffset={(gameState as any).audioOffset || 0}
+          durationMs={(gameState as any).durationMs || 30000}
+          state={gameState.state}
+          onPlaying={handleAudioPlaying}
+          onTimeUpdate={handleAudioTimeUpdate}
+        />
       )}
 
       {isDebugMode() && (
@@ -508,6 +523,22 @@ function WaitingRoom({
 
         <div>
           <label className="text-xs text-zinc-500">Genres</label>
+          <div className="flex items-center gap-2 mb-1">
+            {isHost && (
+              <button
+                onClick={() => {
+                  if (genres.length === allGenres.length && allGenres.length > 0) {
+                    onGenresChange([]);
+                  } else {
+                    onGenresChange(allGenres.map(g => g.id));
+                  }
+                }}
+                className="text-[10px] px-2 py-1 rounded bg-white/5 text-zinc-400 hover:bg-white/10 transition-colors"
+              >
+                {genres.length === allGenres.length && allGenres.length > 0 ? 'Deselect All' : 'Select All'}
+              </button>
+            )}
+          </div>
           <div className="flex flex-wrap gap-1.5 mt-1">
             {allGenres.map(g => {
               const selected = genres.includes(g.id);
@@ -795,13 +826,6 @@ function PlayingPhase({
         </div>
 
         <Visualizer duration={duration} currentTime={currentTime} />
-
-        {!youtubeVideoId && (
-          <div className="w-full max-w-lg mx-auto p-4 text-center bg-zinc-800/50 border border-zinc-700 rounded-xl">
-            <p className="text-zinc-400">No audio preview available for this track</p>
-            <p className="text-zinc-500 text-sm mt-1">You can still guess based on the round timer</p>
-          </div>
-        )}
 
         <ProgressBar duration={roundDuration} currentTime={roundDuration - (timeLeft || 0)} markers={guessMarkers} />
 

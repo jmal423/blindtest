@@ -24,13 +24,17 @@ function loadAPI() {
 
 export default function AudioPlayer({
   youtubeVideoId,
+  previewUrl,
   audioOffset,
+  durationMs,
   state,
   onPlaying,
   onTimeUpdate,
 }: {
   youtubeVideoId: string | null;
+  previewUrl: string | null;
   audioOffset: number;
+  durationMs: number;
   state: string;
   onPlaying: () => void;
   onTimeUpdate: (t: number, d?: number) => void;
@@ -38,105 +42,104 @@ export default function AudioPlayer({
   const { settings } = useSettings();
   const volRef = useRef(settings.masterVolume);
   volRef.current = settings.masterVolume;
-  const playerRef = useRef<any>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const ytRef = useRef<any>(null);
+  const ytContainerRef = useRef<HTMLDivElement>(null);
+  const ytReadyRef = useRef(false);
+  const htmlAudioRef = useRef<HTMLAudioElement | null>(null);
+  const htmlReadyRef = useRef(false);
   const onPlayingRef = useRef(onPlaying);
   const firedRef = useRef(false);
   const offsetRef = useRef(audioOffset);
-  const readyRef = useRef(false);
+  const sourceRef = useRef<'youtube' | 'html5' | 'none'>('none');
   onPlayingRef.current = onPlaying;
   offsetRef.current = audioOffset;
 
+  const src: 'youtube' | 'html5' | 'none' = youtubeVideoId ? 'youtube' : previewUrl ? 'html5' : 'none';
+
   useEffect(() => { loadAPI(); }, []);
 
-  // Create/destroy player when videoId changes
+  // Create/destroy player
   useEffect(() => {
-    const shouldCreate = state === 'playing' && youtubeVideoId;
+    const shouldCreate = state === 'playing' && src !== 'none';
     if (!shouldCreate) {
-      if (playerRef.current) {
-        playerRef.current.destroy();
-        playerRef.current = null;
-        readyRef.current = false;
-      }
+      if (ytRef.current) { ytRef.current.destroy(); ytRef.current = null; ytReadyRef.current = false; }
+      if (htmlAudioRef.current) { htmlAudioRef.current.pause(); htmlAudioRef.current.src = ''; htmlAudioRef.current = null; htmlReadyRef.current = false; }
       firedRef.current = false;
       return;
     }
 
-    if (playerRef.current) return;
+    firedRef.current = false;
+    sourceRef.current = src;
 
-    const init = () => {
-      if (playerRef.current || !containerRef.current) return;
-      readyRef.current = false;
-      playerRef.current = new window.YT.Player(containerRef.current, {
-        height: '300',
-        width: '300',
-        videoId: youtubeVideoId,
-        playerVars: {
-          autoplay: 0,
-          controls: 0,
-          disablekb: 1,
-          fs: 0,
-          modestbranding: 1,
-          rel: 0,
-          iv_load_policy: 3,
-          playsinline: 1,
-          start: offsetRef.current,
-        },
-        events: {
-          onReady: () => { readyRef.current = true; },
-        },
-      });
-    };
+    if (src === 'youtube') {
+      if (htmlAudioRef.current) { htmlAudioRef.current.pause(); htmlAudioRef.current.src = ''; htmlAudioRef.current = null; }
+      if (ytRef.current) return;
 
-    if (typeof window.YT !== 'undefined' && window.YT.Player) {
-      init();
-    } else {
-      const existing = window.onYouTubeIframeAPIReady;
-      window.onYouTubeIframeAPIReady = () => {
-        if (existing) existing();
-        init();
+      const init = () => {
+        if (ytRef.current || !ytContainerRef.current) return;
+        ytReadyRef.current = false;
+        ytRef.current = new window.YT.Player(ytContainerRef.current, {
+          height: '300',
+          width: '300',
+          videoId: youtubeVideoId,
+          playerVars: { autoplay: 0, controls: 0, disablekb: 1, fs: 0, modestbranding: 1, rel: 0, iv_load_policy: 3, playsinline: 1, start: offsetRef.current },
+          events: { onReady: () => { ytReadyRef.current = true; } },
+        });
       };
+
+      if (typeof window.YT !== 'undefined' && window.YT.Player) {
+        init();
+      } else {
+        const existing = window.onYouTubeIframeAPIReady;
+        window.onYouTubeIframeAPIReady = () => { if (existing) existing(); init(); };
+      }
+    } else if (src === 'html5') {
+      if (ytRef.current) { ytRef.current.destroy(); ytRef.current = null; }
+      const audio = new Audio(previewUrl!);
+      audio.preload = 'auto';
+      audio.volume = volRef.current;
+      htmlReadyRef.current = false;
+      const setReady = () => { htmlReadyRef.current = true; };
+      audio.addEventListener('canplaythrough', setReady, { once: true });
+      audio.addEventListener('loadedmetadata', setReady, { once: true });
+      htmlAudioRef.current = audio;
     }
 
     return () => {
-      if (playerRef.current) {
-        playerRef.current.destroy();
-        playerRef.current = null;
-        readyRef.current = false;
-      }
+      if (ytRef.current) { ytRef.current.destroy(); ytRef.current = null; ytReadyRef.current = false; }
+      if (htmlAudioRef.current) { htmlAudioRef.current.pause(); htmlAudioRef.current.src = ''; htmlAudioRef.current = null; htmlReadyRef.current = false; }
     };
-  }, [youtubeVideoId, state]);
+  }, [youtubeVideoId, previewUrl, state, src]);
 
-  // Seek and play when state becomes 'playing'
+  // Seek and play
   useEffect(() => {
-    if (state !== 'playing' || !playerRef.current) return;
+    if (state !== 'playing') return;
     firedRef.current = false;
 
     let stopped = false;
-    const trySeek = () => {
+    const s = sourceRef.current;
+
+    const tryStart = () => {
       if (stopped) return;
-      const player = playerRef.current;
-      if (!player || !readyRef.current) {
-        setTimeout(trySeek, 100);
-        return;
-      }
-      try {
-        player.seekTo(offsetRef.current, true);
-        player.setVolume(Math.round(volRef.current * 100));
-        player.playVideo();
-      } catch {
-        setTimeout(trySeek, 100);
+      if (s === 'youtube') {
+        const p = ytRef.current;
+        if (!p || !ytReadyRef.current) { setTimeout(tryStart, 100); return; }
+        try { p.seekTo(offsetRef.current, true); p.setVolume(Math.round(volRef.current * 100)); p.playVideo(); }
+        catch { setTimeout(tryStart, 100); }
+      } else if (s === 'html5') {
+        const a = htmlAudioRef.current;
+        if (!a || !htmlReadyRef.current) { setTimeout(tryStart, 100); return; }
+        try { a.currentTime = offsetRef.current; a.volume = volRef.current; a.play(); }
+        catch { setTimeout(tryStart, 100); }
       }
     };
-    trySeek();
+    tryStart();
 
-    // Mobile: one-shot gesture handler for first playback (autoplay unlock)
     const onGesture = () => {
       if (stopped || firedRef.current) return;
-      const player = playerRef.current;
-      if (!player || !readyRef.current) return;
       try {
-        player.playVideo();
+        if (s === 'youtube') { const p = ytRef.current; if (p && ytReadyRef.current) p.playVideo(); }
+        else if (s === 'html5') { const a = htmlAudioRef.current; if (a) a.play(); }
       } catch {}
     };
     document.addEventListener('click', onGesture, { once: true });
@@ -150,19 +153,25 @@ export default function AudioPlayer({
   }, [state]);
 
   const tick = useCallback(() => {
-    const player = playerRef.current;
-    if (!player || !readyRef.current) return;
-    try {
-      const t = player.getCurrentTime();
-      const d = player.getDuration();
-      if (d && d > 0) onTimeUpdate(t, d);
-      else onTimeUpdate(t, 30);
-      if (!firedRef.current && t >= offsetRef.current + 0.1) {
-        firedRef.current = true;
-        onPlayingRef.current();
-      }
-    } catch { /* player not ready yet */ }
-  }, [onTimeUpdate]);
+    const s = sourceRef.current;
+    if (s === 'youtube') {
+      const p = ytRef.current;
+      if (!p || !ytReadyRef.current) return;
+      try {
+        const t = p.getCurrentTime();
+        const d = p.getDuration();
+        onTimeUpdate(t, d > 0 ? d : (durationMs / 1000 || 30));
+        if (!firedRef.current && t >= offsetRef.current + 0.1) { firedRef.current = true; onPlayingRef.current(); }
+      } catch {}
+    } else if (s === 'html5') {
+      const a = htmlAudioRef.current;
+      if (!a) return;
+      const t = a.currentTime;
+      const d = durationMs / 1000 || 30;
+      onTimeUpdate(t, d);
+      if (!firedRef.current && t >= offsetRef.current + 0.1) { firedRef.current = true; onPlayingRef.current(); }
+    }
+  }, [onTimeUpdate, durationMs]);
 
   useEffect(() => {
     if (state !== 'playing') return;
@@ -172,16 +181,8 @@ export default function AudioPlayer({
 
   return (
     <div
-      ref={containerRef}
-      style={{
-        position: 'fixed',
-        top: '10px',
-        right: '10px',
-        width: '1px',
-        height: '1px',
-        opacity: 0.01,
-        pointerEvents: 'none',
-      }}
+      ref={ytContainerRef}
+      style={{ position: 'fixed', top: '10px', right: '10px', width: '1px', height: '1px', opacity: 0.01, pointerEvents: 'none' }}
     />
   );
 }
