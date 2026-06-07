@@ -136,11 +136,13 @@ export class GameRoom {
     const { getTracksByGenre } = await import('./spotify.js');
 
     const allTracks = [];
+    let lastError = '';
     for (const genre of this.genres) {
       try {
         const tracks = await getTracksByGenre(genre, this.settings.rounds);
         allTracks.push(...tracks);
       } catch (err) {
+        lastError = err.message;
         console.error(`Failed to fetch tracks for genre "${genre}":`, err.message);
       }
     }
@@ -148,7 +150,9 @@ export class GameRoom {
     this.tracks = shuffle(allTracks).slice(0, this.settings.rounds);
     this.totalRounds = this.tracks.length;
 
-    if (this.tracks.length === 0) return 'No tracks found';
+    if (this.tracks.length === 0) {
+      return lastError || 'No tracks found';
+    }
 
     this.players.forEach(p => { p.score = 0; p.answers = []; p.streak = 0; });
     this.currentRound = 0;
