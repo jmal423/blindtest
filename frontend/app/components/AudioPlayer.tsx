@@ -75,6 +75,7 @@ export default function AudioPlayer({
           modestbranding: 1,
           rel: 0,
           iv_load_policy: 3,
+          playsinline: 1,
         },
         events: {
           onReady: () => { readyRef.current = true; },
@@ -123,7 +124,24 @@ export default function AudioPlayer({
     };
     trySeek();
 
-    return () => { stopped = true; };
+    // Mobile: one-shot gesture handler for first playback
+    const onGesture = () => {
+      if (stopped) return;
+      const player = playerRef.current;
+      if (!player || !readyRef.current) return;
+      try {
+        player.seekTo(offsetRef.current, true);
+        player.playVideo();
+      } catch {}
+    };
+    document.addEventListener('click', onGesture, { once: true });
+    document.addEventListener('touchstart', onGesture, { once: true });
+
+    return () => {
+      stopped = true;
+      document.removeEventListener('click', onGesture);
+      document.removeEventListener('touchstart', onGesture);
+    };
   }, [state]);
 
   const tick = useCallback(() => {
@@ -150,10 +168,10 @@ export default function AudioPlayer({
       ref={containerRef}
       style={{
         position: 'fixed',
-        top: '-9999px',
-        left: '-9999px',
-        width: '300px',
-        height: '300px',
+        top: '10px',
+        right: '10px',
+        width: '1px',
+        height: '1px',
         opacity: 0.01,
         pointerEvents: 'none',
       }}

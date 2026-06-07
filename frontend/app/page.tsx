@@ -3,12 +3,13 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
-import { getMe, getToken, getDiscordAuthUrl, createRoom, joinRoom } from '@/lib/api';
+import { useAuth } from '@/app/context/AuthContext';
+import { getDiscordAuthUrl, createRoom, joinRoom } from '@/lib/api';
 
 export default function Home() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
-  const [checking, setChecking] = useState(true);
+  const { user, loading, refresh } = useAuth();
+  const [processing, setProcessing] = useState(true);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -18,18 +19,20 @@ export default function Home() {
     if (token) {
       localStorage.setItem('blindtest_token', token);
       window.history.replaceState({}, document.title, window.location.pathname);
-      getMe().then(u => { setUser(u); setChecking(false); }).catch(() => setChecking(false));
-    } else if (error) {
-      window.history.replaceState({}, document.title, window.location.pathname);
-      setChecking(false);
-    } else if (getToken()) {
-      getMe().then(u => { setUser(u); setChecking(false); }).catch(() => setChecking(false));
-    } else {
-      setChecking(false);
+      refresh().finally(() => setProcessing(false));
+      return;
     }
-  }, []);
 
-  if (checking) {
+    if (error) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+      setProcessing(false);
+      return;
+    }
+
+    if (!loading) setProcessing(false);
+  }, [loading, refresh]);
+
+  if (processing || loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
         <p className="text-zinc-400">Loading...</p>

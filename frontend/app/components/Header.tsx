@@ -4,14 +4,15 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import Link from 'next/link';
-import { getMe, getMyStats, getToken } from '@/lib/api';
+import { getMyStats } from '@/lib/api';
+import { useAuth } from '@/app/context/AuthContext';
 import { isDebugMode, setDebugMode } from '@/lib/debug-context';
 import SettingsModal from './SettingsModal';
 
 export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
-  const [user, setUser] = useState<any>(null);
+  const { user, signOut } = useAuth();
   const [stats, setStats] = useState<any>(null);
   const [open, setOpen] = useState(false);
   const [debugOn, setDebugOn] = useState(false);
@@ -21,14 +22,11 @@ export default function Header() {
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (getToken()) {
-      getMe().then(setUser).catch(() => {});
-    }
     if (typeof window !== 'undefined') {
       setGuestName(localStorage.getItem('blindtest_name'));
     }
     setDebugOn(isDebugMode());
-  }, [pathname]);
+  }, []);
 
   useEffect(() => {
     if (open && user) {
@@ -47,12 +45,11 @@ export default function Header() {
   }, []);
 
   const handleDisconnect = () => {
-    localStorage.removeItem('blindtest_token');
     for (let i = localStorage.length - 1; i >= 0; i--) {
       const key = localStorage.key(i);
       if (key && key.startsWith('blindtest_player_')) localStorage.removeItem(key);
     }
-    setUser(null);
+    signOut();
     setOpen(false);
     router.push('/');
   };
