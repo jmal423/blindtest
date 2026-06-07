@@ -2,3 +2,7 @@ node_modules/
 .next/
 .env
 *.local
+data.db
+*.db
+backend/data.db-shm
+backend/data.db-wal

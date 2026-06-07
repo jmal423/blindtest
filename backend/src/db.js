@@ -1,4 +1,10 @@
 import crypto from 'node:crypto';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import fs from 'node:fs';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const DB_PATH = process.env.SQLITE_PATH || path.resolve(__dirname, '..', 'data.db');
 
 let db;
 
@@ -22,9 +28,16 @@ if (process.env.DATABASE_URL) {
     return res.rows;
   };
 } else {
+  const dir = path.dirname(DB_PATH);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
   const Database = (await import('better-sqlite3')).default;
-  db = new Database('./data.db');
+  db = new Database(DB_PATH);
+  db.pragma('journal_mode = WAL');
+  db.pragma('busy_timeout = 5000');
   db.db = db;
+  console.log(`[DB] SQLite connected: ${DB_PATH}`);
 }
 
 async function init() {

@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'motion/react';
+import { useRouter } from 'next/navigation';
 
 interface PodiumEntry {
   rank: number;
@@ -18,6 +19,7 @@ interface PodiumProps {
 }
 
 export default function Podium({ rankings, playerId, code, onPlayAgain }: PodiumProps) {
+  const router = useRouter();
   const top3 = rankings.slice(0, 3);
   const rest = rankings.slice(3);
 
@@ -137,6 +139,15 @@ export default function Podium({ rankings, playerId, code, onPlayAgain }: Podium
         className="px-8 py-4 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white font-semibold rounded-xl transition-colors"
       >
         Play Again
+      </motion.button>
+      <motion.button
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.8 }}
+        onClick={() => router.push('/')}
+        className="px-8 py-3 bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 font-medium rounded-xl transition-colors"
+      >
+        Main Menu
       </motion.button>
     </div>
   );

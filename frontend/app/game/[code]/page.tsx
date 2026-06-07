@@ -11,7 +11,6 @@ import { useSettings } from '@/app/context/SettingsContext';
 import Chat from './Chat';
 import Podium from './Podium';
 import DebugOverlay from './DebugOverlay';
-import TrackHistory from './TrackHistory';
 import { useSound } from '@/lib/useSound';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -151,7 +150,6 @@ export default function GamePage({
   const [guessMarkers, setGuessMarkers] = useState<{ playerName: string; artistFound: boolean; titleFound: boolean; guessTimeMs: number }[]>([]);
   const [startLoading, setStartLoading] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
-  const [historyOpen, setHistoryOpen] = useState(false);
   const playSound = useSound();
   const { settings: userSettings } = useSettings();
   const playSoundRef = useRef(playSound);
@@ -393,9 +391,9 @@ export default function GamePage({
   }
 
   return (
-    <div className="flex-1 flex flex-col p-3 md:p-6 max-w-5xl mx-auto w-full gap-4">
+    <div className="flex-1 flex flex-col p-3 md:p-6 max-w-6xl mx-auto w-full gap-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <p className="text-xl font-bold tracking-[0.2em] text-[var(--primary)]">{code}</p>
           <button
             onClick={() => { navigator.clipboard.writeText(code); }}
@@ -403,6 +401,21 @@ export default function GamePage({
           >
             Copy
           </button>
+          {gameState.state === 'waiting' && (
+            <div className="hidden md:flex items-center gap-2 text-[11px] text-zinc-500">
+              {(gameState as any).genres?.length > 0 && (
+                <span className="px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">
+                  {(gameState as any).genres?.slice(0, 3).join(', ')}{(gameState as any).genres?.length > 3 ? ` +${(gameState as any).genres.length - 3}` : ''}
+                </span>
+              )}
+              <span>{(gameState as any).settings?.rounds ?? gameState.totalRounds} rounds</span>
+              <span>{(gameState as any).settings?.roundTime ?? 15}s</span>
+              <span className="capitalize">{(gameState as any).settings?.audioSource ?? 'deezer'}</span>
+            </div>
+          )}
+          {gameState.state !== 'waiting' && gameState.state !== 'game_over' && (
+            <span className="text-xs text-zinc-600">Round {gameState.currentRound}/{gameState.totalRounds}</span>
+          )}
         </div>
         <div className="flex items-center gap-2">
           {gameState.state !== 'waiting' && gameState.state !== 'game_over' && (
@@ -413,18 +426,34 @@ export default function GamePage({
               {chatOpen ? 'Hide Chat' : 'Chat'}
             </button>
           )}
-          {((gameState as any)?.trackHistory?.length > 0 || historyOpen) && (
-            <button
-              onClick={() => setHistoryOpen(o => !o)}
-              className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-zinc-400 hover:text-zinc-300 transition-colors"
-            >
-              {historyOpen ? 'Hide History' : 'History'}
-            </button>
-          )}
         </div>
       </div>
 
       <div className="flex gap-4 md:gap-6">
+        {gameState.state !== 'waiting' && gameState.state !== 'game_over' && ((gameState as any)?.trackHistory?.length > 0) && (
+          <div className="hidden md:flex flex-col w-48 shrink-0">
+            <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">History</p>
+            <div className="flex-1 overflow-y-auto space-y-1">
+              {((gameState as any)?.trackHistory || []).map((t: any) => (
+                <div
+                  key={t.round}
+                  className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-[10px] ${
+                    t.round === ((gameState as any)?.trackHistory || []).length ? 'bg-[var(--primary)]/10 border border-[var(--primary)]/20' : 'bg-white/[0.03]'
+                  }`}
+                >
+                  {t.albumImage && (
+                    <img src={t.albumImage} alt="" className="w-5 h-5 rounded object-cover shrink-0" />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium truncate leading-tight">{t.name}</p>
+                    <p className="text-zinc-500 truncate leading-tight">{t.artist}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="flex-1 flex flex-col gap-4 max-w-2xl min-w-0">
           {gameState.state === 'waiting' && (
             <WaitingRoom
@@ -496,10 +525,6 @@ export default function GamePage({
           </div>
         )}
       </div>
-
-      {historyOpen && ((gameState as any)?.trackHistory?.length > 0) && (
-        <TrackHistory tracks={(gameState as any)?.trackHistory || []} />
-      )}
 
       {gameState.state !== 'game_over' && (
         <AudioPlayer
@@ -801,10 +826,10 @@ function WaitingRoom({
 }
 
 function PreparingCountdown({ currentRound, totalRounds, players, playerId }: { currentRound: number; totalRounds: number; players: Player[]; playerId: string }) {
-  const [count, setCount] = useState(5);
+  const [count, setCount] = useState(3);
 
   useEffect(() => {
-    setCount(5);
+    setCount(3);
     const t = setInterval(() => setCount(c => Math.max(0, c - 1)), 1000);
     return () => clearInterval(t);
   }, [currentRound]);
@@ -1012,14 +1037,15 @@ function PlayingPhase({
 
       <div className="flex gap-2">
         <div className={`flex-1 text-center px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all ${pillStyle(artistFound)}`}>
-          Artist
+          Artist {!artistFound && <span className="text-zinc-600">?</span>}
         </div>
         <div className={`flex-1 text-center px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all ${pillStyle(titleFound)}`}>
-          Title
+          Title {!titleFound && <span className="text-zinc-600">?</span>}
         </div>
       </div>
 
       <div className="relative">
+        <div className={`absolute -inset-1 rounded-2xl ${bothFound ? 'bg-green-500/20' : 'bg-[var(--primary)]/10'} blur-lg transition-all duration-500`} />
         <input
           ref={inputRef}
           type="text"
@@ -1029,8 +1055,22 @@ function PlayingPhase({
           placeholder={placeholder}
           disabled={bothFound}
           autoComplete="off"
-          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center placeholder-zinc-500 focus:outline-none focus:border-[var(--primary)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className={`relative w-full px-5 py-4 bg-[var(--surface)] border-2 rounded-2xl text-white text-lg text-center placeholder-zinc-500 focus:outline-none transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${
+            bothFound
+              ? 'border-green-500/50 shadow-green-500/10'
+              : 'border-[var(--primary)]/30 focus:border-[var(--primary)] shadow-[var(--primary)]/5 focus:shadow-lg'
+          }`}
         />
+        {!bothFound && (
+          <div className="absolute right-4 top-1/2 -translate-y-1/2">
+            <button
+              onClick={onSubmit}
+              className="px-4 py-2 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white text-sm font-semibold rounded-xl transition-colors"
+            >
+              Send
+            </button>
+          </div>
+        )}
       </div>
 
       {guessResult && (() => {

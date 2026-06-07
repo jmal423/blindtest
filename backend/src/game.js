@@ -80,7 +80,7 @@ export class GameRoom {
   constructor(code, genres, io) {
     this.code = code;
     this.genres = genres;
-    this.settings = { rounds: 10, roundTime: 15, pauseTime: 4, autoStart: false, audioSource: 'both' };
+    this.settings = { rounds: 10, roundTime: 15, pauseTime: 4, autoStart: false, audioSource: 'deezer' };
     this.tracks = [];
     this.trackHistory = [];
     this.players = [];
@@ -352,11 +352,10 @@ export class GameRoom {
     this.countdownTimer = setTimeout(() => {
       this.state = 'playing';
       this.broadcast();
-      // Don't start round timer yet — wait for all players' playback_started
       this.playbackTimeout = setTimeout(() => {
         this.startRoundTimer();
-      }, 6000);
-    }, 8000);
+      }, 2000);
+    }, 3000);
   }
 
   submitAnswer(playerId, answer) {
