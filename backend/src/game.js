@@ -120,10 +120,12 @@ export class GameRoom {
       }
     }
 
-    this.tracks = shuffle(allTracks).slice(0, this.settings.rounds);
+    const playableTracks = allTracks.filter(track => track.previewUrl && track.previewUrl.startsWith('http'));
+    this.tracks = shuffle(playableTracks).slice(0, this.settings.rounds);
     this.totalRounds = this.tracks.length;
 
     if (this.tracks.length === 0) return 'No tracks found';
+    if (this.tracks.length < this.settings.rounds) return 'This playlist does not have enough playable tracks.';
 
     this.players.forEach(p => { p.score = 0; p.answers = []; p.streak = 0; });
     this.currentRound = 0;
@@ -138,6 +140,12 @@ export class GameRoom {
     }
 
     const track = this.tracks[this.currentRound];
+    if (!track.previewUrl) {
+      console.error('[GameEngine] Skipped track due to missing previewUrl', track.id);
+      this.currentRound++;
+      this.startRound();
+      return;
+    }
     if (!track.youtubeVideoId) {
       const { searchYouTubeVideo } = await import('./youtube.js');
       track.youtubeVideoId = await searchYouTubeVideo(track.name, track.artist);

@@ -86,7 +86,7 @@ async function handleDiscordCallback(code, host) {
   const token = jwt.sign(
     { userId: user.id, role: user.role },
     JWT_SECRET,
-    { expiresIn: '7d' }
+    { expiresIn: '30d' }
   );
 
   return {
