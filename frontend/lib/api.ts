@@ -10,11 +10,12 @@ export interface RoomSettings {
 
 export type GameState =
   | { state: 'waiting'; genres: string[]; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number }
+  | { state: 'countdown'; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; roundTime: number; previewUrl: string | null; audioOffset: number }
   | { state: 'playing'; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; timeLeft: number; roundTime: number; youtubeVideoId: string | null; trackId: string }
   | { state: 'round_result'; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; roundResult: RoundResult; pauseTimeLeft: number }
   | { state: 'finished'; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; rankings: Ranking[] };
 
-export interface Player { id: string; name: string; score: number }
+export interface Player { id: string; name: string; score: number; avatarUrl?: string | null; role?: string; foundArtist?: boolean; foundTitle?: boolean; foundBoth?: boolean }
 export interface RoundResult { round: number; correctAnswer: string; artist: string; albumImage: string }
 export interface Ranking { rank: number; name: string; score: number }
 
@@ -79,7 +80,7 @@ export async function updateSettings(code: string, playerId: string, settings: P
   return res.json();
 }
 
-export async function submitAnswer(code: string, playerId: string, answer: string): Promise<{ correct: boolean; points: number; correctAnswer: string; artist: string; guessTimeMs: number; trackId: string; genre: string }> {
+export async function submitAnswer(code: string, playerId: string, answer: string): Promise<{ artist_result: string; title_result: string; points_awarded_this_guess: number; found_both: boolean; guessTimeMs: number; trackId: string; genre: string }> {
   const token = getToken();
   const res = await fetch(`${API_URL}/api/game/${code}/submit`, {
     method: 'POST',

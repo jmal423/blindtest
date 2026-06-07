@@ -62,6 +62,7 @@ export class GameRoom {
     this.totalRounds = 0;
     this.roundStartTime = null;
     this.roundTimer = null;
+    this.countdownTimer = null;
     this.pauseTimer = null;
     this.audioOffset = 0;
     this.roundResult = null;
@@ -150,7 +151,6 @@ export class GameRoom {
         .catch(() => {});
     }
 
-    this.roundStartTime = Date.now();
     this.foundOrder = [];
     this.players.forEach(p => {
       p.foundArtist = false;
@@ -159,13 +159,22 @@ export class GameRoom {
     });
     const maxOffset = Math.max(0, 30 - this.settings.roundTime);
     this.audioOffset = Math.floor(Math.random() * maxOffset);
-    this.state = 'playing';
     this.roundResult = null;
+
+    this.state = 'countdown';
     this.broadcast();
 
-    this.roundTimer = setTimeout(() => {
-      this.endRound();
-    }, (this.settings.roundTime + 3) * 1000);
+    clearTimeout(this.countdownTimer);
+    this.countdownTimer = setTimeout(() => {
+      this.roundStartTime = Date.now();
+      this.state = 'playing';
+      this.broadcast();
+
+      clearTimeout(this.roundTimer);
+      this.roundTimer = setTimeout(() => {
+        this.endRound();
+      }, (this.settings.roundTime + 3) * 1000);
+    }, 5000);
   }
 
   submitAnswer(playerId, answer) {
@@ -264,6 +273,7 @@ export class GameRoom {
 
   endGame() {
     if (this.roundTimer) { clearTimeout(this.roundTimer); this.roundTimer = null; }
+    if (this.countdownTimer) { clearTimeout(this.countdownTimer); this.countdownTimer = null; }
     if (this.pauseTimer) { clearTimeout(this.pauseTimer); this.pauseTimer = null; }
 
     this.state = 'finished';
@@ -277,10 +287,25 @@ export class GameRoom {
       state: this.state,
       settings: this.getSettings(),
       genres: this.genres,
-      players: this.players.map(p => ({ id: p.id, name: p.name, avatarUrl: p.avatarUrl, role: p.role, score: p.score })),
+      players: this.players.map(p => ({
+        id: p.id, name: p.name, avatarUrl: p.avatarUrl, role: p.role, score: p.score,
+        foundArtist: !!p.foundArtist,
+        foundTitle: !!p.foundTitle,
+        foundBoth: !!p.foundBoth,
+      })),
       currentRound: this.currentRound + 1,
       totalRounds: this.totalRounds,
     };
+
+    if (this.state === 'countdown') {
+      const track = this.tracks[this.currentRound];
+      return {
+        ...base,
+        previewUrl: track?.previewUrl || null,
+        audioOffset: this.audioOffset ?? 0,
+        roundTime: this.settings.roundTime,
+      };
+    }
 
     if (this.state === 'playing') {
       const elapsed = (Date.now() - this.roundStartTime) / 1000;
@@ -312,6 +337,7 @@ export class GameRoom {
 
   destroy() {
     if (this.roundTimer) clearTimeout(this.roundTimer);
+    if (this.countdownTimer) clearTimeout(this.countdownTimer);
     if (this.pauseTimer) clearTimeout(this.pauseTimer);
     this.players = [];
     this.tracks = [];
