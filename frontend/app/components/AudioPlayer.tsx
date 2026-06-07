@@ -152,6 +152,17 @@ export default function AudioPlayer({
     };
   }, [state]);
 
+  // Live volume update — reacts to settings changes during playback
+  useEffect(() => {
+    const src = sourceRef.current;
+    const vol = settings.masterVolume;
+    if (src === 'youtube' && ytRef.current && ytReadyRef.current) {
+      try { ytRef.current.setVolume(Math.round(vol * 100)); } catch {}
+    } else if (src === 'html5' && htmlAudioRef.current) {
+      htmlAudioRef.current.volume = vol;
+    }
+  }, [settings.masterVolume]);
+
   const tick = useCallback(() => {
     const s = sourceRef.current;
     if (s === 'youtube') {

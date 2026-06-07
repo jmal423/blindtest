@@ -58,6 +58,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     document.documentElement.setAttribute('data-theme', settings.theme);
   }, [settings.theme]);
 
+  useEffect(() => {
+    document.documentElement.classList.toggle('reduce-motion', settings.reducedMotion);
+  }, [settings.reducedMotion]);
+
   const updateSettings = (partial: Partial<Settings>) => {
     setSettings(prev => ({ ...prev, ...partial }));
   };

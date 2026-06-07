@@ -7,6 +7,7 @@ import { io as socketIo, Socket } from 'socket.io-client';
 import { getToken, GameState, Player, RoomSettings, startGame, updateSettings, fetchGenres } from '@/lib/api';
 import { isDebugMode } from '@/lib/debug-context';
 import AudioPlayer from '@/app/components/AudioPlayer';
+import { useSettings } from '@/app/context/SettingsContext';
 import Chat from './Chat';
 import Podium from './Podium';
 import DebugOverlay from './DebugOverlay';
@@ -148,6 +149,7 @@ export default function GamePage({
   const [guessMarkers, setGuessMarkers] = useState<{ playerName: string; artistFound: boolean; titleFound: boolean; guessTimeMs: number }[]>([]);
   const [startLoading, setStartLoading] = useState(false);
   const playSound = useSound();
+  const { settings: userSettings } = useSettings();
   const playSoundRef = useRef(playSound);
   const activeRoundRef = useRef<string | null>(null);
   playSoundRef.current = playSound;
@@ -180,7 +182,7 @@ export default function GamePage({
   }, []);
 
   useEffect(() => {
-    if (gameState?.state === 'playing' && !bothFound) {
+    if (gameState?.state === 'playing' && !bothFound && userSettings.autoFocusInput) {
       const timer = setTimeout(() => guessInputRef.current?.focus(), 350);
       return () => clearTimeout(timer);
     }

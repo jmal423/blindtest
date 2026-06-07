@@ -521,6 +521,45 @@ app.post('/api/admin/test/youtube', requireAdmin, async (req, res) => {
   }
 });
 
+// Test: inject mock tracks and start a game without Spotify/YouTube
+app.post('/api/admin/test/seed-game/:code', requireAdmin, async (req, res) => {
+  const room = rooms.get(req.params.code.toUpperCase());
+  if (!room) return res.status(404).json({ error: 'Room not found' });
+  if (room.state !== 'waiting') return res.status(400).json({ error: 'Game already started' });
+
+  const rounds = parseInt(req.body.rounds) || 3;
+  const mockTracks = [
+    { id: 'spotify:track:1', name: 'Bohemian Rhapsody', artist: 'Queen', albumImage: null, previewUrl: 'https://example.com/audio.mp3', durationMs: 355000, genre: 'rock' },
+    { id: 'spotify:track:2', name: 'Billie Jean', artist: 'Michael Jackson', albumImage: null, previewUrl: 'https://example.com/audio.mp3', durationMs: 294000, genre: 'pop' },
+    { id: 'spotify:track:3', name: 'Smells Like Teen Spirit', artist: 'Nirvana', albumImage: null, previewUrl: 'https://example.com/audio.mp3', durationMs: 301000, genre: 'rock' },
+    { id: 'spotify:track:4', name: 'Like a Prayer', artist: 'Madonna', albumImage: null, previewUrl: 'https://example.com/audio.mp3', durationMs: 280000, genre: 'pop' },
+    { id: 'spotify:track:5', name: 'Stairway to Heaven', artist: 'Led Zeppelin', albumImage: null, previewUrl: 'https://example.com/audio.mp3', durationMs: 482000, genre: 'rock' },
+  ];
+
+  room.tracks = mockTracks.slice(0, Math.max(rounds, mockTracks.length));
+  room.totalRounds = rounds;
+  room.genres = [...new Set(mockTracks.map(t => t.genre))];
+
+  const error = await room.startGame();
+  if (error) return res.status(400).json({ error });
+  res.json({ ok: true, rounds, tracks: room.tracks.length });
+});
+
+app.post('/api/admin/test/start-round/:code', requireAdmin, (req, res) => {
+  const room = rooms.get(req.params.code.toUpperCase());
+  if (!room) return res.status(404).json({ error: 'Room not found' });
+  // Force state to playing and start the timer
+  if (room.state === 'round_preparing') {
+    if (room.countdownTimer) clearTimeout(room.countdownTimer);
+    room.state = 'playing';
+    room.broadcast();
+  }
+  if (room.state === 'playing') {
+    room.startRoundTimer();
+  }
+  res.json({ ok: true, state: room.state });
+});
+
 app.get('/api/admin/stats', requireAdmin, async (req, res) => {
   const [userCount, roundCount] = await Promise.all([
     get('SELECT COUNT(*) as count FROM users'),
