@@ -304,10 +304,21 @@ export class GameRoom {
       totalRounds: this.totalRounds,
     };
 
+    const makeDebugTrackInfo = (track) => track ? {
+      title: track.title,
+      artist: track.artist,
+      spotifyId: track.id,
+      youtubeVideoId: track.youtubeVideoId,
+      provenance: 'Spotify Metadata -> YouTube Audio',
+      durationMs: track.durationMs || 30000,
+      targetOffset: this.audioOffset,
+    } : null;
+
     if (this.state === 'round_preparing') {
       const track = this.tracks[this.currentRound];
       return {
         ...base,
+        _debugTrackInfo: makeDebugTrackInfo(track),
         previewUrl: track?.previewUrl || null,
         youtubeVideoId: track?.youtubeVideoId || null,
         audioOffset: this.audioOffset ?? 0,
@@ -321,6 +332,7 @@ export class GameRoom {
       const track = this.tracks[this.currentRound];
       return {
         ...base,
+        _debugTrackInfo: makeDebugTrackInfo(track),
         timeLeft,
         roundTime: this.settings.roundTime,
         previewUrl: track.previewUrl,

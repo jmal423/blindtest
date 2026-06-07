@@ -88,7 +88,7 @@ app.get('/api/genres', (req, res) => {
 
 // Rooms
 app.post('/api/rooms', (req, res) => {
-  const { genres = ['pop', 'rock'], playerName, avatarUrl, role, rounds, roundTime } = req.body;
+  const { genres = [], playerName, avatarUrl, role, rounds, roundTime } = req.body;
   if (!playerName || !playerName.trim()) {
     return res.status(400).json({ error: 'Player name is required' });
   }
@@ -136,7 +136,7 @@ app.post('/api/game/:code/settings', (req, res) => {
   if (room.state !== 'waiting') return res.status(400).json({ error: 'Game already started' });
   if (room.hostId !== req.body.playerId) return res.status(403).json({ error: 'Only the host can change settings' });
 
-  if (req.body.genres && Array.isArray(req.body.genres) && req.body.genres.length > 0) {
+  if (req.body.genres !== undefined && Array.isArray(req.body.genres)) {
     room.genres = req.body.genres;
   }
   room.updateSettings(req.body);

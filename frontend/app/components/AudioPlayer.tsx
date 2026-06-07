@@ -61,8 +61,8 @@ export default function AudioPlayer({
     const init = () => {
       if (playerRef.current || !containerRef.current) return;
       playerRef.current = new window.YT.Player(containerRef.current, {
-        height: '0',
-        width: '0',
+        height: '300',
+        width: '300',
         videoId: youtubeVideoId,
         playerVars: {
           autoplay: 0,
@@ -138,5 +138,18 @@ export default function AudioPlayer({
     return () => clearInterval(interval);
   }, [state, tick]);
 
-  return <div ref={containerRef} className="hidden" />;
+  return (
+    <div
+      ref={containerRef}
+      style={{
+        position: 'fixed',
+        top: '-9999px',
+        left: '-9999px',
+        width: '300px',
+        height: '300px',
+        opacity: 0.01,
+        pointerEvents: 'none',
+      }}
+    />
+  );
 }

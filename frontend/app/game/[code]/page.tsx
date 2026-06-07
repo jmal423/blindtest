@@ -391,7 +391,7 @@ function WaitingRoom({
     const set = new Set(genres);
     if (set.has(id)) set.delete(id);
     else set.add(id);
-    if (set.size > 0) onGenresChange(Array.from(set));
+    onGenresChange(Array.from(set));
   };
 
   return (
@@ -516,8 +516,16 @@ function WaitingRoom({
       </div>
 
       {isHost && (
-        <button onClick={onStart} className="px-8 py-4 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white font-semibold rounded-xl transition-colors animate-pulse-glow">
-          Start Game
+        <button
+          onClick={onStart}
+          disabled={!genres || genres.length === 0}
+          className={`px-8 py-4 text-white font-semibold rounded-xl transition-colors ${
+            genres && genres.length > 0
+              ? 'bg-[var(--primary)] hover:bg-[var(--primary-hover)] animate-pulse-glow'
+              : 'bg-gray-600 opacity-50 cursor-not-allowed'
+          }`}
+        >
+          {genres && genres.length > 0 ? 'Start Game' : 'Select a Genre to Start'}
         </button>
       )}
 
