@@ -282,11 +282,24 @@ export class GameRoom {
       title_score: titleCheck.score,
       points_awarded_this_guess: pointsThisGuess,
       found_both: bothNow,
+      guessTimeMs,
     };
 
     const sid = this.playerSockets[playerId];
     if (sid && this.io) {
       this.io.to(sid).emit('input_result', inputResult);
+    }
+
+    // Broadcast guess_made to all players in the room for progress bar visualization
+    if (this.io) {
+      this.io.to(this.code).emit('guess_made', {
+        playerId,
+        playerName: player.name,
+        artistFound: artistCorrect && player.foundArtist,
+        titleFound: titleCorrect && player.foundTitle,
+        bothFound: bothNow,
+        guessTimeMs,
+      });
     }
 
     return { ...inputResult, guessTimeMs, trackId: track.id, genre: track.genre };

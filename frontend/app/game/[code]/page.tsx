@@ -56,7 +56,9 @@ function Visualizer({ duration, currentTime }: { duration: number; currentTime: 
   );
 }
 
-function ProgressBar({ duration, currentTime }: { duration: number; currentTime: number }) {
+const PLAYER_COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#06b6d4', '#8b5cf6', '#84cc16'];
+
+function ProgressBar({ duration, currentTime, markers }: { duration: number; currentTime: number; markers: { playerName: string; artistFound: boolean; titleFound: boolean; guessTimeMs: number }[] }) {
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   const format = (s: number) => {
@@ -65,20 +67,54 @@ function ProgressBar({ duration, currentTime }: { duration: number; currentTime:
     return `${m}:${sec.toString().padStart(2, '0')}`;
   };
 
+  const uniquePlayers = [...new Set(markers.map(m => m.playerName))];
+
   return (
     <div className="w-full max-w-lg mx-auto space-y-1">
-      <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+      <div className="relative h-1 bg-white/10 rounded-full overflow-hidden">
         <motion.div
           className="h-full rounded-full"
           style={{ background: 'linear-gradient(90deg, #6366f1, #a855f7)' }}
           animate={{ width: `${progress}%` }}
           transition={{ duration: 0.3, ease: 'linear' }}
         />
+        {markers.map((m, i) => {
+          const pct = duration > 0 ? Math.min(100, (m.guessTimeMs / 1000 / duration) * 100) : 0;
+          const color = PLAYER_COLORS[uniquePlayers.indexOf(m.playerName) % PLAYER_COLORS.length];
+          const isBoth = m.artistFound && m.titleFound;
+          return (
+            <div
+              key={i}
+              className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 z-10"
+              style={{ left: `${pct}%` }}
+              title={`${m.playerName}: ${(m.guessTimeMs / 1000).toFixed(1)}s${isBoth ? ' (both)' : m.artistFound ? ' (artist)' : ' (title)'}`}
+            >
+              <div
+                className={`rounded-full border border-black/30 ${isBoth ? 'w-3 h-3' : 'w-2 h-2'}`}
+                style={{ backgroundColor: color }}
+              />
+            </div>
+          );
+        })}
       </div>
       <div className="flex justify-between text-xs text-zinc-500">
         <span>{format(currentTime)}</span>
         <span>{format(duration)}</span>
       </div>
+      {markers.length > 0 && (
+        <div className="flex flex-wrap gap-x-3 gap-y-1 justify-center">
+          {uniquePlayers.map((name, i) => {
+            const playerMarkers = markers.filter(m => m.playerName === name);
+            const best = Math.min(...playerMarkers.map(m => m.guessTimeMs));
+            return (
+              <div key={name} className="flex items-center gap-1.5 text-[10px] text-zinc-400">
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: PLAYER_COLORS[i % PLAYER_COLORS.length] }} />
+                <span>{name} {(best / 1000).toFixed(1)}s</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -108,6 +144,7 @@ export default function GamePage({
   const [titleFound, setTitleFound] = useState(false);
   const [bothFound, setBothFound] = useState(false);
   const [encouragement, setEncouragement] = useState<string | null>(null);
+  const [guessMarkers, setGuessMarkers] = useState<{ playerName: string; artistFound: boolean; titleFound: boolean; guessTimeMs: number }[]>([]);
   const playSound = useSound();
   const playSoundRef = useRef(playSound);
   playSoundRef.current = playSound;
@@ -149,6 +186,7 @@ export default function GamePage({
       setGuessResult(null);
       setEncouragement(null);
       setLocalTimeLeft(null);
+      setGuessMarkers([]);
       if (localTimerRef.current) {
         clearInterval(localTimerRef.current);
         localTimerRef.current = null;
@@ -201,6 +239,10 @@ export default function GamePage({
 
     socket.on('game_state', (state: GameState) => {
       applyGameState(state);
+    });
+
+    socket.on('guess_made', (marker: any) => {
+      setGuessMarkers(prev => [...prev, { playerName: marker.playerName, artistFound: marker.artistFound, titleFound: marker.titleFound, guessTimeMs: marker.guessTimeMs }]);
     });
 
     socket.on('input_result', (result: any) => {
@@ -326,6 +368,7 @@ export default function GamePage({
               guessResult={guessResult}
               duration={duration}
               currentTime={currentTime}
+              guessMarkers={guessMarkers}
               inputRef={guessInputRef}
               artistFound={artistFound}
               titleFound={titleFound}
@@ -582,6 +625,7 @@ function PlayingPhase({
   guessResult,
   duration,
   currentTime,
+  guessMarkers,
   inputRef,
   artistFound,
   titleFound,
@@ -597,9 +641,10 @@ function PlayingPhase({
   guess: string;
   onGuessChange: (v: string) => void;
   onSubmit: () => void;
-  guessResult: { artist_result: string; artist_score: number; title_result: string; title_score: number; points_awarded_this_guess: number; found_both: boolean } | null;
+  guessResult: { artist_result: string; artist_score: number; title_result: string; title_score: number; points_awarded_this_guess: number; found_both: boolean; guessTimeMs?: number } | null;
   duration: number;
   currentTime: number;
+  guessMarkers: { playerName: string; artistFound: boolean; titleFound: boolean; guessTimeMs: number }[];
   inputRef: React.RefObject<HTMLInputElement | null>;
   artistFound: boolean;
   titleFound: boolean;
@@ -648,7 +693,7 @@ function PlayingPhase({
 
         <Visualizer duration={duration} currentTime={currentTime} />
 
-        <ProgressBar duration={duration} currentTime={currentTime} />
+        <ProgressBar duration={duration} currentTime={currentTime} markers={guessMarkers} />
 
         <div className="w-full max-w-sm space-y-3">
           <div className="flex gap-2">
@@ -689,6 +734,7 @@ function PlayingPhase({
           const scores = [];
           if (guessResult.artist_score !== undefined) scores.push(`Artist: ${guessResult.artist_score}%`);
           if (guessResult.title_score !== undefined) scores.push(`Title: ${guessResult.title_score}%`);
+          const ms = guessResult.guessTimeMs;
           return (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -702,6 +748,9 @@ function PlayingPhase({
               <p className="font-semibold">{succeeded ? `+${pts} pts` : 'Wrong!'}</p>
               {scores.length > 0 && (
                 <p className="text-[10px] mt-0.5 opacity-70">{scores.join(' | ')}</p>
+              )}
+              {ms != null && (
+                <p className="text-[10px] mt-0.5 text-zinc-400">{(ms / 1000).toFixed(1)}s</p>
               )}
             </motion.div>
           );
@@ -754,21 +803,23 @@ function RoundResult({ data, players = [], pauseTimeLeft, trackHistory = [] }: {
         </div>
       </div>
 
-      {trackHistory.length > 1 && (
+      {trackHistory.length > 0 && (
         <div className="w-full max-w-sm">
-          <p className="text-[10px] text-zinc-600 uppercase tracking-wider mb-1">Track History</p>
-          <div className="flex flex-wrap gap-1">
+          <p className="text-[10px] text-zinc-600 uppercase tracking-wider mb-2">Track History</p>
+          <div className="space-y-1.5">
             {trackHistory.map(t => (
-              <span
-                key={t.round}
-                className={`text-[10px] px-2 py-0.5 rounded-full ${
-                  t.round === trackHistory.length
-                    ? 'bg-[var(--primary)]/20 text-[var(--primary)]'
-                    : 'bg-zinc-800/50 text-zinc-500'
-                }`}
-              >
-                R{t.round}
-              </span>
+              <div key={t.round} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${
+                t.round === trackHistory.length ? 'bg-[var(--primary)]/10 border border-[var(--primary)]/20' : 'bg-white/5'
+              }`}>
+                {t.albumImage && (
+                  <img src={t.albumImage} alt="" className="w-7 h-7 rounded-md object-cover shrink-0" />
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-medium truncate">{t.name}</p>
+                  <p className="text-[10px] text-zinc-500 truncate">{t.artist}</p>
+                </div>
+                <span className="text-[10px] text-zinc-600 shrink-0">#{t.round}</span>
+              </div>
             ))}
           </div>
         </div>

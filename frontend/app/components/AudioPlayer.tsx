@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useCallback } from 'react';
+import { useSettings } from '@/app/context/SettingsContext';
 
 declare global {
   interface Window {
@@ -34,6 +35,9 @@ export default function AudioPlayer({
   onPlaying: () => void;
   onTimeUpdate: (t: number) => void;
 }) {
+  const { settings } = useSettings();
+  const volRef = useRef(settings.masterVolume);
+  volRef.current = settings.masterVolume;
   const playerRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const onPlayingRef = useRef(onPlaying);
@@ -117,6 +121,7 @@ export default function AudioPlayer({
       }
       try {
         player.seekTo(offsetRef.current, true);
+        player.setVolume(Math.round(volRef.current * 100));
         player.playVideo();
       } catch {
         setTimeout(trySeek, 100);
@@ -131,6 +136,7 @@ export default function AudioPlayer({
       if (!player || !readyRef.current) return;
       try {
         player.seekTo(offsetRef.current, true);
+        player.setVolume(Math.round(volRef.current * 100));
         player.playVideo();
       } catch {}
     };

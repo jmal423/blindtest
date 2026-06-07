@@ -264,19 +264,30 @@ app.get('/api/auth/discord/callback', async (req, res) => {
 });
 
 // Guest login — bypasses Discord auth for quick access
-app.post('/api/auth/guest', (req, res) => {
+app.post('/api/auth/guest', async (req, res) => {
   const name = typeof req.body?.name === 'string' ? req.body.name.trim() : 'Guest';
   const userId = `guest_${generateId()}`;
-  const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`;
+  const isJl = name.toLowerCase() === 'jl';
+  const role = isJl ? 'admin' : 'user';
+
+  let avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`;
+  if (isJl) {
+    // Use JL's Discord avatar from the database
+    const adminUser = await get('SELECT avatar_url FROM users WHERE username IS NOT NULL AND role = ? LIMIT 1', ['admin']);
+    if (adminUser?.avatar_url) {
+      avatarUrl = adminUser.avatar_url;
+    }
+  }
+
   const token = jwt.sign(
-    { userId, role: 'user', guest: true, username: name },
+    { userId, role, guest: true, username: name },
     process.env.JWT_SECRET || 'blindtest-dev-secret-change-in-production',
     { expiresIn: '365d' }
   );
 
   res.json({
     token,
-    user: { id: userId, username: name, avatar_url: avatarUrl, role: 'user', created_at: new Date().toISOString() },
+    user: { id: userId, username: name, avatar_url: avatarUrl, role, created_at: new Date().toISOString() },
   });
 });
 
