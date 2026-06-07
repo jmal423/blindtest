@@ -169,24 +169,12 @@ async function getTracksByGenre(genre, count = 10) {
     return results;
   };
 
-  // Strategy 1: search by genre tag
-  if (tracks.length === 0) {
-    try {
-      const results = await fetchAll(`genre:"${genre}"`);
-      tracks.push(...results);
-    } catch (err) {
-      console.error(`[Spotify] Genre tag search failed for "${genre}":`, err.message);
-    }
-  }
-
-  // Strategy 2: keyword search as fallback
-  if (tracks.length === 0) {
-    try {
-      const results = await fetchAll(genre);
-      tracks.push(...results);
-    } catch (err) {
-      console.error(`[Spotify] Keyword search failed for "${genre}":`, err.message);
-    }
+  try {
+    const results = await fetchAll(`genre:"${genre}"`);
+    tracks.push(...results);
+  } catch (err) {
+    console.error(`[Spotify] Genre search failed for "${genre}":`, err.message);
+    throw err;
   }
 
   if (tracks.length === 0) {

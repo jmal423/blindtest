@@ -206,7 +206,8 @@ export class GameRoom {
       const totalNeeded = this.settings.audioSource === 'spotify'
         ? Math.max(this.settings.rounds * 2, 20)
         : Math.max(this.settings.rounds * 2, 20);
-      const shuffledGenres = shuffle([...this.genres]);
+      const shuffledGenres = shuffle([...this.genres]).slice(0, 5);
+      let rateLimited = false;
       for (const genre of shuffledGenres) {
         if (allTracks.length >= totalNeeded) break;
         try {
@@ -214,11 +215,16 @@ export class GameRoom {
           allTracks.push(...tracks);
         } catch (err) {
           lastError = err.message;
+          if (err.message.includes('rate limit')) {
+            rateLimited = true;
+            await new Promise(r => setTimeout(r, 1500));
+          }
           console.error(`Failed to fetch tracks for genre "${genre}":`, err.message);
         }
       }
 
       if (allTracks.length === 0) {
+        if (rateLimited) return 'Spotify search is rate limited. Please wait ~30 seconds and try again.';
         return lastError || 'No tracks found';
       }
 
