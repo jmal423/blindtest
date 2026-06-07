@@ -201,9 +201,12 @@ export class GameRoom {
 
     const allTracks = [];
     let lastError = '';
+    const perGenre = this.settings.audioSource === 'spotify'
+      ? Math.max(40, this.settings.rounds * 5)
+      : Math.max(15, this.settings.rounds * 2);
     for (const genre of this.genres) {
       try {
-        const tracks = await getTracksByGenre(genre, this.settings.rounds);
+        const tracks = await getTracksByGenre(genre, perGenre);
         allTracks.push(...tracks);
       } catch (err) {
         lastError = err.message;
@@ -211,23 +214,27 @@ export class GameRoom {
       }
     }
 
-    this.tracks = shuffle(allTracks).slice(0, this.settings.rounds * 5);
-    this.totalRounds = this.settings.rounds;
-
-    if (this.tracks.length === 0) {
+    if (allTracks.length === 0) {
       return lastError || 'No tracks found';
     }
 
-    const playable = this.tracks.filter(t => {
-      if (this.settings.audioSource === 'spotify') return !!t.previewUrl;
-      if (this.settings.audioSource === 'youtube') return !!t.youtubeVideoId;
-      return !!(t.youtubeVideoId || t.previewUrl);
-    });
-    console.log(`[Game] Room ${this.code}: ${playable.length}/${this.tracks.length} tracks playable (source: ${this.settings.audioSource})`);
-    if (playable.length === 0) {
-      if (this.settings.audioSource === 'spotify') return 'No tracks with Spotify previews for these genres. Try different genres.';
-      if (this.settings.audioSource === 'youtube') return 'No tracks with YouTube videos found. YouTube API may be down. Try switching to Spotify mode.';
+    if (this.settings.audioSource === 'spotify') {
+      this.tracks = shuffle(allTracks.filter(t => !!t.previewUrl));
+    } else {
+      this.tracks = shuffle(allTracks);
+    }
+    this.totalRounds = Math.min(this.settings.rounds, this.tracks.length);
+
+    console.log(`[Game] Room ${this.code}: ${this.tracks.length} tracks available (source: ${this.settings.audioSource}, target: ${this.totalRounds} rounds)`);
+
+    if (this.tracks.length === 0) {
+      if (this.settings.audioSource === 'spotify') return 'No tracks with Spotify previews found for these genres. Try different genres or more genres.';
+      if (this.settings.audioSource === 'youtube') return 'No tracks with YouTube videos found. YouTube API may be down. Try switching to Spotify.';
       return 'No playable tracks. Try switching audio source or different genres.';
+    }
+
+    if (this.tracks.length < 3) {
+      return `Only ${this.tracks.length} tracks available. Need at least 3. Try more genres.`;
     }
 
     this.players.forEach(p => { p.score = 0; p.answers = []; p.streak = 0; });
