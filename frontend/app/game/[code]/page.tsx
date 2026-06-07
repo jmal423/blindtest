@@ -356,7 +356,7 @@ export default function GamePage({
               players={gameState.players}
               settings={gameState.settings}
               genres={gameState.genres}
-              isHost={playerId === gameState.players[0]?.id}
+              isHost={playerId === gameState.hostId}
               isAdmin={gameState.players.find(p => p.id === playerId)?.role === 'admin'}
               playerId={playerId}
               onStart={handleStart}
@@ -393,6 +393,7 @@ export default function GamePage({
               playersTotal={(gameState as any).playersTotal}
               youtubeVideoId={(gameState as any).youtubeVideoId}
               onSkipRound={() => socketRef.current?.emit('skip_round')}
+              hostId={gameState.hostId}
             />
           )}
 
@@ -671,6 +672,7 @@ function PlayingPhase({
   onSkipRound,
   youtubeVideoId,
   roundTime,
+  hostId,
 }: {
   state: string;
   currentRound: number;
@@ -697,6 +699,7 @@ function PlayingPhase({
   roundTime?: number;
   settings?: RoomSettings;
   youtubeVideoId?: string | null;
+  hostId?: string | null;
 }) {
   const roundDuration = roundTime || 15;
   const placeholder = bothFound
@@ -722,7 +725,8 @@ function PlayingPhase({
     return <PreparingCountdown currentRound={currentRound} totalRounds={totalRounds} players={players} playerId={playerId} />;
   }
 
-  const isAdmin = players.find(p => p.id === playerId)?.role === 'admin' || playerId === players[0]?.id;
+  const me = players.find(p => p.id === playerId);
+  const isAdmin = me?.role === 'admin' || playerId === hostId;
 
   if (waitingForPlayers) {
     return (

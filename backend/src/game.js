@@ -163,6 +163,9 @@ export class GameRoom {
       this.io.to(socketId).emit('kicked', { reason: 'You were removed by an admin' });
     }
     delete this.playerSockets[targetPlayerId];
+    if (this.hostId === targetPlayerId) {
+      this.hostId = this.players[0]?.id || null;
+    }
     if (this.players.length === 0) {
       this.destroy();
     } else {
@@ -204,6 +207,7 @@ export class GameRoom {
 
   async startRound() {
     if (this.pauseInterval) { clearInterval(this.pauseInterval); this.pauseInterval = null; }
+    this.roundStartTime = null;
     while (this.currentRound < this.tracks.length && this.tracksPlayed < this.totalRounds) {
       const track = this.tracks[this.currentRound];
       if (!track.youtubeVideoId) {
@@ -380,6 +384,10 @@ export class GameRoom {
 
   skipRound() {
     if (this.state !== 'round_preparing' && this.state !== 'playing') return;
+    if (this.countdownTimer) { clearTimeout(this.countdownTimer); this.countdownTimer = null; }
+    if (this.playbackTimeout) { clearTimeout(this.playbackTimeout); this.playbackTimeout = null; }
+    if (this.roundTimer) { clearTimeout(this.roundTimer); this.roundTimer = null; }
+    this.roundStartTime = null;
     this.clearPlayingInterval();
 
     this.currentRound++;
@@ -392,6 +400,7 @@ export class GameRoom {
 
   endRound() {
     if (this.roundTimer) { clearTimeout(this.roundTimer); this.roundTimer = null; }
+    this.roundStartTime = null;
     this.clearPlayingInterval();
     if (this.pauseInterval) { clearInterval(this.pauseInterval); this.pauseInterval = null; }
 
@@ -464,6 +473,7 @@ export class GameRoom {
       state: this.state,
       settings: this.getSettings(),
       genres: this.genres,
+      hostId: this.hostId,
       players: this.players.map(p => ({
         id: p.id, name: p.name, avatarUrl: p.avatarUrl, role: p.role, score: p.score,
         foundArtist: !!p.foundArtist,
@@ -579,6 +589,7 @@ export class GameRoom {
     if (this.countdownTimer) clearTimeout(this.countdownTimer);
     if (this.pauseTimer) clearTimeout(this.pauseTimer);
     if (this.pauseInterval) clearInterval(this.pauseInterval);
+    if (this.playingInterval) clearInterval(this.playingInterval);
     if (this.autoStartTimer) clearTimeout(this.autoStartTimer);
     if (this.playbackTimeout) clearTimeout(this.playbackTimeout);
     this.players = [];

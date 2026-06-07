@@ -234,10 +234,13 @@ app.post('/api/game/:code/leave', (req, res) => {
 
   const { playerId } = req.body;
   room.players = room.players.filter(p => p.id !== playerId);
+  if (room.hostId === playerId) {
+    room.hostId = room.players[0]?.id || null;
+  }
 
   if (room.players.length === 0) {
     room.destroy();
-    rooms.delete(req.params.code.toUpperCase());
+    rooms.delete(room.code);
   } else {
     broadcastState(room.code);
   }
