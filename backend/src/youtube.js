@@ -17,7 +17,7 @@ async function searchYouTubeVideo(name, artist) {
   const cached = cache.get(cacheKey);
   if (cached !== undefined) return cached;
 
-  const query = `${name} ${artist} audio`;
+  const query = `"${name}" "${artist}" audio`;
   const url = `${API_BASE}/search?part=id&q=${encodeURIComponent(query)}&type=video&maxResults=1&key=${key}`;
 
   try {

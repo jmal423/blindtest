@@ -77,6 +77,7 @@ function Dashboard({ user }: { user: any }) {
     try {
       const { code, playerId } = await createRoom(user.username, [], user.avatar_url, user.role);
       localStorage.setItem(`blindtest_player_${code}`, playerId);
+      localStorage.setItem('blindtest_name', user.username);
       router.push(`/game/${code}`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
@@ -91,6 +92,7 @@ function Dashboard({ user }: { user: any }) {
     try {
       const { code: roomCode, playerId } = await joinRoom(joinCode, user.username, user.avatar_url, user.role);
       localStorage.setItem(`blindtest_player_${roomCode}`, playerId);
+      localStorage.setItem('blindtest_name', user.username);
       router.push(`/game/${roomCode}`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Something went wrong');

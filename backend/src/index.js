@@ -6,7 +6,7 @@ import { Server } from 'socket.io';
 import { GameRoom } from './game.js';
 import { GENRES, getGenreLabel } from './spotify.js';
 import { generateId, get, all, run } from './db.js';
-import { getAuthUrl, handleDiscordCallback, authenticate, requireAdmin } from './auth.js';
+import { getAuthUrl, handleDiscordCallback, authenticate, requireAdmin, tryDecodeToken } from './auth.js';
 
 dotenv.config();
 
@@ -100,10 +100,17 @@ app.post('/api/rooms', (req, res) => {
     return res.status(400).json({ error: 'Player name is required' });
   }
 
+  const authHeader = req.headers.authorization;
+  let userId = null;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const decoded = tryDecodeToken(authHeader.slice(7));
+    if (decoded) userId = decoded.userId;
+  }
+
   const code = generateCode();
   const room = new GameRoom(code, genres, io);
   if (rounds || roundTime) room.updateSettings({ rounds, roundTime });
-  const playerId = room.addPlayer(playerName.trim(), avatarUrl || null, role || 'user');
+  const playerId = room.addPlayer(playerName.trim(), avatarUrl || null, role || 'user', userId);
   rooms.set(code, room);
 
   res.json({ code, playerId, settings: room.getSettings(), genres: room.genres });
@@ -115,11 +122,18 @@ app.post('/api/rooms/join', (req, res) => {
     return res.status(400).json({ error: 'Code and name are required' });
   }
 
+  const authHeader = req.headers.authorization;
+  let userId = null;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const decoded = tryDecodeToken(authHeader.slice(7));
+    if (decoded) userId = decoded.userId;
+  }
+
   const room = rooms.get(code.toUpperCase());
   if (!room) return res.status(404).json({ error: 'Room not found' });
   if (room.state !== 'waiting') return res.status(400).json({ error: 'Game already in progress' });
 
-  const playerId = room.addPlayer(playerName.trim(), avatarUrl || null, role || 'user');
+  const playerId = room.addPlayer(playerName.trim(), avatarUrl || null, role || 'user', userId);
   broadcastState(room.code);
   res.json({ code: room.code, playerId });
 });

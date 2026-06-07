@@ -106,9 +106,9 @@ export class GameRoom {
     if (updates.autoStart !== undefined) this.settings.autoStart = !!updates.autoStart;
   }
 
-  addPlayer(name, avatarUrl = null, role = 'user') {
+  addPlayer(name, avatarUrl = null, role = 'user', userId = null) {
     const id = generateId();
-    this.players.push({ id, name, avatarUrl, role, score: 0, answers: [] });
+    this.players.push({ id, name, avatarUrl, role, userId, score: 0, answers: [] });
     if (!this.hostId) this.hostId = id;
     if (this.settings.autoStart && this.players.length >= 2 && this.state === 'waiting') {
       clearTimeout(this.autoStartTimer);

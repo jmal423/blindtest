@@ -124,4 +124,12 @@ function requireAdmin(req, res, next) {
   });
 }
 
-export { getAuthUrl, handleDiscordCallback, authenticate, requireAdmin };
+function tryDecodeToken(token) {
+  try {
+    return jwt.verify(token, JWT_SECRET);
+  } catch {
+    return null;
+  }
+}
+
+export { getAuthUrl, handleDiscordCallback, authenticate, requireAdmin, tryDecodeToken };

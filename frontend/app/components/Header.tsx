@@ -17,14 +17,18 @@ export default function Header() {
   const [debugOn, setDebugOn] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const inGame = pathname.startsWith('/game/');
+  const [guestName, setGuestName] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (getToken()) {
       getMe().then(setUser).catch(() => {});
     }
+    if (typeof window !== 'undefined') {
+      setGuestName(localStorage.getItem('blindtest_name'));
+    }
     setDebugOn(isDebugMode());
-  }, []);
+  }, [pathname]);
 
   useEffect(() => {
     if (open && user) {
@@ -79,7 +83,7 @@ export default function Header() {
             {user?.avatar_url ? (
               <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
             ) : (
-              user?.username?.[0]?.toUpperCase() || '?'
+              (user?.username || guestName)?.[0]?.toUpperCase() || '?'
             )}
           </button>
 
@@ -133,7 +137,9 @@ export default function Header() {
                   </>
                 ) : (
                   <div className="p-4 border-b border-white/10">
-                    <p className="text-sm text-zinc-400 text-center">Guest Player</p>
+                    <p className="text-sm text-zinc-400 text-center">
+                      {guestName || 'Guest Player'}
+                    </p>
                   </div>
                 )}
 
