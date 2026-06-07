@@ -92,6 +92,7 @@ export class GameRoom {
     this.roundTimer = null;
     this.countdownTimer = null;
     this.pauseTimer = null;
+    this.pauseInterval = null;
     this.autoStartTimer = null;
     this.audioOffset = 0;
     this.roundResult = null;
@@ -202,6 +203,7 @@ export class GameRoom {
   }
 
   async startRound() {
+    if (this.pauseInterval) { clearInterval(this.pauseInterval); this.pauseInterval = null; }
     while (this.currentRound < this.tracks.length && this.tracksPlayed < this.totalRounds) {
       const track = this.tracks[this.currentRound];
       if (!track.youtubeVideoId) {
@@ -391,6 +393,7 @@ export class GameRoom {
   endRound() {
     if (this.roundTimer) { clearTimeout(this.roundTimer); this.roundTimer = null; }
     this.clearPlayingInterval();
+    if (this.pauseInterval) { clearInterval(this.pauseInterval); this.pauseInterval = null; }
 
     this.players.forEach(p => {
       if (p.foundArtist && p.foundTitle) {
@@ -420,6 +423,9 @@ export class GameRoom {
     this.broadcast();
 
     this.pauseStartTime = Date.now();
+    this.pauseInterval = setInterval(() => {
+      if (this.state === 'round_result') this.broadcast();
+    }, 1000);
     this.pauseTimer = setTimeout(() => {
       this.currentRound++;
       if (this.currentRound >= this.tracks.length || this.tracksPlayed >= this.totalRounds) {
@@ -433,6 +439,7 @@ export class GameRoom {
   endGame() {
     if (this.roundTimer) { clearTimeout(this.roundTimer); this.roundTimer = null; }
     this.clearPlayingInterval();
+    if (this.pauseInterval) { clearInterval(this.pauseInterval); this.pauseInterval = null; }
     if (this.countdownTimer) { clearTimeout(this.countdownTimer); this.countdownTimer = null; }
     if (this.pauseTimer) { clearTimeout(this.pauseTimer); this.pauseTimer = null; }
 
@@ -539,6 +546,7 @@ export class GameRoom {
     if (this.roundTimer) clearTimeout(this.roundTimer);
     if (this.countdownTimer) clearTimeout(this.countdownTimer);
     if (this.pauseTimer) clearTimeout(this.pauseTimer);
+    if (this.pauseInterval) clearInterval(this.pauseInterval);
     if (this.autoStartTimer) clearTimeout(this.autoStartTimer);
     if (this.playbackTimeout) clearTimeout(this.playbackTimeout);
     this.clearPlayingInterval();
@@ -570,6 +578,7 @@ export class GameRoom {
     if (this.roundTimer) clearTimeout(this.roundTimer);
     if (this.countdownTimer) clearTimeout(this.countdownTimer);
     if (this.pauseTimer) clearTimeout(this.pauseTimer);
+    if (this.pauseInterval) clearInterval(this.pauseInterval);
     if (this.autoStartTimer) clearTimeout(this.autoStartTimer);
     if (this.playbackTimeout) clearTimeout(this.playbackTimeout);
     this.players = [];
