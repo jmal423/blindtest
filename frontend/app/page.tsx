@@ -165,22 +165,88 @@ function Dashboard({ user }: { user: any }) {
   };
 
   return (
-    <div className="flex-1 flex items-center justify-center p-4 md:p-8">
+    <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 gap-8">
+      <div className="text-center space-y-3">
+        <motion.h1
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-5xl md:text-6xl font-bold"
+        >
+          <span className="text-[var(--primary)]">Blind</span>Test
+        </motion.h1>
+        <p className="text-zinc-400 text-lg">Listen. Guess. Compete.</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-2xl">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6 text-center"
+        >
+          <div className="w-12 h-12 rounded-full bg-[var(--primary)]/10 flex items-center justify-center mx-auto mb-3">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 18V5l12-2v13"/>
+              <circle cx="6" cy="18" r="3"/>
+              <circle cx="18" cy="16" r="3"/>
+            </svg>
+          </div>
+          <p className="text-sm font-semibold text-white">Listen</p>
+          <p className="text-xs text-zinc-500 mt-1">Hear the song and race to name it</p>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6 text-center"
+        >
+          <div className="w-12 h-12 rounded-full bg-[var(--primary)]/10 flex items-center justify-center mx-auto mb-3">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/>
+              <path d="M9 18h6"/>
+              <path d="M10 22h4"/>
+            </svg>
+          </div>
+          <p className="text-sm font-semibold text-white">Guess</p>
+          <p className="text-xs text-zinc-500 mt-1">Artist, title, or both — faster scores more</p>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6 text-center"
+        >
+          <div className="w-12 h-12 rounded-full bg-[var(--primary)]/10 flex items-center justify-center mx-auto mb-3">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 6 9 6 9Z"/>
+              <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5C17 4 18 9 18 9Z"/>
+              <path d="M4 22h16"/>
+              <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20 7 22"/>
+              <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20 17 22"/>
+              <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+            </svg>
+          </div>
+          <p className="text-sm font-semibold text-white">Compete</p>
+          <p className="text-xs text-zinc-500 mt-1">Climb the ranks with friends</p>
+        </motion.div>
+      </div>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-lg space-y-4"
+        transition={{ delay: 0.4 }}
+        className="w-full max-w-md space-y-4"
       >
         <button
           onClick={handleCreate}
           disabled={loading}
-          className="w-full py-8 bg-[var(--surface)] hover:bg-[var(--primary)]/10 border-2 border-dashed border-white/20 hover:border-[var(--primary)]/50 text-white font-bold text-xl rounded-2xl transition-all duration-200 flex items-center justify-center gap-4"
+          className="w-full py-5 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white font-bold text-lg rounded-2xl transition-all duration-200 flex items-center justify-center gap-3 shadow-lg shadow-[var(--primary)]/25 disabled:opacity-50"
         >
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
-          Create Lobby
+          {loading ? 'Creating...' : 'Create Lobby'}
         </button>
 
         <div className="relative">
@@ -188,12 +254,11 @@ function Dashboard({ user }: { user: any }) {
             <div className="w-full border-t border-white/10" />
           </div>
           <div className="relative flex justify-center">
-            <span className="bg-[var(--bg)] px-4 text-sm text-zinc-500">or</span>
+            <span className="bg-[var(--bg)] px-4 text-sm text-zinc-500">or join</span>
           </div>
         </div>
 
-        <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6 space-y-4">
-          <h3 className="font-semibold text-center">Join a Lobby</h3>
+        <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-5 space-y-3">
           <input
             type="text"
             value={joinCode}
