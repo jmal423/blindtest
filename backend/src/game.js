@@ -139,8 +139,12 @@ export class GameRoom {
 
     const track = this.tracks[this.currentRound];
     if (!track.youtubeVideoId) {
-      const { searchYouTubeVideo } = await import('./youtube.js');
-      track.youtubeVideoId = await searchYouTubeVideo(track.name, track.artist);
+      try {
+        const { searchYouTubeVideo } = await import('./youtube.js');
+        track.youtubeVideoId = await searchYouTubeVideo(track.name, track.artist);
+      } catch (err) {
+        console.error(`[YouTube] Failed to fetch video for "${track.artist} - ${track.name}":`, err.message);
+      }
     }
 
     const nextTrack = this.tracks[this.currentRound + 1];
@@ -174,7 +178,7 @@ export class GameRoom {
       this.roundTimer = setTimeout(() => {
         this.endRound();
       }, this.settings.roundTime * 1000);
-    }, 3000);
+    }, 5000);
   }
 
   submitAnswer(playerId, answer) {
@@ -283,9 +287,19 @@ export class GameRoom {
     if (this.countdownTimer) { clearTimeout(this.countdownTimer); this.countdownTimer = null; }
     if (this.pauseTimer) { clearTimeout(this.pauseTimer); this.pauseTimer = null; }
 
-    this.state = 'finished';
-    this.rankings = [...this.players].sort((a, b) => b.score - a.score)
-      .map((p, i) => ({ rank: i + 1, name: p.name, score: p.score, answers: p.answers }));
+    const sorted = [...this.players].sort((a, b) => b.score - a.score);
+    this.state = 'game_over';
+    this.rankings = sorted.map((p, i) => {
+      const rank = i + 1;
+      const placementXp = rank === 1 ? 500 : rank === 2 ? 250 : 0;
+      return {
+        rank,
+        name: p.name,
+        score: p.score,
+        xp: p.score * 10 + placementXp,
+        answers: p.answers,
+      };
+    });
     this.broadcast();
   }
 
@@ -348,7 +362,7 @@ export class GameRoom {
       return { ...base, roundResult: this.roundResult, pauseTimeLeft };
     }
 
-    if (this.state === 'finished') {
+    if (this.state === 'game_over') {
       return { ...base, rankings: this.rankings };
     }
 

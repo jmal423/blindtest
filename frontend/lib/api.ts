@@ -13,11 +13,11 @@ export type GameState =
   | { state: 'round_preparing'; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; roundTime: number; previewUrl: string | null; youtubeVideoId: string | null; audioOffset: number }
   | { state: 'playing'; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; timeLeft: number; roundTime: number; youtubeVideoId: string | null; trackId: string }
   | { state: 'round_result'; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; roundResult: RoundResult; pauseTimeLeft: number }
-  | { state: 'finished'; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; rankings: Ranking[] };
+  | { state: 'game_over'; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; rankings: Ranking[] };
 
 export interface Player { id: string; name: string; score: number; avatarUrl?: string | null; role?: string; foundArtist?: boolean; foundTitle?: boolean; foundBoth?: boolean }
 export interface RoundResult { round: number; correctAnswer: string; artist: string; albumImage: string }
-export interface Ranking { rank: number; name: string; score: number }
+export interface Ranking { rank: number; name: string; score: number; xp: number; answers?: any[] }
 
 export async function fetchGenres(): Promise<{ id: string; label: string }[]> {
   const res = await fetch(`${API_URL}/api/genres`);

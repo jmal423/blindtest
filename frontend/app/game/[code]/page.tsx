@@ -151,7 +151,7 @@ export default function GamePage({
       clearInterval(localTimerRef.current);
       localTimerRef.current = null;
     }
-    if (state.state === 'finished' || state.state === 'round_result') {
+    if (state.state === 'game_over' || state.state === 'round_result') {
       setGuess('');
       setGuessResult(null);
     }
@@ -343,19 +343,21 @@ export default function GamePage({
             <RoundResult data={gameState.roundResult} players={gameState.players} pauseTimeLeft={(gameState as any).pauseTimeLeft} />
           )}
 
-          {gameState.state === 'finished' && (
+          {gameState.state === 'game_over' && (
             <Podium code={code} rankings={gameState.rankings} playerId={playerId} onPlayAgain={() => router.push('/')} />
           )}
         </div>
 
-        {gameState.state !== 'waiting' && gameState.state !== 'finished' && (
+        {gameState.state !== 'waiting' && gameState.state !== 'game_over' && (
           <div className="hidden md:block w-72 shrink-0">
             <Chat socket={socket} />
           </div>
         )}
       </div>
 
-      <AudioPlayer youtubeVideoId={(gameState as any).youtubeVideoId || null} audioOffset={(gameState as any).audioOffset || 0} state={gameState.state} onPlaying={handleAudioPlaying} onTimeUpdate={handleAudioTimeUpdate} />
+      {gameState.state !== 'game_over' && (
+        <AudioPlayer youtubeVideoId={(gameState as any).youtubeVideoId || null} audioOffset={(gameState as any).audioOffset || 0} state={gameState.state} onPlaying={handleAudioPlaying} onTimeUpdate={handleAudioTimeUpdate} />
+      )}
 
       {isDebugMode() && (
         <DebugOverlay gameState={gameState} socketConnected={socketConnected} />

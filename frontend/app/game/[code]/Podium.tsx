@@ -2,18 +2,19 @@
 
 import { motion } from 'motion/react';
 
+interface PodiumEntry {
+  rank: number;
+  name: string;
+  score: number;
+  xp: number;
+  answers?: any[];
+}
+
 interface PodiumProps {
-  rankings: { rank: number; name: string; score: number }[];
+  rankings: PodiumEntry[];
   playerId: string;
   code: string;
   onPlayAgain: () => void;
-}
-
-function xpBonus(rank: number) {
-  if (rank === 1) return 50;
-  if (rank === 2) return 25;
-  if (rank === 3) return 10;
-  return 0;
 }
 
 export default function Podium({ rankings, playerId, code, onPlayAgain }: PodiumProps) {
@@ -102,8 +103,8 @@ export default function Podium({ rankings, playerId, code, onPlayAgain }: Podium
       >
         <p className="text-xs text-zinc-500 uppercase tracking-wider text-center">XP Earned</p>
         {rankings.map(r => {
-          const bonus = xpBonus(r.rank);
-          const totalXp = r.score + bonus;
+          const baseXp = r.score * 10;
+          const placementXp = r.rank === 1 ? 500 : r.rank === 2 ? 250 : 0;
           return (
             <div
               key={r.rank}
@@ -119,10 +120,10 @@ export default function Podium({ rankings, playerId, code, onPlayAgain }: Podium
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold truncate">{r.name}</p>
                 <p className="text-[11px] text-zinc-500">
-                  {r.score} pts base {bonus > 0 ? `+ ${bonus} placement bonus` : ''}
+                  {baseXp} base {placementXp > 0 ? `+ ${placementXp} placement` : ''}
                 </p>
               </div>
-              <span className="text-sm font-bold text-[var(--accent)]">{totalXp} XP</span>
+              <span className="text-sm font-bold text-[var(--accent)]">{r.xp} XP</span>
             </div>
           );
         })}
