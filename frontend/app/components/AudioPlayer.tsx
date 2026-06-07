@@ -18,7 +18,6 @@ function loadAPI() {
   const tag = document.createElement('script');
   tag.id = 'youtube-iframe-api';
   tag.src = 'https://www.youtube.com/iframe_api';
-  tag.onload = () => apiLoaded = true;
   document.head.appendChild(tag);
 }
 
@@ -40,17 +39,20 @@ export default function AudioPlayer({
   const onPlayingRef = useRef(onPlaying);
   const firedRef = useRef(false);
   const offsetRef = useRef(audioOffset);
-  const readyResolve = useRef<(() => void) | null>(null);
+  const readyRef = useRef(false);
   onPlayingRef.current = onPlaying;
   offsetRef.current = audioOffset;
 
   useEffect(() => { loadAPI(); }, []);
 
+  // Create/destroy player when videoId changes
   useEffect(() => {
-    if (state === 'waiting' || state === 'finished' || !youtubeVideoId) {
+    const shouldCreate = !(state === 'waiting' || state === 'finished' || state === 'game_over') && youtubeVideoId;
+    if (!shouldCreate) {
       if (playerRef.current) {
         playerRef.current.destroy();
         playerRef.current = null;
+        readyRef.current = false;
       }
       firedRef.current = false;
       return;
@@ -60,6 +62,7 @@ export default function AudioPlayer({
 
     const init = () => {
       if (playerRef.current || !containerRef.current) return;
+      readyRef.current = false;
       playerRef.current = new window.YT.Player(containerRef.current, {
         height: '300',
         width: '300',
@@ -74,9 +77,7 @@ export default function AudioPlayer({
           iv_load_policy: 3,
         },
         events: {
-          onReady: () => {
-            if (readyResolve.current) readyResolve.current();
-          },
+          onReady: () => { readyRef.current = true; },
         },
       });
     };
@@ -95,41 +96,47 @@ export default function AudioPlayer({
       if (playerRef.current) {
         playerRef.current.destroy();
         playerRef.current = null;
+        readyRef.current = false;
       }
     };
   }, [youtubeVideoId, state]);
 
+  // Seek and play when state becomes 'playing'
   useEffect(() => {
-    const player = playerRef.current;
-    if (!player || state !== 'playing') return;
+    if (state !== 'playing' || !playerRef.current) return;
     firedRef.current = false;
-    const seekAndPlay = () => {
-      player.seekTo(offsetRef.current, true);
-      player.playVideo();
-    };
 
-    if (player.getPlayerState?.() === -1 || player.getPlayerState?.() === 5) {
-      const check = setInterval(() => {
-        if (player.getPlayerState?.() !== -1 && player.getPlayerState?.() !== 5) {
-          clearInterval(check);
-          seekAndPlay();
-        }
-      }, 100);
-      setTimeout(() => clearInterval(check), 5000);
-    } else {
-      seekAndPlay();
-    }
+    let stopped = false;
+    const trySeek = () => {
+      if (stopped) return;
+      const player = playerRef.current;
+      if (!player || !readyRef.current) {
+        setTimeout(trySeek, 100);
+        return;
+      }
+      try {
+        player.seekTo(offsetRef.current, true);
+        player.playVideo();
+      } catch {
+        setTimeout(trySeek, 100);
+      }
+    };
+    trySeek();
+
+    return () => { stopped = true; };
   }, [state]);
 
   const tick = useCallback(() => {
     const player = playerRef.current;
-    if (!player) return;
-    const t = player.getCurrentTime();
-    onTimeUpdate(t);
-    if (!firedRef.current && t >= offsetRef.current + 0.1) {
-      firedRef.current = true;
-      onPlayingRef.current();
-    }
+    if (!player || !readyRef.current) return;
+    try {
+      const t = player.getCurrentTime();
+      onTimeUpdate(t);
+      if (!firedRef.current && t >= offsetRef.current + 0.1) {
+        firedRef.current = true;
+        onPlayingRef.current();
+      }
+    } catch { /* player not ready yet */ }
   }, [onTimeUpdate]);
 
   useEffect(() => {
