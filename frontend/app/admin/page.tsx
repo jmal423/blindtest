@@ -3,16 +3,16 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
-import { getMe, getAdminUsers, getAdminStats, getAdminRooms, getLeaderboard, updateUserRole, deleteUser, wipeUserScores, testSpotify, testGenre, testYouTube, testDeezer, testDeezerGenre } from '@/lib/api';
+import { getMe, getAdminUsers, getAdminStats, getAdminRooms, getLeaderboard, updateUserRole, deleteUser, wipeUserScores, testSpotify, testGenre, testYouTube, testDeezer, testDeezerGenre, getDbStatus } from '@/lib/api';
 
-type Tab = 'system' | 'users' | 'rooms' | 'leaderboard' | 'diagnostics';
+type Tab = 'system' | 'users' | 'rooms' | 'leaderboard' | 'api';
 
 const tabs: { id: Tab; label: string }[] = [
   { id: 'system', label: 'System' },
   { id: 'users', label: 'Users' },
   { id: 'rooms', label: 'Rooms' },
   { id: 'leaderboard', label: 'Leaderboard' },
-  { id: 'diagnostics', label: 'Diagnostics' },
+  { id: 'api', label: 'API' },
 ];
 
 export default function AdminPage() {
@@ -72,7 +72,7 @@ export default function AdminPage() {
         {activeTab === 'users' && <UsersTab />}
         {activeTab === 'rooms' && <RoomsTab />}
         {activeTab === 'leaderboard' && <LeaderboardTab />}
-        {activeTab === 'diagnostics' && <DiagnosticsTab />}
+        {activeTab === 'api' && <ApiTab />}
       </motion.div>
     </div>
   );
@@ -81,24 +81,66 @@ export default function AdminPage() {
 function SystemTab() {
   const [stats, setStats] = useState<any>(null);
   const [ytStatus, setYtStatus] = useState<string | null>(null);
+  const [dbStatus, setDbStatus] = useState<any>(null);
 
   useEffect(() => {
     getAdminStats().then(setStats).catch(() => {});
+    getDbStatus().then(setDbStatus).catch(() => {});
     testYouTube('test', 'test').then(r => {
       setYtStatus(r.ok && r.videoId ? 'ok' : r.error ? 'error' : 'no-video');
     }).catch(() => setYtStatus('error'));
   }, []);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-      <StatCard value={stats?.totalUsers ?? '-'} label="Registered Users" color="var(--primary)" />
-      <StatCard value={stats?.totalRounds ?? '-'} label="Rounds Played" color="var(--accent)" />
-      <StatCard value={stats?.activeRooms ?? '-'} label="Active Rooms" color="#10b981" />
-      <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-8 text-center">
-        <p className={`text-3xl font-bold ${ytStatus === 'ok' ? 'text-green-400' : ytStatus === 'error' ? 'text-red-400' : 'text-yellow-400'}`}>
-          {ytStatus === 'ok' ? 'Online' : ytStatus === 'error' ? 'Error' : ytStatus === 'no-video' ? 'Quota' : '...'}
-        </p>
-        <p className="text-zinc-500 mt-2 text-sm uppercase tracking-wider">YouTube API</p>
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <StatCard value={stats?.totalUsers ?? '-'} label="Registered Users" color="var(--primary)" />
+        <StatCard value={stats?.totalRounds ?? '-'} label="Rounds Played" color="var(--accent)" />
+        <StatCard value={stats?.activeRooms ?? '-'} label="Active Rooms" color="#10b981" />
+        <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6 text-center">
+          <p className={`text-3xl font-bold ${ytStatus === 'ok' ? 'text-green-400' : ytStatus === 'error' ? 'text-red-400' : 'text-yellow-400'}`}>
+            {ytStatus === 'ok' ? 'Online' : ytStatus === 'error' ? 'Error' : ytStatus === 'no-video' ? 'Quota' : '...'}
+          </p>
+          <p className="text-zinc-500 mt-2 text-xs uppercase tracking-wider">YouTube API</p>
+        </div>
+      </div>
+
+      <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6">
+        <h2 className="text-sm font-semibold mb-4">Database</h2>
+        {dbStatus ? (
+          dbStatus.ok ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <span className={`w-2 h-2 rounded-full ${dbStatus.hasData ? 'bg-green-400' : 'bg-yellow-400'}`} />
+                <span className="text-sm">{dbStatus.isPostgres ? 'Postgres' : 'SQLite'}</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${dbStatus.hasData ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
+                  {dbStatus.hasData ? 'Has data' : 'Empty'}
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-3 pt-3 border-t border-white/5">
+                <div className="text-center">
+                  <p className="text-lg font-bold">{dbStatus.tables?.users ?? 0}</p>
+                  <p className="text-[10px] text-zinc-500">Users</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-lg font-bold">{dbStatus.tables?.game_scores ?? 0}</p>
+                  <p className="text-[10px] text-zinc-500">Scores</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-lg font-bold">{dbStatus.tables?.round_results ?? 0}</p>
+                  <p className="text-[10px] text-zinc-500">Rounds</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-red-400" />
+              <span className="text-sm text-red-400">{dbStatus.error || 'Connection failed'}</span>
+            </div>
+          )
+        ) : (
+          <p className="text-zinc-500 text-sm">Checking...</p>
+        )}
       </div>
     </div>
   );
@@ -352,7 +394,7 @@ function StatusBadge({ ok }: { ok: boolean }) {
   );
 }
 
-function DiagnosticsTab() {
+function ApiTab() {
   const [spotifyResult, setSpotifyResult] = useState<any>(null);
   const [spotifyLoading, setSpotifyLoading] = useState(false);
   const [selectedGenre, setSelectedGenre] = useState(GENRES[0]);

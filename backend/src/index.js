@@ -747,6 +747,29 @@ app.post('/api/game/:code/test-source', async (req, res) => {
   });
 });
 
+app.get('/api/admin/db-status', requireAdmin, async (req, res) => {
+  try {
+    const isPostgres = !!process.env.DATABASE_URL;
+    const [userCount, scoreCount, roundCount] = await Promise.all([
+      get('SELECT COUNT(*) as count FROM users'),
+      get('SELECT COUNT(*) as count FROM game_scores'),
+      get('SELECT COUNT(*) as count FROM round_results'),
+    ]);
+    res.json({
+      ok: true,
+      isPostgres,
+      hasData: (userCount?.count || 0) > 0,
+      tables: {
+        users: userCount?.count || 0,
+        game_scores: scoreCount?.count || 0,
+        round_results: roundCount?.count || 0,
+      },
+    });
+  } catch (err) {
+    res.json({ ok: false, error: err.message });
+  }
+});
+
 app.get('/api/admin/stats', requireAdmin, async (req, res) => {
   const [userCount, roundCount] = await Promise.all([
     get('SELECT COUNT(*) as count FROM users'),

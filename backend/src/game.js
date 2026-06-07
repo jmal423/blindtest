@@ -445,8 +445,10 @@ export class GameRoom {
         insertRoundResult(
           player.userId, this.code, track.genre, track.id,
           guessTimeMs, pointsThisGuess, artistCorrect || titleCorrect
-        ).catch(err => console.error('[DB] Failed to save round result:', err.message));
-      });
+        ).then(() => {
+          console.log(`[DB] Saved round result for ${player.name}: ${track.artist} - ${track.name} (${pointsThisGuess}pts)`);
+        }).catch(err => console.error('[DB] Failed to save round result:', err.message));
+      }).catch(err => console.error('[DB] Failed to import db module:', err.message));
     }
 
     return { ...inputResult, guessTimeMs, trackId: track.id, genre: track.genre };
@@ -575,8 +577,10 @@ export class GameRoom {
           run(
             'INSERT INTO game_scores (id, user_id, game_code, score, total_rounds) VALUES (?, ?, ?, ?, ?)',
             [id, p.userId, this.code, p.score, this.totalRounds]
-          ).catch(err => console.error('[DB] Failed to save game score:', err.message));
-        });
+          ).then(() => {
+            console.log(`[DB] Saved game score for ${p.name}: ${p.score}pts (${this.totalRounds} rounds)`);
+          }).catch(err => console.error('[DB] Failed to save game score:', err.message));
+        }).catch(err => console.error('[DB] Failed to import db module:', err.message));
       }
     }
   }

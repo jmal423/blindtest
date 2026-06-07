@@ -304,6 +304,10 @@ export async function testGameSource(code: string, playerId: string, source: 'sp
   return res.json();
 }
 
+export async function getDbStatus(): Promise<{ ok: boolean; isPostgres: boolean; hasData: boolean; tables: { users: number; game_scores: number; round_results: number }; error?: string }> {
+  return fetchWithAuth(`${API_URL}/api/admin/db-status`);
+}
+
 export async function deleteUser(userId: string): Promise<void> {
   await fetchWithAuth(`${API_URL}/api/admin/users/${userId}`, { method: 'DELETE' });
 }

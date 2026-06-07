@@ -1,26 +1,27 @@
 const API_BASE = 'https://api.deezer.com';
 
-const GENRE_ARTIST_IDS = {
-  pop: [13, 182, 257, 4053, 123, 754, 412],
-  rock: [1, 359, 4292, 930, 34, 688, 112],
-  'hip-hop': [13, 183, 10296, 522, 154, 637],
-  'r-n-b': [246, 755, 4486, 28, 51, 832],
-  electronic: [27, 470, 10394, 1067, 469, 10194],
-  jazz: [135, 4, 1001, 228, 65, 82],
-  classical: [136, 615, 139, 104, 113],
-  country: [33, 412, 4460, 48, 117],
-  metal: [196, 388, 276, 5, 90, 186],
-  indie: [1006809, 3607, 4526, 1250, 479, 179],
-  alternative: [3607, 1006809, 1250, 688, 34],
-  soul: [246, 51, 832, 8, 70, 149],
-  funk: [26, 72, 793, 21, 146],
-  blues: [45, 137, 367, 115, 42],
-  reggae: [82, 130, 99, 200, 118],
-  punk: [10, 16, 20, 45, 89],
-  latin: [68, 28, 132, 133, 194],
-  dance: [27, 1067, 470, 302, 158],
-  edm: [27, 469, 10194, 1067, 470],
-  acoustic: [319, 4441, 771, 96, 52],
+const GENRE_ID_MAP = {
+  pop: 132,
+  rock: 152,
+  'hip-hop': 116,
+  'r-n-b': 165,
+  electronic: 106,
+  jazz: 129,
+  classical: 98,
+  country: 84,
+  metal: 464,
+  indie: 85,
+  alternative: 85,
+  soul: 169,
+  funk: 169,
+  blues: 153,
+  reggae: 144,
+  punk: 152,
+  latin: 197,
+  dance: 113,
+  edm: 106,
+  acoustic: 466,
+  folk: 466,
 };
 
 function shuffle(arr) {
@@ -63,33 +64,41 @@ function mapTrack(t, genre) {
 async function getTracksByGenre(genre, count = 10) {
   const tracks = [];
   const seen = new Set();
-
-  // Strategy 1: keyword search (most diverse)
-  const searchData = await deezerFetch(`/search?q=${encodeURIComponent(genre)}&limit=${Math.min(count * 4, 100)}`);
-  if (searchData?.data) {
-    for (const t of searchData.data) {
-      if (!t.preview || seen.has(t.id)) continue;
-      seen.add(t.id);
-      tracks.push(mapTrack(t, genre));
-    }
-    console.log(`[Deezer] Search gave ${tracks.length} tracks for "${genre}"`);
+  const genreId = GENRE_ID_MAP[genre];
+  if (!genreId) {
+    console.log(`[Deezer] No genre ID for "${genre}", skipping`);
+    return [];
   }
 
-  // Strategy 2: top tracks from genre artists (supplement)
-  const artistIds = shuffle(GENRE_ARTIST_IDS[genre] || []);
-  for (const artistId of artistIds) {
-    if (tracks.length >= count) break;
-    const data = await deezerFetch(`/artist/${artistId}/top?limit=10`);
-    if (!data?.data) continue;
+  function addTracks(data, label) {
+    if (!data?.data) return 0;
+    let added = 0;
     for (const t of data.data) {
       if (!t.preview || seen.has(t.id)) continue;
       seen.add(t.id);
       tracks.push(mapTrack(t, genre));
+      added++;
+    }
+    if (added > 0) console.log(`[Deezer] ${label} +${added} tracks for "${genre}"`);
+    return added;
+  }
+
+  const chart = await deezerFetch(`/chart/${genreId}/tracks?limit=${count * 2}`);
+  addTracks(chart, 'chart');
+
+  if (tracks.length < count) {
+    const editorial = await deezerFetch(`/editorial/0/playlists?genre_id=${genreId}&limit=5`);
+    if (editorial?.data) {
+      for (const pl of editorial.data) {
+        if (tracks.length >= count) break;
+        const plTracks = await deezerFetch(`/playlist/${pl.id}/tracks?limit=10`);
+        addTracks(plTracks, `playlist "${pl.title}"`);
+      }
     }
   }
 
   console.log(`[Deezer] Total ${tracks.length} tracks for "${genre}" (${tracks.filter(t => t.previewUrl).length} with preview)`);
-  return tracks.slice(0, count);
+  return shuffle(tracks).slice(0, count);
 }
 
 export { getTracksByGenre };
