@@ -123,13 +123,14 @@ async function getPlaylistTracks(playlistId, market = 'FR') {
 
 const GENRES = [
   'pop', 'rock', 'hip-hop', 'r-n-b', 'electronic', 'jazz', 'classical',
-  'country', 'metal', 'indie', 'alternative', 'soul', 'funk', 'blues',
-  'reggae', 'punk', 'latin', 'dance', 'edm', 'acoustic',
+  'country', 'metal', 'indie', 'soul', 'blues', 'reggae', 'latin',
+  'dance', 'top-100',
 ];
 
 const GENRE_LABELS = {
   'r-n-b': 'R&B',
   'hip-hop': 'Hip Hop',
+  'top-100': 'Top 100',
 };
 
 function getGenreLabel(genre) {

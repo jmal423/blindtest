@@ -7,12 +7,15 @@ import Link from 'next/link';
 import { getMyStats } from '@/lib/api';
 import { useAuth } from '@/app/context/AuthContext';
 import { isDebugMode, setDebugMode } from '@/lib/debug-context';
+import { useTranslation } from '@/lib/useTranslation';
 import SettingsModal from './SettingsModal';
+import LanguageSwitcher from './LanguageSwitcher';
 
 export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const { user, signOut } = useAuth();
+  const { t } = useTranslation();
   const [stats, setStats] = useState<any>(null);
   const [open, setOpen] = useState(false);
   const [debugOn, setDebugOn] = useState(false);
@@ -97,7 +100,6 @@ export default function Header() {
             )}
           </button>
 
-          {/* Backdrop for mobile */}
           <AnimatePresence>
             {open && (
               <motion.div
@@ -150,7 +152,7 @@ export default function Header() {
                       <div className="grid grid-cols-2 gap-3">
                         <div className="text-center">
                           <p className="text-lg font-bold text-[var(--accent)]">{stats?.totalPoints ?? '-'}</p>
-                          <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Score</p>
+                          <p className="text-[10px] text-zinc-500 uppercase tracking-wider">{t('score')}</p>
                         </div>
                         <div className="text-center">
                           <p className="text-lg font-bold text-white capitalize">
@@ -158,7 +160,7 @@ export default function Header() {
                               ? stats.bestGenre.replace('-', ' ')
                               : '-'}
                           </p>
-                          <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Best Genre</p>
+                          <p className="text-[10px] text-zinc-500 uppercase tracking-wider">{t('best_genre')}</p>
                         </div>
                       </div>
                     </div>
@@ -166,7 +168,7 @@ export default function Header() {
                 ) : (
                   <div className="p-4 border-b border-white/10">
                     <p className="text-sm text-zinc-400 text-center">
-                      {guestName || 'Guest Player'}
+                      {guestName || t('guest_player')}
                     </p>
                   </div>
                 )}
@@ -182,7 +184,7 @@ export default function Header() {
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                         <circle cx="12" cy="7" r="4"/>
                       </svg>
-                      Profile
+                      {t('profile')}
                     </Link>
                   )}
 
@@ -194,8 +196,12 @@ export default function Header() {
                       <circle cx="12" cy="12" r="3"/>
                       <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
                     </svg>
-                    Settings
+                    {t('settings_menu')}
                   </button>
+
+                  <div className="px-3 py-2">
+                    <LanguageSwitcher />
+                  </div>
 
                   {user?.role === 'admin' && (
                     <>
@@ -207,7 +213,7 @@ export default function Header() {
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                         </svg>
-                        Admin Panel
+                        {t('admin_panel')}
                       </Link>
 
                       <div className="flex items-center justify-between px-3 py-3 text-sm text-zinc-300">
@@ -215,7 +221,7 @@ export default function Header() {
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
                           </svg>
-                          Debug
+                          {t('debug')}
                         </span>
                         <button
                           onClick={toggleDebug}
@@ -240,7 +246,7 @@ export default function Header() {
                       <polyline points="16 17 21 12 16 7" />
                       <line x1="21" y1="12" x2="9" y2="12" />
                     </svg>
-                    Disconnect
+                    {t('disconnect')}
                   </button>
                 </div>
               </motion.div>

@@ -354,15 +354,21 @@ export class GameRoom {
     }
     this.roundResult = null;
 
-    this.state = 'round_preparing';
-    this.broadcast();
+    if (this.tracksPlayed === 0) {
+      this.state = 'round_preparing';
+      this.broadcast();
 
-    clearTimeout(this.countdownTimer);
-    this.countdownTimer = setTimeout(() => {
+      clearTimeout(this.countdownTimer);
+      this.countdownTimer = setTimeout(() => {
+        this.state = 'playing';
+        this.startRoundTimer();
+        this.broadcast();
+      }, 3000);
+    } else {
       this.state = 'playing';
       this.startRoundTimer();
       this.broadcast();
-    }, 3000);
+    }
   }
 
   submitAnswer(playerId, answer) {

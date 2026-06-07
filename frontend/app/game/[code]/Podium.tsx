@@ -2,6 +2,7 @@
 
 import { motion } from 'motion/react';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from '@/lib/useTranslation';
 
 interface PodiumEntry {
   rank: number;
@@ -20,6 +21,7 @@ interface PodiumProps {
 
 export default function Podium({ rankings, playerId, code, onPlayAgain }: PodiumProps) {
   const router = useRouter();
+  const { t } = useTranslation();
   const top3 = rankings.slice(0, 3);
   const rest = rankings.slice(3);
 
@@ -31,7 +33,7 @@ export default function Podium({ rankings, playerId, code, onPlayAgain }: Podium
         transition={{ duration: 0.5 }}
         className="text-3xl font-bold"
       >
-        <span className="text-[var(--primary)]">Game</span> Over!
+        {t('game_over')}
       </motion.h2>
 
       <div className="flex items-end gap-4">
@@ -138,7 +140,7 @@ export default function Podium({ rankings, playerId, code, onPlayAgain }: Podium
         onClick={onPlayAgain}
         className="px-8 py-4 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white font-semibold rounded-xl transition-colors"
       >
-        Play Again
+        {t('play_again')}
       </motion.button>
       <motion.button
         initial={{ opacity: 0, y: 20 }}
@@ -147,7 +149,7 @@ export default function Podium({ rankings, playerId, code, onPlayAgain }: Podium
         onClick={() => router.push('/')}
         className="px-8 py-3 bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 font-medium rounded-xl transition-colors"
       >
-        Main Menu
+        {t('main_menu')}
       </motion.button>
     </div>
   );

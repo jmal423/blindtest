@@ -11,17 +11,12 @@ const GENRE_ID_MAP = {
   country: 84,
   metal: 464,
   indie: 85,
-  alternative: 85,
   soul: 169,
-  funk: 169,
   blues: 153,
   reggae: 144,
-  punk: 152,
   latin: 197,
   dance: 113,
-  edm: 106,
-  acoustic: 466,
-  folk: 466,
+  'top-100': 0,
 };
 
 function shuffle(arr) {
@@ -57,6 +52,7 @@ function mapTrack(t, genre) {
     albumImage: t.album?.cover_big || null,
     previewUrl: t.preview,
     durationMs: (parseInt(t.duration, 10) || 30) * 1000,
+    rank: t.rank || 0,
     genre,
   };
 }
@@ -65,7 +61,7 @@ async function getTracksByGenre(genre, count = 10) {
   const tracks = [];
   const seen = new Set();
   const genreId = GENRE_ID_MAP[genre];
-  if (!genreId) {
+  if (genreId == null) {
     console.log(`[Deezer] No genre ID for "${genre}", skipping`);
     return [];
   }
@@ -86,7 +82,7 @@ async function getTracksByGenre(genre, count = 10) {
   const chart = await deezerFetch(`/chart/${genreId}/tracks?limit=${count * 2}`);
   addTracks(chart, 'chart');
 
-  if (tracks.length < count) {
+  if (tracks.length < count && genreId !== 0) {
     const editorial = await deezerFetch(`/editorial/0/playlists?genre_id=${genreId}&limit=5`);
     if (editorial?.data) {
       for (const pl of editorial.data) {
@@ -98,7 +94,8 @@ async function getTracksByGenre(genre, count = 10) {
   }
 
   console.log(`[Deezer] Total ${tracks.length} tracks for "${genre}" (${tracks.filter(t => t.previewUrl).length} with preview)`);
-  return shuffle(tracks).slice(0, count);
+  tracks.sort((a, b) => (b.rank || 0) - (a.rank || 0));
+  return tracks.slice(0, count);
 }
 
 export { getTracksByGenre };

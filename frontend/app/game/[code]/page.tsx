@@ -8,16 +8,13 @@ import { getToken, GameState, Player, RoomSettings, startGame, updateSettings, f
 import { isDebugMode } from '@/lib/debug-context';
 import AudioPlayer from '@/app/components/AudioPlayer';
 import { useSettings } from '@/app/context/SettingsContext';
+import { useTranslation } from '@/lib/useTranslation';
 import Chat from './Chat';
 import Podium from './Podium';
 import DebugOverlay from './DebugOverlay';
 import { useSound } from '@/lib/useSound';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-
-const WRONG_MSGS = ['Too bad!', 'Nope!', 'Not quite!', 'Try again!', 'Missed!'];
-const CORRECT_MSGS = ['Nice!', 'Good one!', 'Well done!', 'Got it!', 'Keep going!'];
-const COMPLETE_MSGS = ['Perfect!', 'You nailed it!', 'Brilliant!', 'Unstoppable!', 'Flawless!'];
 
 const PLAYER_COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#06b6d4', '#8b5cf6', '#84cc16'];
 
@@ -55,6 +52,7 @@ export default function GamePage({
   const prevVolumeRef = useRef(1);
   const playSound = useSound();
   const { settings: userSettings, updateSettings: updateLocalSettings } = useSettings();
+  const { t } = useTranslation();
   const playSoundRef = useRef(playSound);
   const activeRoundRef = useRef<string | null>(null);
   playSoundRef.current = playSound;
@@ -216,15 +214,18 @@ export default function GamePage({
       if (result.found_both) {
         setBothFound(true);
         playSound('complete');
-        setEncouragement(COMPLETE_MSGS[Math.floor(Math.random() * COMPLETE_MSGS.length)]);
+        const completeKeys = ['complete_1', 'complete_2', 'complete_3', 'complete_4', 'complete_5'];
+        setEncouragement(t(completeKeys[Math.floor(Math.random() * completeKeys.length)]));
       } else if (result.artist_result === 'Good' || result.title_result === 'Good') {
         if (result.artist_result === 'Good') setArtistFound(true);
         if (result.title_result === 'Good') setTitleFound(true);
         playSound('correct');
-        setEncouragement(CORRECT_MSGS[Math.floor(Math.random() * CORRECT_MSGS.length)]);
+        const correctKeys = ['correct_1', 'correct_2', 'correct_3', 'correct_4', 'correct_5'];
+        setEncouragement(t(correctKeys[Math.floor(Math.random() * correctKeys.length)]));
       } else {
         playSound('wrong');
-        setEncouragement(WRONG_MSGS[Math.floor(Math.random() * WRONG_MSGS.length)]);
+        const wrongKeys = ['wrong_1', 'wrong_2', 'wrong_3', 'wrong_4', 'wrong_5'];
+        setEncouragement(t(wrongKeys[Math.floor(Math.random() * wrongKeys.length)]));
       }
       setGuessResult(result);
     });
@@ -561,6 +562,7 @@ function WaitingRoom({
   onKickPlayer?: (playerId: string) => void;
   startLoading?: boolean;
 }) {
+  const { t } = useTranslation();
   const [allGenres, setAllGenres] = useState<{ id: string; label: string }[]>([]);
   const [sourceTestResult, setSourceTestResult] = useState<any>(null);
   const [sourceTestLoading, setSourceTestLoading] = useState(false);
@@ -579,7 +581,7 @@ function WaitingRoom({
   return (
     <div className="flex-1 flex flex-col items-center gap-6 overflow-y-auto pb-24 md:pb-8">
       <div className="w-full max-w-sm space-y-2">
-        <p className="text-sm text-zinc-400 font-medium">Players ({players.length})</p>
+        <p className="text-sm text-zinc-400 font-medium">{t('players')} ({players.length})</p>
         {players.map((p, i) => (
           <div key={p.id} className="flex items-center gap-3 px-4 py-3 bg-[var(--surface)] rounded-xl">
             {p.avatarUrl ? (
@@ -611,11 +613,11 @@ function WaitingRoom({
       </div>
 
       <div className="w-full max-w-sm space-y-4 bg-[var(--surface)] rounded-2xl p-5 border border-white/5">
-        <p className="text-sm text-zinc-400 font-medium">Settings</p>
+        <p className="text-sm text-zinc-400 font-medium">{t('settings')}</p>
 
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <label className="text-xs text-zinc-500">Genres</label>
+            <label className="text-xs text-zinc-500">{t('genres')}</label>
             {isHost && (
               <button
                 onClick={() => {
@@ -627,7 +629,7 @@ function WaitingRoom({
                 }}
                 className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-zinc-400 hover:bg-white/10 transition-colors"
               >
-                {genres.length === allGenres.length && allGenres.length > 0 ? 'Clear' : 'All'}
+                {genres.length === allGenres.length && allGenres.length > 0 ? t('clear_btn') : t('all_btn')}
               </button>
             )}
           </div>
@@ -651,13 +653,13 @@ function WaitingRoom({
           </div>
         </div>
 
-        <SliderSetting label="Rounds" value={settings.rounds} min={3} max={25} isHost={isHost} onChange={v => onSettingsChange({ rounds: v })} />
-        <SliderSetting label="Time per round" value={settings.roundTime} min={8} max={30} suffix="s" isHost={isHost} onChange={v => onSettingsChange({ roundTime: v })} />
-        <SliderSetting label="Pause between" value={settings.pauseTime} min={2} max={15} suffix="s" isHost={isHost} onChange={v => onSettingsChange({ pauseTime: v })} />
+        <SliderSetting label={t('rounds')} value={settings.rounds} min={3} max={25} isHost={isHost} onChange={v => onSettingsChange({ rounds: v })} />
+        <SliderSetting label={t('time_per_round')} value={settings.roundTime} min={8} max={30} suffix="s" isHost={isHost} onChange={v => onSettingsChange({ roundTime: v })} />
+        <SliderSetting label={t('pause_between')} value={settings.pauseTime} min={2} max={15} suffix="s" isHost={isHost} onChange={v => onSettingsChange({ pauseTime: v })} />
 
         {isHost && (
           <div>
-            <label className="text-xs text-zinc-500 block mb-2">Audio Source</label>
+            <label className="text-xs text-zinc-500 block mb-2">{t('audio_source')}</label>
             <div className="grid grid-cols-2 gap-2">
               {([
                 { id: 'spotify', label: 'Spotify', desc: '30s previews' },
@@ -741,8 +743,8 @@ function WaitingRoom({
 
             <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/5">
               <div>
-                <span className="text-xs text-zinc-400">Auto-start</span>
-                <p className="text-[10px] text-zinc-600 mt-0.5">Game starts 5s after 2+ players join</p>
+                <span className="text-xs text-zinc-400">{t('auto_start')}</span>
+                <p className="text-[10px] text-zinc-600 mt-0.5">{t('auto_start_desc')}</p>
               </div>
               <button
                 onClick={() => onSettingsChange({ autoStart: !settings.autoStart })}
@@ -771,7 +773,7 @@ function WaitingRoom({
               : 'bg-gray-600 opacity-50 cursor-not-allowed'
           }`}
         >
-          {startLoading ? 'Starting...' : genres && genres.length > 0 ? 'Start Game' : 'Select a Genre to Start'}
+          {startLoading ? 'Starting...' : genres && genres.length > 0 ? t('start_game') : t('select_genre_to_start')}
         </button>
       )}
 
@@ -782,6 +784,7 @@ function WaitingRoom({
 
 function PreparingCountdown({ currentRound, totalRounds, players, playerId, onSkipVote, hasVotedSkip, skipVotes, skipVotesNeeded, hostId }: { currentRound: number; totalRounds: number; players: Player[]; playerId: string; onSkipVote: () => void; hasVotedSkip: boolean; skipVotes: number; skipVotesNeeded: number; hostId?: string | null }) {
   const [count, setCount] = useState(3);
+  const { t } = useTranslation();
 
   useEffect(() => {
     setCount(3);
@@ -790,11 +793,11 @@ function PreparingCountdown({ currentRound, totalRounds, players, playerId, onSk
   }, [currentRound]);
 
   const statusLabel = (p: any) => {
-    if (p.foundBoth) return { text: 'Found!', cls: 'bg-yellow-500/20 text-yellow-400 ring-1 ring-yellow-500/50' };
-    if (p.foundArtist && p.foundTitle) return { text: 'Both', cls: 'bg-green-500/20 text-green-400' };
-    if (p.foundArtist) return { text: 'Artist', cls: 'bg-[#00cec9]/20 text-[#00cec9] text-[10px]' };
-    if (p.foundTitle) return { text: 'Title', cls: 'bg-[#00cec9]/20 text-[#00cec9] text-[10px]' };
-    return { text: '...', cls: 'text-zinc-600' };
+    if (p.foundBoth) return { text: t('found_label'), cls: 'bg-yellow-500/20 text-yellow-400 ring-1 ring-yellow-500/50' };
+    if (p.foundArtist && p.foundTitle) return { text: t('both_label'), cls: 'bg-green-500/20 text-green-400' };
+    if (p.foundArtist) return { text: t('artist_label'), cls: 'bg-[#00cec9]/20 text-[#00cec9] text-[10px]' };
+    if (p.foundTitle) return { text: t('title_label'), cls: 'bg-[#00cec9]/20 text-[#00cec9] text-[10px]' };
+    return { text: t('guessing_label'), cls: 'text-zinc-600' };
   };
 
   return (
@@ -810,7 +813,7 @@ function PreparingCountdown({ currentRound, totalRounds, players, playerId, onSk
       </motion.p>
 
       <div className="w-full max-w-xs space-y-1">
-        <p className="text-xs text-zinc-500 uppercase tracking-wider mb-2 text-center">Players</p>
+        <p className="text-xs text-zinc-500 uppercase tracking-wider mb-2 text-center">{t('players')}</p>
         {players.map(p => {
           const s = statusLabel(p);
           return (
@@ -822,13 +825,13 @@ function PreparingCountdown({ currentRound, totalRounds, players, playerId, onSk
         })}
       </div>
 
-      <p className="text-sm text-zinc-500">Round {currentRound}/{totalRounds}</p>
+      <p className="text-sm text-zinc-500">{t('round_x_of_y', { current: currentRound, total: totalRounds })}</p>
 
       {players.length > 0 && (
         <div className="flex items-center gap-2">
           {playerId === hostId ? (
             <button onClick={onSkipVote} className="px-3 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 transition-colors">
-              Skip
+              {t('skip')}
             </button>
           ) : (
             <button
@@ -840,7 +843,7 @@ function PreparingCountdown({ currentRound, totalRounds, players, playerId, onSk
                   : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border-zinc-700'
               }`}
             >
-              {hasVotedSkip ? `Voted ${skipVotes}/${skipVotesNeeded}` : `Vote Skip ${skipVotes}/${skipVotesNeeded}`}
+              {hasVotedSkip ? `${t('voted')} ${skipVotes}/${skipVotesNeeded}` : `${t('vote_skip')} ${skipVotes}/${skipVotesNeeded}`}
             </button>
           )}
         </div>
@@ -900,12 +903,13 @@ function PlayingPhase({
   youtubeVideoId?: string | null;
   hostId?: string | null;
 }) {
+  const { t } = useTranslation();
   const roundDuration = roundTime || 15;
   const placeholder = bothFound
-    ? 'You nailed it!'
+    ? t('complete_2')
     : artistFound
-      ? 'Artist found! Now type the title...'
-      : 'Type the artist or title...';
+      ? t('artist_found_placeholder')
+      : t('guess_placeholder');
 
   if (state === 'round_preparing') {
     return <PreparingCountdown currentRound={currentRound} totalRounds={totalRounds} players={players} playerId={playerId} onSkipVote={onSkipVote} hasVotedSkip={hasVotedSkip} skipVotes={skipVotes} skipVotesNeeded={skipVotesNeeded} hostId={hostId} />;
@@ -928,7 +932,7 @@ function PlayingPhase({
   return (
     <div className="flex-1 flex flex-col gap-4 w-full max-w-lg mx-auto">
       <div className="flex items-center justify-between">
-        <span className="text-xs text-zinc-500 tabular-nums">Round {currentRound}/{totalRounds}</span>
+        <span className="text-xs text-zinc-500 tabular-nums">{t('round_x_of_y', { current: currentRound, total: totalRounds })}</span>
         <div className="flex items-center gap-3">
           <motion.span
             key={timeLeft}
@@ -939,25 +943,20 @@ function PlayingPhase({
             {timeLeft ?? '--'}
           </motion.span>
           {isAdmin ? (
-            <button
-              onClick={onSkipVote}
-              className="px-2 py-0.5 text-[10px] bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white rounded border border-zinc-700 transition-colors"
-              title="Skip this round"
-            >
-              Skip
+            <button onClick={onSkipVote} className="px-3 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 transition-colors">
+              {t('skip')}
             </button>
           ) : (
             <button
               onClick={hasVotedSkip ? undefined : onSkipVote}
               disabled={hasVotedSkip}
-              className={`px-2 py-0.5 text-[10px] rounded border transition-colors ${
+              className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
                 hasVotedSkip
                   ? 'bg-zinc-800 text-zinc-600 border-zinc-800 cursor-not-allowed'
-                  : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white border-zinc-700'
+                  : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border-zinc-700'
               }`}
-              title={hasVotedSkip ? 'Vote cast' : 'Vote to skip'}
             >
-              {hasVotedSkip ? `Skip ${skipVotes}/${skipVotesNeeded}` : `Skip ${skipVotes}/${skipVotesNeeded}`}
+              {hasVotedSkip ? `${t('voted')} ${skipVotes}/${skipVotesNeeded}` : `${t('vote_skip')} ${skipVotes}/${skipVotesNeeded}`}
             </button>
           )}
         </div>
@@ -1094,6 +1093,7 @@ function MiniViz({ progress }: { progress: number }) {
 }
 
 function RoundResult({ data, players = [], pauseTimeLeft, trackHistory = [] }: { data?: { correctAnswer?: string; artist?: string; albumImage?: string } | null; players?: { name: string; score: number }[]; pauseTimeLeft: number; trackHistory?: { round: number; name: string; artist: string; albumImage?: string }[] }) {
+  const { t } = useTranslation();
   return (
     <div className="flex-1 flex flex-col items-center gap-5 max-w-sm mx-auto w-full">
       <motion.div
@@ -1134,7 +1134,7 @@ function RoundResult({ data, players = [], pauseTimeLeft, trackHistory = [] }: {
       </div>
 
       <div className="text-center">
-        <p className="text-xs text-zinc-500">Next round in</p>
+        <p className="text-xs text-zinc-500">{t('next_round_in')}</p>
         <motion.p
           key={pauseTimeLeft}
           initial={{ scale: 1.3, opacity: 0 }}

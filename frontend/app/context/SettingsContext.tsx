@@ -9,6 +9,7 @@ export interface Settings {
   reducedMotion: boolean;
   colorblindMode: boolean;
   theme: 'dark' | 'light';
+  language: 'en' | 'fr' | 'pt' | 'es';
 }
 
 interface SettingsContextValue {
@@ -23,6 +24,7 @@ const defaults: Settings = {
   reducedMotion: false,
   colorblindMode: false,
   theme: 'dark',
+  language: 'en',
 };
 
 const SettingsContext = createContext<SettingsContextValue | null>(null);

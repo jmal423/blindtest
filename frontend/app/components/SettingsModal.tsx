@@ -3,6 +3,8 @@
 import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useSettings } from '@/app/context/SettingsContext';
+import { useTranslation } from '@/lib/useTranslation';
+import LanguageSwitcher from '@/app/components/LanguageSwitcher';
 
 export default function SettingsModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   useEffect(() => {
@@ -32,6 +34,7 @@ export default function SettingsModal({ open, onClose }: { open: boolean; onClos
 
 function SettingsPanel({ onClose }: { onClose: () => void }) {
   const { settings, updateSettings } = useSettings();
+  const { t } = useTranslation();
 
   const testAudio = () => {
     try {
@@ -57,6 +60,7 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
       reducedMotion: false,
       colorblindMode: false,
       theme: 'dark',
+      language: 'en',
     });
   };
 
@@ -67,7 +71,7 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
   const inner = (
     <>
       <div className="flex items-center justify-between p-5 border-b border-white/10">
-        <h2 className="text-lg font-bold">Settings</h2>
+        <h2 className="text-lg font-bold">{t('settings_title')}</h2>
         <button onClick={onClose} className="text-zinc-400 hover:text-white transition-colors p-1">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
@@ -78,17 +82,17 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
       <div className="p-5 space-y-6 max-h-[65vh] overflow-y-auto">
         {/* Audio */}
         <section>
-          <h3 className="text-xs font-semibold mb-3 text-zinc-400 uppercase tracking-wider">Audio</h3>
+          <h3 className="text-xs font-semibold mb-3 text-zinc-400 uppercase tracking-wider">{t('audio_section')}</h3>
           <div className="space-y-4">
             <SliderRow
-              label="Master Volume"
+              label={t('master_volume')}
               value={settings.masterVolume}
               onChange={v => updateSettings({ masterVolume: v })}
               min={0} max={1} step={0.05}
               format={v => Math.round(v * 100) + '%'}
             />
             <SliderRow
-              label="Sound Effects"
+              label={t('sfx_volume')}
               value={settings.sfxVolume}
               onChange={v => updateSettings({ sfxVolume: v })}
               min={0} max={1} step={0.05}
@@ -98,18 +102,18 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
               onClick={testAudio}
               className="w-full px-4 py-2.5 bg-white/5 hover:bg-white/10 text-sm text-white rounded-xl border border-white/10 transition-colors"
             >
-              Test Audio
+              {t('test_audio')}
             </button>
           </div>
         </section>
 
         {/* Gameplay */}
         <section>
-          <h3 className="text-xs font-semibold mb-3 text-zinc-400 uppercase tracking-wider">Gameplay</h3>
+          <h3 className="text-xs font-semibold mb-3 text-zinc-400 uppercase tracking-wider">{t('gameplay_section')}</h3>
           <div className="space-y-3">
             <ToggleRow
-              label="Auto-focus input"
-              description="Automatically focus the guess bar when a round starts"
+              label={t('auto_focus')}
+              description={t('auto_focus_desc')}
               value={settings.autoFocusInput}
               onChange={() => toggle('autoFocusInput')}
             />
@@ -118,17 +122,17 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
 
         {/* Accessibility */}
         <section>
-          <h3 className="text-xs font-semibold mb-3 text-zinc-400 uppercase tracking-wider">Accessibility</h3>
+          <h3 className="text-xs font-semibold mb-3 text-zinc-400 uppercase tracking-wider">{t('accessibility_section')}</h3>
           <div className="space-y-3">
             <ToggleRow
-              label="Reduced motion"
-              description="Disable animations and transitions"
+              label={t('reduced_motion')}
+              description={t('reduced_motion_desc')}
               value={settings.reducedMotion}
               onChange={() => toggle('reducedMotion')}
             />
             <ToggleRow
-              label="Colorblind mode"
-              description="Use high-contrast patterns instead of colors"
+              label={t('colorblind')}
+              description={t('colorblind_desc')}
               value={settings.colorblindMode}
               onChange={() => toggle('colorblindMode')}
             />
@@ -137,22 +141,28 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
 
         {/* Appearance */}
         <section>
-          <h3 className="text-xs font-semibold mb-3 text-zinc-400 uppercase tracking-wider">Appearance</h3>
-          <div className="flex gap-2">
-            {(['dark', 'light'] as const).map(t => (
+          <h3 className="text-xs font-semibold mb-3 text-zinc-400 uppercase tracking-wider">{t('appearance_section')}</h3>
+          <div className="flex gap-2 mb-4">
+            {(['dark', 'light'] as const).map(theme => (
               <button
-                key={t}
-                onClick={() => updateSettings({ theme: t })}
-                className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all capitalize ${
-                  settings.theme === t
+                key={theme}
+                onClick={() => updateSettings({ theme })}
+                className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all ${
+                  settings.theme === theme
                     ? 'bg-[var(--primary)] text-white ring-2 ring-[var(--primary)]/50'
                     : 'bg-white/5 text-zinc-400 hover:bg-white/10 border border-white/10'
                 }`}
               >
-                {t === 'dark' ? '🌙 Dark' : '☀️ Light'}
+                {theme === 'dark' ? `🌙 ${t('dark_theme')}` : `☀️ ${t('light_theme')}`}
               </button>
             ))}
           </div>
+        </section>
+
+        {/* Language */}
+        <section>
+          <h3 className="text-xs font-semibold mb-3 text-zinc-400 uppercase tracking-wider">{t('language_section')}</h3>
+          <LanguageSwitcher />
         </section>
 
         {/* Reset */}
@@ -160,7 +170,7 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
           onClick={resetDefaults}
           className="w-full px-4 py-2.5 text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
         >
-          Reset to defaults
+          {t('reset_defaults')}
         </button>
       </div>
     </>
