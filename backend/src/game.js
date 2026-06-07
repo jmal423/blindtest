@@ -338,12 +338,20 @@ export class GameRoom {
       p.foundTitle = false;
       p.foundBoth = false;
     });
-    const durSec = Math.max(30, (track.durationMs || 180000) / 1000);
-    const effectiveDur = track.youtubeVideoId ? durSec : 30;
-    const isPreview = effectiveDur <= 60;
-    const minOff = isPreview ? 2 : Math.max(10, Math.floor(effectiveDur * 0.10));
-    const maxOff = isPreview ? 8 : Math.floor(effectiveDur * 0.55);
-    this.audioOffset = Math.floor(Math.random() * Math.max(1, maxOff - minOff)) + minOff;
+    const isPreviewSource = this.settings.audioSource === 'spotify' || this.settings.audioSource === 'deezer';
+    const useYoutube = track.youtubeVideoId && (this.settings.audioSource === 'youtube' || this.settings.audioSource === 'both');
+
+    if (isPreviewSource || !useYoutube) {
+      // 30s preview — center the round window within the clip
+      const previewDuration = 30;
+      this.audioOffset = Math.max(0, Math.floor((previewDuration - this.settings.roundTime) / 2));
+    } else {
+      // Full YouTube song — random offset for variety
+      const durSec = Math.max(30, (track.durationMs || 180000) / 1000);
+      const minOff = Math.max(10, Math.floor(durSec * 0.10));
+      const maxOff = Math.floor(durSec * 0.55);
+      this.audioOffset = Math.floor(Math.random() * Math.max(1, maxOff - minOff)) + minOff;
+    }
     this.roundResult = null;
 
     this.state = 'round_preparing';

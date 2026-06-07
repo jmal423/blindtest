@@ -19,106 +19,7 @@ const WRONG_MSGS = ['Too bad!', 'Nope!', 'Not quite!', 'Try again!', 'Missed!'];
 const CORRECT_MSGS = ['Nice!', 'Good one!', 'Well done!', 'Got it!', 'Keep going!'];
 const COMPLETE_MSGS = ['Perfect!', 'You nailed it!', 'Brilliant!', 'Unstoppable!', 'Flawless!'];
 
-const BAR_COUNT = 48;
-
-function Visualizer({ duration, currentTime }: { duration: number; currentTime: number }) {
-  const [heights, setHeights] = useState(() =>
-    Array.from({ length: BAR_COUNT }, () => 20 + Math.random() * 60)
-  );
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setHeights(() =>
-        Array.from({ length: BAR_COUNT }, () => 20 + Math.random() * 60)
-      );
-    }, 120);
-    return () => clearInterval(interval);
-  }, []);
-
-  const colors = [
-    '#6366f1', '#8b5cf6', '#a855f7', '#d946ef',
-  ];
-
-  return (
-    <div className="flex items-end justify-center gap-[3px] h-48 w-full max-w-lg mx-auto">
-      {heights.map((h, i) => (
-        <motion.div
-          key={i}
-          animate={{ height: `${h}%` }}
-          transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-          className="w-[4px] rounded-t-sm"
-          style={{
-            background: `linear-gradient(to top, ${colors[Math.floor(i / 12) % colors.length]}, ${colors[(Math.floor(i / 12) + 1) % colors.length]})`,
-            boxShadow: `0 0 6px ${colors[Math.floor(i / 12) % colors.length]}66`,
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
 const PLAYER_COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#06b6d4', '#8b5cf6', '#84cc16'];
-
-function ProgressBar({ duration, currentTime, markers }: { duration: number; currentTime: number; markers: { playerName: string; artistFound: boolean; titleFound: boolean; guessTimeMs: number }[] }) {
-  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
-
-  const format = (s: number) => {
-    const m = Math.floor(s / 60);
-    const sec = Math.floor(s % 60);
-    return `${m}:${sec.toString().padStart(2, '0')}`;
-  };
-
-  const uniquePlayers = [...new Set(markers.map(m => m.playerName))];
-
-  return (
-    <div className="w-full max-w-lg mx-auto space-y-1">
-      <div className="relative h-1 bg-white/10 rounded-full overflow-hidden">
-        <motion.div
-          className="h-full rounded-full"
-          style={{ background: 'linear-gradient(90deg, #6366f1, #a855f7)' }}
-          animate={{ width: `${progress}%` }}
-          transition={{ duration: 0.3, ease: 'linear' }}
-        />
-        {markers.map((m, i) => {
-          const pct = duration > 0 ? Math.min(100, (m.guessTimeMs / 1000 / duration) * 100) : 0;
-          const color = PLAYER_COLORS[uniquePlayers.indexOf(m.playerName) % PLAYER_COLORS.length];
-          const isBoth = m.artistFound && m.titleFound;
-          return (
-            <div
-              key={i}
-              className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 z-10"
-              style={{ left: `${pct}%` }}
-              title={`${m.playerName}: ${(m.guessTimeMs / 1000).toFixed(1)}s${isBoth ? ' (both)' : m.artistFound ? ' (artist)' : ' (title)'}`}
-            >
-              <div
-                className={`rounded-full border border-black/30 ${isBoth ? 'w-3 h-3' : 'w-2 h-2'}`}
-                style={{ backgroundColor: color }}
-              />
-            </div>
-          );
-        })}
-      </div>
-      <div className="flex justify-between text-xs text-zinc-500">
-        <span>{format(currentTime)}</span>
-        <span>{format(duration)}</span>
-      </div>
-      {markers.length > 0 && (
-        <div className="flex flex-wrap gap-x-3 gap-y-1 justify-center">
-          {uniquePlayers.map((name, i) => {
-            const playerMarkers = markers.filter(m => m.playerName === name);
-            const best = Math.min(...playerMarkers.map(m => m.guessTimeMs));
-            return (
-              <div key={name} className="flex items-center gap-1.5 text-[10px] text-zinc-400">
-                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: PLAYER_COLORS[i % PLAYER_COLORS.length] }} />
-                <span>{name} {(best / 1000).toFixed(1)}s</span>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function GamePage({
   params,
@@ -151,8 +52,9 @@ export default function GamePage({
   const [startLoading, setStartLoading] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [hasVotedSkip, setHasVotedSkip] = useState(false);
+  const prevVolumeRef = useRef(1);
   const playSound = useSound();
-  const { settings: userSettings } = useSettings();
+  const { settings: userSettings, updateSettings: updateLocalSettings } = useSettings();
   const playSoundRef = useRef(playSound);
   const activeRoundRef = useRef<string | null>(null);
   playSoundRef.current = playSound;
@@ -166,6 +68,21 @@ export default function GamePage({
     setCurrentTime(t);
     if (d && d > 0) setDuration(d);
   }, []);
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if ((e.key === 'm' || e.key === 'M') && document.activeElement?.tagName !== 'INPUT') {
+        if (userSettings.masterVolume > 0) {
+          prevVolumeRef.current = userSettings.masterVolume;
+          updateLocalSettings({ masterVolume: 0 });
+        } else {
+          updateLocalSettings({ masterVolume: prevVolumeRef.current || 1 });
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [userSettings.masterVolume, updateLocalSettings]);
 
   useEffect(() => {
     if (gameState?.state === 'playing' && !bothFound && userSettings.autoFocusInput) {
@@ -429,12 +346,42 @@ export default function GamePage({
         </div>
         <div className="flex items-center gap-2">
           {gameState.state !== 'waiting' && gameState.state !== 'game_over' && (
-            <button
-              onClick={() => setChatOpen(o => !o)}
-              className="md:hidden text-[10px] px-2 py-0.5 rounded bg-white/5 text-zinc-400 hover:text-zinc-300 transition-colors"
-            >
-              {chatOpen ? 'Hide Chat' : 'Chat'}
-            </button>
+            <>
+              <div className="hidden md:flex items-center gap-1.5">
+                <button
+                  onClick={() => {
+                    if (userSettings.masterVolume > 0) {
+                      prevVolumeRef.current = userSettings.masterVolume;
+                      updateLocalSettings({ masterVolume: 0 });
+                    } else {
+                      updateLocalSettings({ masterVolume: prevVolumeRef.current || 1 });
+                    }
+                  }}
+                  className="text-zinc-400 hover:text-zinc-200 transition-colors p-1"
+                  title={userSettings.masterVolume === 0 ? 'Unmute (M)' : 'Mute (M)'}
+                >
+                  {userSettings.masterVolume === 0 ? (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+                  ) : userSettings.masterVolume < 0.5 ? (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                  ) : (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+                  )}
+                </button>
+                <input
+                  type="range" min={0} max={1} step={0.05}
+                  value={userSettings.masterVolume}
+                  onChange={e => updateLocalSettings({ masterVolume: Number(e.target.value) })}
+                  className="w-14 accent-[var(--primary)] h-1 cursor-pointer"
+                />
+              </div>
+              <button
+                onClick={() => setChatOpen(o => !o)}
+                className="md:hidden text-[10px] px-2 py-0.5 rounded bg-white/5 text-zinc-400 hover:text-zinc-300 transition-colors"
+              >
+                {chatOpen ? 'Hide Chat' : 'Chat'}
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -493,8 +440,6 @@ export default function GamePage({
               onGuessChange={setGuess}
               onSubmit={handleSubmit}
               guessResult={guessResult}
-              duration={duration}
-              currentTime={currentTime}
               guessMarkers={guessMarkers}
               inputRef={guessInputRef}
               artistFound={artistFound}
@@ -913,8 +858,6 @@ function PlayingPhase({
   onGuessChange,
   onSubmit,
   guessResult,
-  duration,
-  currentTime,
   guessMarkers,
   inputRef,
   artistFound,
@@ -941,8 +884,6 @@ function PlayingPhase({
   onGuessChange: (v: string) => void;
   onSubmit: () => void;
   guessResult: { artist_result: string; artist_score: number; title_result: string; title_score: number; points_awarded_this_guess: number; found_both: boolean; guessTimeMs?: number } | null;
-  duration: number;
-  currentTime: number;
   guessMarkers: { playerName: string; artistFound: boolean; titleFound: boolean; guessTimeMs: number }[];
   inputRef: React.RefObject<HTMLInputElement | null>;
   artistFound: boolean;
@@ -1022,7 +963,7 @@ function PlayingPhase({
         </div>
       </div>
 
-      <MiniViz duration={duration} currentTime={currentTime} />
+      <MiniViz progress={(smoothTime ?? 0) / (roundDuration || 15)} />
 
       <div className="h-1 rounded-full bg-zinc-800 overflow-hidden">
         <div
@@ -1118,8 +1059,8 @@ function PlayingPhase({
   );
 }
 
-function MiniViz({ duration, currentTime }: { duration: number; currentTime: number }) {
-  const pct = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0;
+function MiniViz({ progress }: { progress: number }) {
+  const pct = Math.min(100, progress * 100);
   const [tick, setTick] = useState(0);
   useEffect(() => {
     const id = setInterval(() => setTick(t => t + 1), 50);
