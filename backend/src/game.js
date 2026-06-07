@@ -224,8 +224,23 @@ export class GameRoom {
       }
 
       if (allTracks.length === 0) {
+        // Fallback: try Deezer if Spotify is down
+        console.log('[Game] Spotify failed, trying Deezer API...');
+        const { getTracksByGenre: deezerFetch } = await import('./deezer.js');
+        for (const genre of shuffledGenres) {
+          if (allTracks.length >= totalNeeded) break;
+          try {
+            const tracks = await deezerFetch(genre, 50);
+            allTracks.push(...tracks);
+          } catch (err) {
+            console.error(`[Deezer] Failed for genre "${genre}":`, err.message);
+          }
+        }
+      }
+
+      if (allTracks.length === 0) {
         if (rateLimited) return 'Spotify search is rate limited. Please wait ~30 seconds and try again.';
-        return lastError || 'No tracks found';
+        return lastError || 'No tracks found from any source';
       }
 
       if (this.settings.audioSource === 'spotify') {
