@@ -21,22 +21,28 @@
 
 ## Features
 
-- **4 audio sources** — Spotify previews, Deezer (free, no auth), YouTube full songs, Auto mode
-- **Real-time multiplayer** — Socket.io powers live game state, no polling
+- **4 audio sources** — Spotify previews, Deezer (free, no auth), YouTube full songs, Auto (best available)
+- **Real-time multiplayer** — Socket.io for live game state, no polling
 - **Smart scoring** — Points for artist, title, or both with time bonuses and streaks
-- **20 genres** — Pop, Rock, Hip-Hop, R&B, Electronic, Jazz, Classical, Country, Metal, Indie, and more
-- **Admin panel** — Live rooms, user management, API diagnostics, database status
+- **16 genres + Top 100** — Pop, Rock, Hip-Hop, R&B, Electronic, Jazz, Classical, Country, Metal, Indie, Soul, Blues, Reggae, Latin, Dance, and the global Top 100 chart
+- **Rank-based track selection** — Deezer popularity rank sorts tracks so mainstream songs play first
+- **Skip vote system** — Host/admin skips instantly, players vote (majority wins)
+- **Track history sidebar** — Always-visible history shows played tracks with Deezer rank (`Artist · #42,150`)
+- **Multi-language** — English, Français, Português, Español — switch from main menu, settings, or header
+- **Volume control** — Mute button + slider in game header, `M` key shortcut
 - **Guest login** — No Discord required, play instantly
-- **Mobile-first** — Responsive UI optimized for phones
+- **Admin panel** — Live rooms, user management, genre tester with rank display, database monitoring
+
+---
 
 ## Architecture
 
 ```
-┌──────────────┐  HTTP/JSON  ┌──────────────┐
-│   Next.js 16  │ ◄────────► │   Express 5   │
-│   Frontend    │             │   Backend      │
-│   (Vercel)    │  Socket.io  │   (Railway)    │
-└──────────────┘ Б──Б──Б──Б─Б─└───────┬───────┘
+┌──────────────┐  HTTP/JSON  ┌──────────────────────┐
+│   Next.js 16  │ ◄────────► │   Express 5           │
+│   Frontend    │             │   Backend             │
+│   (Vercel)    │  Socket.io  │   (Railway)           │
+└──────────────┘ Б──Б──Б──Б─Б─└───────┬───────────────┘
                                 ┌──────┼──────┐
                                 ▼      ▼      ▼
                            Spotify  Deezer  YouTube
@@ -51,10 +57,16 @@
 ```
 Create Room → Choose Genres → Choose Audio Source → Start
        ↓
-Round Start → Play 30s clip → Players guess → Show answer → Next round
+Round 1: 3-2-1-GO → Play track → Players guess → Show answer → Round 2+ (directly play)
        ↓
-Game Over → Podium → Play Again
+Game Over → Podium → Play Again / Main Menu
 ```
+
+- Round timer starts immediately, no playback delay
+- Skip votes show live tally (`Vote Skip 2/3` → `Voted 3/3`)
+- Preview sources (Deezer/Spotify) center the round window within the 30s clip
+
+---
 
 ## Quick Start
 
@@ -76,17 +88,20 @@ npm run dev
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `SPOTIFY_CLIENT_ID` | Yes* | Spotify app credentials |
-| `SPOTIFY_CLIENT_SECRET` | Yes* | Spotify app credentials |
+| `SPOTIFY_CLIENT_ID` | No* | Spotify app credentials |
+| `SPOTIFY_CLIENT_SECRET` | No* | Spotify app credentials |
 | `YOUTUBE_API_KEY` | No | YouTube Data API key (scraping fallback works without it) |
-| `DISCORD_CLIENT_ID` | No | Discord OAuth for registered users |
-| `DISCORD_CLIENT_SECRET` | No | Discord OAuth secret |
-| `JWT_SECRET` | Yes | Token signing secret |
-| `DATABASE_URL` | No | Postgres URL (auto-uses SQLite if unset) |
-| `FRONTEND_URL` | No | `http://localhost:3000` |
+| `DISCORD_CLIENT_ID` | No | Discord OAuth2 application ID |
+| `DISCORD_CLIENT_SECRET` | No | Discord OAuth2 secret |
+| `DISCORD_ALLOWED_GUILD_ID` | No | Restrict to a specific Discord server |
+| `ADMIN_DISCORD_IDS` | No | Comma-separated Discord IDs for admin role |
+| `JWT_SECRET` | Yes | Token signing secret (generate a random string) |
+| `DATABASE_URL` | No | PostgreSQL URL (uses SQLite if unset) |
+| `SQLITE_PATH` | No | Custom SQLite file path |
+| `FRONTEND_URL` | No | CORS origin + OAuth redirect base |
 | `PORT` | No | `3001` |
 
-*Spoitify is only needed if using Spotify as audio source. Deezer works without any keys.
+*Spotify is only needed if using Spotify as audio source. Deezer works without any keys.
 
 **Frontend (`.env.local`):**
 
@@ -94,16 +109,36 @@ npm run dev
 |----------|-------------|
 | `NEXT_PUBLIC_API_URL` | Backend URL (`http://localhost:3001`) |
 
+---
+
 ## Audio Sources
 
-| Source | Auth | Quality | Reliability |
-|--------|------|---------|-------------|
-| **Spotify** | Client Credentials | 30s preview | Rate limited (429) |
-| **Deezer** | None (free) | 30s preview | High, uses genre charts |
-| **YouTube** | API key or scraping | Full song | Quota limited |
-| **Auto** | — | Best available | Falls through all sources |
+| Source | Auth | Quality | Reliability | Notes |
+|--------|------|---------|-------------|-------|
+| **Deezer** (default) | None (free) | 30s preview | High | Uses genre charts, sorted by global popularity rank |
+| **Spotify** | Client Credentials | 30s preview | Rate limited (429) | Recommendations + search fallback |
+| **YouTube** | API key or scraping | Full song | Quota limited | Scraping fallback works without key |
+| **Auto** | — | Best available | Falls through all | Tries Spotify → Deezer → YouTube |
 
-When **Auto** is selected, the game tries Spotify → Deezer → YouTube, using whichever returns playable tracks first.
+---
+
+## Languages
+
+| Flag | Language | Code |
+|------|----------|------|
+| 🇬🇧 | English | `en` |
+| 🇫🇷 | Français | `fr` |
+| 🇧🇷 | Português | `pt` |
+| 🇪🇸 | Español | `es` |
+
+Switch from:
+- **Main menu** — flag buttons below the guest login form
+- **Header menu** — flag buttons in the profile dropdown
+- **Settings modal** — Language section with all 4 flags
+
+Language is persisted to `localStorage`. All UI text, feedback messages, labels, and buttons are translated (~150 keys per locale).
+
+---
 
 ## API Routes
 
@@ -122,9 +157,9 @@ When **Auto** is selected, the game tries Spotify → Deezer → YouTube, using 
 | Event | Direction | Description |
 |-------|-----------|-------------|
 | `join_room` | Client → Server | Join room + receive state |
-| `game_state` | Server → Client | Full state update |
-| `submit_guess` | Client → Server | Submit answer |
-| `skip_round` | Client → Server | Skip current round (host/admin) |
+| `game_state` | Server → Client | Full state update (state, players, settings, track info) |
+| `submit_guess` | Client → Server | Submit artist/title guess |
+| `skip_round` | Client → Server | Vote to skip (host/admin skips instantly) |
 | `playback_started` | Client → Server | Audio started playing |
 | `play_again` | Client → Server | Reset and start new game |
 
@@ -139,21 +174,27 @@ When **Auto** is selected, the game tries Spotify → Deezer → YouTube, using 
 | `GET` | `/api/users/me/stats` | JWT | User stats |
 | `GET` | `/api/leaderboard` | No | Global ranking |
 
+### Health
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `GET` | `/api/health` | No | DB connectivity, uptime, table counts |
+
 ### Admin
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| `GET` | `/api/admin/stats` | Admin | User/room counts, YouTube status |
+| `GET` | `/api/admin/stats` | Admin | User/room/round counts |
 | `GET` | `/api/admin/db-status` | Admin | DB type, row counts, connectivity |
 | `GET` | `/api/admin/rooms` | Admin | Active room list |
 | `GET` | `/api/admin/users` | Admin | All users |
 | `PUT` | `/api/admin/users/:id/role` | Admin | Change user role |
 | `DELETE` | `/api/admin/users/:id` | Admin | Delete user + data |
+| `DELETE` | `/api/admin/users/:id/scores` | Admin | Wipe user scores |
 | `POST` | `/api/admin/test/spotify` | Admin | Test Spotify API connectivity |
-| `POST` | `/api/admin/test/genre` | Admin | Test Spotify genre fetch |
+| `POST` | `/api/admin/test/genre` | Admin | Test genre fetch (count param) |
 | `POST` | `/api/admin/test/deezer` | Admin | Test Deezer API connectivity |
-| `POST` | `/api/admin/test/deezer/genre` | Admin | Test Deezer genre fetch |
-| `POST` | `/api/admin/test/youtube` | Admin | Test YouTube search |
-| `POST` | `/api/admin/test/source-preview` | Admin | Test specific audio source |
+| `POST` | `/api/admin/test/deezer/genre` | Admin | Test genre fetch with rank (count param) |
+
+---
 
 ## Scoring
 
@@ -165,6 +206,25 @@ When **Auto** is selected, the game tries Spotify → Deezer → YouTube, using 
 
 Fuzzy matching handles typos, punctuation, and "(feat. ...)" suffixes.
 
+---
+
+## Database
+
+### Local development
+SQLite with `better-sqlite3` — zero config, auto-created at `backend/data.db`.
+
+### Production (Railway)
+Add the PostgreSQL plugin to your Railway project. `DATABASE_URL` is auto-set. The backend auto-detects PostgreSQL and uses it with connection pooling, retries, and health checks.
+
+### Migrations
+Migrations run automatically on startup from `backend/src/migrations/`:
+- `001_initial.js` — Tables (users, game_scores, friendships, round_results)
+- `002_indexes.js` — Performance indexes on user_id, game_id, genre, played_at
+
+See `DEPLOY.md` for full deployment guide.
+
+---
+
 ## Tech Stack
 
 | Layer | Technology |
@@ -173,47 +233,67 @@ Fuzzy matching handles typos, punctuation, and "(feat. ...)" suffixes.
 | Backend | Express 5, Socket.io, better-sqlite3 / pg |
 | Audio | Spotify Web API, Deezer API (free), YouTube Data API / scraping |
 | Auth | Discord OAuth2 + JWT, Guest tokens |
-| Database | PostgreSQL (Railway) / SQLite (local) |
-| Deployment | Vercel (frontend) + Railway (backend) |
+| i18n | Custom JSON-based (en, fr, pt, es), persisted in localStorage |
+| Database | PostgreSQL (production) / SQLite (local), migration system |
+| Deployment | Vercel (frontend) + Railway (backend + PostgreSQL) |
+
+---
 
 ## Project Structure
 
 ```
 blindtest/
+├── DEPLOY.md                  # Railway + Vercel deployment guide
 ├── backend/
+│   ├── .env.example           # All environment variables documented
+│   ├── railway.json           # Railway deployment config
 │   └── src/
-│       ├── index.js      # Express server, routes, admin endpoints
-│       ├── game.js        # GameRoom class, game logic, scoring
-│       ├── spotify.js     # Spotify client credentials + genre search
-│       ├── deezer.js      # Deezer genre charts + artist top tracks
-│       ├── youtube.js     # YouTube Data API + scraping fallback
-│       ├── db.js          # Database abstraction (PostgreSQL / SQLite)
-│       └── auth.js        # Discord OAuth + JWT middleware
+│       ├── index.js           # Express server, routes, admin endpoints
+│       ├── game.js            # GameRoom class, game logic, scoring, skip votes
+│       ├── spotify.js         # Spotify client credentials + genre search
+│       ├── deezer.js          # Deezer genre charts + artist top tracks, rank sorting
+│       ├── youtube.js         # YouTube Data API + scraping fallback
+│       ├── db.js              # Database abstraction (PostgreSQL / SQLite), migrations, retry
+│       ├── auth.js            # Discord OAuth + JWT middleware
+│       └── migrations/
+│           ├── 001_initial.js # Core tables
+│           └── 002_indexes.js # Performance indexes
 ├── frontend/
 │   ├── app/
-│   │   ├── page.tsx       # Home (create/join/leaderboard)
+│   │   ├── page.tsx           # Home (create/join/login with language switcher)
 │   │   ├── game/[code]/
-│   │   │   ├── page.tsx   # Game room (WaitingRoom → Playing → Podium)
-│   │   │   ├── Chat.tsx
-│   │   │   ├── DebugOverlay.tsx
-│   │   │   ├── Podium.tsx
-│   │   │   └── TrackHistory.tsx
-│   │   ├── admin/page.tsx # Admin panel (System, Users, Rooms, Leaderboard, API)
-│   │   ├── login/page.tsx # Discord + guest login
-│   │   ├── profile/page.tsx
+│   │   │   ├── page.tsx       # Game room (WaitingRoom → Playing → Podium)
+│   │   │   ├── Chat.tsx       # Timestamped chat with system messages
+│   │   │   ├── DebugOverlay.tsx # Collapsible sections: track, audio, players, settings
+│   │   │   ├── Podium.tsx     # Endgame rankings
+│   │   │   └── TrackHistory.tsx # Sidebar overlay
+│   │   ├── admin/page.tsx     # Admin (System, Users, Rooms, Leaderboard, API with genre tester)
+│   │   ├── login/page.tsx     # Discord + guest login
+│   │   ├── profile/page.tsx   # Profile stats, friends, game history
+│   │   ├── settings/page.tsx  # Account settings
 │   │   └── components/
-│   │       ├── AudioPlayer.tsx   # YouTube iframe + HTML5 audio
-│   │       ├── Header.tsx         # Mobile dropdown nav
-│   │       └── SettingsModal.tsx  # Volume, reduced motion, auto-focus
+│   │       ├── AudioPlayer.tsx        # YouTube iframe + HTML5 audio
+│   │       ├── Header.tsx             # Profile dropdown with language switcher
+│   │       ├── SettingsModal.tsx       # Volume, auto-focus, motion, theme, language
+│   │       ├── LanguageSwitcher.tsx    # Flag button grid
+│   │       └── LanguageInitializer.tsx # Sets <html lang> from settings
 │   ├── context/
-│   │   ├── SettingsContext.tsx     # Global settings (volume, motion)
-│   │   └── AuthContext.tsx        # Auth state
-│   └── lib/
-│       ├── api.ts          # All API + WebSocket functions
-│       ├── useSound.ts     # Sound effect hook
-│       └── debug-context.tsx
-└── package.json
+│   │   ├── SettingsContext.tsx  # Volume, accessibility, theme, language
+│   │   └── AuthContext.tsx      # Auth state
+│   ├── lib/
+│   │   ├── api.ts            # All API + WebSocket functions
+│   │   ├── useTranslation.ts # i18n hook (t, language, setLanguage)
+│   │   ├── useSound.ts       # Sound effect hook
+│   │   └── debug-context.tsx
+│   └── locales/
+│       ├── en.json           # ~150 English keys
+│       ├── fr.json           # ~150 French keys
+│       ├── pt.json           # ~150 Portuguese keys
+│       └── es.json           # ~150 Spanish keys
+└── README.md
 ```
+
+---
 
 ## License
 

@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 import { Server } from 'socket.io';
 import { GameRoom } from './game.js';
 import { GENRES, getGenreLabel } from './spotify.js';
-import { generateId, get, all, run } from './db.js';
+import { generateId, get, all, run, ping, getTableCounts, isPostgres } from './db.js';
 import { getAuthUrl, handleDiscordCallback, authenticate, requireAdmin, tryDecodeToken } from './auth.js';
 
 dotenv.config();
@@ -127,6 +127,21 @@ function generateCode() {
 }
 
 // Genres
+// Health check (public, no auth)
+app.get('/api/health', async (req, res) => {
+  try {
+    const dbOk = await ping();
+    const counts = await getTableCounts();
+    res.json({
+      ok: dbOk,
+      uptime: process.uptime(),
+      database: { connected: dbOk, type: isPostgres ? 'PostgreSQL' : 'SQLite', tables: counts },
+    });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 app.get('/api/genres', (req, res) => {
   res.json(GENRES.map(g => ({ id: g, label: getGenreLabel(g) })));
 });
@@ -756,21 +771,12 @@ app.post('/api/game/:code/test-source', async (req, res) => {
 
 app.get('/api/admin/db-status', requireAdmin, async (req, res) => {
   try {
-    const isPostgres = !!process.env.DATABASE_URL;
-    const [userCount, scoreCount, roundCount] = await Promise.all([
-      get('SELECT COUNT(*) as count FROM users'),
-      get('SELECT COUNT(*) as count FROM game_scores'),
-      get('SELECT COUNT(*) as count FROM round_results'),
-    ]);
+    const tables = await getTableCounts();
     res.json({
       ok: true,
       isPostgres,
-      hasData: (userCount?.count || 0) > 0,
-      tables: {
-        users: userCount?.count || 0,
-        game_scores: scoreCount?.count || 0,
-        round_results: roundCount?.count || 0,
-      },
+      hasData: tables.users > 0,
+      tables,
     });
   } catch (err) {
     res.json({ ok: false, error: err.message });

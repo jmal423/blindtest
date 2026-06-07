@@ -5,6 +5,7 @@ import fs from 'node:fs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DB_PATH = process.env.SQLITE_PATH || path.resolve(__dirname, '..', 'data.db');
+const isPostgres = !!process.env.DATABASE_URL;
 
 let db;
 
@@ -12,12 +13,31 @@ function generateId() {
   return crypto.randomUUID();
 }
 
-if (process.env.DATABASE_URL) {
-  const pg = await import('pg');
-  const { Pool } = pg.default || pg;
-  db = new Pool({ connectionString: process.env.DATABASE_URL });
+async function connectWithRetry(fn, label, retries = 5, delayMs = 2000) {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (attempt === retries) throw err;
+      console.log(`[DB] ${label} attempt ${attempt}/${retries} failed: ${err.message}. Retrying in ${delayMs / 1000}s...`);
+      await new Promise(r => setTimeout(r, delayMs));
+    }
+  }
+}
 
-  db.query = db.query.bind(db);
+if (isPostgres) {
+  await connectWithRetry(async () => {
+    const pg = await import('pg');
+    const { Pool } = pg.default || pg;
+    db = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      max: 10,
+      idleTimeoutMillis: 30000,
+    });
+    await db.query('SELECT 1');
+  }, 'PostgreSQL connect');
+  console.log(`[DB] PostgreSQL connected: ${process.env.DATABASE_URL.replace(/\/\/.*@/, '//***@')}`);
+
   db.run = (text, params) => db.query(text, params);
   db.get = async (text, params) => {
     const res = await db.query(text, params);
@@ -27,6 +47,7 @@ if (process.env.DATABASE_URL) {
     const res = await db.query(text, params);
     return res.rows;
   };
+  db.exec = (text) => db.query(text);
 } else {
   const dir = path.dirname(DB_PATH);
   if (!fs.existsSync(dir)) {
@@ -39,108 +60,83 @@ if (process.env.DATABASE_URL) {
   db.pragma('foreign_keys = OFF');
   db.db = db;
   console.log(`[DB] SQLite connected: ${DB_PATH}`);
+
+  db.run = (text, params = []) => {
+    const stmt = db.prepare(text);
+    stmt.run(...params);
+  };
+  db.get = (text, params = []) => {
+    const stmt = db.prepare(text);
+    return stmt.get(...params) || null;
+  };
+  db.all = (text, params = []) => {
+    const stmt = db.prepare(text);
+    return stmt.all(...params);
+  };
+  const nativeExec = db.exec.bind(db);
+  db.exec = (text) => nativeExec(text);
 }
 
-async function init() {
-  if (process.env.DATABASE_URL) {
+async function runMigrations() {
+  const migrationsDir = path.join(__dirname, 'migrations');
+
+  if (isPostgres) {
     await db.query(`
-      CREATE TABLE IF NOT EXISTS users (
-        id TEXT PRIMARY KEY,
-        discord_id TEXT UNIQUE,
-        username TEXT NOT NULL,
-        avatar_url TEXT,
-        role TEXT DEFAULT 'user',
-        created_at TIMESTAMP DEFAULT NOW()
-      )
-    `);
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS game_scores (
-        id TEXT PRIMARY KEY,
-        user_id TEXT,
-        game_code TEXT,
-        score INTEGER,
-        total_rounds INTEGER,
-        played_at TIMESTAMP DEFAULT NOW()
-      )
-    `);
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS friendships (
-        user_id TEXT,
-        friend_id TEXT,
-        status TEXT DEFAULT 'pending',
-        created_at TIMESTAMP DEFAULT NOW(),
-        PRIMARY KEY (user_id, friend_id)
-      )
-    `);
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS round_results (
-        id SERIAL PRIMARY KEY,
-        user_id TEXT,
-        game_id VARCHAR(50),
-        genre VARCHAR(50),
-        track_id VARCHAR(100),
-        guess_time_ms INT,
-        points_earned INT,
-        is_correct BOOLEAN,
-        played_at TIMESTAMP DEFAULT NOW()
+      CREATE TABLE IF NOT EXISTS _migrations (
+        name TEXT PRIMARY KEY,
+        applied_at TIMESTAMP DEFAULT NOW()
       )
     `);
   } else {
     db.exec(`
-      CREATE TABLE IF NOT EXISTS users (
-        id TEXT PRIMARY KEY,
-        discord_id TEXT UNIQUE,
-        username TEXT NOT NULL,
-        avatar_url TEXT,
-        role TEXT DEFAULT 'user',
-        created_at TEXT DEFAULT (datetime('now'))
-      )
-    `);
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS game_scores (
-        id TEXT PRIMARY KEY,
-        user_id TEXT,
-        game_code TEXT,
-        score INTEGER,
-        total_rounds INTEGER,
-        played_at TEXT DEFAULT (datetime('now'))
-      )
-    `);
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS friendships (
-        user_id TEXT,
-        friend_id TEXT,
-        status TEXT DEFAULT 'pending',
-        created_at TEXT DEFAULT (datetime('now')),
-        PRIMARY KEY (user_id, friend_id)
-      )
-    `);
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS round_results (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id TEXT,
-        game_id VARCHAR(50),
-        genre VARCHAR(50),
-        track_id VARCHAR(100),
-        guess_time_ms INT,
-        points_earned INT,
-        is_correct INTEGER,
-        played_at TEXT DEFAULT (datetime('now'))
+      CREATE TABLE IF NOT EXISTS _migrations (
+        name TEXT PRIMARY KEY,
+        applied_at TEXT DEFAULT (datetime('now'))
       )
     `);
   }
+
+  const appliedRows = await db.all('SELECT name FROM _migrations ORDER BY name');
+  const applied = new Set(appliedRows.map(r => r.name));
+
+  if (!fs.existsSync(migrationsDir)) return;
+
+  const files = fs.readdirSync(migrationsDir)
+    .filter(f => f.endsWith('.js'))
+    .sort();
+
+  for (const file of files) {
+    const mod = await import(`./migrations/${file}`);
+    const migration = mod.default;
+
+    if (applied.has(migration.name)) {
+      console.log(`[DB] Migration ${migration.name} already applied`);
+      continue;
+    }
+
+    console.log(`[DB] Running migration: ${migration.name}`);
+
+    if (isPostgres) {
+      const stmts = migration.up.split(';').map(s => s.trim()).filter(Boolean);
+      for (const stmt of stmts) {
+        await db.query(stmt);
+      }
+    } else {
+      const stmts = (migration.sqlite || migration.up).split(';').map(s => s.trim()).filter(Boolean);
+      for (const stmt of stmts) {
+        db.exec(stmt);
+      }
+    }
+
+    await db.run('INSERT INTO _migrations (name) VALUES (?)', [migration.name]);
+    console.log(`[DB] Migration ${migration.name} applied`);
+  }
 }
 
-await init();
-
-if (process.env.DATABASE_URL) {
-  console.log(`[DB] PostgreSQL connected: ${process.env.DATABASE_URL.replace(/\/\/.*@/, '//***@')}`);
-} else {
-  console.log(`[DB] SQLite connected: ${DB_PATH}`);
-}
+await runMigrations();
 
 async function query(sql, params = []) {
-  if (process.env.DATABASE_URL) {
+  if (isPostgres) {
     let i = 0;
     const pgSql = sql.replace(/\?/g, () => `$${++i}`);
     const res = await db.query(pgSql, params);
@@ -174,4 +170,24 @@ async function insertRoundResult(userId, gameId, genre, trackId, guessTimeMs, po
   );
 }
 
-export { generateId, query, get, all, run, insertRoundResult };
+async function ping() {
+  const row = await get('SELECT 1 as ok');
+  return !!row;
+}
+
+async function getTableCounts() {
+  const [users, scores, rounds, friendships] = await Promise.all([
+    get('SELECT COUNT(*) as count FROM users'),
+    get('SELECT COUNT(*) as count FROM game_scores'),
+    get('SELECT COUNT(*) as count FROM round_results'),
+    get('SELECT COUNT(*) as count FROM friendships'),
+  ]);
+  return {
+    users: users?.count || 0,
+    game_scores: scores?.count || 0,
+    round_results: rounds?.count || 0,
+    friendships: friendships?.count || 0,
+  };
+}
+
+export { generateId, query, get, all, run, insertRoundResult, ping, getTableCounts, isPostgres };
