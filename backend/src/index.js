@@ -256,25 +256,36 @@ app.get('/api/auth/discord/callback', async (req, res) => {
 
 // Guest/dev login — bypasses Discord auth
 app.post('/api/auth/guest', (req, res) => {
-  const isDev = process.env.NODE_ENV !== 'production' || process.env.ALLOW_GUEST === 'true';
-  if (!isDev) return res.status(403).json({ error: 'Guest login not available in production' });
+  if (process.env.NODE_ENV === 'production' && process.env.ALLOW_GUEST !== 'true') {
+    return res.status(403).json({ error: 'Guest login not available in production' });
+  }
 
   const name = typeof req.body?.name === 'string' ? req.body.name.trim() : 'Guest';
+  const userId = `guest_${generateId()}`;
   const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`;
   const token = jwt.sign(
-    { userId: `guest_${generateId()}`, role: 'user', guest: true },
+    { userId, role: 'user', guest: true, username: name },
     process.env.JWT_SECRET || 'blindtest-dev-secret-change-in-production',
     { expiresIn: '365d' }
   );
 
   res.json({
     token,
-    user: { id: token.split('guest_')[1] || 'unknown', username: name, avatar_url: avatarUrl, role: 'user', created_at: new Date().toISOString() },
+    user: { id: userId, username: name, avatar_url: avatarUrl, role: 'user', created_at: new Date().toISOString() },
   });
 });
 
 // Users
 app.get('/api/users/me', authenticate, async (req, res) => {
+  if (req.user.guest) {
+    return res.json({
+      id: req.user.userId,
+      username: req.user.username || 'Guest',
+      avatar_url: null,
+      role: req.user.role || 'user',
+      created_at: new Date().toISOString(),
+    });
+  }
   const user = await get('SELECT id, username, avatar_url, role, created_at FROM users WHERE id = ?', [req.user.userId]);
   if (!user) return res.status(404).json({ error: 'User not found' });
   res.json(user);
