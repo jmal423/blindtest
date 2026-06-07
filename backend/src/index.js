@@ -39,7 +39,28 @@ io.on('connection', (socket) => {
     const info = socketPlayerMap.get(socket.id);
     if (!info) return;
     const room = rooms.get(info.roomCode);
-    if (room) room.startRoundTimer();
+    if (room) room.markPlayerReady(info.playerId);
+  });
+
+  socket.on('skip_round', () => {
+    const info = socketPlayerMap.get(socket.id);
+    if (!info) return;
+    const room = rooms.get(info.roomCode);
+    if (!room) return;
+    const player = room.getPlayer(info.playerId);
+    if (!player || (player.role !== 'admin' && info.playerId !== room.hostId)) return;
+    room.skipRound();
+    broadcastState(info.roomCode);
+  });
+
+  socket.on('kick_player', (targetPlayerId) => {
+    const info = socketPlayerMap.get(socket.id);
+    if (!info) return;
+    const room = rooms.get(info.roomCode);
+    if (!room) return;
+    const player = room.getPlayer(info.playerId);
+    if (!player || (player.role !== 'admin' && info.playerId !== room.hostId)) return;
+    room.kickPlayer(targetPlayerId);
   });
 
   socket.on('submit_guess', (data) => {
@@ -141,7 +162,6 @@ app.post('/api/rooms/join', (req, res) => {
 
   const room = rooms.get(code.toUpperCase());
   if (!room) return res.status(404).json({ error: 'Room not found' });
-  if (room.state !== 'waiting') return res.status(400).json({ error: 'Game already in progress' });
 
   const playerId = room.addPlayer(playerName.trim(), avatarUrl || null, role || 'user', userId);
   broadcastState(room.code);

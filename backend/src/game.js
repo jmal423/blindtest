@@ -97,6 +97,8 @@ export class GameRoom {
     this.rankings = null;
     this.hostId = null;
     this.pauseStartTime = null;
+    this.playersReady = new Set();
+    this.playbackTimeout = null;
     this.io = io;
     this.playerSockets = {};
   }
@@ -143,6 +145,28 @@ export class GameRoom {
 
   getPlayer(id) {
     return this.players.find(p => p.id === id);
+  }
+
+  isAdmin(playerId) {
+    const p = this.getPlayer(playerId);
+    return p?.role === 'admin';
+  }
+
+  kickPlayer(targetPlayerId) {
+    const idx = this.players.findIndex(p => p.id === targetPlayerId);
+    if (idx === -1) return null;
+    const kicked = this.players.splice(idx, 1)[0];
+    const socketId = this.playerSockets[targetPlayerId];
+    if (socketId && this.io) {
+      this.io.to(socketId).emit('kicked', { reason: 'You were removed by an admin' });
+    }
+    delete this.playerSockets[targetPlayerId];
+    if (this.players.length === 0) {
+      this.destroy();
+    } else {
+      this.broadcast();
+    }
+    return kicked;
   }
 
   async startGame() {
@@ -201,6 +225,7 @@ export class GameRoom {
     }
 
     this.foundOrder = [];
+    this.playersReady = new Set();
     this.players.forEach(p => {
       p.foundArtist = false;
       p.foundTitle = false;
@@ -212,18 +237,20 @@ export class GameRoom {
     this.state = 'round_preparing';
     this.broadcast();
 
-    this.waitingForPlayback = true;
     clearTimeout(this.countdownTimer);
     this.countdownTimer = setTimeout(() => {
       this.state = 'playing';
       this.broadcast();
-      // round timer starts when playback_started socket event arrives
-    }, 5000);
+      // Don't start round timer yet — wait for all players' playback_started
+      this.playbackTimeout = setTimeout(() => {
+        this.startRoundTimer();
+      }, 6000);
+    }, 8000);
   }
 
   submitAnswer(playerId, answer) {
     const player = this.getPlayer(playerId);
-    if (!player || this.state !== 'playing') return null;
+    if (!player || this.state !== 'playing' || !this.roundStartTime) return null;
 
     const track = this.tracks[this.currentRound];
     if (!track) return null;
@@ -305,18 +332,49 @@ export class GameRoom {
     return { ...inputResult, guessTimeMs, trackId: track.id, genre: track.genre };
   }
 
+  markPlayerReady(playerId) {
+    this.playersReady.add(playerId);
+    const connectedPlayers = this.players.filter(p => this.playerSockets[p.id]);
+    const allReady = connectedPlayers.every(p => this.playersReady.has(p.id));
+    if (allReady) {
+      if (this.playbackTimeout) { clearTimeout(this.playbackTimeout); this.playbackTimeout = null; }
+      this.startRoundTimer();
+    }
+  }
+
   startRoundTimer() {
-    if (!this.waitingForPlayback || this.state !== 'playing') return;
-    this.waitingForPlayback = false;
+    if (this.roundStartTime || this.state !== 'playing') return;
+    if (this.playbackTimeout) { clearTimeout(this.playbackTimeout); this.playbackTimeout = null; }
     this.roundStartTime = Date.now();
     clearTimeout(this.roundTimer);
     this.roundTimer = setTimeout(() => {
       this.endRound();
     }, this.settings.roundTime * 1000);
+    // Broadcast timeLeft every second so frontend has an accurate countdown
+    if (this.playingInterval) clearInterval(this.playingInterval);
+    this.playingInterval = setInterval(() => {
+      this.broadcast();
+    }, 1000);
+  }
+
+  clearPlayingInterval() {
+    if (this.playingInterval) { clearInterval(this.playingInterval); this.playingInterval = null; }
+  }
+
+  skipRound() {
+    if (this.state !== 'round_preparing' && this.state !== 'playing') return;
+    this.clearPlayingInterval();
+    this.currentRound++;
+    if (this.currentRound >= this.tracks.length) {
+      this.endGame();
+    } else {
+      this.startRound();
+    }
   }
 
   endRound() {
     if (this.roundTimer) { clearTimeout(this.roundTimer); this.roundTimer = null; }
+    this.clearPlayingInterval();
 
     this.players.forEach(p => {
       if (p.foundArtist && p.foundTitle) {
@@ -357,6 +415,7 @@ export class GameRoom {
 
   endGame() {
     if (this.roundTimer) { clearTimeout(this.roundTimer); this.roundTimer = null; }
+    this.clearPlayingInterval();
     if (this.countdownTimer) { clearTimeout(this.countdownTimer); this.countdownTimer = null; }
     if (this.pauseTimer) { clearTimeout(this.pauseTimer); this.pauseTimer = null; }
 
@@ -415,13 +474,29 @@ export class GameRoom {
     }
 
     if (this.state === 'playing') {
+      const track = this.tracks[this.currentRound];
+      if (!this.roundStartTime) {
+        return {
+          ...base,
+          _debugTrackInfo: makeDebugTrackInfo(track),
+          timeLeft: null,
+          waitingForPlayers: true,
+          roundTime: this.settings.roundTime,
+          previewUrl: track.previewUrl,
+          audioOffset: this.audioOffset ?? 0,
+          youtubeVideoId: track.youtubeVideoId,
+          trackId: track.id,
+          playersReady: this.playersReady.size,
+          playersTotal: this.players.filter(p => this.playerSockets[p.id]).length,
+        };
+      }
       const elapsed = (Date.now() - this.roundStartTime) / 1000;
       const timeLeft = Math.max(0, Math.ceil(this.settings.roundTime - elapsed));
-      const track = this.tracks[this.currentRound];
       return {
         ...base,
         _debugTrackInfo: makeDebugTrackInfo(track),
         timeLeft,
+        waitingForPlayers: false,
         roundTime: this.settings.roundTime,
         previewUrl: track.previewUrl,
         audioOffset: this.audioOffset ?? 0,
@@ -448,6 +523,8 @@ export class GameRoom {
     if (this.countdownTimer) clearTimeout(this.countdownTimer);
     if (this.pauseTimer) clearTimeout(this.pauseTimer);
     if (this.autoStartTimer) clearTimeout(this.autoStartTimer);
+    if (this.playbackTimeout) clearTimeout(this.playbackTimeout);
+    this.clearPlayingInterval();
     this.tracks = [];
     this.trackHistory = [];
     this.currentRound = 0;
@@ -457,7 +534,9 @@ export class GameRoom {
     this.roundResult = null;
     this.rankings = [];
     this.audioOffset = 0;
-    this.waitingForPlayback = false;
+    this.roundStartTime = 0;
+    this.playersReady = new Set();
+    this.playbackTimeout = null;
     this.players.forEach(p => { p.score = 0; p.answers = []; p.streak = 0; });
     this.lastGenres = null;  // force fresh track fetch on next startGame
     this.broadcast();
@@ -474,9 +553,9 @@ export class GameRoom {
     if (this.countdownTimer) clearTimeout(this.countdownTimer);
     if (this.pauseTimer) clearTimeout(this.pauseTimer);
     if (this.autoStartTimer) clearTimeout(this.autoStartTimer);
+    if (this.playbackTimeout) clearTimeout(this.playbackTimeout);
     this.players = [];
     this.tracks = [];
     this.trackHistory = [];
-    this.waitingForPlayback = false;
   }
 }

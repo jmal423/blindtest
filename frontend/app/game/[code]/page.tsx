@@ -267,11 +267,17 @@ export default function GamePage({
       setError('Lost connection to server');
     });
 
+    socket.on('kicked', (data: { reason: string }) => {
+      alert(data.reason);
+      localStorage.removeItem(`blindtest_player_${code}`);
+      router.push('/');
+    });
+
     return () => {
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [code, playerId, applyGameState]);
+  }, [code, playerId, applyGameState, router]);
 
   const handleStart = useCallback(async () => {
     try {
@@ -351,9 +357,12 @@ export default function GamePage({
               settings={gameState.settings}
               genres={gameState.genres}
               isHost={playerId === gameState.players[0]?.id}
+              isAdmin={gameState.players.find(p => p.id === playerId)?.role === 'admin'}
+              playerId={playerId}
               onStart={handleStart}
               onSettingsChange={handleSettingsUpdate}
               onGenresChange={handleGenresUpdate}
+              onKickPlayer={(pid) => socketRef.current?.emit('kick_player', pid)}
             />
           )}
 
@@ -377,6 +386,12 @@ export default function GamePage({
               players={gameState.players}
               playerId={playerId}
               encouragement={encouragement}
+              waitingForPlayers={(gameState as any).waitingForPlayers}
+              roundTime={(gameState as any).settings?.roundTime || 15}
+              settings={(gameState as any).settings}
+              playersReady={(gameState as any).playersReady}
+              playersTotal={(gameState as any).playersTotal}
+              onSkipRound={() => socketRef.current?.emit('skip_round')}
             />
           )}
 
@@ -413,17 +428,23 @@ function WaitingRoom({
   settings,
   genres,
   isHost,
+  isAdmin,
+  playerId,
   onStart,
   onSettingsChange,
   onGenresChange,
+  onKickPlayer,
 }: {
   players: { id: string; name: string; avatarUrl?: string | null; role?: string }[];
   settings: RoomSettings;
   genres: string[];
   isHost: boolean;
+  isAdmin?: boolean;
+  playerId: string;
   onStart: () => void;
   onSettingsChange: (s: Partial<RoomSettings>) => void;
   onGenresChange: (g: string[]) => void;
+  onKickPlayer?: (playerId: string) => void;
 }) {
   const [allGenres, setAllGenres] = useState<{ id: string; label: string }[]>([]);
 
@@ -460,6 +481,14 @@ function WaitingRoom({
               )}
             </span>
             {i === 0 && <span className="text-xs text-zinc-500 ml-auto">Host</span>}
+            {isAdmin && onKickPlayer && p.id !== playerId && (
+              <button
+                onClick={() => onKickPlayer(p.id)}
+                className="text-[10px] px-2 py-1 rounded bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
+              >
+                Kick
+              </button>
+            )}
           </div>
         ))}
       </div>
@@ -635,11 +664,16 @@ function PlayingPhase({
   players,
   playerId,
   encouragement,
+  waitingForPlayers,
+  playersReady,
+  playersTotal,
+  onSkipRound,
+  roundTime,
 }: {
   state: string;
   currentRound: number;
   totalRounds: number;
-  timeLeft: number;
+  timeLeft: number | null;
   guess: string;
   onGuessChange: (v: string) => void;
   onSubmit: () => void;
@@ -654,7 +688,14 @@ function PlayingPhase({
   players: Player[];
   playerId: string;
   encouragement: string | null;
+  waitingForPlayers?: boolean;
+  playersReady?: number;
+  playersTotal?: number;
+  onSkipRound?: () => void;
+  roundTime?: number;
+  settings?: RoomSettings;
 }) {
+  const roundDuration = roundTime || 15;
   const placeholder = bothFound
     ? 'You nailed it!'
     : artistFound
@@ -678,6 +719,42 @@ function PlayingPhase({
     return <PreparingCountdown currentRound={currentRound} totalRounds={totalRounds} players={players} playerId={playerId} />;
   }
 
+  const isAdmin = players.find(p => p.id === playerId)?.role === 'admin' || playerId === players[0]?.id;
+
+  if (waitingForPlayers) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center gap-8">
+        <div className="flex items-center gap-6">
+          <span className="text-sm text-zinc-400">Round {currentRound}/{totalRounds}</span>
+        </div>
+        <div className="text-center space-y-4">
+          <div className="flex items-center justify-center gap-3">
+            {Array.from({ length: playersTotal || 0 }).map((_, i) => (
+              <div
+                key={i}
+                className={`w-4 h-4 rounded-full transition-all duration-300 ${
+                  i < (playersReady || 0) ? 'bg-green-400 scale-110' : 'bg-zinc-700'
+                }`}
+              />
+            ))}
+          </div>
+          <p className="text-zinc-400 text-lg">Waiting for players to connect...</p>
+          <p className="text-zinc-500 text-sm">{playersReady}/{playersTotal} ready</p>
+        </div>
+        <Visualizer duration={duration} currentTime={currentTime} />
+        <ProgressBar duration={roundDuration} currentTime={0} markers={[]} />
+        {isAdmin && onSkipRound && (
+          <button
+            onClick={onSkipRound}
+            className="px-4 py-2 text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 transition-colors"
+          >
+            Skip Round (Admin)
+          </button>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 flex flex-col lg:flex-row items-start gap-6 w-full max-w-4xl mx-auto">
       <div className="flex-1 flex flex-col items-center justify-center gap-6 w-full">
@@ -687,15 +764,24 @@ function PlayingPhase({
             key={currentRound}
             initial={{ scale: 1.3, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className={`text-3xl font-bold tabular-nums ${timeLeft <= 5 ? 'text-red-400' : 'text-white'}`}
+            className={`text-3xl font-bold tabular-nums ${timeLeft != null && timeLeft <= 5 ? 'text-red-400' : 'text-white'}`}
           >
-            {timeLeft}
+            {timeLeft ?? '--'}
           </motion.div>
+          {isAdmin && onSkipRound && (
+            <button
+              onClick={onSkipRound}
+              className="px-3 py-1 text-[10px] bg-zinc-800 hover:bg-zinc-700 text-zinc-400 rounded-md border border-zinc-700 transition-colors"
+              title="Skip this round"
+            >
+              Skip
+            </button>
+          )}
         </div>
 
         <Visualizer duration={duration} currentTime={currentTime} />
 
-        <ProgressBar duration={duration} currentTime={currentTime} markers={guessMarkers} />
+        <ProgressBar duration={roundDuration} currentTime={roundDuration - (timeLeft || 0)} markers={guessMarkers} />
 
         <div className="w-full max-w-sm space-y-3">
           <div className="flex gap-2">
