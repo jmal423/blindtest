@@ -373,6 +373,63 @@ app.delete('/api/friends/:userId', authenticate, async (req, res) => {
 });
 
 // Admin
+app.post('/api/admin/test/spotify', requireAdmin, async (req, res) => {
+  try {
+    const { getValidToken } = await import('./spotify.js');
+    const token = await getValidToken();
+    const response = await fetch('https://api.spotify.com/v1/browse/categories?limit=5', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+        'User-Agent': 'Blindtest/1.0',
+      },
+      redirect: 'follow',
+    });
+    const data = await response.json();
+    res.json({
+      ok: response.ok,
+      status: response.status,
+      categories: data?.categories?.items?.map(c => c.name) || [],
+      error: data?.error?.message || null,
+    });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.post('/api/admin/test/genre', requireAdmin, async (req, res) => {
+  const { genre } = req.body;
+  if (!genre) return res.status(400).json({ error: 'Genre required' });
+  try {
+    const { getTracksByGenre } = await import('./spotify.js');
+    const tracks = await getTracksByGenre(genre, 5);
+    res.json({
+      ok: true,
+      count: tracks.length,
+      tracks: tracks.map(t => ({
+        name: t.name,
+        artist: t.artist,
+        previewUrl: !!t.previewUrl,
+        genre: t.genre,
+      })),
+    });
+  } catch (err) {
+    res.json({ ok: false, count: 0, tracks: [], error: err.message });
+  }
+});
+
+app.post('/api/admin/test/youtube', requireAdmin, async (req, res) => {
+  const { name, artist } = req.body;
+  if (!name || !artist) return res.status(400).json({ error: 'Name and artist required' });
+  try {
+    const { searchYouTubeVideo } = await import('./youtube.js');
+    const videoId = await searchYouTubeVideo(name, artist);
+    res.json({ ok: true, videoId });
+  } catch (err) {
+    res.json({ ok: false, videoId: null, error: err.message });
+  }
+});
+
 app.get('/api/admin/stats', requireAdmin, async (req, res) => {
   const [userCount, roundCount] = await Promise.all([
     get('SELECT COUNT(*) as count FROM users'),

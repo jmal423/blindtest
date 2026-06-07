@@ -230,4 +230,4 @@ function shuffle(array) {
   return arr;
 }
 
-export { getTracksByGenre, getPlaylistTracks, GENRES, getGenreLabel };
+export { getTracksByGenre, getPlaylistTracks, getValidToken, GENRES, getGenreLabel };

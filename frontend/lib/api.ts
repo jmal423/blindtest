@@ -236,6 +236,26 @@ export async function getAdminStats(): Promise<{ totalUsers: number; totalRounds
   return fetchWithAuth(`${API_URL}/api/admin/stats`);
 }
 
+export async function testSpotify(): Promise<{ ok: boolean; status?: number; categories?: string[]; error?: string | null }> {
+  return fetchWithAuth(`${API_URL}/api/admin/test/spotify`, { method: 'POST' });
+}
+
+export async function testGenre(genre: string): Promise<{ ok: boolean; count: number; tracks: { name: string; artist: string; previewUrl: boolean; genre: string }[]; error?: string }> {
+  return fetchWithAuth(`${API_URL}/api/admin/test/genre`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ genre }),
+  });
+}
+
+export async function testYouTube(name: string, artist: string): Promise<{ ok: boolean; videoId: string | null; error?: string }> {
+  return fetchWithAuth(`${API_URL}/api/admin/test/youtube`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, artist }),
+  });
+}
+
 export async function wipeUserScores(userId: string): Promise<void> {
   await fetchWithAuth(`${API_URL}/api/admin/users/${userId}/scores`, { method: 'DELETE' });
 }

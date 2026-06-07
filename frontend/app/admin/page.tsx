@@ -3,14 +3,15 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
-import { getMe, getAdminUsers, getAdminStats, getLeaderboard, updateUserRole, deleteUser, wipeUserScores } from '@/lib/api';
+import { getMe, getAdminUsers, getAdminStats, getLeaderboard, updateUserRole, deleteUser, wipeUserScores, testSpotify, testGenre, testYouTube } from '@/lib/api';
 
-type Tab = 'system' | 'users' | 'leaderboard';
+type Tab = 'system' | 'users' | 'leaderboard' | 'diagnostics';
 
 const tabs: { id: Tab; label: string }[] = [
   { id: 'system', label: 'System' },
   { id: 'users', label: 'Users' },
   { id: 'leaderboard', label: 'Leaderboard' },
+  { id: 'diagnostics', label: 'Diagnostics' },
 ];
 
 export default function AdminPage() {
@@ -69,6 +70,7 @@ export default function AdminPage() {
         {activeTab === 'system' && <SystemTab />}
         {activeTab === 'users' && <UsersTab />}
         {activeTab === 'leaderboard' && <LeaderboardTab />}
+        {activeTab === 'diagnostics' && <DiagnosticsTab />}
       </motion.div>
     </div>
   );
@@ -242,6 +244,182 @@ function LeaderboardTab() {
       ))}
       {loading && <p className="text-zinc-500 text-center py-8">Loading...</p>}
       {!loading && leaderboard.length === 0 && <p className="text-zinc-500 text-center py-8">No scores yet.</p>}
+    </div>
+  );
+}
+
+const GENRES = [
+  'pop', 'rock', 'hip-hop', 'r-n-b', 'electronic', 'jazz', 'classical',
+  'country', 'metal', 'indie', 'alternative', 'soul', 'funk', 'blues',
+  'reggae', 'punk', 'latin', 'dance', 'edm', 'acoustic',
+];
+
+function StatusBadge({ ok }: { ok: boolean }) {
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
+      ok ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+    }`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${ok ? 'bg-green-400' : 'bg-red-400'}`} />
+      {ok ? 'PASS' : 'FAIL'}
+    </span>
+  );
+}
+
+function DiagnosticsTab() {
+  const [spotifyResult, setSpotifyResult] = useState<any>(null);
+  const [spotifyLoading, setSpotifyLoading] = useState(false);
+  const [selectedGenre, setSelectedGenre] = useState(GENRES[0]);
+  const [genreResult, setGenreResult] = useState<any>(null);
+  const [genreLoading, setGenreLoading] = useState(false);
+  const [ytName, setYtName] = useState('');
+  const [ytArtist, setYtArtist] = useState('');
+  const [ytResult, setYtResult] = useState<any>(null);
+  const [ytLoading, setYtLoading] = useState(false);
+
+  const runSpotifyTest = async () => {
+    setSpotifyLoading(true);
+    setSpotifyResult(null);
+    try {
+      const r = await testSpotify();
+      setSpotifyResult(r);
+    } catch (e: any) {
+      setSpotifyResult({ ok: false, error: e.message });
+    }
+    setSpotifyLoading(false);
+  };
+
+  const runGenreTest = async () => {
+    setGenreLoading(true);
+    setGenreResult(null);
+    try {
+      const r = await testGenre(selectedGenre);
+      setGenreResult(r);
+    } catch (e: any) {
+      setGenreResult({ ok: false, error: e.message });
+    }
+    setGenreLoading(false);
+  };
+
+  const runYtTest = async () => {
+    setYtLoading(true);
+    setYtResult(null);
+    try {
+      const r = await testYouTube(ytName, ytArtist);
+      setYtResult(r);
+    } catch (e: any) {
+      setYtResult({ ok: false, error: e.message });
+    }
+    setYtLoading(false);
+  };
+
+  return (
+    <div className="flex flex-col gap-6">
+      {/* Spotify API Test */}
+      <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">Spotify API</h2>
+          {spotifyResult && <StatusBadge ok={spotifyResult.ok} />}
+        </div>
+        <p className="text-sm text-zinc-500 mb-4">Tests basic connectivity to the Spotify API by fetching browse categories.</p>
+        <button
+          onClick={runSpotifyTest}
+          disabled={spotifyLoading}
+          className="px-4 py-2 bg-[var(--primary)]/20 text-[var(--primary)] rounded-lg text-sm font-medium hover:bg-[var(--primary)]/30 transition-colors disabled:opacity-50"
+        >
+          {spotifyLoading ? 'Testing...' : 'Test Spotify API'}
+        </button>
+        {spotifyResult && (
+          <div className="mt-4 bg-black/20 rounded-xl p-4 font-mono text-xs space-y-1 overflow-x-auto">
+            <p>Status: {spotifyResult.status ?? 'N/A'}</p>
+            {spotifyResult.categories && (
+              <p>Categories ({spotifyResult.categories.length}): {spotifyResult.categories.join(', ')}</p>
+            )}
+            {spotifyResult.error && <p className="text-red-400">Error: {spotifyResult.error}</p>}
+          </div>
+        )}
+      </div>
+
+      {/* Genre Track Fetch Test */}
+      <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">Genre Track Fetch</h2>
+          {genreResult && <StatusBadge ok={genreResult.ok} />}
+        </div>
+        <p className="text-sm text-zinc-500 mb-4">Tests fetching tracks for a specific genre via the full pipeline (recommendations → search → keyword fallback).</p>
+        <div className="flex gap-3 mb-4">
+          <select
+            value={selectedGenre}
+            onChange={e => setSelectedGenre(e.target.value)}
+            className="flex-1 bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-sm text-white"
+          >
+            {GENRES.map(g => (
+              <option key={g} value={g}>{g}</option>
+            ))}
+          </select>
+          <button
+            onClick={runGenreTest}
+            disabled={genreLoading}
+            className="px-4 py-2 bg-[var(--accent)]/20 text-[var(--accent)] rounded-lg text-sm font-medium hover:bg-[var(--accent)]/30 transition-colors disabled:opacity-50"
+          >
+            {genreLoading ? 'Fetching...' : 'Test Genre'}
+          </button>
+        </div>
+        {genreResult && (
+          <div className="bg-black/20 rounded-xl p-4 font-mono text-xs space-y-1 overflow-x-auto">
+            <p>Count: {genreResult.count}</p>
+            {genreResult.error && <p className="text-red-400">Error: {genreResult.error}</p>}
+            {genreResult.tracks && genreResult.tracks.length > 0 && (
+              <div className="mt-2 space-y-1">
+                <p className="text-zinc-400">Sample tracks:</p>
+                {genreResult.tracks.map((t: any, i: number) => (
+                  <p key={i} className="text-white/80">
+                    [{t.genre}] {t.name} — {t.artist} {t.previewUrl ? '(preview ✓)' : '(no preview)'}
+                  </p>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* YouTube Search Test */}
+      <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">YouTube Search</h2>
+          {ytResult && <StatusBadge ok={ytResult.ok && ytResult.videoId} />}
+        </div>
+        <p className="text-sm text-zinc-500 mb-4">Tests searching for a track on YouTube.</p>
+        <div className="flex gap-3 mb-4">
+          <input
+            value={ytName}
+            onChange={e => setYtName(e.target.value)}
+            placeholder="Track name"
+            className="flex-1 bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-zinc-500"
+          />
+          <input
+            value={ytArtist}
+            onChange={e => setYtArtist(e.target.value)}
+            placeholder="Artist"
+            className="flex-1 bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-zinc-500"
+          />
+          <button
+            onClick={runYtTest}
+            disabled={ytLoading || !ytName || !ytArtist}
+            className="px-4 py-2 bg-[var(--primary)]/20 text-[var(--primary)] rounded-lg text-sm font-medium hover:bg-[var(--primary)]/30 transition-colors disabled:opacity-50 shrink-0"
+          >
+            {ytLoading ? 'Searching...' : 'Test YouTube'}
+          </button>
+        </div>
+        {ytResult && (
+          <div className="bg-black/20 rounded-xl p-4 font-mono text-xs space-y-1 overflow-x-auto">
+            {ytResult.videoId
+              ? <p>Video ID: <span className="text-green-400">{ytResult.videoId}</span></p>
+              : <p className="text-red-400">No video found</p>
+            }
+            {ytResult.error && <p className="text-red-400">Error: {ytResult.error}</p>}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
