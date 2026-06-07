@@ -143,7 +143,7 @@ async function getTracksByGenre(genre, count = 10) {
     throw new Error('Spotify credentials not configured (SPOTIFY_CLIENT_ID / SPOTIFY_CLIENT_SECRET)');
   }
 
-  const MAX_PER_PAGE = 10;
+  const MAX_PER_PAGE = 50;
   const tracks = [];
 
   const fetchAll = async (query) => {
@@ -170,14 +170,6 @@ async function getTracksByGenre(genre, count = 10) {
     }
     return results;
   };
-
-  // Test basic API connectivity first
-  try {
-    const testData = await spotifyFetch(`${API_BASE}/search?q=test&type=track&limit=1`);
-    console.log(`[Spotify] API test OK — search returned ${testData?.tracks?.items?.length || 0} tracks`);
-  } catch (err) {
-    console.error(`[Spotify] API connectivity test FAILED:`, err.message);
-  }
 
   // Strategy 1: search by genre tag
   if (tracks.length === 0) {

@@ -469,15 +469,11 @@ app.post('/api/admin/test/spotify', requireAdmin, async (req, res) => {
   try {
     const token = await getValidToken();
 
-    // 1. Search (the one we actually use)
-    await testEndpoint('search?q=test&type=track&limit=1', 'https://api.spotify.com/v1/search?q=test&type=track&limit=1', token);
-    // 2. Search with market=FR (same as production code)
+    // Single search test (same as production code)
     await testEndpoint('search?q=test&type=track&limit=1&market=FR', 'https://api.spotify.com/v1/search?q=test&type=track&limit=1&market=FR', token);
-    // 3. Search with limit=50
-    await testEndpoint('search?q=test&type=track&limit=50', 'https://api.spotify.com/v1/search?q=test&type=track&limit=50', token);
-    // 4. Artist lookup
+    // Artist lookup (separate endpoint, different rate limit)
     await testEndpoint('artists/0TnOYISbd1XYRBk9myaseg', 'https://api.spotify.com/v1/artists/0TnOYISbd1XYRBk9myaseg', token);
-    // 5. No auth (should 401)
+    // No auth (should 401)
     try {
       const r = await fetch('https://api.spotify.com/v1/search?q=test&type=track&limit=1', { redirect: 'follow' });
       const body = await r.text();
