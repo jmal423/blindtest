@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import Link from 'next/link';
@@ -34,15 +34,27 @@ export default function Header() {
     }
   }, [open, user]);
 
+  const close = useCallback(() => setOpen(false), []);
+
   useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
+    if (!open) return;
+    const handleEvent = (e: MouseEvent | TouchEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setOpen(false);
+        close();
       }
     };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, []);
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') close();
+    };
+    document.addEventListener('mousedown', handleEvent);
+    document.addEventListener('touchstart', handleEvent);
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('mousedown', handleEvent);
+      document.removeEventListener('touchstart', handleEvent);
+      document.removeEventListener('keydown', handleKey);
+    };
+  }, [open, close]);
 
   const handleDisconnect = () => {
     for (let i = localStorage.length - 1; i >= 0; i--) {
@@ -50,7 +62,7 @@ export default function Header() {
       if (key && key.startsWith('blindtest_player_')) localStorage.removeItem(key);
     }
     signOut();
-    setOpen(false);
+    close();
     router.push('/');
   };
 
@@ -63,9 +75,9 @@ export default function Header() {
   const showMenu = user || inGame;
 
   return (
-    <header className="flex items-center justify-between px-6 py-3 border-b border-white/10">
+    <header className="flex items-center justify-between px-4 md:px-6 py-3 border-b border-white/10">
       <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-        <h1 className="text-xl font-bold tracking-tight">
+        <h1 className="text-lg md:text-xl font-bold tracking-tight">
           <span className="text-[var(--primary)]">Blind</span>
           <span>Test</span>
         </h1>
@@ -75,7 +87,8 @@ export default function Header() {
         <div ref={menuRef} className="relative">
           <button
             onClick={() => setOpen(!open)}
-            className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-transparent hover:ring-[var(--primary)] transition-all duration-200 flex items-center justify-center bg-[var(--primary)] text-sm font-bold"
+            className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-transparent hover:ring-[var(--primary)] active:ring-[var(--primary)] transition-all duration-200 flex items-center justify-center bg-[var(--primary)] text-sm font-bold"
+            aria-label="Open menu"
           >
             {user?.avatar_url ? (
               <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
@@ -84,6 +97,20 @@ export default function Header() {
             )}
           </button>
 
+          {/* Backdrop for mobile */}
+          <AnimatePresence>
+            {open && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                className="fixed inset-0 z-40 md:hidden"
+                onClick={close}
+              />
+            )}
+          </AnimatePresence>
+
           <AnimatePresence>
             {open && (
               <motion.div
@@ -91,7 +118,7 @@ export default function Header() {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
                 transition={{ duration: 0.15 }}
-                className="absolute right-0 top-12 w-64 bg-[var(--surface)] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50"
+                className="fixed md:absolute left-4 right-4 bottom-0 md:left-auto md:right-0 md:bottom-auto md:top-12 md:w-72 bg-[var(--surface)] border border-white/10 rounded-t-2xl md:rounded-xl shadow-2xl overflow-hidden z-50 max-h-[85dvh] md:max-h-none overflow-y-auto"
               >
                 {user ? (
                   <>
@@ -106,8 +133,8 @@ export default function Header() {
                             </div>
                           )}
                         </div>
-                        <div>
-                          <p className="font-semibold text-sm">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-sm truncate">
                             {user.username}
                             {user.role === 'admin' && (
                               <span className="ml-2 rounded bg-[#00cec9]/20 px-1.5 py-0.5 text-[10px] font-bold tracking-wider text-[#00cec9] ring-1 ring-[#00cec9]/50">
@@ -126,8 +153,12 @@ export default function Header() {
                           <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Score</p>
                         </div>
                         <div className="text-center">
-                          <p className="text-lg font-bold text-white">{stats?.gamesPlayed ?? '-'}</p>
-                          <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Games</p>
+                          <p className="text-lg font-bold text-white capitalize">
+                            {stats?.bestGenre
+                              ? stats.bestGenre.replace('-', ' ')
+                              : '-'}
+                          </p>
+                          <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Best Genre</p>
                         </div>
                       </div>
                     </div>
@@ -144,8 +175,8 @@ export default function Header() {
                   {user && (
                     <Link
                       href="/profile"
-                      onClick={() => setOpen(false)}
-                      className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                      onClick={close}
+                      className="flex items-center gap-3 px-3 py-3 text-sm text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
                     >
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -156,8 +187,8 @@ export default function Header() {
                   )}
 
                   <button
-                    onClick={() => { setOpen(false); setShowSettings(true); }}
-                    className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors w-full"
+                    onClick={() => { close(); setShowSettings(true); }}
+                    className="flex items-center gap-3 px-3 py-3 text-sm text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors w-full"
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <circle cx="12" cy="12" r="3"/>
@@ -170,8 +201,8 @@ export default function Header() {
                     <>
                       <Link
                         href="/admin"
-                        onClick={() => setOpen(false)}
-                        className="flex items-center gap-2 px-3 py-2 text-sm text-[#00cec9] hover:bg-[#00cec9]/10 rounded-lg transition-colors font-semibold"
+                        onClick={close}
+                        className="flex items-center gap-3 px-3 py-3 text-sm text-[#00cec9] hover:bg-[#00cec9]/10 rounded-lg transition-colors font-semibold"
                       >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
@@ -179,21 +210,21 @@ export default function Header() {
                         Admin Panel
                       </Link>
 
-                      <div className="flex items-center justify-between px-3 py-2 text-sm text-zinc-300">
-                        <span className="flex items-center gap-2">
+                      <div className="flex items-center justify-between px-3 py-3 text-sm text-zinc-300">
+                        <span className="flex items-center gap-3">
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
                           </svg>
-                          Debug Mode
+                          Debug
                         </span>
                         <button
                           onClick={toggleDebug}
-                          className={`relative w-9 h-5 rounded-full transition-colors ${debugOn ? 'bg-[var(--primary)]' : 'bg-zinc-600'}`}
+                          className={`relative w-11 h-6 rounded-full transition-colors ${debugOn ? 'bg-[var(--primary)]' : 'bg-zinc-600'}`}
                         >
                           <motion.div
-                            animate={{ x: debugOn ? 18 : 2 }}
+                            animate={{ x: debugOn ? 22 : 2 }}
                             transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow"
+                            className="absolute top-1 w-4 h-4 bg-white rounded-full shadow"
                           />
                         </button>
                       </div>
@@ -202,7 +233,7 @@ export default function Header() {
 
                   <button
                     onClick={handleDisconnect}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
+                    className="w-full flex items-center gap-3 px-3 py-3 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />

@@ -54,10 +54,15 @@ function Gatekeeper() {
   const { refresh } = useAuth();
 
   const handleGuest = async () => {
+    const trimmedName = guestName.trim();
+    if (!trimmedName) {
+      setGuestError('Please enter a name');
+      return;
+    }
     setGuestLoading(true);
     setGuestError('');
     try {
-      const { token } = await guestLogin(guestName.trim() || 'Guest');
+      const { token } = await guestLogin(trimmedName);
       localStorage.setItem('blindtest_token', token);
       window.history.replaceState({}, document.title, window.location.pathname);
       await refresh();
@@ -112,7 +117,7 @@ function Gatekeeper() {
           />
           <button
             onClick={handleGuest}
-            disabled={guestLoading}
+            disabled={guestLoading || !guestName.trim()}
             className="w-full px-6 py-3 bg-zinc-600/30 hover:bg-zinc-600/50 disabled:opacity-50 text-white font-semibold rounded-xl border border-white/10 transition-colors"
           >
             {guestLoading ? 'Logging in...' : 'Continue as Guest'}

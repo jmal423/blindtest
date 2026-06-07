@@ -148,6 +148,7 @@ export default function GamePage({
   const [guessMarkers, setGuessMarkers] = useState<{ playerName: string; artistFound: boolean; titleFound: boolean; guessTimeMs: number }[]>([]);
   const playSound = useSound();
   const playSoundRef = useRef(playSound);
+  const activeRoundRef = useRef<string | null>(null);
   playSoundRef.current = playSound;
 
   const handleAudioPlaying = useCallback(() => {
@@ -180,20 +181,26 @@ export default function GamePage({
     setGameState(state);
 
     if (state.state === 'round_preparing' || state.state === 'playing') {
-      setArtistFound(false);
-      setTitleFound(false);
-      setBothFound(false);
-      setGuess('');
-      setGuessResult(null);
-      setEncouragement(null);
-      setLocalTimeLeft(null);
-      setGuessMarkers([]);
-      if (localTimerRef.current) {
-        clearInterval(localTimerRef.current);
-        localTimerRef.current = null;
+      const roundKey = `${state.currentRound}`;
+      if (activeRoundRef.current !== roundKey) {
+        activeRoundRef.current = roundKey;
+        setArtistFound(false);
+        setTitleFound(false);
+        setBothFound(false);
+        setGuess('');
+        setGuessResult(null);
+        setEncouragement(null);
+        setLocalTimeLeft(null);
+        setGuessMarkers([]);
+        if (localTimerRef.current) {
+          clearInterval(localTimerRef.current);
+          localTimerRef.current = null;
+        }
       }
       return;
     }
+
+    activeRoundRef.current = null;
 
     setLocalTimeLeft(null);
     if (localTimerRef.current) {
