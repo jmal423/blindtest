@@ -51,7 +51,12 @@ async function spotifyFetch(endpoint, retries = 3) {
     const url = endpoint.startsWith('http') ? endpoint : `${API_BASE}${endpoint}`;
 
     const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+        'User-Agent': 'Blindtest/1.0',
+      },
+      redirect: 'follow',
     });
 
     if (res.status === 429) {
@@ -141,8 +146,8 @@ async function getTracksByGenre(genre, count = 10) {
 
   // Test basic API connectivity first
   try {
-    const testData = await spotifyFetch(`${API_BASE}/search?q=test&type=track&limit=1`);
-    console.log(`[Spotify] API test OK — got ${testData?.tracks?.items?.length || 0} items`);
+    const testData = await spotifyFetch(`${API_BASE}/browse/categories?limit=5`);
+    console.log(`[Spotify] API test OK — got ${testData?.categories?.items?.length || 0} categories`);
   } catch (err) {
     console.error(`[Spotify] API connectivity test FAILED:`, err.message);
   }
