@@ -90,7 +90,7 @@ async function spotifyFetch(endpoint, retries = 3) {
 
 async function getPlaylistTracks(playlistId, market = 'FR') {
   let allItems = [];
-  let url = `playlists/${playlistId}/items?market=${market}&limit=50`;
+  let url = `playlists/${playlistId}/items?market=${market}&limit=10`;
 
   while (url) {
     const data = await spotifyFetch(url);
@@ -142,73 +142,53 @@ async function getTracksByGenre(genre, count = 10) {
     throw new Error('Spotify credentials not configured (SPOTIFY_CLIENT_ID / SPOTIFY_CLIENT_SECRET)');
   }
 
-  const tracks = [];
+  const MAX_PER_PAGE = 10;
+
+  const fetchAll = async (query) => {
+    const results = [];
+    let offset = 0;
+    while (results.length < count) {
+      const url = `${API_BASE}/search?q=${encodeURIComponent(query)}&type=track&limit=${MAX_PER_PAGE}&offset=${offset}&market=FR`;
+      const data = await spotifyFetch(url);
+      const items = data?.tracks?.items || [];
+      if (items.length === 0) break;
+      for (const item of items) {
+        const t = item.track ? item.track : item;
+        results.push({
+          id: t.id, name: t.name,
+          artist: t.artists?.[0]?.name || 'Unknown',
+          albumImage: t.album?.images?.[0]?.url || null,
+          previewUrl: t.preview_url || null, genre,
+        });
+      }
+      offset += MAX_PER_PAGE;
+    }
+    return results;
+  };
 
   // Test basic API connectivity first
   try {
-    const testData = await spotifyFetch(`${API_BASE}/browse/categories?limit=5`);
-    console.log(`[Spotify] API test OK — got ${testData?.categories?.items?.length || 0} categories`);
+    const testData = await spotifyFetch(`${API_BASE}/search?q=test&type=track&limit=1`);
+    console.log(`[Spotify] API test OK — search returned ${testData?.tracks?.items?.length || 0} tracks`);
   } catch (err) {
     console.error(`[Spotify] API connectivity test FAILED:`, err.message);
   }
 
-  // Strategy 1: search by genre tag with market=FR
+  // Strategy 1: search by genre tag
   if (tracks.length === 0) {
     try {
-      const q = encodeURIComponent(`genre:"${genre}"`);
-      const url = `${API_BASE}/search?q=${q}&type=track&limit=20&market=FR`;
-      console.log(`[Spotify] Search URL:`, url);
-      const data = await spotifyFetch(url);
-      for (const item of (data?.tracks?.items || [])) {
-        const t = item.track ? item.track : item;
-        tracks.push({
-          id: t.id, name: t.name,
-          artist: t.artists?.[0]?.name || 'Unknown',
-          albumImage: t.album?.images?.[0]?.url || null,
-          previewUrl: t.preview_url || null, genre,
-        });
-      }
+      const results = await fetchAll(`genre:"${genre}"`);
+      tracks.push(...results);
     } catch (err) {
-      console.error(`[Spotify] Search (FR) failed for "${genre}":`, err.message);
+      console.error(`[Spotify] Genre tag search failed for "${genre}":`, err.message);
     }
   }
 
-  // Strategy 2: search without market restriction
+  // Strategy 2: keyword search as fallback
   if (tracks.length === 0) {
     try {
-      const q = encodeURIComponent(`genre:"${genre}"`);
-      const url = `${API_BASE}/search?q=${q}&type=track&limit=20`;
-      console.log(`[Spotify] Search URL (no market):`, url);
-      const data = await spotifyFetch(url);
-      for (const item of (data?.tracks?.items || [])) {
-        const t = item.track ? item.track : item;
-        tracks.push({
-          id: t.id, name: t.name,
-          artist: t.artists?.[0]?.name || 'Unknown',
-          albumImage: t.album?.images?.[0]?.url || null,
-          previewUrl: t.preview_url || null, genre,
-        });
-      }
-    } catch (err) {
-      console.error(`[Spotify] Search (no market) failed for "${genre}":`, err.message);
-    }
-  }
-
-  // Strategy 3: keyword search as last resort
-  if (tracks.length === 0) {
-    try {
-      const url = `${API_BASE}/search?q=${encodeURIComponent(genre)}&type=track&limit=20&market=FR`;
-      console.log(`[Spotify] Keyword search URL:`, url);
-      const data = await spotifyFetch(url);
-      for (const item of (data?.tracks?.items || [])) {
-        const t = item.track ? item.track : item;
-        tracks.push({
-          id: t.id, name: t.name,
-          artist: t.artists?.[0]?.name || 'Unknown',
-          albumImage: t.album?.images?.[0]?.url || null,
-          previewUrl: t.preview_url || null, genre,
-        });
-      }
+      const results = await fetchAll(genre);
+      tracks.push(...results);
     } catch (err) {
       console.error(`[Spotify] Keyword search failed for "${genre}":`, err.message);
     }

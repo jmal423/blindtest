@@ -420,8 +420,8 @@ app.post('/api/admin/test/spotify', requireAdmin, async (req, res) => {
       });
       const body = await r.text();
       let parsed;
-      try { parsed = JSON.parse(body); } catch { parsed = body; }
-      results.push({ label, status: r.status, ok: r.ok, body: parsed });
+      try { parsed = JSON.parse(body); } catch { parsed = body?.substring(0, 500); }
+      results.push({ label, status: r.status, ok: r.ok, body: typeof parsed === 'object' ? parsed : parsed });
     } catch (err) {
       results.push({ label, status: 'FETCH_ERROR', ok: false, body: err.message });
     }
@@ -430,23 +430,21 @@ app.post('/api/admin/test/spotify', requireAdmin, async (req, res) => {
   try {
     const token = await getValidToken();
 
-    // 1. Basic categories endpoint
-    await testEndpoint('browse/categories?limit=5', 'https://api.spotify.com/v1/browse/categories?limit=5', token);
-    // 2. Search with minimal query
-    await testEndpoint('search?q=test&limit=1&type=track', 'https://api.spotify.com/v1/search?q=test&type=track&limit=1', token);
-    // 3. Search with market=US
-    await testEndpoint('search?q=test&limit=1&type=track&market=US', 'https://api.spotify.com/v1/search?q=test&type=track&limit=1&market=US', token);
-    // 4. Just the API root
-    await testEndpoint('(root) /v1', 'https://api.spotify.com/v1', token);
-    // 5. Artist lookup (different endpoint shape)
+    // 1. Search (the one we actually use)
+    await testEndpoint('search?q=test&type=track&limit=1', 'https://api.spotify.com/v1/search?q=test&type=track&limit=1', token);
+    // 2. Search with market=FR (same as production code)
+    await testEndpoint('search?q=test&type=track&limit=1&market=FR', 'https://api.spotify.com/v1/search?q=test&type=track&limit=1&market=FR', token);
+    // 3. Search with limit=50
+    await testEndpoint('search?q=test&type=track&limit=50', 'https://api.spotify.com/v1/search?q=test&type=track&limit=50', token);
+    // 4. Artist lookup
     await testEndpoint('artists/0TnOYISbd1XYRBk9myaseg', 'https://api.spotify.com/v1/artists/0TnOYISbd1XYRBk9myaseg', token);
-    // 6. No bearer token at all (should fail with 401)
+    // 5. No auth (should 401)
     try {
-      const r = await fetch('https://api.spotify.com/v1/browse/categories?limit=1', { redirect: 'follow' });
+      const r = await fetch('https://api.spotify.com/v1/search?q=test&type=track&limit=1', { redirect: 'follow' });
       const body = await r.text();
-      results.push({ label: '(no auth) browse/categories', status: r.status, ok: r.ok, body: body });
+      results.push({ label: '(no auth) search', status: r.status, ok: r.ok, body: body?.substring(0, 200) });
     } catch (err) {
-      results.push({ label: '(no auth) browse/categories', status: 'FETCH_ERROR', ok: false, body: err.message });
+      results.push({ label: '(no auth) search', status: 'FETCH_ERROR', ok: false, body: err.message });
     }
 
     res.json(results);
