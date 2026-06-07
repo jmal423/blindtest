@@ -530,7 +530,24 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
     get('SELECT COUNT(*) as count FROM users'),
     get('SELECT COUNT(*) as count FROM round_results'),
   ]);
-  res.json({ totalUsers: userCount?.count || 0, totalRounds: roundCount?.count || 0 });
+  res.json({ totalUsers: userCount?.count || 0, totalRounds: roundCount?.count || 0, activeRooms: rooms.size });
+});
+
+app.get('/api/admin/rooms', requireAdmin, (req, res) => {
+  const list = [];
+  for (const [code, room] of rooms) {
+    list.push({
+      code,
+      state: room.state,
+      players: room.players.length,
+      genres: room.genres,
+      currentRound: room.tracksPlayed + 1,
+      totalRounds: room.totalRounds,
+      settings: room.getSettings(),
+    });
+  }
+  list.sort((a, b) => (b.players || 0) - (a.players || 0));
+  res.json(list);
 });
 
 app.delete('/api/admin/users/:id/scores', requireAdmin, async (req, res) => {

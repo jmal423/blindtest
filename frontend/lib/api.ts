@@ -227,8 +227,12 @@ export async function guestLogin(name: string): Promise<{ token: string; user: a
   return res.json();
 }
 
-export async function getAdminStats(): Promise<{ totalUsers: number; totalRounds: number }> {
+export async function getAdminStats(): Promise<{ totalUsers: number; totalRounds: number; activeRooms: number }> {
   return fetchWithAuth(`${API_URL}/api/admin/stats`);
+}
+
+export async function getAdminRooms(): Promise<{ code: string; state: string; players: number; genres: string[]; currentRound: number; totalRounds: number; settings: any }[]> {
+  return fetchWithAuth(`${API_URL}/api/admin/rooms`);
 }
 
 export async function testSpotify(): Promise<{ ok: boolean; status?: number; categories?: string[]; error?: string | null }> {
