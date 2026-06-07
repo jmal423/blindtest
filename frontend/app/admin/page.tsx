@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
-import { getMe, getAdminUsers, getAdminStats, getAdminRooms, getLeaderboard, updateUserRole, deleteUser, wipeUserScores, testSpotify, testDeezer, testDeezerGenre, getDbStatus, testGenre } from '@/lib/api';
+import { getMe, getAdminUsers, getAdminStats, getAdminRooms, getLeaderboard, updateUserRole, deleteUser, wipeUserScores, testDeezer, testDeezerGenre, getDbStatus, testGenre } from '@/lib/api';
 
 type Tab = 'system' | 'users' | 'rooms' | 'leaderboard' | 'api';
 
@@ -387,12 +387,9 @@ const GENRES = [
 
 const SOURCES = [
   { id: 'deezer', label: 'Deezer', desc: 'Free, has rank data' },
-  { id: 'spotify', label: 'Spotify', desc: 'Requires API key' },
 ];
 
 function ApiTab() {
-  const [spotifyResult, setSpotifyResult] = useState<any>(null);
-  const [spotifyLoading, setSpotifyLoading] = useState(false);
   const [deezerResult, setDeezerResult] = useState<any>(null);
   const [deezerLoading, setDeezerLoading] = useState(false);
   const [dbStatus, setDbStatus] = useState<any>(null);
@@ -404,14 +401,9 @@ function ApiTab() {
   const [testerLoading, setTesterLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const runConnectivity = (src: string) => {
-    if (src === 'spotify') {
-      setSpotifyLoading(true);
-      testSpotify().then(setSpotifyResult).catch(() => setSpotifyResult({ error: 'Request failed' })).finally(() => setSpotifyLoading(false));
-    } else {
-      setDeezerLoading(true);
-      testDeezer().then(setDeezerResult).catch(() => setDeezerResult({ error: 'Request failed' })).finally(() => setDeezerLoading(false));
-    }
+  const runConnectivity = () => {
+    setDeezerLoading(true);
+    testDeezer().then(setDeezerResult).catch(() => setDeezerResult({ error: 'Request failed' })).finally(() => setDeezerLoading(false));
   };
 
   useEffect(() => { getDbStatus().then(setDbStatus).catch(() => {}); }, []);
@@ -432,36 +424,7 @@ function ApiTab() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-[var(--surface)] rounded-xl border border-white/10 p-5">
-          <h3 className="text-xs text-zinc-500 uppercase tracking-wider mb-3">Spotify API</h3>
-          {spotifyResult ? (
-            <div className="space-y-1.5 text-[10px] font-mono">
-              {spotifyResult.error ? (
-                <p className="text-red-400">{spotifyResult.error}</p>
-              ) : (
-                spotifyResult.tests?.map((t: any, i: number) => (
-                  <div key={i} className="flex items-center justify-between">
-                    <span className="text-zinc-500">{t.name}</span>
-                    <span className={t.ok ? 'text-green-400' : 'text-red-400'}>
-                      {t.ok ? `${t.status} ✓` : `${t.status} ✗`}
-                    </span>
-                  </div>
-                ))
-              )}
-            </div>
-          ) : (
-            <p className="text-[10px] text-zinc-600">Not tested</p>
-          )}
-          <button
-            onClick={() => runConnectivity('spotify')}
-            disabled={spotifyLoading}
-            className="mt-3 w-full px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white text-xs rounded-lg border border-white/10 transition-colors disabled:opacity-50"
-          >
-            {spotifyLoading ? 'Testing...' : 'Test Spotify'}
-          </button>
-        </div>
-
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="bg-[var(--surface)] rounded-xl border border-white/10 p-5">
           <h3 className="text-xs text-zinc-500 uppercase tracking-wider mb-3">Deezer API</h3>
           {deezerResult ? (
@@ -483,7 +446,7 @@ function ApiTab() {
             <p className="text-[10px] text-zinc-600">Not tested</p>
           )}
           <button
-            onClick={() => runConnectivity('deezer')}
+            onClick={() => runConnectivity()}
             disabled={deezerLoading}
             className="mt-3 w-full px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white text-xs rounded-lg border border-white/10 transition-colors disabled:opacity-50"
           >

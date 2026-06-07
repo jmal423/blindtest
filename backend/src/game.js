@@ -124,8 +124,8 @@ export class GameRoom {
     if (updates.rounds) this.settings.rounds = Math.max(3, Math.min(25, Math.round(updates.rounds)));
     if (updates.roundTime) this.settings.roundTime = Math.max(8, Math.min(30, Math.round(updates.roundTime)));
     if (updates.pauseTime !== undefined) this.settings.pauseTime = Math.max(2, Math.min(15, Math.round(updates.pauseTime)));
-    if (updates.audioSource && ['spotify', 'deezer', 'youtube', 'both'].includes(updates.audioSource)) {
-      this.settings.audioSource = updates.audioSource;
+    if (updates.audioSource) {
+      this.settings.audioSource = 'deezer';
     }
     if (updates.autoStart !== undefined) {
       const wasAutoStart = this.settings.autoStart;
@@ -196,83 +196,66 @@ export class GameRoom {
   async startGame() {
     if (this.players.length === 0) return;
     if (this.state !== 'waiting') return;
-    console.log(`[Game] Starting game in room ${this.code} with ${this.players.length} players, genres: [${this.genres.join(', ')}] source=${this.settings.audioSource}`);
+    console.log(`[Game] Starting game in room ${this.code} with ${this.players.length} players, genres: [${this.genres.join(', ')}]`);
 
     if (this.tracks.length === 0) {
       const allTracks = [];
       let lastError = '';
-      let rateLimited = false;
       const totalNeeded = Math.max(this.settings.rounds * 2, 20);
       const shuffledGenres = shuffle([...this.genres]).slice(0, 5);
 
-      const primarySource = this.settings.audioSource === 'deezer' ? 'deezer' : 'spotify';
-
+      // Try song cache first for recency-weighted selection
       try {
-        if (primarySource === 'deezer') {
-          const { getTracksByGenre: deezerFetch } = await import('./deezer.js');
-          for (const genre of shuffledGenres) {
-            if (allTracks.length >= totalNeeded) break;
-            try {
-              const tracks = await deezerFetch(genre, 50);
-              allTracks.push(...tracks);
-            } catch (err) {
-              console.error(`[Deezer] Failed for genre "${genre}":`, err.message);
-            }
-          }
-        } else {
-          const { getTracksByGenre: spotifyFetch } = await import('./spotify.js');
-          for (const genre of shuffledGenres) {
-            if (allTracks.length >= totalNeeded) break;
-            try {
-              const tracks = await spotifyFetch(genre, 50);
-              allTracks.push(...tracks);
-            } catch (err) {
-              lastError = err.message;
-              if (err.message.includes('rate limit')) {
-                rateLimited = true;
-                await new Promise(r => setTimeout(r, 1500));
-              }
-              console.error(`Failed to fetch tracks for genre "${genre}":`, err.message);
-            }
-          }
-        }
-      } catch (err) {
-        lastError = err.message;
-      }
-
-      if (allTracks.length === 0 && primarySource === 'spotify') {
-        console.log('[Game] Spotify failed, trying Deezer API...');
-        const { getTracksByGenre: deezerFetch } = await import('./deezer.js');
+        const { getCachedTracksByGenre, cacheSongs } = await import('./db.js');
         for (const genre of shuffledGenres) {
           if (allTracks.length >= totalNeeded) break;
           try {
-            const tracks = await deezerFetch(genre, 50);
-            allTracks.push(...tracks);
+            const cached = await getCachedTracksByGenre(genre, 30);
+            allTracks.push(...cached);
           } catch (err) {
+            console.error(`[Cache] Failed for genre "${genre}":`, err.message);
+          }
+        }
+        console.log(`[Game] Room ${this.code}: ${allTracks.length} tracks from cache`);
+      } catch (err) {
+        console.error('[Cache] Song cache query failed:', err.message);
+      }
+
+      // Fill remaining from Deezer API
+      if (allTracks.length < totalNeeded) {
+        const { getTracksByGenre } = await import('./deezer.js');
+        const seenIds = new Set(allTracks.map(t => t.id));
+        for (const genre of shuffledGenres) {
+          if (allTracks.length >= totalNeeded) break;
+          try {
+            const tracks = await getTracksByGenre(genre, 50);
+            for (const t of tracks) {
+              if (!seenIds.has(t.id)) {
+                allTracks.push(t);
+                seenIds.add(t.id);
+              }
+            }
+            // Cache fetched tracks for future games
+            const { cacheSongs } = await import('./db.js');
+            await cacheSongs(tracks).catch(err => console.error('[Cache] Failed to cache tracks:', err.message));
+          } catch (err) {
+            lastError = err.message;
             console.error(`[Deezer] Failed for genre "${genre}":`, err.message);
           }
         }
       }
 
       if (allTracks.length === 0) {
-        if (rateLimited) return 'Spotify search is rate limited. Please wait ~30 seconds and try again.';
-        return lastError || 'No tracks found from any source';
+        return lastError || 'No tracks found. Try different genres.';
       }
 
-      if (this.settings.audioSource === 'spotify' || this.settings.audioSource === 'deezer') {
-        this.tracks = shuffle(allTracks.filter(t => !!t.previewUrl));
-      } else {
-        this.tracks = shuffle(allTracks);
-      }
+      this.tracks = shuffle(allTracks.filter(t => !!t.previewUrl));
       this.totalRounds = Math.min(this.settings.rounds, this.tracks.length);
 
-      console.log(`[Game] Room ${this.code}: ${this.tracks.length} tracks available (source: ${this.settings.audioSource}, target: ${this.totalRounds} rounds)`);
+      console.log(`[Game] Room ${this.code}: ${this.tracks.length} tracks available (target: ${this.totalRounds} rounds)`);
 
       if (this.tracks.length === 0) {
-        if (this.settings.audioSource === 'spotify') return 'No tracks with Spotify previews found for these genres. Try different genres or more genres.';
-        if (this.settings.audioSource === 'deezer') return 'No tracks with Deezer previews found for these genres. Try different genres.';
-        if (this.settings.audioSource === 'youtube') return 'No tracks with YouTube videos found. YouTube API may be down. Try switching to Spotify or Deezer.';
-        return 'No playable tracks. Try switching audio source or different genres.';
+        return 'No tracks with previews found for these genres. Try different genres.';
       }
 
       if (this.tracks.length < 3) {
@@ -301,25 +284,20 @@ export class GameRoom {
     this.roundStartTime = null;
     this.skipVotes = new Set();
 
+    // Clear chat for new round
+    if (this.io) {
+      this.io.to(this.code).emit('chat_clear');
+      this.io.to(this.code).emit('new_chat_message', {
+        isSystem: true,
+        content: `🎵 Round ${this.tracksPlayed + 1}`,
+      });
+    }
+
+    // Skip tracks without preview audio
     while (this.currentRound < this.tracks.length && this.tracksPlayed < this.totalRounds) {
       const track = this.tracks[this.currentRound];
-      const wantYouTube = this.settings.audioSource === 'youtube' || this.settings.audioSource === 'both';
-      if (wantYouTube && !track.youtubeVideoId) {
-        try {
-          const { searchYouTubeVideo } = await import('./youtube.js');
-          track.youtubeVideoId = await searchYouTubeVideo(track.name, track.artist);
-        } catch (err) {
-          console.error(`[YouTube] Failed to fetch video for "${track.artist} - ${track.name}":`, err.message);
-        }
-      }
-
-      const hasAudio = (this.settings.audioSource === 'spotify' || this.settings.audioSource === 'deezer') ? !!track.previewUrl
-        : (this.settings.audioSource === 'youtube') ? !!track.youtubeVideoId
-        : !!(track.youtubeVideoId || track.previewUrl);
-
-      if (hasAudio) break;
-
-      console.warn(`Skipping track "${track.artist} - ${track.name}" - no audio source available`);
+      if (track.previewUrl) break;
+      console.warn(`Skipping track "${track.artist} - ${track.name}" - no preview URL`);
       this.currentRound++;
     }
 
@@ -330,17 +308,6 @@ export class GameRoom {
 
     const track = this.tracks[this.currentRound];
 
-    const nextIdx = this.currentRound + 1;
-    if (nextIdx < this.tracks.length) {
-      const nextTrack = this.tracks[nextIdx];
-      if (nextTrack && !nextTrack.youtubeVideoId && !nextTrack.previewUrl) {
-        const { searchYouTubeVideo } = await import('./youtube.js');
-        searchYouTubeVideo(nextTrack.name, nextTrack.artist)
-          .then(id => { nextTrack.youtubeVideoId = id; })
-          .catch(() => {});
-      }
-    }
-
     this.foundOrder = [];
     this.playersReady = new Set();
     this.players.forEach(p => {
@@ -348,20 +315,10 @@ export class GameRoom {
       p.foundTitle = false;
       p.foundBoth = false;
     });
-    const isPreviewSource = this.settings.audioSource === 'spotify' || this.settings.audioSource === 'deezer';
-    const useYoutube = track.youtubeVideoId && (this.settings.audioSource === 'youtube' || this.settings.audioSource === 'both');
 
-    if (isPreviewSource || !useYoutube) {
-      // 30s preview — center the round window within the clip
-      const previewDuration = 30;
-      this.audioOffset = Math.max(0, Math.floor((previewDuration - this.settings.roundTime) / 2));
-    } else {
-      // Full YouTube song — random offset for variety
-      const durSec = Math.max(30, (track.durationMs || 180000) / 1000);
-      const minOff = Math.max(10, Math.floor(durSec * 0.10));
-      const maxOff = Math.floor(durSec * 0.55);
-      this.audioOffset = Math.floor(Math.random() * Math.max(1, maxOff - minOff)) + minOff;
-    }
+    // 30s preview — center the round window within the clip
+    const previewDuration = 30;
+    this.audioOffset = Math.max(0, Math.floor((previewDuration - this.settings.roundTime) / 2));
     this.roundResult = null;
 
     if (this.tracksPlayed === 0) {
@@ -538,7 +495,20 @@ export class GameRoom {
     this.roundStartTime = null;
     this.clearPlayingInterval();
 
-    this.tracksPlayed++;
+    // Add skipped track to history
+    const track = this.tracks[this.currentRound];
+    if (track) {
+      this.tracksPlayed++;
+      this.trackHistory.push({
+        round: this.tracksPlayed,
+        name: track.name,
+        artist: track.artist,
+        albumImage: track.albumImage,
+        rank: track.rank ?? 0,
+        skipped: true,
+      });
+    }
+
     this.currentRound++;
     if (this.currentRound >= this.tracks.length || this.tracksPlayed >= this.totalRounds) {
       this.endGame();
@@ -571,7 +541,18 @@ export class GameRoom {
       artist: track.artist,
       albumImage: track.albumImage,
       rank: track.rank ?? 0,
+      skipped: false,
     });
+
+    // Record this song as played for recency weighting
+    if (this.gameId && track.id) {
+      import('./db.js').then(({ recordPlay }) => {
+        recordPlay(track.id, this.gameId)
+          .then(() => console.log(`[DB] Recorded play: ${track.name}`))
+          .catch(err => console.error('[DB] Failed to record play:', err.message));
+      }).catch(() => {});
+    }
+
     this.state = 'round_result';
     this.roundResult = {
       round: this.tracksPlayed,
@@ -666,13 +647,11 @@ export class GameRoom {
 
     const makeDebugTrackInfo = (track) => {
       if (!track) return null;
-      const source = track.id?.startsWith('spotify:') ? 'Spotify' : track.id?.startsWith('deezer:') ? 'Deezer' : 'Unknown';
       return {
         title: track.name || track.title,
         artist: track.artist,
         id: track.id,
-        youtubeVideoId: track.youtubeVideoId,
-        provenance: `${source} → ${track.youtubeVideoId ? 'YouTube Audio' : 'Preview Audio'}`,
+        source: track.id?.startsWith('deezer:') ? 'Deezer' : 'Unknown',
         durationMs: track.durationMs || 30000,
         targetOffset: this.audioOffset,
         rank: track.rank ?? 0,
@@ -687,9 +666,6 @@ export class GameRoom {
         ...skipVoteInfo,
         _debugTrackInfo: makeDebugTrackInfo(track),
         previewUrl: track?.previewUrl || null,
-        youtubeVideoId: track?.youtubeVideoId || null,
-        durationMs: track?.durationMs || 0,
-        audioOffset: this.audioOffset ?? 0,
         roundTime: this.settings.roundTime,
       };
     }
@@ -705,9 +681,6 @@ export class GameRoom {
         timeLeft,
         roundTime: this.settings.roundTime,
         previewUrl: track.previewUrl,
-        durationMs: track.durationMs || 0,
-        audioOffset: this.audioOffset ?? 0,
-        youtubeVideoId: track.youtubeVideoId,
         trackId: track.id,
       };
     }

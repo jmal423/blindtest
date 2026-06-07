@@ -72,9 +72,8 @@ export default function DebugOverlay({ gameState, socketConnected }: DebugOverla
         <Section title="Track" defaultOpen>
           <Row label="Title" value={info.title} />
           <Row label="Artist" value={info.artist} />
-          <Row label="Source" value={info.provenance} color="text-emerald-400" />
+          <Row label="Source" value={info.provenance === 'deezer' ? 'Deezer' : (info.provenance || 'Unknown')} color="text-emerald-400" />
           <Row label="Track ID" value={info.id || '-'} />
-          <Row label="YT ID" value={info.youtubeVideoId || 'none'} color={info.youtubeVideoId ? 'text-red-400' : 'text-zinc-600'} />
           <Row label="Genre" value={info.genre || '-'} />
           <Row label="Rank" value={trackRank > 0 ? `#${formatNum(trackRank)}` : '-'} color={trackRank > 0 ? 'text-purple-400' : 'text-zinc-600'} />
         </Section>
@@ -82,12 +81,11 @@ export default function DebugOverlay({ gameState, socketConnected }: DebugOverla
 
       {playingOrPreparing && info && (
         <Section title="Audio / Timing">
-          <Row label="Duration" value={`${((info.durationMs || 30000) / 1000).toFixed(1)}s`} />
           <Row label="Audio offset" value={`${info.targetOffset ?? 0}s`} />
           <Row label="Round time" value={`${gameState.roundTime || '?'}s`} />
           <Row label="Time left" value={gameState.timeLeft != null ? `${gameState.timeLeft}s` : '-'} color={gameState.timeLeft <= 5 ? 'text-red-400' : 'text-zinc-300'} />
           <Row label="Preview URL" value={gameState.previewUrl ? 'available' : 'missing'} color={gameState.previewUrl ? 'text-green-400' : 'text-red-400'} />
-          <Row label="Audio source" value={gameState.settings?.audioSource || 'deezer'} />
+          <Row label="Audio source" value="deezer" />
         </Section>
       )}
 
@@ -112,7 +110,7 @@ export default function DebugOverlay({ gameState, socketConnected }: DebugOverla
         <Row label="Rounds" value={String(gameState.settings?.rounds || gameState.totalRounds)} />
         <Row label="Round time" value={`${gameState.settings?.roundTime || '?'}s`} />
         <Row label="Pause" value={`${gameState.settings?.pauseTime || '?'}s`} />
-        <Row label="Audio source" value={gameState.settings?.audioSource || 'deezer'} />
+        <Row label="Audio source" value="deezer" />
         <Row label="Auto-start" value={gameState.settings?.autoStart ? 'on' : 'off'} />
         <Row label="Host ID" value={gameState.hostId || '-'} />
       </Section>

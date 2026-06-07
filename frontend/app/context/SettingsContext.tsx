@@ -18,7 +18,7 @@ interface SettingsContextValue {
 }
 
 const defaults: Settings = {
-  masterVolume: 1,
+  masterVolume: 0.2,
   sfxVolume: 0.8,
   autoFocusInput: true,
   reducedMotion: false,

@@ -5,8 +5,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { Server } from 'socket.io';
 import { GameRoom } from './game.js';
-import { GENRES, getGenreLabel } from './spotify.js';
-import { generateId, get, all, run, ping, getTableCounts, createGame, finishGame, addGamePlayer, addRoundResultV2, getGameHistory, getPlayerStats, getLeaderboardV2, getRecentGames, getGameDetails, ensureUser } from './db.js';
+import { GENRES, getGenreLabel } from './deezer.js';
+import { generateId, get, all, run, ping, getTableCounts, createGame, finishGame, addGamePlayer, addRoundResultV2, getGameHistory, getPlayerStats, getLeaderboardV2, getRecentGames, getGameDetails, ensureUser, getSongCacheCounts } from './db.js';
 import { getAuthUrl, handleDiscordCallback, authenticate, requireAdmin, tryDecodeToken } from './auth.js';
 
 dotenv.config();
@@ -280,22 +280,6 @@ app.post('/api/game/:code/leave', (req, res) => {
   res.json({ ok: true });
 });
 
-// YouTube
-app.get('/api/youtube/search', async (req, res) => {
-  const { name, artist } = req.query;
-  if (!name || !artist) {
-    return res.status(400).json({ error: 'name and artist query params required' });
-  }
-
-  try {
-    const { searchYouTubeVideo } = await import('./youtube.js');
-    const videoId = await searchYouTubeVideo(name, artist);
-    res.json({ videoId, name, artist });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 // Auth
 app.get('/api/auth/discord', (req, res) => {
   const redirectUrl = typeof req.query.redirect === 'string' ? req.query.redirect : null;
@@ -374,7 +358,7 @@ app.get('/api/users/me/scores', authenticate, async (req, res) => {
 });
 
 app.get('/api/users/:id', async (req, res) => {
-  const user = await get('SELECT id, username, avatar_url, created_at FROM users WHERE id = ?', [req.params.id]);
+  const user = await get('SELECT id, username, avatar_url, role, created_at FROM users WHERE id = ?', [req.params.id]);
   if (!user) return res.status(404).json({ error: 'User not found' });
 
   const scores = await all(
@@ -388,6 +372,16 @@ app.get('/api/users/:id', async (req, res) => {
   );
 
   res.json({ ...user, scores, bestScore: bestScore?.best || 0 });
+});
+
+// Public user stats
+app.get('/api/users/:id/stats', async (req, res) => {
+  try {
+    const stats = await getPlayerStats(req.params.id);
+    res.json(stats);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Leaderboard
@@ -526,82 +520,20 @@ app.delete('/api/friends/:userId', authenticate, async (req, res) => {
   res.json({ ok: true });
 });
 
-// Admin — comprehensive Spotify diagnostic
-app.post('/api/admin/test/spotify', requireAdmin, async (req, res) => {
-  const { getValidToken } = await import('./spotify.js');
-  const results = [];
-
-  const testEndpoint = async (label, url, token) => {
-    try {
-      const r = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}`, Accept: 'application/json', 'User-Agent': 'Blindtest/1.0' },
-        redirect: 'follow',
-      });
-      const body = await r.text();
-      let parsed;
-      try { parsed = JSON.parse(body); } catch { parsed = body?.substring(0, 500); }
-      results.push({ label, status: r.status, ok: r.ok, body: typeof parsed === 'object' ? parsed : parsed });
-    } catch (err) {
-      results.push({ label, status: 'FETCH_ERROR', ok: false, body: err.message });
-    }
-  };
-
-  try {
-    const token = await getValidToken();
-
-    // Single search test (same as production code)
-    await testEndpoint('search?q=test&type=track&limit=1&market=FR', 'https://api.spotify.com/v1/search?q=test&type=track&limit=1&market=FR', token);
-    // Artist lookup (separate endpoint, different rate limit)
-    await testEndpoint('artists/0TnOYISbd1XYRBk9myaseg', 'https://api.spotify.com/v1/artists/0TnOYISbd1XYRBk9myaseg', token);
-    // No auth (should 401)
-    try {
-      const r = await fetch('https://api.spotify.com/v1/search?q=test&type=track&limit=1', { redirect: 'follow' });
-      const body = await r.text();
-      results.push({ label: '(no auth) search', status: r.status, ok: r.ok, body: body?.substring(0, 200) });
-    } catch (err) {
-      results.push({ label: '(no auth) search', status: 'FETCH_ERROR', ok: false, body: err.message });
-    }
-
-    res.json(results);
-  } catch (err) {
-    res.status(500).json({ ok: false, error: err.message, results });
-  }
-});
-
+// Admin — genre test (Deezer only)
 app.post('/api/admin/test/genre', requireAdmin, async (req, res) => {
   const { genre, count } = req.body;
   if (!genre) return res.status(400).json({ error: 'Genre required' });
   try {
-    const { getTracksByGenre } = await import('./spotify.js');
+    const { getTracksByGenre } = await import('./deezer.js');
     const tracks = await getTracksByGenre(genre, count || 5);
-    res.json({
-      ok: true,
-      count: tracks.length,
-      tracks: tracks.map(t => ({
-        name: t.name,
-        artist: t.artist,
-        previewUrl: !!t.previewUrl,
-        genre: t.genre,
-      })),
-    });
+    res.json({ ok: true, count: tracks.length, tracks: tracks.map(t => ({ name: t.name, artist: t.artist, previewUrl: !!t.previewUrl, genre: t.genre })) });
   } catch (err) {
     res.json({ ok: false, count: 0, tracks: [], error: err.message });
   }
 });
 
-app.post('/api/admin/test/youtube', requireAdmin, async (req, res) => {
-  const { name, artist } = req.body;
-  if (!name || !artist) return res.status(400).json({ error: 'Name and artist required' });
-  try {
-    const { searchYouTubeVideo } = await import('./youtube.js');
-    const videoId = await searchYouTubeVideo(name, artist);
-    res.json({ ok: true, videoId });
-  } catch (err) {
-    res.json({ ok: false, videoId: null, error: err.message });
-  }
-});
-
-// Test: inject mock tracks and start a game without Spotify/YouTube
+// Test: seed mock tracks for testing
 app.post('/api/admin/test/seed-game/:code', requireAdmin, async (req, res) => {
   const room = rooms.get(req.params.code.toUpperCase());
   if (!room) return res.status(404).json({ error: 'Room not found' });
@@ -609,11 +541,11 @@ app.post('/api/admin/test/seed-game/:code', requireAdmin, async (req, res) => {
 
   const rounds = parseInt(req.body.rounds) || 3;
   const mockTracks = [
-    { id: 'spotify:track:1', name: 'Bohemian Rhapsody', artist: 'Queen', albumImage: null, previewUrl: 'https://example.com/audio.mp3', durationMs: 355000, genre: 'rock' },
-    { id: 'spotify:track:2', name: 'Billie Jean', artist: 'Michael Jackson', albumImage: null, previewUrl: 'https://example.com/audio.mp3', durationMs: 294000, genre: 'pop' },
-    { id: 'spotify:track:3', name: 'Smells Like Teen Spirit', artist: 'Nirvana', albumImage: null, previewUrl: 'https://example.com/audio.mp3', durationMs: 301000, genre: 'rock' },
-    { id: 'spotify:track:4', name: 'Like a Prayer', artist: 'Madonna', albumImage: null, previewUrl: 'https://example.com/audio.mp3', durationMs: 280000, genre: 'pop' },
-    { id: 'spotify:track:5', name: 'Stairway to Heaven', artist: 'Led Zeppelin', albumImage: null, previewUrl: 'https://example.com/audio.mp3', durationMs: 482000, genre: 'rock' },
+    { id: 'deezer:1', name: 'Bohemian Rhapsody', artist: 'Queen', albumImage: null, previewUrl: 'https://cdns-preview.dz.example.mp3', durationMs: 355000, genre: 'rock' },
+    { id: 'deezer:2', name: 'Billie Jean', artist: 'Michael Jackson', albumImage: null, previewUrl: 'https://cdns-preview.dz.example.mp3', durationMs: 294000, genre: 'pop' },
+    { id: 'deezer:3', name: 'Smells Like Teen Spirit', artist: 'Nirvana', albumImage: null, previewUrl: 'https://cdns-preview.dz.example.mp3', durationMs: 301000, genre: 'rock' },
+    { id: 'deezer:4', name: 'Like a Prayer', artist: 'Madonna', albumImage: null, previewUrl: 'https://cdns-preview.dz.example.mp3', durationMs: 280000, genre: 'pop' },
+    { id: 'deezer:5', name: 'Stairway to Heaven', artist: 'Led Zeppelin', albumImage: null, previewUrl: 'https://cdns-preview.dz.example.mp3', durationMs: 482000, genre: 'rock' },
   ];
 
   room.tracks = mockTracks.slice(0, Math.max(rounds, mockTracks.length));
@@ -691,142 +623,6 @@ app.post('/api/admin/test/deezer/genre', requireAdmin, async (req, res) => {
   }
 });
 
-app.post('/api/admin/test/source-preview', requireAdmin, async (req, res) => {
-  const { genre, source } = req.body;
-  if (!genre || !source) return res.status(400).json({ error: 'genre and source required' });
-
-  const start = Date.now();
-  let tracks = [];
-  let errors = [];
-
-  try {
-    if (source === 'spotify') {
-      const { getTracksByGenre } = await import('./spotify.js');
-      tracks = await getTracksByGenre(genre, 3);
-    } else if (source === 'deezer') {
-      const { getTracksByGenre } = await import('./deezer.js');
-      tracks = await getTracksByGenre(genre, 3);
-    } else if (source === 'youtube') {
-      // Use Deezer to get track names, then YouTube to get video IDs
-      const { getTracksByGenre } = await import('./deezer.js');
-      const { searchYouTubeVideo } = await import('./youtube.js');
-      const deezerTracks = await getTracksByGenre(genre, 3);
-      for (const t of deezerTracks) {
-        try {
-          const videoId = await searchYouTubeVideo(t.name, t.artist);
-          tracks.push({ ...t, youtubeVideoId: videoId, source: 'youtube' });
-        } catch (e) {
-          errors.push(`${t.name}: ${e.message}`);
-        }
-      }
-    }
-  } catch (e) {
-    errors.push(e.message);
-  }
-
-  const ms = Date.now() - start;
-  res.json({
-    ok: tracks.length > 0,
-    source,
-    genre,
-    ms,
-    count: tracks.length,
-    previewCount: tracks.filter(t => t.previewUrl || t.youtubeVideoId).length,
-    tracks: tracks.slice(0, 5).map(t => ({
-      name: t.name,
-      artist: t.artist,
-      previewUrl: !!t.previewUrl,
-      youtubeVideoId: t.youtubeVideoId || null,
-      durationMs: t.durationMs || 0,
-    })),
-    errors,
-  });
-});
-
-app.post('/api/game/:code/test-source', async (req, res) => {
-  const room = rooms.get(req.params.code.toUpperCase());
-  if (!room) return res.status(404).json({ error: 'Room not found' });
-  if (room.hostId !== req.body.playerId) return res.status(403).json({ error: 'Only host can test' });
-
-  const { source } = req.body;
-  if (!source || !['spotify', 'deezer', 'youtube', 'both'].includes(source)) {
-    return res.status(400).json({ error: 'Invalid source' });
-  }
-
-  const genres = room.genres?.length ? room.genres : ['pop'];
-  const testGenre = genres[Math.floor(Math.random() * genres.length)];
-
-  const start = Date.now();
-  let tracks = [];
-  let errors = [];
-  const sourcesTried = [];
-  const usedSources = source === 'both' ? ['spotify', 'deezer', 'youtube'] : [source];
-
-  try {
-    for (const src of usedSources) {
-      try {
-        if (src === 'spotify') {
-          const { getTracksByGenre } = await import('./spotify.js');
-          const t = await getTracksByGenre(testGenre, 1);
-          if (t.length > 0) {
-            tracks.push(...t);
-            sourcesTried.push('spotify');
-          }
-        } else if (src === 'deezer') {
-          const { getTracksByGenre } = await import('./deezer.js');
-          const t = await getTracksByGenre(testGenre, 1);
-          if (t.length > 0) {
-            tracks.push(...t);
-            sourcesTried.push('deezer');
-          }
-        } else if (src === 'youtube') {
-          const { getTracksByGenre } = await import('./deezer.js');
-          const { searchYouTubeVideo } = await import('./youtube.js');
-          const deezerTracks = await getTracksByGenre(testGenre, 2);
-          for (const t of deezerTracks) {
-            try {
-              const videoId = await searchYouTubeVideo(t.name, t.artist);
-              if (videoId) {
-                tracks.push({ ...t, youtubeVideoId: videoId });
-                break;
-              }
-            } catch (e) { errors.push(`YouTube: ${e.message}`); }
-          }
-          sourcesTried.push('youtube');
-        }
-      } catch (e) { errors.push(`${src}: ${e.message}`); }
-      if (tracks.length > 0) break;
-    }
-
-    if (tracks.length === 0) {
-      const { getTracksByGenre } = await import('./deezer.js');
-      const t = await getTracksByGenre(testGenre, 1);
-      tracks = t;
-      sourcesTried.push('deezer');
-    }
-  } catch (e) {
-    errors.push(e.message);
-  }
-
-  const ms = Date.now() - start;
-  res.json({
-    ok: tracks.length > 0,
-    genre: testGenre,
-    sourcesAttempted: usedSources,
-    sourcesTried,
-    ms,
-    count: tracks.length,
-    tracks: tracks.slice(0, 3).map(t => ({
-      name: t.name,
-      artist: t.artist,
-      previewUrl: !!t.previewUrl,
-      youtubeVideoId: t.youtubeVideoId || null,
-      source: t.youtubeVideoId ? 'youtube' : (t.previewUrl ? (t.id?.startsWith('spotify:') ? 'spotify' : 'deezer') : 'unknown'),
-    })),
-    errors: errors.slice(0, 3),
-  });
-});
-
 app.get('/api/admin/db-status', requireAdmin, async (req, res) => {
   try {
     const tables = await getTableCounts();
@@ -842,16 +638,21 @@ app.get('/api/admin/db-status', requireAdmin, async (req, res) => {
 });
 
 app.get('/api/admin/stats', requireAdmin, async (req, res) => {
-  const [userCount, roundCount, gameCount] = await Promise.all([
+  const [userCount, roundCount, gameCount, songCache] = await Promise.all([
     get('SELECT COUNT(*) as count FROM users'),
     get('SELECT COUNT(*) as count FROM round_results_v2'),
     get('SELECT COUNT(*) as count FROM games WHERE status = \'finished\''),
+    getSongCacheCounts().catch(() => ({ total: 0, with_preview: 0, genres: 0, plays: 0 })),
   ]);
   res.json({
     totalUsers: Number(userCount?.count || 0),
     totalRounds: Number(roundCount?.count || 0),
     totalGames: Number(gameCount?.count || 0),
     activeRooms: rooms.size,
+    songCacheTotal: Number(songCache.total || 0),
+    songCacheWithPreview: Number(songCache.with_preview || 0),
+    songCacheGenres: Number(songCache.genres || 0),
+    songCachePlays: Number(songCache.plays || 0),
   });
 });
 

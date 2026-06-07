@@ -98,4 +98,20 @@ async function getTracksByGenre(genre, count = 10) {
   return tracks.slice(0, count);
 }
 
-export { getTracksByGenre };
+const GENRES = [
+  'pop', 'rock', 'hip-hop', 'r-n-b', 'electronic', 'jazz', 'classical',
+  'country', 'metal', 'indie', 'soul', 'blues', 'reggae', 'latin',
+  'dance', 'top-100',
+];
+
+const GENRE_LABELS = {
+  'r-n-b': 'R&B',
+  'hip-hop': 'Hip Hop',
+  'top-100': 'Top 100',
+};
+
+function getGenreLabel(genre) {
+  return GENRE_LABELS[genre] || genre.charAt(0).toUpperCase() + genre.slice(1);
+}
+
+export { getTracksByGenre, GENRES, getGenreLabel };

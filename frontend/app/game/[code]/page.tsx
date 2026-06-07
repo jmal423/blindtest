@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, use, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import { io as socketIo, Socket } from 'socket.io-client';
-import { getToken, GameState, Player, RoomSettings, startGame, updateSettings, fetchGenres, testGameSource } from '@/lib/api';
+import { getToken, GameState, Player, RoomSettings, startGame, updateSettings, fetchGenres } from '@/lib/api';
 import { isDebugMode } from '@/lib/debug-context';
 import AudioPlayer from '@/app/components/AudioPlayer';
 import { useSettings } from '@/app/context/SettingsContext';
@@ -336,9 +336,8 @@ export default function GamePage({
                   {(gameState as any).genres?.slice(0, 3).join(', ')}{(gameState as any).genres?.length > 3 ? ` +${(gameState as any).genres.length - 3}` : ''}
                 </span>
               )}
-              <span>{(gameState as any).settings?.rounds ?? gameState.totalRounds} rounds</span>
-              <span>{(gameState as any).settings?.roundTime ?? 15}s</span>
-              <span className="capitalize">{(gameState as any).settings?.audioSource ?? 'deezer'}</span>
+<span>{(gameState as any).settings?.rounds ?? gameState.totalRounds} rounds</span>
+               <span>{(gameState as any).settings?.roundTime ?? 15}s</span>
             </div>
           )}
           {gameState.state !== 'waiting' && gameState.state !== 'game_over' && (
@@ -387,29 +386,30 @@ export default function GamePage({
         </div>
       </div>
 
-      <div className="flex gap-4 md:gap-6">
+      <div className="flex gap-4 md:gap-6 min-h-0 flex-1">
         {gameState.state !== 'waiting' && gameState.state !== 'game_over' && ((gameState as any)?.trackHistory?.length > 0) && (
           <div className="hidden md:flex flex-col w-48 shrink-0">
             <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">{t('history_label')}</p>
             <div className="flex-1 overflow-y-auto space-y-1">
-              {((gameState as any)?.trackHistory || []).map((t: any) => (
-                <div
-                  key={t.round}
-                  className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-[10px] ${
-                    t.round === ((gameState as any)?.trackHistory || []).length ? 'bg-[var(--primary)]/10 border border-[var(--primary)]/20' : 'bg-white/[0.03]'
-                  }`}
-                >
-                  {t.albumImage && (
-                    <img src={t.albumImage} alt="" className="w-5 h-5 rounded object-cover shrink-0" />
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium truncate leading-tight">{t.name}</p>
-                    <p className="text-zinc-500 truncate leading-tight">
-                      {t.artist}{t.rank > 0 ? ` · #${t.rank.toLocaleString()}` : ''}
-                    </p>
-                  </div>
-                </div>
-              ))}
+{[...((gameState as any)?.trackHistory || [])].reverse().map((t: any) => (
+                 <div
+                   key={t.round}
+                   className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-[10px] ${t.skipped ? 'opacity-50' : ''} ${
+                     t.round === ((gameState as any)?.trackHistory || []).length ? 'bg-[var(--primary)]/10 border border-[var(--primary)]/20' : 'bg-white/[0.03]'
+                   }`}
+                 >
+                   {t.skipped && <span className="text-zinc-500">⏭</span>}
+                   {t.albumImage && (
+                     <img src={t.albumImage} alt="" className="w-5 h-5 rounded object-cover shrink-0" />
+                   )}
+                   <div className="min-w-0 flex-1">
+                     <p className={`font-medium truncate leading-tight ${t.skipped ? 'line-through text-zinc-500' : ''}`}>{t.name}</p>
+                     <p className="text-zinc-500 truncate leading-tight">
+                       {t.artist}{t.rank > 0 ? ` · #${t.rank.toLocaleString()}` : ''}
+                     </p>
+                   </div>
+                 </div>
+               ))}
             </div>
           </div>
         )}
@@ -452,7 +452,6 @@ export default function GamePage({
               playerId={playerId}
 encouragement={encouragement}
                roundTime={(gameState as any).settings?.roundTime || 15}
-               youtubeVideoId={(gameState as any).youtubeVideoId}
                onSkipVote={handleSkipVote}
                hasVotedSkip={hasVotedSkip}
                skipVotes={gameState.state === 'playing' || gameState.state === 'round_preparing' ? (gameState as any).skipVotes ?? 0 : 0}
@@ -485,15 +484,13 @@ encouragement={encouragement}
       </div>
 
       {gameState.state !== 'game_over' && (
-        <AudioPlayer
-          youtubeVideoId={(gameState as any).youtubeVideoId || null}
-          previewUrl={(gameState as any).previewUrl || null}
-          audioOffset={(gameState as any).audioOffset || 0}
-          durationMs={(gameState as any).durationMs || 30000}
-          state={gameState.state}
-          onPlaying={handleAudioPlaying}
-          onTimeUpdate={handleAudioTimeUpdate}
-        />
+<AudioPlayer
+           previewUrl={(gameState as any).previewUrl || null}
+           audioOffset={(gameState as any).audioOffset || 0}
+           state={gameState.state}
+           onPlaying={handleAudioPlaying}
+           onTimeUpdate={handleAudioTimeUpdate}
+         />
       )}
 
       {isDebugMode() && (
@@ -566,8 +563,6 @@ function WaitingRoom({
 }) {
   const { t } = useTranslation();
   const [allGenres, setAllGenres] = useState<{ id: string; label: string }[]>([]);
-  const [sourceTestResult, setSourceTestResult] = useState<any>(null);
-  const [sourceTestLoading, setSourceTestLoading] = useState(false);
 
   useEffect(() => {
     fetchGenres().then(setAllGenres).catch(() => {});
@@ -662,85 +657,12 @@ function WaitingRoom({
         {isHost && (
           <div>
             <label className="text-xs text-zinc-500 block mb-2">{t('audio_source')}</label>
-            <div className="grid grid-cols-2 gap-2">
-              {([
-                { id: 'spotify', label: 'Spotify', desc: '30s previews' },
-                { id: 'deezer', label: 'Deezer', desc: 'Free, no auth' },
-                { id: 'youtube', label: 'YouTube', desc: 'Full songs' },
-                { id: 'both', label: 'Auto', desc: 'Best available' },
-              ] as const).map(src => {
-                const selected = settings.audioSource === src.id;
-                return (
-                  <button
-                    key={src.id}
-                    onClick={() => onSettingsChange({ audioSource: src.id })}
-                    className={`relative text-left p-3 rounded-xl border transition-all ${
-                      selected
-                        ? 'border-[var(--primary)] bg-[var(--primary)]/10'
-                        : 'border-white/10 bg-[var(--surface-light)] hover:border-white/20'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
-                        selected ? 'bg-[var(--primary)]' : 'bg-zinc-500'
-                      }`} />
-                      <span className={`text-xs font-semibold ${selected ? 'text-white' : 'text-zinc-300'}`}>
-                        {src.label}
-                      </span>
-                    </div>
-                    <p className="text-[10px] text-zinc-500 mt-1 ml-[18px] leading-tight">{src.desc}</p>
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="mt-2">
-              <button
-                onClick={async () => {
-                  setSourceTestLoading(true);
-                  setSourceTestResult(null);
-                  try {
-                    const result = await testGameSource(gameCode, playerId, settings.audioSource);
-                    setSourceTestResult(result);
-                  } catch (e: any) {
-                    setSourceTestResult({ ok: false, error: e.message });
-                  }
-                  setSourceTestLoading(false);
-                }}
-                disabled={sourceTestLoading}
-                className="w-full px-3 py-1.5 bg-[var(--accent)]/10 text-[var(--accent)] rounded-lg text-[11px] font-medium hover:bg-[var(--accent)]/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
-              >
-                <span>{sourceTestLoading ? '●' : '▶'}</span>
-                {sourceTestLoading ? 'Testing...' : 'Test source'}
-              </button>
-              {sourceTestResult && (
-                <div className={`mt-2 rounded-lg p-2.5 text-xs font-mono space-y-1 ${
-                  sourceTestResult.ok ? 'bg-green-500/10 border border-green-500/20' : 'bg-red-500/10 border border-red-500/20'
-                }`}>
-                  <div className="flex items-center gap-2">
-                    <span className={sourceTestResult.ok ? 'text-green-400' : 'text-red-400'}>
-                      {sourceTestResult.ok ? '✓' : '✗'}
-                    </span>
-                    <span className="text-zinc-400">{sourceTestResult.genre}</span>
-                    <span className="text-zinc-600">{sourceTestResult.ms}ms</span>
-                    {sourceTestResult.sourcesTried && (
-                      <span className="text-zinc-500">{sourceTestResult.sourcesTried.join('→')}</span>
-                    )}
-                  </div>
-                  {sourceTestResult.tracks?.length > 0 && sourceTestResult.tracks.map((t: any, i: number) => (
-                    <p key={i} className="text-white/80">
-                      {t.name} — {t.artist}
-                      <span className="text-zinc-500 ml-1">[{t.source}]</span>
-                      {t.previewUrl && <span className="text-green-400 ml-0.5">•</span>}
-                      {t.youtubeVideoId && <span className="text-red-400 ml-0.5">▶</span>}
-                    </p>
-                  ))}
-                  {sourceTestResult.errors?.length > 0 && sourceTestResult.errors.map((e: string, i: number) => (
-                    <p key={i} className="text-yellow-400/70">{e}</p>
-                  ))}
-                  {sourceTestResult.error && <p className="text-red-400">{sourceTestResult.error}</p>}
-                </div>
-              )}
+            <div className="px-3 py-2 rounded-xl border border-[var(--primary)] bg-[var(--primary)]/10">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-[var(--primary)]" />
+                <span className="text-xs font-semibold text-white">Deezer</span>
+              </div>
+              <p className="text-[10px] text-zinc-500 mt-1 ml-[18px] leading-tight">{t('deezer_desc')}</p>
             </div>
 
             <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/5">
@@ -876,7 +798,6 @@ function PlayingPhase({
   skipVotes,
   skipVotesNeeded,
   smoothTime,
-  youtubeVideoId,
   roundTime,
   hostId,
 }: {
@@ -902,7 +823,6 @@ function PlayingPhase({
   skipVotes: number;
   skipVotesNeeded: number;
   roundTime?: number;
-  youtubeVideoId?: string | null;
   hostId?: string | null;
 }) {
   const { t } = useTranslation();

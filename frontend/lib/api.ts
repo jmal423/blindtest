@@ -7,20 +7,20 @@ export interface RoomSettings {
   roundTime: number;
   pauseTime: number;
   autoStart: boolean;
-  audioSource: 'spotify' | 'deezer' | 'youtube' | 'both';
+  audioSource: 'deezer';
 }
 
 export type GameState =
   | { state: 'waiting'; hostId: string | null; genres: string[]; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number }
-  | { state: 'round_preparing'; hostId: string | null; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; roundTime: number; previewUrl: string | null; youtubeVideoId: string | null; audioOffset: number; skipVotes: number; skipVotesNeeded: number }
-  | { state: 'playing'; hostId: string | null; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; timeLeft: number; roundTime: number; youtubeVideoId: string | null; trackId: string; skipVotes: number; skipVotesNeeded: number }
+  | { state: 'round_preparing'; hostId: string | null; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; roundTime: number; previewUrl: string | null; skipVotes: number; skipVotesNeeded: number }
+  | { state: 'playing'; hostId: string | null; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; timeLeft: number; roundTime: number; trackId: string; skipVotes: number; skipVotesNeeded: number }
   | { state: 'round_result'; hostId: string | null; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; roundResult: RoundResult; pauseTimeLeft: number; trackHistory: TrackEntry[] }
   | { state: 'game_over'; hostId: string | null; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; rankings: Ranking[]; trackHistory: TrackEntry[] };
 
 export interface Player { id: string; name: string; score: number; avatarUrl?: string | null; role?: string; foundArtist?: boolean; foundTitle?: boolean; foundBoth?: boolean }
 export interface RoundResult { round: number; correctAnswer: string; artist: string; albumImage: string }
 export interface Ranking { rank: number; name: string; score: number; xp: number; answers?: any[] }
-export interface TrackEntry { round: number; name: string; artist: string; albumImage?: string; rank?: number }
+export interface TrackEntry { round: number; name: string; artist: string; albumImage?: string | null; rank?: number; skipped?: boolean }
 
 export async function fetchGenres(): Promise<{ id: string; label: string }[]> {
   const res = await fetch(`${API_URL}/api/genres`);
@@ -97,12 +97,6 @@ export async function checkRoom(code: string): Promise<{ code: string; state: st
   return res.json();
 }
 
-export async function searchYouTube(name: string, artist: string): Promise<{ videoId: string | null; name: string; artist: string }> {
-  const res = await fetch(`${API_URL}/api/youtube/search?name=${encodeURIComponent(name)}&artist=${encodeURIComponent(artist)}`);
-  if (!res.ok) throw new Error('YouTube search failed');
-  return res.json();
-}
-
 // Auth
 export function getDiscordAuthUrl(redirect?: string) {
   const base = `${API_URL}/api/auth/discord`;
@@ -175,8 +169,14 @@ export async function getUserProfile(id: string): Promise<User & { scores: GameS
   return res.json();
 }
 
-export async function getLeaderboard(): Promise<{ id: string; username: string; avatar_url: string; total_score: number; games_played: number }[]> {
+export async function getLeaderboard(): Promise<{ id: string; username: string; player_name: string; avatar_url: string; total_score: number; games_played: number; avg_score: number; best_score: number; wins: number }[]> {
   const res = await fetch(`${API_URL}/api/leaderboard`);
+  return res.json();
+}
+
+export async function getUserStats(userId: string): Promise<UserStats> {
+  const res = await fetch(`${API_URL}/api/users/${userId}/stats`);
+  if (!res.ok) throw new Error('Failed to fetch user stats');
   return res.json();
 }
 
@@ -241,23 +241,11 @@ export async function getAdminRooms(): Promise<{ code: string; state: string; pl
   return fetchWithAuth(`${API_URL}/api/admin/rooms`);
 }
 
-export async function testSpotify(): Promise<{ ok: boolean; status?: number; categories?: string[]; error?: string | null }> {
-  return fetchWithAuth(`${API_URL}/api/admin/test/spotify`, { method: 'POST' });
-}
-
 export async function testGenre(genre: string, count: number = 5): Promise<{ ok: boolean; count: number; tracks: { name: string; artist: string; previewUrl: boolean; genre: string }[]; error?: string }> {
   return fetchWithAuth(`${API_URL}/api/admin/test/genre`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ genre, count }),
-  });
-}
-
-export async function testYouTube(name: string, artist: string): Promise<{ ok: boolean; videoId: string | null; error?: string }> {
-  return fetchWithAuth(`${API_URL}/api/admin/test/youtube`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, artist }),
   });
 }
 
@@ -287,27 +275,6 @@ export async function testDeezerGenre(genre: string, count: number = 10): Promis
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ genre, count }),
   });
-}
-
-export async function testSourcePreview(genre: string, source: 'spotify' | 'deezer' | 'youtube'): Promise<{ ok: boolean; source: string; genre: string; ms: number; count: number; previewCount: number; tracks: { name: string; artist: string; previewUrl: boolean; youtubeVideoId: string | null; durationMs: number }[]; errors: string[] }> {
-  return fetchWithAuth(`${API_URL}/api/admin/test/source-preview`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ genre, source }),
-  });
-}
-
-export async function testGameSource(code: string, playerId: string, source: 'spotify' | 'deezer' | 'youtube' | 'both'): Promise<{ ok: boolean; genre: string; sourcesAttempted: string[]; sourcesTried: string[]; ms: number; count: number; tracks: { name: string; artist: string; previewUrl: boolean; youtubeVideoId: string | null; source: string }[]; errors: string[] }> {
-  const res = await fetch(`${API_URL}/api/game/${code}/test-source`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ playerId, source }),
-  });
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error(data.error || 'Test failed');
-  }
-  return res.json();
 }
 
 export async function getDbStatus(): Promise<{ ok: boolean; isPostgres: boolean; hasData: boolean; tables: { users: number; game_scores: number; round_results: number }; error?: string }> {

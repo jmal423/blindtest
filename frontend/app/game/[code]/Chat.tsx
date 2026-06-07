@@ -29,6 +29,15 @@ export default function Chat({ socket }: { socket: Socket | null }) {
   }, [socket]);
 
   useEffect(() => {
+    if (!socket) return;
+    const handler = () => {
+      setMessages([]);
+    };
+    socket.on('chat_clear', handler);
+    return () => { socket.off('chat_clear', handler); };
+  }, [socket]);
+
+  useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 

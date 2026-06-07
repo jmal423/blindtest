@@ -253,4 +253,84 @@ async function getTableCounts() {
   return rows[0];
 }
 
-export { generateId, query, get, all, run, insertRoundResult, createGame, finishGame, addGamePlayer, addRoundResultV2, getGameHistory, getPlayerStats, getLeaderboardV2, getRecentGames, getGameDetails, ping, getTableCounts, ensureUser, pool };
+async function cacheSongs(tracks) {
+  for (const t of tracks) {
+    if (!t.id || !t.name || !t.artist) continue;
+    await run(
+      `INSERT INTO songs_cache (id, name, artist, album_image, preview_url, duration_ms, genre, rank, source)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT (id) DO UPDATE SET
+         name = EXCLUDED.name,
+         artist = EXCLUDED.artist,
+         album_image = EXCLUDED.album_image,
+         preview_url = EXCLUDED.preview_url,
+         duration_ms = EXCLUDED.duration_ms,
+         rank = EXCLUDED.rank,
+         fetched_at = NOW()`,
+      [t.id, t.name, t.artist, t.albumImage || null, t.previewUrl || null, t.durationMs || 0, t.genre || null, t.rank || 0, t.id.startsWith('deezer:') ? 'deezer' : 'spotify']
+    );
+  }
+}
+
+async function recordPlay(songId, gameId) {
+  await run(
+    'INSERT INTO songs_played (id, song_id, game_id) VALUES (?, ?, ?) ON CONFLICT (id) DO NOTHING',
+    [crypto.randomUUID(), songId, gameId]
+  );
+}
+
+async function getCachedTracksByGenre(genre, count) {
+  const rows = await all(
+    `SELECT sc.*,
+       COALESCE(
+         CASE
+           WHEN sp.last_played IS NULL THEN 1.0
+           WHEN sp.last_played > NOW() - INTERVAL '1 hour' THEN 0.05
+           WHEN sp.last_played > NOW() - INTERVAL '1 day' THEN 0.2
+           WHEN sp.last_played > NOW() - INTERVAL '7 days' THEN 0.5
+           ELSE 0.85
+         END, 1.0
+       ) as recency_weight
+     FROM songs_cache sc
+     LEFT JOIN (
+       SELECT song_id, MAX(played_at) as last_played
+       FROM songs_played
+       GROUP BY song_id
+     ) sp ON sp.song_id = sc.id
+     WHERE sc.genre = ? AND sc.preview_url IS NOT NULL
+     ORDER BY (sc.rank + 1000) * COALESCE(
+       CASE
+         WHEN sp.last_played IS NULL THEN 1.0
+         WHEN sp.last_played > NOW() - INTERVAL '1 hour' THEN 0.05
+         WHEN sp.last_played > NOW() - INTERVAL '1 day' THEN 0.2
+         WHEN sp.last_played > NOW() - INTERVAL '7 days' THEN 0.5
+         ELSE 0.85
+       END, 1.0
+     ) * random() DESC
+     LIMIT ?`,
+    [genre, count * 3]
+  );
+  return rows.map(r => ({
+    id: r.id,
+    name: r.name,
+    artist: r.artist,
+    albumImage: r.album_image,
+    previewUrl: r.preview_url,
+    durationMs: r.duration_ms,
+    genre: r.genre,
+    rank: r.rank,
+  }));
+}
+
+async function getSongCacheCounts() {
+  const { rows } = await pool.query(`
+    SELECT
+      (SELECT COUNT(*) FROM songs_cache) AS total,
+      (SELECT COUNT(*) FROM songs_cache WHERE preview_url IS NOT NULL) AS with_preview,
+      (SELECT COUNT(DISTINCT genre) FROM songs_cache) AS genres,
+      (SELECT COUNT(*) FROM songs_played) AS plays
+  `);
+  return rows[0];
+}
+
+export { generateId, query, get, all, run, insertRoundResult, createGame, finishGame, addGamePlayer, addRoundResultV2, getGameHistory, getPlayerStats, getLeaderboardV2, getRecentGames, getGameDetails, ping, getTableCounts, ensureUser, cacheSongs, recordPlay, getCachedTracksByGenre, getSongCacheCounts, pool };
