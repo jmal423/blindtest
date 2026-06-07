@@ -271,6 +271,39 @@ export async function updateUserRole(userId: string, role: string): Promise<void
   });
 }
 
+export async function testDeezer(): Promise<{ label: string; status: number | string; ok: boolean; ms: number; error?: string }[]> {
+  return fetchWithAuth(`${API_URL}/api/admin/test/deezer`, { method: 'POST' });
+}
+
+export async function testDeezerGenre(genre: string): Promise<{ ok: boolean; count: number; previewCount: number; durationMs: number; ms: number; tracks: { name: string; artist: string; previewUrl: boolean; durationMs: number; id: string }[]; error?: string }> {
+  return fetchWithAuth(`${API_URL}/api/admin/test/deezer/genre`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ genre }),
+  });
+}
+
+export async function testSourcePreview(genre: string, source: 'spotify' | 'deezer' | 'youtube'): Promise<{ ok: boolean; source: string; genre: string; ms: number; count: number; previewCount: number; tracks: { name: string; artist: string; previewUrl: boolean; youtubeVideoId: string | null; durationMs: number }[]; errors: string[] }> {
+  return fetchWithAuth(`${API_URL}/api/admin/test/source-preview`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ genre, source }),
+  });
+}
+
+export async function testGameSource(code: string, playerId: string, source: 'spotify' | 'youtube' | 'both'): Promise<{ ok: boolean; genre: string; sourcesAttempted: string[]; sourcesTried: string[]; ms: number; count: number; tracks: { name: string; artist: string; previewUrl: boolean; youtubeVideoId: string | null; source: string }[]; errors: string[] }> {
+  const res = await fetch(`${API_URL}/api/game/${code}/test-source`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ playerId, source }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Test failed');
+  }
+  return res.json();
+}
+
 export async function deleteUser(userId: string): Promise<void> {
   await fetchWithAuth(`${API_URL}/api/admin/users/${userId}`, { method: 'DELETE' });
 }

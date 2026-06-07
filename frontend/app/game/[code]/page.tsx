@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, use, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import { io as socketIo, Socket } from 'socket.io-client';
-import { getToken, GameState, Player, RoomSettings, startGame, updateSettings, fetchGenres } from '@/lib/api';
+import { getToken, GameState, Player, RoomSettings, startGame, updateSettings, fetchGenres, testGameSource } from '@/lib/api';
 import { isDebugMode } from '@/lib/debug-context';
 import AudioPlayer from '@/app/components/AudioPlayer';
 import { useSettings } from '@/app/context/SettingsContext';
@@ -374,6 +374,7 @@ export default function GamePage({
         <div className="flex-1 flex flex-col gap-6 max-w-2xl">
           {gameState.state === 'waiting' && (
             <WaitingRoom
+              gameCode={code}
               players={gameState.players}
               settings={gameState.settings}
               genres={gameState.genres}
@@ -456,6 +457,7 @@ export default function GamePage({
 }
 
 function WaitingRoom({
+  gameCode,
   players,
   settings,
   genres,
@@ -468,6 +470,7 @@ function WaitingRoom({
   onKickPlayer,
   startLoading,
 }: {
+  gameCode: string;
   players: { id: string; name: string; avatarUrl?: string | null; role?: string }[];
   settings: RoomSettings;
   genres: string[];
@@ -481,6 +484,8 @@ function WaitingRoom({
   startLoading?: boolean;
 }) {
   const [allGenres, setAllGenres] = useState<{ id: string; label: string }[]>([]);
+  const [sourceTestResult, setSourceTestResult] = useState<any>(null);
+  const [sourceTestLoading, setSourceTestLoading] = useState(false);
 
   useEffect(() => {
     fetchGenres().then(setAllGenres).catch(() => {});
@@ -635,11 +640,65 @@ function WaitingRoom({
                 })}
               </div>
               <p className="text-[10px] text-zinc-600 mt-0.5">
-                {settings.audioSource === 'spotify' && '30s previews, always available'}
-                {settings.audioSource === 'youtube' && 'Full songs, may fail if quota exceeded'}
-                {settings.audioSource === 'both' && 'Tries YouTube first, falls back to Spotify'}
+                {settings.audioSource === 'spotify' && '30s previews (Deezer/Spotify), most reliable'}
+                {settings.audioSource === 'youtube' && 'Full songs via YouTube, may fail if quota exceeded'}
+                {settings.audioSource === 'both' && 'Tries Spotify first, then YouTube. Deezer as backup.'}
               </p>
             </div>
+
+            {isHost && (
+              <div>
+                <button
+                  onClick={async () => {
+                    setSourceTestLoading(true);
+                    setSourceTestResult(null);
+                    try {
+                      const result = await testGameSource(gameCode, playerId, settings.audioSource as 'spotify' | 'youtube' | 'both');
+                      setSourceTestResult(result);
+                    } catch (e: any) {
+                      setSourceTestResult({ ok: false, error: e.message });
+                    }
+                    setSourceTestLoading(false);
+                  }}
+                  disabled={sourceTestLoading}
+                  className="w-full px-3 py-1.5 bg-[var(--accent)]/10 text-[var(--accent)] rounded-lg text-xs font-medium hover:bg-[var(--accent)]/20 transition-colors disabled:opacity-50"
+                >
+                  {sourceTestLoading ? 'Testing source...' : `Test "${settings.audioSource}" source`}
+                </button>
+                {sourceTestResult && (
+                  <div className={`mt-2 rounded-lg p-2.5 text-xs font-mono space-y-1 ${
+                    sourceTestResult.ok ? 'bg-green-500/10 border border-green-500/20' : 'bg-red-500/10 border border-red-500/20'
+                  }`}>
+                    <p>
+                      <span className="text-zinc-400">Result: </span>
+                      <span className={sourceTestResult.ok ? 'text-green-400' : 'text-red-400'}>
+                        {sourceTestResult.ok ? 'OK' : 'Failed'}
+                      </span>
+                      {sourceTestResult.genre && <span className="text-zinc-500 ml-2">({sourceTestResult.genre})</span>}
+                      {sourceTestResult.ms != null && <span className="text-zinc-500 ml-2">{sourceTestResult.ms}ms</span>}
+                    </p>
+                    {sourceTestResult.sourcesTried && (
+                      <p>
+                        <span className="text-zinc-400">Sources used: </span>
+                        <span className="text-zinc-300">{sourceTestResult.sourcesTried.join(' → ') || 'none'}</span>
+                      </p>
+                    )}
+                    {sourceTestResult.tracks?.length > 0 && sourceTestResult.tracks.map((t: any, i: number) => (
+                      <p key={i} className="text-white/90">
+                        {i + 1}. {t.name} — {t.artist}
+                        <span className="text-zinc-500 ml-1">[{t.source}]</span>
+                        {t.previewUrl && <span className="text-green-400 ml-1">✓preview</span>}
+                        {t.youtubeVideoId && <span className="text-red-400 ml-1">▶YT</span>}
+                      </p>
+                    ))}
+                    {sourceTestResult.errors?.length > 0 && sourceTestResult.errors.map((e: string, i: number) => (
+                      <p key={i} className="text-yellow-400/80">{e}</p>
+                    ))}
+                    {sourceTestResult.error && <p className="text-red-400">{sourceTestResult.error}</p>}
+                  </div>
+                )}
+              </div>
+            )}
             <div className="flex items-center justify-between">
               <div>
                 <span className="text-xs text-zinc-500">Auto-start</span>

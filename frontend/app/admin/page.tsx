@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
-import { getMe, getAdminUsers, getAdminStats, getAdminRooms, getLeaderboard, updateUserRole, deleteUser, wipeUserScores, testSpotify, testGenre, testYouTube } from '@/lib/api';
+import { getMe, getAdminUsers, getAdminStats, getAdminRooms, getLeaderboard, updateUserRole, deleteUser, wipeUserScores, testSpotify, testGenre, testYouTube, testDeezer, testDeezerGenre } from '@/lib/api';
 
 type Tab = 'system' | 'users' | 'rooms' | 'leaderboard' | 'diagnostics';
 
@@ -362,6 +362,11 @@ function DiagnosticsTab() {
   const [ytArtist, setYtArtist] = useState('');
   const [ytResult, setYtResult] = useState<any>(null);
   const [ytLoading, setYtLoading] = useState(false);
+  const [deezerResult, setDeezerResult] = useState<any>(null);
+  const [deezerLoading, setDeezerLoading] = useState(false);
+  const [deezerGenreResult, setDeezerGenreResult] = useState<any>(null);
+  const [deezerGenreLoading, setDeezerGenreLoading] = useState(false);
+  const [deezerGenre, setDeezerGenre] = useState(GENRES[0]);
 
   const runSpotifyTest = async () => {
     setSpotifyLoading(true);
@@ -385,6 +390,22 @@ function DiagnosticsTab() {
     try { setYtResult(await testYouTube(ytName, ytArtist)); }
     catch (e: any) { setYtResult({ ok: false, error: e.message }); }
     setYtLoading(false);
+  };
+
+  const runDeezerTest = async () => {
+    setDeezerLoading(true);
+    setDeezerResult(null);
+    try { setDeezerResult(await testDeezer()); }
+    catch (e: any) { setDeezerResult({ error: e.message }); }
+    setDeezerLoading(false);
+  };
+
+  const runDeezerGenreTest = async () => {
+    setDeezerGenreLoading(true);
+    setDeezerGenreResult(null);
+    try { setDeezerGenreResult(await testDeezerGenre(deezerGenre)); }
+    catch (e: any) { setDeezerGenreResult({ ok: false, error: e.message }); }
+    setDeezerGenreLoading(false);
   };
 
   return (
@@ -418,13 +439,13 @@ function DiagnosticsTab() {
         )}
       </div>
 
-      {/* Genre Track Fetch Test */}
+      {/* Spotify Genre Track Fetch */}
       <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Genre Track Fetch</h2>
+          <h2 className="text-lg font-semibold">Spotify Genre Fetch</h2>
           {genreResult && <StatusBadge ok={!!genreResult.ok} />}
         </div>
-        <p className="text-sm text-zinc-500 mb-4">Fetches sample tracks for a genre and shows preview URL availability.</p>
+        <p className="text-sm text-zinc-500 mb-4">Fetches sample tracks from Spotify for a genre and shows preview URL availability.</p>
         <div className="flex gap-3 mb-4">
           <select
             value={selectedGenre}
@@ -507,6 +528,99 @@ function DiagnosticsTab() {
               : <p className="text-red-400">No video found</p>
             }
             {ytResult.error && <p className="text-red-400">Error: {ytResult.error}</p>}
+          </div>
+        )}
+      </div>
+
+      {/* Deezer API Connectivity */}
+      <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">Deezer API Connectivity</h2>
+          {deezerResult && !deezerResult.error && (
+            <StatusBadge ok={deezerResult.every((r: any) => r.ok)} />
+          )}
+        </div>
+        <p className="text-sm text-zinc-500 mb-4">Tests Deezer API endpoints — free, no auth required. Genre list, search, and artist tracks.</p>
+        <button
+          onClick={runDeezerTest}
+          disabled={deezerLoading}
+          className="px-4 py-2 bg-[var(--accent)]/20 text-[var(--accent)] rounded-lg text-sm font-medium hover:bg-[var(--accent)]/30 transition-colors disabled:opacity-50"
+        >
+          {deezerLoading ? 'Testing...' : 'Run Deezer Tests'}
+        </button>
+        {deezerResult && (
+          <div className="mt-4 bg-black/20 rounded-xl p-4 font-mono text-xs space-y-1 overflow-x-auto max-h-64 overflow-y-auto">
+            {Array.isArray(deezerResult) ? deezerResult.map((r: any, i: number) => (
+              <div key={i} className="flex gap-2 items-center">
+                <span className={r.ok ? 'text-green-400' : 'text-red-400'}>{r.ok ? '✓' : '✗'}</span>
+                <span className="text-zinc-300">{r.label}</span>
+                <span className="text-zinc-600">({r.status})</span>
+                {r.ms != null && <span className="text-zinc-500">{r.ms}ms</span>}
+                {r.error && <span className="text-red-400">{r.error}</span>}
+              </div>
+            )) : (
+              <p className="text-red-400">{deezerResult.error || 'Unknown error'}</p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Deezer Genre Track Fetch */}
+      <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">Deezer Genre Fetch</h2>
+          {deezerGenreResult && <StatusBadge ok={!!(deezerGenreResult.ok && deezerGenreResult.count > 0)} />}
+        </div>
+        <p className="text-sm text-zinc-500 mb-4">Fetches 10 tracks for a genre via Deezer (keyword search + artist top tracks). Reports preview URL availability.</p>
+        <div className="flex gap-3 mb-4">
+          <select
+            value={deezerGenre}
+            onChange={e => setDeezerGenre(e.target.value)}
+            className="flex-1 bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-sm text-white"
+          >
+            {GENRES.map(g => (
+              <option key={g} value={g}>{g}</option>
+            ))}
+          </select>
+          <button
+            onClick={runDeezerGenreTest}
+            disabled={deezerGenreLoading}
+            className="px-4 py-2 bg-[var(--accent)]/20 text-[var(--accent)] rounded-lg text-sm font-medium hover:bg-[var(--accent)]/30 transition-colors disabled:opacity-50 shrink-0"
+          >
+            {deezerGenreLoading ? 'Fetching...' : 'Test Deezer'}
+          </button>
+        </div>
+        {deezerGenreResult && (
+          <div className="bg-black/20 rounded-xl p-4 font-mono text-xs space-y-1 overflow-x-auto max-h-80 overflow-y-auto">
+            <p>
+              <span className="text-zinc-400">Tracks fetched: </span>
+              <span className="text-white">{deezerGenreResult.count || 0}</span>
+              {deezerGenreResult.previewCount != null && (
+                <span className="text-green-400 ml-2">
+                  ({deezerGenreResult.previewCount} with preview)
+                </span>
+              )}
+              {deezerGenreResult.ms != null && (
+                <span className="text-zinc-500 ml-2">{deezerGenreResult.ms}ms</span>
+              )}
+            </p>
+            {deezerGenreResult.error && <p className="text-red-400">Error: {deezerGenreResult.error}</p>}
+            {deezerGenreResult.tracks && deezerGenreResult.tracks.length > 0 && (
+              <div className="mt-2 space-y-1">
+                <p className="text-zinc-400">Sample tracks:</p>
+                {deezerGenreResult.tracks.map((t: any, i: number) => (
+                  <p key={i} className="text-white/80">
+                    {t.name} — {t.artist}
+                    {' '}
+                    <span className="text-zinc-500">({(t.durationMs / 1000).toFixed(0)}s)</span>
+                    {' '}
+                    <span className={t.previewUrl ? 'text-green-400' : 'text-red-400'}>
+                      {t.previewUrl ? '(preview ✓)' : '(no preview)'}
+                    </span>
+                  </p>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

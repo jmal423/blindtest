@@ -55,7 +55,7 @@ function mapTrack(t, genre) {
     artist: t.artist?.name || 'Unknown',
     albumImage: t.album?.cover_big || null,
     previewUrl: t.preview,
-    durationMs: (t.duration || 30) * 1000,
+    durationMs: (parseInt(t.duration, 10) || 30) * 1000,
     genre,
   };
 }
