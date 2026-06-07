@@ -5,6 +5,10 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import { io as socketIo, Socket } from 'socket.io-client';
 import { getToken, GameState, Player, RoomSettings, startGame, updateSettings, fetchGenres } from '@/lib/api';
+import { isDebugMode } from '@/lib/debug-context';
+import Chat from './Chat';
+import Podium from './Podium';
+import DebugOverlay from './DebugOverlay';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -168,6 +172,7 @@ export default function GamePage({
   const { code } = use(params);
   const router = useRouter();
   const socketRef = useRef<Socket | null>(null);
+  const [socket, setSocket] = useState<Socket | null>(null);
 
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [playerId, setPlayerId] = useState<string>('');
@@ -175,6 +180,7 @@ export default function GamePage({
   const [guess, setGuess] = useState('');
   const [guessResult, setGuessResult] = useState<{ artist_result: string; title_result: string; points_awarded_this_guess: number; found_both: boolean } | null>(null);
   const [error, setError] = useState('');
+  const [socketConnected, setSocketConnected] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [audioOffset, setAudioOffset] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -284,9 +290,15 @@ export default function GamePage({
 
     const socket = socketIo(API_URL);
     socketRef.current = socket;
+    setSocket(socket);
 
     socket.on('connect', () => {
+      setSocketConnected(true);
       socket.emit('join_room', code, playerId);
+    });
+
+    socket.on('disconnect', () => {
+      setSocketConnected(false);
     });
 
     socket.on('game_state', (state: GameState) => {
@@ -400,54 +412,68 @@ export default function GamePage({
   }
 
   return (
-    <div className="flex-1 flex flex-col p-4 md:p-8 max-w-2xl mx-auto w-full gap-6">
+    <div className="flex-1 flex flex-col p-4 md:p-8 max-w-5xl mx-auto w-full gap-6">
       <div className="text-center">
         <p className="text-sm text-zinc-400">Room Code</p>
         <p className="text-3xl font-bold tracking-[0.3em] text-[var(--primary)]">{code}</p>
       </div>
 
-      {gameState.state === 'waiting' && (
-        <WaitingRoom
-          players={gameState.players}
-          settings={gameState.settings}
-          genres={gameState.genres}
-          isHost={playerId === gameState.players[0]?.id}
-          onStart={handleStart}
-          onSettingsChange={handleSettingsUpdate}
-          onGenresChange={handleGenresUpdate}
-        />
-      )}
+      <div className="flex gap-6">
+        <div className="flex-1 flex flex-col gap-6 max-w-2xl">
+          {gameState.state === 'waiting' && (
+            <WaitingRoom
+              players={gameState.players}
+              settings={gameState.settings}
+              genres={gameState.genres}
+              isHost={playerId === gameState.players[0]?.id}
+              onStart={handleStart}
+              onSettingsChange={handleSettingsUpdate}
+              onGenresChange={handleGenresUpdate}
+            />
+          )}
 
-      {(gameState.state === 'playing' || gameState.state === 'round_preparing') && (
-        <PlayingPhase
-          state={gameState.state}
-          currentRound={gameState.currentRound}
-          totalRounds={gameState.totalRounds}
-          timeLeft={localTimeLeft ?? (gameState as any).timeLeft}
-          guess={guess}
-          onGuessChange={setGuess}
-          onSubmit={handleSubmit}
-          guessResult={guessResult}
-          duration={duration}
-          currentTime={currentTime}
-          inputRef={guessInputRef}
-          artistFound={artistFound}
-          titleFound={titleFound}
-          bothFound={bothFound}
-          players={gameState.players}
-          playerId={playerId}
-        />
-      )}
+          {(gameState.state === 'playing' || gameState.state === 'round_preparing') && (
+            <PlayingPhase
+              state={gameState.state}
+              currentRound={gameState.currentRound}
+              totalRounds={gameState.totalRounds}
+              timeLeft={localTimeLeft ?? (gameState as any).timeLeft}
+              guess={guess}
+              onGuessChange={setGuess}
+              onSubmit={handleSubmit}
+              guessResult={guessResult}
+              duration={duration}
+              currentTime={currentTime}
+              inputRef={guessInputRef}
+              artistFound={artistFound}
+              titleFound={titleFound}
+              bothFound={bothFound}
+              players={gameState.players}
+              playerId={playerId}
+            />
+          )}
 
-      {gameState.state === 'round_result' && (
-        <RoundResult data={gameState.roundResult} players={gameState.players} pauseTimeLeft={(gameState as any).pauseTimeLeft} />
-      )}
+          {gameState.state === 'round_result' && (
+            <RoundResult data={gameState.roundResult} players={gameState.players} pauseTimeLeft={(gameState as any).pauseTimeLeft} />
+          )}
 
-      {gameState.state === 'finished' && (
-        <GameFinished code={code} rankings={gameState.rankings} playerId={playerId} onPlayAgain={() => router.push('/')} />
-      )}
+          {gameState.state === 'finished' && (
+            <Podium code={code} rankings={gameState.rankings} playerId={playerId} onPlayAgain={() => router.push('/')} />
+          )}
+        </div>
+
+        {gameState.state !== 'waiting' && gameState.state !== 'finished' && (
+          <div className="hidden md:block w-72 shrink-0">
+            <Chat socket={socket} />
+          </div>
+        )}
+      </div>
 
       <AudioPlayer previewUrl={previewUrl} audioOffset={audioOffset} playing={isPlaying} preloading={isPreloading} onPlaying={handleAudioPlaying} onTimeUpdate={handleAudioTimeUpdate} />
+
+      {isDebugMode() && (
+        <DebugOverlay gameState={gameState} socketConnected={socketConnected} />
+      )}
     </div>
   );
 }
@@ -649,16 +675,6 @@ function PlayingPhase({
   players: Player[];
   playerId: string;
 }) {
-  const [count, setCount] = useState(5);
-
-  useEffect(() => {
-    if (state === 'countdown') {
-      setCount(5);
-      const t = setInterval(() => setCount(c => { if (c <= 1) return 0; return c - 1; }), 1000);
-      return () => clearInterval(t);
-    }
-  }, [state, currentRound]);
-
   const placeholder = bothFound
     ? 'You nailed it!'
     : artistFound
@@ -833,43 +849,4 @@ function RoundResult({ data, players = [], pauseTimeLeft }: { data?: { correctAn
   );
 }
 
-function GameFinished({ code, rankings, playerId, onPlayAgain }: { code: string; rankings: { rank: number; name: string; score: number }[]; playerId: string; onPlayAgain: () => void }) {
-  const [saved, setSaved] = useState(false);
-  const token = typeof window !== 'undefined' ? localStorage.getItem('blindtest_token') : null;
-
-  const handleSave = async () => {
-    if (!token) return;
-    try {
-      const { saveGameScore } = await import('@/lib/api');
-      await saveGameScore(code, playerId);
-      setSaved(true);
-    } catch {}
-  };
-
-  return (
-    <div className="flex-1 flex flex-col items-center gap-6 animate-slide-up">
-      <h2 className="text-2xl font-bold"><span className="text-[var(--primary)]">Game</span> Over!</h2>
-
-      <div className="w-full max-w-sm space-y-2">
-        {rankings.map((r, i) => (
-          <div key={i} className={`flex items-center gap-4 px-4 py-3 rounded-xl ${
-            i === 0 ? 'bg-yellow-500/20 border border-yellow-500/30' : 'bg-[var(--surface)]'
-          }`}>
-            <span className="text-2xl font-bold text-zinc-500 w-8">
-              {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${r.rank}`}
-            </span>
-            <div className="flex-1">
-              <p className="font-semibold">{r.name}</p>
-              <p className="text-sm text-zinc-400">{r.score} pts</p>
-            </div>
-            <span className="text-lg font-bold text-[var(--accent)]">{r.score}</span>
-          </div>
-        ))}
-      </div>
-
-      <button onClick={onPlayAgain} className="px-8 py-4 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white font-semibold rounded-xl transition-colors">
-        Play Again
-      </button>
-    </div>
-  );
-}
+// GameFinished replaced by Podium component

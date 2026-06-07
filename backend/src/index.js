@@ -44,6 +44,19 @@ io.on('connection', (socket) => {
     broadcastState(info.roomCode);
   });
 
+  socket.on('send_chat_message', (data) => {
+    const info = socketPlayerMap.get(socket.id);
+    if (!info || !data.content || !data.content.trim()) return;
+    const room = rooms.get(info.roomCode);
+    if (!room) return;
+    const player = room.getPlayer(info.playerId);
+    io.to(info.roomCode).emit('new_chat_message', {
+      isSystem: false,
+      sender: player?.name || 'Unknown',
+      content: data.content.trim(),
+    });
+  });
+
   socket.on('disconnect', () => {
     socketPlayerMap.delete(socket.id);
   });

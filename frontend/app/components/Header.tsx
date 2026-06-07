@@ -5,18 +5,23 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import Link from 'next/link';
 import { getMe, getMyStats, getToken } from '@/lib/api';
+import { isDebugMode, setDebugMode } from '@/lib/debug-context';
+import SettingsModal from './SettingsModal';
 
 export default function Header() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [stats, setStats] = useState<any>(null);
   const [open, setOpen] = useState(false);
+  const [debugOn, setDebugOn] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (getToken()) {
       getMe().then(setUser).catch(() => {});
     }
+    setDebugOn(isDebugMode());
   }, []);
 
   useEffect(() => {
@@ -40,6 +45,12 @@ export default function Header() {
     setUser(null);
     setOpen(false);
     router.push('/');
+  };
+
+  const toggleDebug = () => {
+    const next = !debugOn;
+    setDebugOn(next);
+    setDebugMode(next);
   };
 
   return (
@@ -112,7 +123,64 @@ export default function Header() {
                   </div>
                 </div>
 
-                <div className="p-2">
+                <div className="p-2 space-y-0.5">
+                  <Link
+                    href="/profile"
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                      <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    Profile
+                  </Link>
+
+                  <button
+                    onClick={() => { setOpen(false); setShowSettings(true); }}
+                    className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors w-full"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="3"/>
+                      <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                    </svg>
+                    Settings
+                  </button>
+
+                  {user.role === 'admin' && (
+                    <>
+                      <Link
+                        href="/admin"
+                        onClick={() => setOpen(false)}
+                        className="flex items-center gap-2 px-3 py-2 text-sm text-[#00cec9] hover:bg-[#00cec9]/10 rounded-lg transition-colors font-semibold"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                        Admin Panel
+                      </Link>
+
+                      <div className="flex items-center justify-between px-3 py-2 text-sm text-zinc-300">
+                        <span className="flex items-center gap-2">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                          </svg>
+                          Debug Mode
+                        </span>
+                        <button
+                          onClick={toggleDebug}
+                          className={`relative w-9 h-5 rounded-full transition-colors ${debugOn ? 'bg-[var(--primary)]' : 'bg-zinc-600'}`}
+                        >
+                          <motion.div
+                            animate={{ x: debugOn ? 18 : 2 }}
+                            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow"
+                          />
+                        </button>
+                      </div>
+                    </>
+                  )}
+
                   <button
                     onClick={handleDisconnect}
                     className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
@@ -130,6 +198,8 @@ export default function Header() {
           </AnimatePresence>
         </div>
       )}
+
+      <SettingsModal open={showSettings} onClose={() => setShowSettings(false)} />
     </header>
   );
 }

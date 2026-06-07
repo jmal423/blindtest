@@ -211,6 +211,13 @@ export class GameRoom {
       if (position === 1) pointsThisGuess += 3;
       else if (position === 2) pointsThisGuess += 2;
       else if (position === 3) pointsThisGuess += 1;
+
+      if (this.io) {
+        this.io.to(this.code).emit('new_chat_message', {
+          isSystem: true,
+          content: `🔥 ${player.name} encontrou a resposta exata!`,
+        });
+      }
     }
 
     player.score += pointsThisGuess;
