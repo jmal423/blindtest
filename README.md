@@ -27,11 +27,12 @@
 - **16 genres + Top 100** — Pop, Rock, Hip-Hop, R&B, Electronic, Jazz, Classical, Country, Metal, Indie, Soul, Blues, Reggae, Latin, Dance, and the global Top 100 chart
 - **Rank-based track selection** — Deezer popularity rank sorts tracks so mainstream songs play first
 - **Skip vote system** — Host/admin skips instantly, players vote (majority wins)
-- **Track history sidebar** — Always-visible history shows played tracks with Deezer rank (`Artist · #42,150`)
-- **Multi-language** — English, Français, Português, Español — switch from main menu, settings, or header
+- **Track history sidebar** — Always-visible history shows played tracks with Deezer rank
+- **Multi-language** — English, Français, Português, Español
 - **Volume control** — Mute button + slider in game header, `M` key shortcut
 - **Guest login** — No Discord required, play instantly
 - **Admin panel** — Live rooms, user management, genre tester with rank display, database monitoring
+- **Persistent stats** — Games, players, and per-guess results auto-saved to PostgreSQL
 
 ---
 
@@ -49,22 +50,23 @@
                            (audio)  (audio) (audio)
                                       │
                                  PostgreSQL
-                                (users/scores)
+                              (games, stats, users)
 ```
 
 ## Game Flow
 
 ```
-Create Room → Choose Genres → Choose Audio Source → Start
+Create Room → Choose Genres + Audio Source → Start
        ↓
-Round 1: 3-2-1-GO → Play track → Players guess → Show answer → Round 2+ (directly play)
+Round: Play audio → Wait for all players → Timer starts → Guess → Score → Next round
        ↓
-Game Over → Podium → Play Again / Main Menu
+Game Over → Podium → Auto-save to DB → Play Again / Main Menu
 ```
 
-- Round timer starts immediately, no playback delay
-- Skip votes show live tally (`Vote Skip 2/3` → `Voted 3/3`)
-- Preview sources (Deezer/Spotify) center the round window within the 30s clip
+- Round timer starts after all connected players report audio ready (fallback timeout)
+- Audio source selectable per game (Deezer default, Spotify, YouTube, or Auto)
+- Tracks without available audio are automatically skipped
+- Skip votes show live tally (host/admin skips instantly)
 
 ---
 
@@ -125,21 +127,53 @@ npm run dev
 
 ---
 
-## Languages
+## Scoring
 
-| Flag | Language | Code |
-|------|----------|------|
-| 🇬🇧 | English | `en` |
-| 🇫🇷 | Français | `fr` |
-| 🇧🇷 | Português | `pt` |
-| 🇪🇸 | Español | `es` |
+- **Artist correct:** +3 pts
+- **Title correct:** +3 pts
+- **Both correct:** +4 pts combo bonus
+- **Speed bonus:** 1st to find both +3, 2nd +2, 3rd +1
+- **Streak bonus:** 2 consecutive both-found +2, 3+ consecutive +4
 
-Switch from:
-- **Main menu** — flag buttons below the guest login form
-- **Header menu** — flag buttons in the profile dropdown
-- **Settings modal** — Language section with all 4 flags
+Fuzzy matching splits multi-part titles on `-`, `,`, `feat.` and checks each part. Typo tolerance via Levenshtein distance.
 
-Language is persisted to `localStorage`. All UI text, feedback messages, labels, and buttons are translated (~150 keys per locale).
+---
+
+## Database
+
+### Local development
+PostgreSQL via Docker — `docker compose up -d` starts a Postgres 16 container with persistent volume.
+
+### Production (Railway)
+Add the PostgreSQL plugin to your Railway project. `DATABASE_URL` is auto-set. The backend uses `pg.Pool` with connection retry and health checks.
+
+### Schema
+
+| Table | Purpose |
+|-------|---------|
+| `users` | Discord OAuth users (id, discord_id, username, avatar, role) |
+| `game_scores` | Legacy per-game scores (user_id, game_code, score) |
+| `friendships` | Friend requests and accepted friendships |
+| `round_results` | Legacy per-guess data (user_id, game_id, genre, track_id) |
+| `games` | Game sessions (id, code, genres, audio_source, rounds, status, timestamps) |
+| `game_players` | Players per game (player_id, player_name, score, position) |
+| `round_results_v2` | Detailed per-guess data (track_name, artist, genre, guess, found_artist/title/both, time_ms) |
+
+### Migrations
+Migrations run automatically on startup from `backend/src/migrations/`:
+
+| File | Description |
+|------|-------------|
+| `001_initial.js` | Core tables (users, game_scores, friendships, round_results) |
+| `002_indexes.js` | Performance indexes on user_id, game_id, genre, played_at |
+| `003_games_and_rounds.js` | Games, game_players, round_results_v2 tables with indexes |
+
+### Auto-save behavior
+- **Game start** → Inserts row into `games` table
+- **Every guess** → Inserts row into `round_results_v2` (all players, not just authenticated)
+- **Game end** → Marks game as `finished`, inserts all players into `game_players`, also saves to legacy `game_scores` for authenticated users
+
+See `DEPLOY.md` for full deployment guide.
 
 ---
 
@@ -150,7 +184,7 @@ Language is persisted to `localStorage`. All UI text, feedback messages, labels,
 |--------|------|------|-------------|
 | `GET` | `/api/genres` | No | List available genres |
 | `POST` | `/api/rooms` | No | Create room |
-| `POST` | `/api/rooms/join` | No | Join room |
+| `POST` | `/api/rooms/join` | No | Join room (works mid-game) |
 | `GET` | `/api/rooms/:code` | No | Room status |
 | `POST` | `/api/game/:code/settings` | No | Update settings (host only) |
 | `POST` | `/api/game/:code/start` | No | Start game (host only) |
@@ -164,7 +198,11 @@ Language is persisted to `localStorage`. All UI text, feedback messages, labels,
 | `submit_guess` | Client → Server | Submit artist/title guess |
 | `skip_round` | Client → Server | Vote to skip (host/admin skips instantly) |
 | `playback_started` | Client → Server | Audio started playing |
+| `kick_player` | Client → Server | Admin removes a player |
+| `kicked` | Server → Client | You were removed |
 | `play_again` | Client → Server | Reset and start new game |
+| `guess_made` | Server → Client | Another player guessed (for progress bar) |
+| `new_chat_message` | Server → Client | Chat message or system notification |
 
 ### Auth & Users
 | Method | Path | Auth | Description |
@@ -173,9 +211,13 @@ Language is persisted to `localStorage`. All UI text, feedback messages, labels,
 | `GET` | `/api/auth/discord/callback` | No | OAuth callback |
 | `POST` | `/api/auth/guest` | No | Guest login (name only) |
 | `GET` | `/api/users/me` | JWT | Current user profile |
-| `GET` | `/api/users/me/scores` | JWT | User's game history |
-| `GET` | `/api/users/me/stats` | JWT | User stats |
-| `GET` | `/api/leaderboard` | No | Global ranking |
+| `GET` | `/api/users/me/scores` | JWT | User's game scores (legacy) |
+| `GET` | `/api/users/me/stats` | JWT | Enhanced stats (games, points, perfects, avg speed) |
+| `GET` | `/api/users/me/history` | JWT | Player's game history |
+| `GET` | `/api/users/:id` | No | Public user profile |
+| `GET` | `/api/leaderboard` | No | Global ranking (v2 with wins) |
+| `GET` | `/api/games/recent` | No | Recent completed games |
+| `GET` | `/api/games/:id` | No | Full game details with players and rounds |
 
 ### Health
 | Method | Path | Auth | Description |
@@ -185,46 +227,34 @@ Language is persisted to `localStorage`. All UI text, feedback messages, labels,
 ### Admin
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| `GET` | `/api/admin/stats` | Admin | User/room/round counts |
+| `GET` | `/api/admin/stats` | Admin | User/game/round counts |
 | `GET` | `/api/admin/db-status` | Admin | DB type, row counts, connectivity |
-| `GET` | `/api/admin/rooms` | Admin | Active room list |
+| `GET` | `/api/admin/rooms` | Admin | Active room list with state |
 | `GET` | `/api/admin/users` | Admin | All users |
 | `PUT` | `/api/admin/users/:id/role` | Admin | Change user role |
-| `DELETE` | `/api/admin/users/:id` | Admin | Delete user + data |
+| `DELETE` | `/api/admin/users/:id` | Admin | Delete user + all data |
 | `DELETE` | `/api/admin/users/:id/scores` | Admin | Wipe user scores |
-| `POST` | `/api/admin/test/spotify` | Admin | Test Spotify API connectivity |
-| `POST` | `/api/admin/test/genre` | Admin | Test genre fetch (count param) |
-| `POST` | `/api/admin/test/deezer` | Admin | Test Deezer API connectivity |
-| `POST` | `/api/admin/test/deezer/genre` | Admin | Test genre fetch with rank (count param) |
+| `POST` | `/api/admin/test/spotify` | Admin | Test Spotify API |
+| `POST` | `/api/admin/test/genre` | Admin | Test genre fetch |
+| `POST` | `/api/admin/test/deezer` | Admin | Test Deezer API |
+| `POST` | `/api/admin/test/deezer/genre` | Admin | Test genre fetch with rank |
+| `POST` | `/api/admin/test/source-preview` | Admin | Test audio source (spotify/deezer/youtube) |
+| `POST` | `/api/game/:code/test-source` | No | Test audio source for a room |
+| `POST` | `/api/admin/test/seed-game/:code` | Admin | Inject mock tracks and start a game |
+| `POST` | `/api/admin/test/start-round/:code` | Admin | Force start current round |
 
 ---
 
-## Scoring
+## Languages
 
-- **Artist correct:** +50 pts
-- **Title correct:** +50 pts
-- **Both correct:** +100 bonus
-- **Time bonus:** Up to +150 pts (faster = more)
-- **Streak bonus:** Multiplier for consecutive correct answers
+| Flag | Language | Code |
+|------|----------|------|
+| 🇬🇧 | English | `en` |
+| 🇫🇷 | Français | `fr` |
+| 🇧🇷 | Português | `pt` |
+| 🇪🇸 | Español | `es` |
 
-Fuzzy matching handles typos, punctuation, and "(feat. ...)" suffixes.
-
----
-
-## Database
-
-### Local development
-PostgreSQL via Docker — `docker compose up -d` starts a Postgres 16 container with persistent volume.
-
-### Production (Railway)
-Add the PostgreSQL plugin to your Railway project. `DATABASE_URL` is auto-set. The backend uses `pg.Pool` with connection retry and health checks.
-
-### Migrations
-Migrations run automatically on startup from `backend/src/migrations/`:
-- `001_initial.js` — Tables (users, game_scores, friendships, round_results)
-- `002_indexes.js` — Performance indexes on user_id, game_id, genre, played_at
-
-See `DEPLOY.md` for full deployment guide.
+Switch from main menu, header dropdown, or settings modal. Language is persisted to `localStorage`.
 
 ---
 
@@ -259,8 +289,9 @@ blindtest/
 │       ├── db.js              # PostgreSQL connection pool, query builder, migrations
 │       ├── auth.js            # Discord OAuth + JWT middleware
 │       └── migrations/
-│           ├── 001_initial.js # Core tables
-│           └── 002_indexes.js # Performance indexes
+│           ├── 001_initial.js      # Core tables (users, game_scores, friendships, round_results)
+│           ├── 002_indexes.js       # Performance indexes
+│           └── 003_games_and_rounds.js  # Games, game_players, round_results_v2
 ├── frontend/
 │   ├── app/
 │   │   ├── page.tsx           # Home (create/join/login with language switcher)
@@ -270,7 +301,7 @@ blindtest/
 │   │   │   ├── DebugOverlay.tsx # Collapsible sections: track, audio, players, settings
 │   │   │   ├── Podium.tsx     # Endgame rankings
 │   │   │   └── TrackHistory.tsx # Sidebar overlay
-│   │   ├── admin/page.tsx     # Admin (System, Users, Rooms, Leaderboard, API with genre tester)
+│   │   ├── admin/page.tsx     # Admin (System, Users, Rooms, Leaderboard, API)
 │   │   ├── login/page.tsx     # Discord + guest login
 │   │   ├── profile/page.tsx   # Profile stats, friends, game history
 │   │   ├── settings/page.tsx  # Account settings
