@@ -34,6 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const u = await getMe();
       setUser(u);
+      if (u?.id) localStorage.setItem('blindtest_user_id', u.id);
     } catch {
       setUser(null);
     }
@@ -46,6 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = () => {
     localStorage.removeItem('blindtest_token');
+    localStorage.removeItem('blindtest_user_id');
     setUser(null);
   };
 

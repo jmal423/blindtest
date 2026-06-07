@@ -21,18 +21,21 @@
 
 ## Features
 
-- **4 audio sources** — Spotify previews, Deezer (free, no auth), YouTube full songs, Auto (best available)
+- **Deezer audio** — Free 30s previews, no API keys needed, genre charts sorted by popularity
+- **Song cache with recency weighting** — Fetched tracks persist in DB; recently played songs are exponentially less likely to reappear (never=1.0, <1h=0.05, <1d=0.2, <1w=0.5, older=0.85)
 - **Real-time multiplayer** — Socket.io for live game state, no polling
-- **Smart scoring** — Points for artist, title, or both with time bonuses and streaks
+- **Smart scoring** — Artist 3pts, title 3pts, both 4pts combo + speed + streak bonuses
 - **16 genres + Top 100** — Pop, Rock, Hip-Hop, R&B, Electronic, Jazz, Classical, Country, Metal, Indie, Soul, Blues, Reggae, Latin, Dance, and the global Top 100 chart
-- **Rank-based track selection** — Deezer popularity rank sorts tracks so mainstream songs play first
 - **Skip vote system** — Host/admin skips instantly, players vote (majority wins)
-- **Track history sidebar** — Always-visible history shows played tracks with Deezer rank
-- **Multi-language** — English, Français, Português, Español
-- **Volume control** — Mute button + slider in game header, `M` key shortcut
-- **Guest login** — No Discord required, play instantly
-- **Admin panel** — Live rooms, user management, genre tester with rank display, database monitoring
-- **Persistent stats** — Games, players, and per-guess results auto-saved to PostgreSQL
+- **Track history sidebar** — Reversed (last played on top), skipped tracks shown with ⏭ + strikethrough + dimmed
+- **Chat clears per round** — `chat_clear` socket event wipes stale messages each round
+- **Leaderboard** — Global ranking with wins, avatars, clickable player detail panels; sidebar on dashboard
+- **Persistent stats** — All players (guest + Discord) saved; games, points, perfects, best genre, avg speed
+- **Discord server gating** — Restrict access to a specific Discord guild
+- **Multi-language** — English, Français, Português, Español (persisted in localStorage)
+- **Volume control** — Default 20%, mute + slider, `M` key shortcut
+- **Guest login** — No Discord required, play instantly; guests persisted in DB
+- **Admin panel** — Live rooms, user management, genre tester, song cache stats, database monitoring
 
 ---
 
@@ -43,28 +46,26 @@
 │   Next.js 16  │ ◄────────► │   Express 5           │
 │   Frontend    │             │   Backend             │
 │   (Vercel)    │  Socket.io  │   (Railway)           │
-└──────────────┘ Б──Б──Б──Б─Б─└───────┬───────────────┘
-                                ┌──────┼──────┐
-                                ▼      ▼      ▼
-                           Spotify  Deezer  YouTube
-                           (audio)  (audio) (audio)
-                                      │
-                                 PostgreSQL
-                              (games, stats, users)
+└──────────────┘ ─────────── └───────┬───────────────┘
+                                ┌─────┴─────┐
+                                ▼           ▼
+                              Deezer     PostgreSQL
+                              (audio)    (games, stats,
+                                          users, songs)
 ```
 
 ## Game Flow
 
 ```
-Create Room → Choose Genres + Audio Source → Start
+Create Room → Choose Genres → Start
        ↓
-Round: Play audio → Wait for all players → Timer starts → Guess → Score → Next round
+Round: Play audio → Chat clears → Timer starts → Guess → Score → Next round
        ↓
 Game Over → Podium → Auto-save to DB → Play Again / Main Menu
 ```
 
 - Round timer starts after all connected players report audio ready (fallback timeout)
-- Audio source selectable per game (Deezer default, Spotify, YouTube, or Auto)
+- Cache-first track selection: queries `songs_cache` with recency weighting before hitting Deezer API
 - Tracks without available audio are automatically skipped
 - Skip votes show live tally (host/admin skips instantly)
 
@@ -78,7 +79,7 @@ docker compose up -d
 
 # Backend
 cd backend && npm install
-cp .env.example .env  # Fill in your API keys
+cp .env.example .env  # Fill in your variables
 npm run dev
 
 # Frontend
@@ -93,9 +94,6 @@ npm run dev
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `SPOTIFY_CLIENT_ID` | No* | Spotify app credentials |
-| `SPOTIFY_CLIENT_SECRET` | No* | Spotify app credentials |
-| `YOUTUBE_API_KEY` | No | YouTube Data API key (scraping fallback works without it) |
 | `DISCORD_CLIENT_ID` | No | Discord OAuth2 application ID |
 | `DISCORD_CLIENT_SECRET` | No | Discord OAuth2 secret |
 | `DISCORD_ALLOWED_GUILD_ID` | No | Restrict to a specific Discord server |
@@ -106,8 +104,6 @@ npm run dev
 | `FRONTEND_URL` | No | CORS origin + OAuth redirect base |
 | `PORT` | No | `3001` |
 
-*Spotify is only needed if using Spotify as audio source. Deezer works without any keys.
-
 **Frontend (`.env.local`):**
 
 | Variable | Description |
@@ -116,14 +112,11 @@ npm run dev
 
 ---
 
-## Audio Sources
+## Audio Source
 
-| Source | Auth | Quality | Reliability | Notes |
-|--------|------|---------|-------------|-------|
-| **Deezer** (default) | None (free) | 30s preview | High | Uses genre charts, sorted by global popularity rank |
-| **Spotify** | Client Credentials | 30s preview | Rate limited (429) | Recommendations + search fallback |
-| **YouTube** | API key or scraping | Full song | Quota limited | Scraping fallback works without key |
-| **Auto** | — | Best available | Falls through all | Tries Spotify → Deezer → YouTube |
+| Source | Auth | Quality | Notes |
+|--------|------|---------|-------|
+| **Deezer** | None (free) | 30s preview | Genre charts sorted by popularity rank; cached in PostgreSQL with recency-weighted selection |
 
 ---
 
@@ -151,13 +144,15 @@ Add the PostgreSQL plugin to your Railway project. `DATABASE_URL` is auto-set. T
 
 | Table | Purpose |
 |-------|---------|
-| `users` | Discord OAuth users (id, discord_id, username, avatar, role) |
-| `game_scores` | Legacy per-game scores (user_id, game_code, score) |
-| `friendships` | Friend requests and accepted friendships |
-| `round_results` | Legacy per-guess data (user_id, game_id, genre, track_id) |
-| `games` | Game sessions (id, code, genres, audio_source, rounds, status, timestamps) |
+| `users` | All users — Discord OAuth + guests (id, discord_id, username, avatar, role, guest flag) |
+| `games` | Game sessions (id, code, genres, rounds, status, timestamps) |
 | `game_players` | Players per game (player_id, player_name, score, position) |
-| `round_results_v2` | Detailed per-guess data (track_name, artist, genre, guess, found_artist/title/both, time_ms) |
+| `round_results_v2` | Detailed per-guess data (track, artist, genre, guess, found_artist/title/both, time_ms) |
+| `songs_cache` | Cached tracks from Deezer (id, title, artist, genre, preview_url, rank) |
+| `songs_played` | Play history for recency weighting (song_id, played_at) |
+| `friendships` | Friend requests and accepted friendships |
+| `game_scores` | Legacy per-game scores |
+| `round_results` | Legacy per-guess data |
 
 ### Migrations
 Migrations run automatically on startup from `backend/src/migrations/`:
@@ -167,11 +162,14 @@ Migrations run automatically on startup from `backend/src/migrations/`:
 | `001_initial.js` | Core tables (users, game_scores, friendships, round_results) |
 | `002_indexes.js` | Performance indexes on user_id, game_id, genre, played_at |
 | `003_games_and_rounds.js` | Games, game_players, round_results_v2 tables with indexes |
+| `004_song_cache.js` | songs_cache and songs_played tables with genre + recency indexes |
 
 ### Auto-save behavior
 - **Game start** → Inserts row into `games` table
 - **Every guess** → Inserts row into `round_results_v2` (all players, not just authenticated)
-- **Game end** → Marks game as `finished`, inserts all players into `game_players`, also saves to legacy `game_scores` for authenticated users
+- **Game end** → Marks game as `finished`, inserts all players into `game_players`, upserts all players into `users` table via `ensureUser()`
+- **Round end** → Calls `recordPlay()` to track song recency in `songs_played`
+- **After Deezer fetch** → Calls `cacheSongs()` to upsert tracks into `songs_cache`
 
 See `DEPLOY.md` for full deployment guide.
 
@@ -203,6 +201,7 @@ See `DEPLOY.md` for full deployment guide.
 | `play_again` | Client → Server | Reset and start new game |
 | `guess_made` | Server → Client | Another player guessed (for progress bar) |
 | `new_chat_message` | Server → Client | Chat message or system notification |
+| `chat_clear` | Server → Client | Clears chat at start of each round |
 
 ### Auth & Users
 | Method | Path | Auth | Description |
@@ -212,10 +211,10 @@ See `DEPLOY.md` for full deployment guide.
 | `POST` | `/api/auth/guest` | No | Guest login (name only) |
 | `GET` | `/api/users/me` | JWT | Current user profile |
 | `GET` | `/api/users/me/scores` | JWT | User's game scores (legacy) |
-| `GET` | `/api/users/me/stats` | JWT | Enhanced stats (games, points, perfects, avg speed) |
+| `GET` | `/api/users/me/stats` | JWT | Enhanced stats (games, points, perfects, avg speed, best genre) |
 | `GET` | `/api/users/me/history` | JWT | Player's game history |
-| `GET` | `/api/users/:id` | No | Public user profile |
-| `GET` | `/api/leaderboard` | No | Global ranking (v2 with wins) |
+| `GET` | `/api/users/:id/stats` | No | Public user stats |
+| `GET` | `/api/leaderboard` | No | Global ranking (v2 with wins, avatars) |
 | `GET` | `/api/games/recent` | No | Recent completed games |
 | `GET` | `/api/games/:id` | No | Full game details with players and rounds |
 
@@ -227,18 +226,15 @@ See `DEPLOY.md` for full deployment guide.
 ### Admin
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| `GET` | `/api/admin/stats` | Admin | User/game/round counts |
+| `GET` | `/api/admin/stats` | Admin | User/game/round/song cache counts |
 | `GET` | `/api/admin/db-status` | Admin | DB type, row counts, connectivity |
 | `GET` | `/api/admin/rooms` | Admin | Active room list with state |
 | `GET` | `/api/admin/users` | Admin | All users |
 | `PUT` | `/api/admin/users/:id/role` | Admin | Change user role |
 | `DELETE` | `/api/admin/users/:id` | Admin | Delete user + all data |
-| `DELETE` | `/api/admin/users/:id/scores` | Admin | Wipe user scores |
-| `POST` | `/api/admin/test/spotify` | Admin | Test Spotify API |
-| `POST` | `/api/admin/test/genre` | Admin | Test genre fetch |
-| `POST` | `/api/admin/test/deezer` | Admin | Test Deezer API |
-| `POST` | `/api/admin/test/deezer/genre` | Admin | Test genre fetch with rank |
-| `POST` | `/api/admin/test/source-preview` | Admin | Test audio source (spotify/deezer/youtube) |
+| `DELETE` | `/api/admin/users/:id/scores` | Admin | Wipe user scores (round_results_v2 + game_players) |
+| `POST` | `/api/admin/test/genre` | Admin | Test Deezer genre fetch |
+| `POST` | `/api/admin/test/deezer` | Admin | Test Deezer API connection |
 | `POST` | `/api/game/:code/test-source` | No | Test audio source for a room |
 | `POST` | `/api/admin/test/seed-game/:code` | Admin | Inject mock tracks and start a game |
 | `POST` | `/api/admin/test/start-round/:code` | Admin | Force start current round |
@@ -264,8 +260,8 @@ Switch from main menu, header dropdown, or settings modal. Language is persisted
 |-------|------------|
 | Frontend | Next.js 16, React 19, Tailwind CSS 4, motion (Framer Motion), Socket.io |
 | Backend | Express 5, Socket.io, pg (PostgreSQL) |
-| Audio | Spotify Web API, Deezer API (free), YouTube Data API / scraping |
-| Auth | Discord OAuth2 + JWT, Guest tokens |
+| Audio | Deezer API (free, no auth), song cache with recency weighting |
+| Auth | Discord OAuth2 + JWT (with guild gating), Guest tokens |
 | i18n | Custom JSON-based (en, fr, pt, es), persisted in localStorage |
 | Database | PostgreSQL (Docker local, Railway production), migration system |
 | Deployment | Vercel (frontend) + Railway (backend + PostgreSQL) |
@@ -279,51 +275,50 @@ blindtest/
 ├── DEPLOY.md                  # Railway + Vercel deployment guide
 ├── backend/
 │   ├── .env.example           # All environment variables documented
-│   ├── railway.json           # Railway deployment config
+│   ├── railway.json            # Railway deployment config
 │   └── src/
 │       ├── index.js           # Express server, routes, admin endpoints
-│       ├── game.js            # GameRoom class, game logic, scoring, skip votes
-│       ├── spotify.js         # Spotify client credentials + genre search
-│       ├── deezer.js          # Deezer genre charts + artist top tracks, rank sorting
-│       ├── youtube.js         # YouTube Data API + scraping fallback
-│       ├── db.js              # PostgreSQL connection pool, query builder, migrations
-│       ├── auth.js            # Discord OAuth + JWT middleware
+│       ├── game.js            # GameRoom class, game logic, scoring, skip votes, song cache
+│       ├── deezer.js          # Deezer genre charts + artist top tracks, rank sorting, GENRES
+│       ├── db.js              # PostgreSQL pool, queries, migrations, song cache, recency weighting
+│       ├── auth.js            # Discord OAuth + JWT middleware + guild gating
 │       └── migrations/
-│           ├── 001_initial.js      # Core tables (users, game_scores, friendships, round_results)
-│           ├── 002_indexes.js       # Performance indexes
-│           └── 003_games_and_rounds.js  # Games, game_players, round_results_v2
+│           ├── 001_initial.js        # Core tables (users, game_scores, friendships, round_results)
+│           ├── 002_indexes.js         # Performance indexes
+│           ├── 003_games_and_rounds.js  # Games, game_players, round_results_v2
+│           └── 004_song_cache.js      # songs_cache, songs_played, recency indexes
 ├── frontend/
 │   ├── app/
-│   │   ├── page.tsx           # Home (create/join/login with language switcher)
+│   │   ├── page.tsx           # Dashboard (create/join room + leaderboard sidebar)
+│   │   ├── leaderboard/
+│   │   │   └── page.tsx       # Full leaderboard with clickable player detail panels
 │   │   ├── game/[code]/
 │   │   │   ├── page.tsx       # Game room (WaitingRoom → Playing → Podium)
-│   │   │   ├── Chat.tsx       # Timestamped chat with system messages
-│   │   │   ├── DebugOverlay.tsx # Collapsible sections: track, audio, players, settings
+│   │   │   ├── Chat.tsx       # Chat with chat_clear support
 │   │   │   ├── Podium.tsx     # Endgame rankings
-│   │   │   └── TrackHistory.tsx # Sidebar overlay
-│   │   ├── admin/page.tsx     # Admin (System, Users, Rooms, Leaderboard, API)
+│   │   │   └── TrackHistory.tsx # Reversed history, skipped tracks (⏭ + strikethrough)
+│   │   ├── admin/page.tsx     # Admin (stats, users, rooms, leaderboard, genre tester)
 │   │   ├── login/page.tsx     # Discord + guest login
-│   │   ├── profile/page.tsx   # Profile stats, friends, game history
-│   │   ├── settings/page.tsx  # Account settings
+│   │   ├── profile/page.tsx   # Profile with 8 stat cards
 │   │   └── components/
-│   │       ├── AudioPlayer.tsx        # YouTube iframe + HTML5 audio
-│   │       ├── Header.tsx             # Profile dropdown with language switcher
-│   │       ├── SettingsModal.tsx       # Volume, auto-focus, motion, theme, language
+│   │       ├── AudioPlayer.tsx        # HTML5 <audio> only (Deezer previews)
+│   │       ├── Header.tsx             # Profile dropdown with language + stats (score, games, best genre)
+│   │       ├── SettingsModal.tsx       # Volume (default 20%), auto-focus, theme, language
 │   │       ├── LanguageSwitcher.tsx    # Flag button grid
 │   │       └── LanguageInitializer.tsx # Sets <html lang> from settings
 │   ├── context/
-│   │   ├── SettingsContext.tsx  # Volume, accessibility, theme, language
+│   │   ├── SettingsContext.tsx  # Volume (0.2 default), accessibility, theme, language
 │   │   └── AuthContext.tsx      # Auth state
 │   ├── lib/
-│   │   ├── api.ts            # All API + WebSocket functions
+│   │   ├── api.ts            # All API + WebSocket functions (Deezer-only)
 │   │   ├── useTranslation.ts # i18n hook (t, language, setLanguage)
 │   │   ├── useSound.ts       # Sound effect hook
 │   │   └── debug-context.tsx
 │   └── locales/
-│       ├── en.json           # ~150 English keys
-│       ├── fr.json           # ~150 French keys
-│       ├── pt.json           # ~150 Portuguese keys
-│       └── es.json           # ~150 Spanish keys
+│       ├── en.json           # English keys
+│       ├── fr.json           # French keys
+│       ├── pt.json           # Portuguese keys
+│       └── es.json           # Spanish keys
 └── README.md
 ```
 

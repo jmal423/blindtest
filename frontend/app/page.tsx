@@ -20,6 +20,10 @@ export default function Home() {
 
     if (token) {
       localStorage.setItem('blindtest_token', token);
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload.userId) localStorage.setItem('blindtest_user_id', payload.userId);
+      } catch {}
       window.history.replaceState({}, document.title, window.location.pathname);
       refresh().finally(() => setProcessing(false));
       return;
@@ -65,8 +69,10 @@ function Gatekeeper() {
     setGuestLoading(true);
     setGuestError('');
     try {
-      const { token } = await guestLogin(trimmedName);
+      const previousUserId = localStorage.getItem('blindtest_user_id');
+      const { token, user } = await guestLogin(trimmedName, previousUserId);
       localStorage.setItem('blindtest_token', token);
+      localStorage.setItem('blindtest_user_id', user.id);
       window.history.replaceState({}, document.title, window.location.pathname);
       await refresh();
     } catch (e: any) {

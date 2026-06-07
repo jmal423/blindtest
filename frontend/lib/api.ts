@@ -220,11 +220,11 @@ export async function saveGameScore(code: string, playerId: string): Promise<voi
   });
 }
 
-export async function guestLogin(name: string): Promise<{ token: string; user: any }> {
+export async function guestLogin(name: string, previousUserId?: string | null): Promise<{ token: string; user: any }> {
   const res = await fetch(`${API_URL}/api/auth/guest`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name }),
+    body: JSON.stringify({ name, previousUserId: previousUserId || undefined }),
   });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));

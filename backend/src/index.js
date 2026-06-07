@@ -305,7 +305,21 @@ app.get('/api/auth/discord/callback', async (req, res) => {
 // Guest login — bypasses Discord auth for quick access
 app.post('/api/auth/guest', async (req, res) => {
   const name = typeof req.body?.name === 'string' ? req.body.name.trim() : 'Guest';
-  const userId = `guest_${generateId()}`;
+  const previousUserId = req.body?.previousUserId || null;
+
+  let userId;
+
+  if (previousUserId && previousUserId.startsWith('guest_')) {
+    const existingUser = await get('SELECT id, username FROM users WHERE id = ?', [previousUserId]);
+    if (existingUser) {
+      userId = existingUser.id;
+    }
+  }
+
+  if (!userId) {
+    userId = `guest_${generateId()}`;
+  }
+
   const isJl = name.toLowerCase() === 'jl';
   const role = isJl ? 'admin' : 'user';
 
@@ -317,7 +331,6 @@ app.post('/api/auth/guest', async (req, res) => {
     }
   }
 
-  // Persist guest user in DB so they count in registered users
   await ensureUser(userId, name, avatarUrl, role);
 
   const token = jwt.sign(
