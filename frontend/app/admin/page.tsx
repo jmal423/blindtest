@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
-import { getMe, getAdminUsers, getAdminStats, getAdminRooms, getLeaderboard, updateUserRole, deleteUser, wipeUserScores, testSpotify, testGenre, testYouTube, testDeezer, testDeezerGenre, getDbStatus } from '@/lib/api';
+import { getMe, getAdminUsers, getAdminStats, getAdminRooms, getLeaderboard, updateUserRole, deleteUser, wipeUserScores, testSpotify, testDeezer, testDeezerGenre, getDbStatus, testGenre } from '@/lib/api';
 
 type Tab = 'system' | 'users' | 'rooms' | 'leaderboard' | 'api';
 
@@ -80,29 +80,19 @@ export default function AdminPage() {
 
 function SystemTab() {
   const [stats, setStats] = useState<any>(null);
-  const [ytStatus, setYtStatus] = useState<string | null>(null);
   const [dbStatus, setDbStatus] = useState<any>(null);
 
   useEffect(() => {
     getAdminStats().then(setStats).catch(() => {});
     getDbStatus().then(setDbStatus).catch(() => {});
-    testYouTube('test', 'test').then(r => {
-      setYtStatus(r.ok && r.videoId ? 'ok' : r.error ? 'error' : 'no-video');
-    }).catch(() => setYtStatus('error'));
   }, []);
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard value={stats?.totalUsers ?? '-'} label="Registered Users" color="var(--primary)" />
         <StatCard value={stats?.totalRounds ?? '-'} label="Rounds Played" color="var(--accent)" />
         <StatCard value={stats?.activeRooms ?? '-'} label="Active Rooms" color="#10b981" />
-        <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6 text-center">
-          <p className={`text-3xl font-bold ${ytStatus === 'ok' ? 'text-green-400' : ytStatus === 'error' ? 'text-red-400' : 'text-yellow-400'}`}>
-            {ytStatus === 'ok' ? 'Online' : ytStatus === 'error' ? 'Error' : ytStatus === 'no-video' ? 'Quota' : '...'}
-          </p>
-          <p className="text-zinc-500 mt-2 text-xs uppercase tracking-wider">YouTube API</p>
-        </div>
       </div>
 
       <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6">
@@ -162,10 +152,7 @@ function UsersTab() {
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
-    try {
-      const u = await getAdminUsers();
-      setUsers(u);
-    } catch {}
+    try { setUsers(await getAdminUsers()); } catch {}
     setLoading(false);
   }, []);
 
@@ -241,10 +228,7 @@ function UsersTab() {
                       <option value="user">user</option>
                       <option value="admin">admin</option>
                     </select>
-                    <button
-                      onClick={() => handleDelete(u.id)}
-                      className="px-2 py-1 bg-red-500/20 text-red-400 rounded-lg text-xs hover:bg-red-500/30 transition-colors"
-                    >
+                    <button onClick={() => handleDelete(u.id)} className="px-2 py-1 bg-red-500/20 text-red-400 rounded-lg text-xs hover:bg-red-500/30 transition-colors">
                       Delete
                     </button>
                   </div>
@@ -264,6 +248,7 @@ function UsersTab() {
 function RoomsTab() {
   const [rooms, setRooms] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAll, setShowAll] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -272,6 +257,8 @@ function RoomsTab() {
   }, []);
 
   useEffect(() => { load(); const t = setInterval(load, 10000); return () => clearInterval(t); }, [load]);
+
+  const filtered = showAll ? rooms : rooms.filter(r => r.state !== 'game_over');
 
   const stateLabel = (s: string) => {
     const map: Record<string, { text: string; cls: string }> = {
@@ -286,7 +273,24 @@ function RoomsTab() {
 
   return (
     <div className="space-y-2">
-      {rooms.map(r => {
+      <div className="flex items-center gap-3 mb-2">
+        <button
+          onClick={() => setShowAll(false)}
+          className={`px-3 py-1 text-xs rounded-lg transition-colors ${!showAll ? 'bg-[var(--primary)] text-white' : 'bg-white/5 text-zinc-400 hover:text-white'}`}
+        >
+          Active
+        </button>
+        <button
+          onClick={() => setShowAll(true)}
+          className={`px-3 py-1 text-xs rounded-lg transition-colors ${showAll ? 'bg-[var(--primary)] text-white' : 'bg-white/5 text-zinc-400 hover:text-white'}`}
+        >
+          All rooms
+        </button>
+        <span className="text-[10px] text-zinc-600 ml-auto">
+          {filtered.length} room{filtered.length !== 1 ? 's' : ''}
+        </span>
+      </div>
+      {filtered.map(r => {
         const s = stateLabel(r.state);
         return (
           <div key={r.code} className="bg-[var(--surface)] rounded-xl border border-white/10 p-4 flex items-center gap-4 flex-wrap">
@@ -302,14 +306,14 @@ function RoomsTab() {
                 )}
               </div>
               <p className="text-[10px] text-zinc-600 mt-1 truncate">
-                {r.genres.join(', ') || 'no genres'}
+                {r.genres?.join(', ') || 'no genres'}
               </p>
             </div>
           </div>
         );
       })}
       {loading && <p className="text-zinc-500 text-center py-8">Loading...</p>}
-      {!loading && rooms.length === 0 && <p className="text-zinc-500 text-center py-8">No active rooms.</p>}
+      {!loading && filtered.length === 0 && <p className="text-zinc-500 text-center py-8">{showAll ? 'No rooms.' : 'No active rooms.'}</p>}
       {!loading && rooms.length > 0 && (
         <p className="text-[10px] text-zinc-600 text-center pt-2">Auto-refreshes every 10s</p>
       )}
@@ -363,10 +367,7 @@ function LeaderboardTab() {
             <p className="text-xs text-zinc-500">{e.games_played} games</p>
           </div>
           <span className="text-lg font-bold text-[var(--accent)]">{e.total_score}</span>
-          <button
-            onClick={() => handleWipe(e.id, e.username)}
-            className="px-3 py-1.5 bg-red-500/20 text-red-400 rounded-lg text-xs font-medium hover:bg-red-500/30 transition-colors shrink-0"
-          >
+          <button onClick={() => handleWipe(e.id, e.username)} className="px-3 py-1.5 bg-red-500/20 text-red-400 rounded-lg text-xs font-medium hover:bg-red-500/30 transition-colors shrink-0">
             Wipe
           </button>
         </div>
@@ -379,290 +380,250 @@ function LeaderboardTab() {
 
 const GENRES = [
   'pop', 'rock', 'hip-hop', 'r-n-b', 'electronic', 'jazz', 'classical',
-  'country', 'metal', 'indie', 'alternative', 'soul', 'funk', 'blues',
-  'reggae', 'punk', 'latin', 'dance', 'edm', 'acoustic',
+  'country', 'metal', 'indie', 'soul', 'blues', 'reggae', 'latin',
+  'dance', 'top-100',
 ];
 
-function StatusBadge({ ok }: { ok: boolean }) {
-  return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
-      ok ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
-    }`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${ok ? 'bg-green-400' : 'bg-red-400'}`} />
-      {ok ? 'PASS' : 'FAIL'}
-    </span>
-  );
-}
+const SOURCES = [
+  { id: 'deezer', label: 'Deezer', desc: 'Free, has rank data' },
+  { id: 'spotify', label: 'Spotify', desc: 'Requires API key' },
+];
 
 function ApiTab() {
   const [spotifyResult, setSpotifyResult] = useState<any>(null);
   const [spotifyLoading, setSpotifyLoading] = useState(false);
-  const [selectedGenre, setSelectedGenre] = useState(GENRES[0]);
-  const [genreResult, setGenreResult] = useState<any>(null);
-  const [genreLoading, setGenreLoading] = useState(false);
-  const [ytName, setYtName] = useState('');
-  const [ytArtist, setYtArtist] = useState('');
-  const [ytResult, setYtResult] = useState<any>(null);
-  const [ytLoading, setYtLoading] = useState(false);
   const [deezerResult, setDeezerResult] = useState<any>(null);
   const [deezerLoading, setDeezerLoading] = useState(false);
-  const [deezerGenreResult, setDeezerGenreResult] = useState<any>(null);
-  const [deezerGenreLoading, setDeezerGenreLoading] = useState(false);
-  const [deezerGenre, setDeezerGenre] = useState(GENRES[0]);
+  const [dbStatus, setDbStatus] = useState<any>(null);
 
-  const runSpotifyTest = async () => {
-    setSpotifyLoading(true);
-    setSpotifyResult(null);
-    try { setSpotifyResult(await testSpotify()); }
-    catch (e: any) { setSpotifyResult({ ok: false, error: e.message }); }
-    setSpotifyLoading(false);
+  const [genre, setGenre] = useState('pop');
+  const [count, setCount] = useState(50);
+  const [source, setSource] = useState('deezer');
+  const [results, setResults] = useState<any>(null);
+  const [testerLoading, setTesterLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const runConnectivity = (src: string) => {
+    if (src === 'spotify') {
+      setSpotifyLoading(true);
+      testSpotify().then(setSpotifyResult).catch(() => setSpotifyResult({ error: 'Request failed' })).finally(() => setSpotifyLoading(false));
+    } else {
+      setDeezerLoading(true);
+      testDeezer().then(setDeezerResult).catch(() => setDeezerResult({ error: 'Request failed' })).finally(() => setDeezerLoading(false));
+    }
   };
 
-  const runGenreTest = async () => {
-    setGenreLoading(true);
-    setGenreResult(null);
-    try { setGenreResult(await testGenre(selectedGenre)); }
-    catch (e: any) { setGenreResult({ ok: false, error: e.message }); }
-    setGenreLoading(false);
-  };
+  useEffect(() => { getDbStatus().then(setDbStatus).catch(() => {}); }, []);
 
-  const runYtTest = async () => {
-    setYtLoading(true);
-    setYtResult(null);
-    try { setYtResult(await testYouTube(ytName, ytArtist)); }
-    catch (e: any) { setYtResult({ ok: false, error: e.message }); }
-    setYtLoading(false);
-  };
-
-  const runDeezerTest = async () => {
-    setDeezerLoading(true);
-    setDeezerResult(null);
-    try { setDeezerResult(await testDeezer()); }
-    catch (e: any) { setDeezerResult({ error: e.message }); }
-    setDeezerLoading(false);
-  };
-
-  const runDeezerGenreTest = async () => {
-    setDeezerGenreLoading(true);
-    setDeezerGenreResult(null);
-    try { setDeezerGenreResult(await testDeezerGenre(deezerGenre)); }
-    catch (e: any) { setDeezerGenreResult({ ok: false, error: e.message }); }
-    setDeezerGenreLoading(false);
+  const runTester = async () => {
+    setTesterLoading(true);
+    setError('');
+    try {
+      const res = source === 'deezer'
+        ? await testDeezerGenre(genre, count)
+        : await testGenre(genre, count);
+      setResults(res);
+    } catch (err: any) {
+      setError(err.message || 'Test failed');
+    }
+    setTesterLoading(false);
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Spotify API Test */}
-      <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Spotify API</h2>
-          {spotifyResult && <StatusBadge ok={!!spotifyResult.ok} />}
-        </div>
-        <p className="text-sm text-zinc-500 mb-4">Tests connectivity by running endpoint checks against the Spotify Web API.</p>
-        <button
-          onClick={runSpotifyTest}
-          disabled={spotifyLoading}
-          className="px-4 py-2 bg-[var(--primary)]/20 text-[var(--primary)] rounded-lg text-sm font-medium hover:bg-[var(--primary)]/30 transition-colors disabled:opacity-50"
-        >
-          {spotifyLoading ? 'Testing...' : 'Run Spotify Tests'}
-        </button>
-        {spotifyResult && (
-          <div className="mt-4 bg-black/20 rounded-xl p-4 font-mono text-xs space-y-1 overflow-x-auto max-h-64 overflow-y-auto">
-            {Array.isArray(spotifyResult) ? spotifyResult.map((r: any, i: number) => (
-              <div key={i} className="flex gap-2">
-                <span className={r.ok ? 'text-green-400' : 'text-red-400'}>{r.ok ? '✓' : '✗'}</span>
-                <span className="text-zinc-400">{r.label}</span>
-                <span className="text-zinc-600">({r.status})</span>
-              </div>
-            )) : (
-              <p className="text-red-400">{spotifyResult.error || 'Unknown error'}</p>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Spotify Genre Track Fetch */}
-      <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Spotify Genre Fetch</h2>
-          {genreResult && <StatusBadge ok={!!genreResult.ok} />}
-        </div>
-        <p className="text-sm text-zinc-500 mb-4">Fetches sample tracks from Spotify for a genre and shows preview URL availability.</p>
-        <div className="flex gap-3 mb-4">
-          <select
-            value={selectedGenre}
-            onChange={e => setSelectedGenre(e.target.value)}
-            className="flex-1 bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-sm text-white"
-          >
-            {GENRES.map(g => (
-              <option key={g} value={g}>{g}</option>
-            ))}
-          </select>
-          <button
-            onClick={runGenreTest}
-            disabled={genreLoading}
-            className="px-4 py-2 bg-[var(--accent)]/20 text-[var(--accent)] rounded-lg text-sm font-medium hover:bg-[var(--accent)]/30 transition-colors disabled:opacity-50 shrink-0"
-          >
-            {genreLoading ? 'Fetching...' : 'Test Genre'}
-          </button>
-        </div>
-        {genreResult && (
-          <div className="bg-black/20 rounded-xl p-4 font-mono text-xs space-y-1 overflow-x-auto max-h-80 overflow-y-auto">
-            <p>
-              <span className="text-zinc-400">Tracks fetched: </span>
-              <span className="text-white">{genreResult.count || 0}</span>
-              {genreResult.tracks && (
-                <span className="text-zinc-500 ml-2">
-                  (previews: {genreResult.tracks.filter((t: any) => t.previewUrl).length})
-                </span>
-              )}
-            </p>
-            {genreResult.error && <p className="text-red-400">Error: {genreResult.error}</p>}
-            {genreResult.tracks && genreResult.tracks.length > 0 && (
-              <div className="mt-2 space-y-1">
-                <p className="text-zinc-400">Sample tracks:</p>
-                {genreResult.tracks.map((t: any, i: number) => (
-                  <p key={i} className="text-white/80">
-                    [{t.genre}] {t.name} — {t.artist}{' '}
-                    <span className={t.previewUrl ? 'text-green-400' : 'text-red-400'}>
-                      {t.previewUrl ? '(preview ✓)' : '(no preview)'}
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-[var(--surface)] rounded-xl border border-white/10 p-5">
+          <h3 className="text-xs text-zinc-500 uppercase tracking-wider mb-3">Spotify API</h3>
+          {spotifyResult ? (
+            <div className="space-y-1.5 text-[10px] font-mono">
+              {spotifyResult.error ? (
+                <p className="text-red-400">{spotifyResult.error}</p>
+              ) : (
+                spotifyResult.tests?.map((t: any, i: number) => (
+                  <div key={i} className="flex items-center justify-between">
+                    <span className="text-zinc-500">{t.name}</span>
+                    <span className={t.ok ? 'text-green-400' : 'text-red-400'}>
+                      {t.ok ? `${t.status} ✓` : `${t.status} ✗`}
                     </span>
-                  </p>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* YouTube Search Test */}
-      <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">YouTube Search</h2>
-          {ytResult && <StatusBadge ok={!!(ytResult.ok && ytResult.videoId)} />}
-        </div>
-        <p className="text-sm text-zinc-500 mb-4">Tests YouTube Data API quota and search functionality.</p>
-        <div className="flex flex-col sm:flex-row gap-3 mb-4">
-          <input
-            value={ytName}
-            onChange={e => setYtName(e.target.value)}
-            placeholder="Track name"
-            className="flex-1 bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-zinc-500"
-          />
-          <input
-            value={ytArtist}
-            onChange={e => setYtArtist(e.target.value)}
-            placeholder="Artist"
-            className="flex-1 bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-zinc-500"
-          />
+                  </div>
+                ))
+              )}
+            </div>
+          ) : (
+            <p className="text-[10px] text-zinc-600">Not tested</p>
+          )}
           <button
-            onClick={runYtTest}
-            disabled={ytLoading || !ytName || !ytArtist}
-            className="px-4 py-2 bg-[var(--primary)]/20 text-[var(--primary)] rounded-lg text-sm font-medium hover:bg-[var(--primary)]/30 transition-colors disabled:opacity-50 shrink-0"
+            onClick={() => runConnectivity('spotify')}
+            disabled={spotifyLoading}
+            className="mt-3 w-full px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white text-xs rounded-lg border border-white/10 transition-colors disabled:opacity-50"
           >
-            {ytLoading ? 'Searching...' : 'Test'}
+            {spotifyLoading ? 'Testing...' : 'Test Spotify'}
           </button>
         </div>
-        {ytResult && (
-          <div className="bg-black/20 rounded-xl p-4 font-mono text-xs space-y-1 overflow-x-auto">
-            {ytResult.videoId
-              ? <p>Video ID: <span className="text-green-400">{ytResult.videoId}</span></p>
-              : <p className="text-red-400">No video found</p>
-            }
-            {ytResult.error && <p className="text-red-400">Error: {ytResult.error}</p>}
-          </div>
-        )}
-      </div>
 
-      {/* Deezer API Connectivity */}
-      <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Deezer API Connectivity</h2>
-          {deezerResult && !deezerResult.error && (
-            <StatusBadge ok={deezerResult.every((r: any) => r.ok)} />
+        <div className="bg-[var(--surface)] rounded-xl border border-white/10 p-5">
+          <h3 className="text-xs text-zinc-500 uppercase tracking-wider mb-3">Deezer API</h3>
+          {deezerResult ? (
+            <div className="space-y-1.5 text-[10px] font-mono">
+              {deezerResult.error ? (
+                <p className="text-red-400">{deezerResult.error}</p>
+              ) : (
+                deezerResult.tests?.map((t: any, i: number) => (
+                  <div key={i} className="flex items-center justify-between">
+                    <span className="text-zinc-500">{t.endpoint}</span>
+                    <span className={t.ok ? 'text-green-400' : 'text-red-400'}>
+                      {t.ok ? `${t.latencyMs}ms ✓` : '✗'}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+          ) : (
+            <p className="text-[10px] text-zinc-600">Not tested</p>
+          )}
+          <button
+            onClick={() => runConnectivity('deezer')}
+            disabled={deezerLoading}
+            className="mt-3 w-full px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white text-xs rounded-lg border border-white/10 transition-colors disabled:opacity-50"
+          >
+            {deezerLoading ? 'Testing...' : 'Test Deezer'}
+          </button>
+        </div>
+
+        <div className="bg-[var(--surface)] rounded-xl border border-white/10 p-5">
+          <h3 className="text-xs text-zinc-500 uppercase tracking-wider mb-3">Database</h3>
+          {dbStatus ? (
+            dbStatus.ok ? (
+              <div className="space-y-1.5 text-[10px]">
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-500">Type</span>
+                  <span>{dbStatus.isPostgres ? 'Postgres' : 'SQLite'}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-500">Status</span>
+                  <span className={dbStatus.hasData ? 'text-green-400' : 'text-yellow-400'}>
+                    {dbStatus.hasData ? 'Has data' : 'Empty'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-500">Users</span>
+                  <span>{dbStatus.tables?.users ?? 0}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-500">Scores</span>
+                  <span>{dbStatus.tables?.game_scores ?? 0}</span>
+                </div>
+              </div>
+            ) : (
+              <p className="text-[10px] text-red-400">{dbStatus.error || 'Failed'}</p>
+            )
+          ) : (
+            <p className="text-[10px] text-zinc-600">Checking...</p>
           )}
         </div>
-        <p className="text-sm text-zinc-500 mb-4">Tests Deezer API endpoints — free, no auth required. Genre list, search, and artist tracks.</p>
-        <button
-          onClick={runDeezerTest}
-          disabled={deezerLoading}
-          className="px-4 py-2 bg-[var(--accent)]/20 text-[var(--accent)] rounded-lg text-sm font-medium hover:bg-[var(--accent)]/30 transition-colors disabled:opacity-50"
-        >
-          {deezerLoading ? 'Testing...' : 'Run Deezer Tests'}
-        </button>
-        {deezerResult && (
-          <div className="mt-4 bg-black/20 rounded-xl p-4 font-mono text-xs space-y-1 overflow-x-auto max-h-64 overflow-y-auto">
-            {Array.isArray(deezerResult) ? deezerResult.map((r: any, i: number) => (
-              <div key={i} className="flex gap-2 items-center">
-                <span className={r.ok ? 'text-green-400' : 'text-red-400'}>{r.ok ? '✓' : '✗'}</span>
-                <span className="text-zinc-300">{r.label}</span>
-                <span className="text-zinc-600">({r.status})</span>
-                {r.ms != null && <span className="text-zinc-500">{r.ms}ms</span>}
-                {r.error && <span className="text-red-400">{r.error}</span>}
-              </div>
-            )) : (
-              <p className="text-red-400">{deezerResult.error || 'Unknown error'}</p>
-            )}
-          </div>
-        )}
       </div>
 
-      {/* Deezer Genre Track Fetch */}
       <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Deezer Genre Fetch</h2>
-          {deezerGenreResult && <StatusBadge ok={!!(deezerGenreResult.ok && deezerGenreResult.count > 0)} />}
-        </div>
-        <p className="text-sm text-zinc-500 mb-4">Fetches 10 tracks for a genre via Deezer (keyword search + artist top tracks). Reports preview URL availability.</p>
-        <div className="flex gap-3 mb-4">
-          <select
-            value={deezerGenre}
-            onChange={e => setDeezerGenre(e.target.value)}
-            className="flex-1 bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-sm text-white"
-          >
-            {GENRES.map(g => (
-              <option key={g} value={g}>{g}</option>
-            ))}
-          </select>
+        <h2 className="text-sm font-semibold mb-4">Genre Tester</h2>
+        <p className="text-xs text-zinc-500 mb-4">Fetches tracks from live APIs and shows rank/popularity data.</p>
+
+        <div className="flex flex-wrap items-end gap-3 mb-5">
+          <div>
+            <label className="text-[10px] text-zinc-500 block mb-1">Source</label>
+            <div className="flex gap-1">
+              {SOURCES.map(s => (
+                <button
+                  key={s.id}
+                  onClick={() => { setSource(s.id); setResults(null); }}
+                  className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${
+                    source === s.id ? 'bg-[var(--primary)] text-white' : 'bg-white/5 text-zinc-400 hover:text-white border border-white/10'
+                  }`}
+                  title={s.desc}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="text-[10px] text-zinc-500 block mb-1">Genre</label>
+            <select
+              value={genre}
+              onChange={e => { setGenre(e.target.value); setResults(null); }}
+              className="bg-[var(--surface)] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white"
+            >
+              {GENRES.map(g => (
+                <option key={g} value={g}>{g}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="text-[10px] text-zinc-500 block mb-1">Count</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="range" min={5} max={200} value={count}
+                onChange={e => { setCount(Number(e.target.value)); setResults(null); }}
+                className="w-20 accent-[var(--primary)] h-1"
+              />
+              <span className="text-xs text-zinc-400 tabular-nums w-8">{count}</span>
+            </div>
+          </div>
           <button
-            onClick={runDeezerGenreTest}
-            disabled={deezerGenreLoading}
-            className="px-4 py-2 bg-[var(--accent)]/20 text-[var(--accent)] rounded-lg text-sm font-medium hover:bg-[var(--accent)]/30 transition-colors disabled:opacity-50 shrink-0"
+            onClick={runTester}
+            disabled={testerLoading}
+            className="px-4 py-1.5 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
           >
-            {deezerGenreLoading ? 'Fetching...' : 'Test Deezer'}
+            {testerLoading ? 'Fetching...' : 'Fetch'}
           </button>
         </div>
-        {deezerGenreResult && (
-          <div className="bg-black/20 rounded-xl p-4 font-mono text-xs space-y-1 overflow-x-auto max-h-80 overflow-y-auto">
-            <p>
-              <span className="text-zinc-400">Tracks fetched: </span>
-              <span className="text-white">{deezerGenreResult.count || 0}</span>
-              {deezerGenreResult.previewCount != null && (
-                <span className="text-green-400 ml-2">
-                  ({deezerGenreResult.previewCount} with preview)
-                </span>
+
+        {error && (
+          <p className="text-red-400 text-xs mb-3">{error}</p>
+        )}
+
+        {results && (
+          <div>
+            <div className="flex items-center gap-4 mb-3 text-[10px]">
+              <span className="text-zinc-500">{results.count ?? results.tracks?.length} tracks</span>
+              {results.previewCount != null && (
+                <span className="text-green-400">{results.previewCount} with preview</span>
               )}
-              {deezerGenreResult.ms != null && (
-                <span className="text-zinc-500 ml-2">{deezerGenreResult.ms}ms</span>
+              {results.latencyMs != null && (
+                <span className="text-zinc-600">{results.latencyMs}ms</span>
               )}
-            </p>
-            {deezerGenreResult.error && <p className="text-red-400">Error: {deezerGenreResult.error}</p>}
-            {deezerGenreResult.tracks && deezerGenreResult.tracks.length > 0 && (
-              <div className="mt-2 space-y-1">
-                <p className="text-zinc-400">Sample tracks:</p>
-                {deezerGenreResult.tracks.map((t: any, i: number) => (
-                  <p key={i} className="text-white/80">
-                    {t.name} — {t.artist}
-                    {' '}
-                    <span className="text-zinc-500">({(t.durationMs / 1000).toFixed(0)}s)</span>
-                    {' '}
-                    <span className={t.previewUrl ? 'text-green-400' : 'text-red-400'}>
-                      {t.previewUrl ? '(preview ✓)' : '(no preview)'}
-                    </span>
-                  </p>
-                ))}
-              </div>
-            )}
+            </div>
+            <div className="overflow-y-auto max-h-[60vh]">
+              <table className="w-full text-[10px]">
+                <thead className="sticky top-0 bg-[var(--surface)]">
+                  <tr className="text-zinc-500 border-b border-white/10">
+                    <th className="text-right py-2 pr-2 w-10">#</th>
+                    <th className="text-left py-2 px-2">Track</th>
+                    <th className="text-left py-2 px-2 hidden md:table-cell">Artist</th>
+                    <th className="text-center py-2 px-2 w-14">Preview</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(results.tracks || []).map((t: any, i: number) => (
+                    <tr key={i} className={`border-b border-white/5 hover:bg-white/[0.02] ${
+                      t.rank >= 1000000 ? 'bg-purple-500/5' : t.rank >= 100000 ? 'bg-blue-500/5' : t.rank >= 10000 ? 'bg-cyan-500/5' : ''
+                    }`}>
+                      <td className="py-1.5 pr-2 text-right tabular-nums">
+                        <span className={
+                          t.rank >= 1000000 ? 'text-purple-400' : t.rank >= 100000 ? 'text-blue-400' : t.rank >= 10000 ? 'text-cyan-400' : 'text-zinc-500'
+                        }>
+                          {t.rank > 0 ? `#${t.rank.toLocaleString()}` : '-'}
+                        </span>
+                      </td>
+                      <td className="py-1.5 px-2 truncate max-w-[200px] text-zinc-300">{t.name}</td>
+                      <td className="py-1.5 px-2 truncate max-w-[200px] hidden md:table-cell text-zinc-500">{t.artist}</td>
+                      <td className="py-1.5 px-2 text-center">
+                        <span className={`w-1.5 h-1.5 rounded-full inline-block ${t.previewUrl ? 'bg-green-400' : 'bg-zinc-600'}`} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>

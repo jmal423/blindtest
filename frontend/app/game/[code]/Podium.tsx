@@ -105,7 +105,7 @@ export default function Podium({ rankings, playerId, code, onPlayAgain }: Podium
         transition={{ delay: 0.5 }}
         className="w-full max-w-sm space-y-3"
       >
-        <p className="text-xs text-zinc-500 uppercase tracking-wider text-center">XP Earned</p>
+        <p className="text-xs text-zinc-500 uppercase tracking-wider text-center">{t('xp_earned')}</p>
         {rankings.map(r => {
           const baseXp = r.score * 10;
           const placementXp = r.rank === 1 ? 500 : r.rank === 2 ? 250 : 0;
@@ -124,10 +124,10 @@ export default function Podium({ rankings, playerId, code, onPlayAgain }: Podium
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold truncate">{r.name}</p>
                 <p className="text-[11px] text-zinc-500">
-                  {baseXp} base {placementXp > 0 ? `+ ${placementXp} placement` : ''}
+                  {baseXp} {t('base_xp')} {placementXp > 0 ? `+ ${placementXp} ${t('placement_xp')}` : ''}
                 </p>
               </div>
-              <span className="text-sm font-bold text-[var(--accent)]">{r.xp} XP</span>
+              <span className="text-sm font-bold text-[var(--accent)]">{r.xp} {t('xp_label')}</span>
             </div>
           );
         })}

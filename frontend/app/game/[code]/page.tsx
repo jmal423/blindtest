@@ -231,7 +231,7 @@ export default function GamePage({
     });
 
     socket.on('connect_error', () => {
-      setError('Lost connection to server');
+      setError(t('lost_connection'));
     });
 
     socket.on('kicked', (data: { reason: string }) => {
@@ -251,7 +251,7 @@ export default function GamePage({
     try {
       await startGame(code, playerId);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to start');
+      setError(err instanceof Error ? err.message : t('failed_to_start'));
     } finally {
       setStartLoading(false);
     }
@@ -261,7 +261,7 @@ export default function GamePage({
     try {
       await updateSettings(code, playerId, settings);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Settings update failed');
+      setError(err instanceof Error ? err.message : t('settings_update_failed'));
     }
   }, [code, playerId]);
 
@@ -269,7 +269,7 @@ export default function GamePage({
     try {
       await updateSettings(code, playerId, { genres });
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Genre update failed');
+      setError(err instanceof Error ? err.message : t('genre_update_failed'));
     }
   }, [code, playerId]);
 
@@ -293,7 +293,7 @@ export default function GamePage({
   if (!playerId) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <p className="text-zinc-400 text-lg">Connecting...</p>
+        <p className="text-zinc-400 text-lg">{t('connecting')}</p>
       </div>
     );
   }
@@ -304,7 +304,7 @@ export default function GamePage({
         <p className="text-red-400 text-lg">{error}</p>
         <p className="text-zinc-500 text-sm">Server: {process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}</p>
         <button onClick={() => router.push('/')} className="px-6 py-3 bg-[var(--primary)] text-white rounded-xl">
-          Back Home
+          {t('back_home')}
         </button>
       </div>
     );
@@ -313,7 +313,7 @@ export default function GamePage({
   if (!gameState) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <p className="text-zinc-400 text-lg">Connecting to game...</p>
+        <p className="text-zinc-400 text-lg">{t('connecting_to_game')}</p>
       </div>
     );
   }
@@ -327,7 +327,7 @@ export default function GamePage({
             onClick={() => { navigator.clipboard.writeText(code); }}
             className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-zinc-500 hover:text-zinc-300 transition-colors"
           >
-            Copy
+            {t('copy')}
           </button>
           {gameState.state === 'waiting' && (
             <div className="hidden md:flex items-center gap-2 text-[11px] text-zinc-500">
@@ -380,7 +380,7 @@ export default function GamePage({
                 onClick={() => setChatOpen(o => !o)}
                 className="md:hidden text-[10px] px-2 py-0.5 rounded bg-white/5 text-zinc-400 hover:text-zinc-300 transition-colors"
               >
-                {chatOpen ? 'Hide Chat' : 'Chat'}
+                {chatOpen ? t('hide_chat') : t('chat')}
               </button>
             </>
           )}
@@ -390,7 +390,7 @@ export default function GamePage({
       <div className="flex gap-4 md:gap-6">
         {gameState.state !== 'waiting' && gameState.state !== 'game_over' && ((gameState as any)?.trackHistory?.length > 0) && (
           <div className="hidden md:flex flex-col w-48 shrink-0">
-            <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">History</p>
+            <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">{t('history_label')}</p>
             <div className="flex-1 overflow-y-auto space-y-1">
               {((gameState as any)?.trackHistory || []).map((t: any) => (
                 <div
@@ -404,7 +404,9 @@ export default function GamePage({
                   )}
                   <div className="min-w-0 flex-1">
                     <p className="font-medium truncate leading-tight">{t.name}</p>
-                    <p className="text-zinc-500 truncate leading-tight">{t.artist}</p>
+                    <p className="text-zinc-500 truncate leading-tight">
+                      {t.artist}{t.rank > 0 ? ` · #${t.rank.toLocaleString()}` : ''}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -1067,7 +1069,7 @@ function MiniViz({ progress }: { progress: number }) {
   }, []);
   const bars = 32;
   return (
-    <div className="flex items-end justify-center gap-[2px] h-12 w-full">
+    <div className="flex items-end justify-center gap-[1px] h-12 w-full">
       {Array.from({ length: bars }).map((_, i) => {
         const barPct = (i / bars) * 100;
         const active = barPct <= pct;
@@ -1077,7 +1079,7 @@ function MiniViz({ progress }: { progress: number }) {
         return (
           <div
             key={i}
-            className="w-[3px] rounded-t-sm flex-shrink-0"
+            className="flex-1 min-w-[2px] rounded-t-sm"
             style={{
               height: `${h}%`,
               background: active

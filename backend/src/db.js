@@ -133,6 +133,12 @@ async function init() {
 
 await init();
 
+if (process.env.DATABASE_URL) {
+  console.log(`[DB] PostgreSQL connected: ${process.env.DATABASE_URL.replace(/\/\/.*@/, '//***@')}`);
+} else {
+  console.log(`[DB] SQLite connected: ${DB_PATH}`);
+}
+
 async function query(sql, params = []) {
   if (process.env.DATABASE_URL) {
     let i = 0;

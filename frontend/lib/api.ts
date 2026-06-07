@@ -20,7 +20,7 @@ export type GameState =
 export interface Player { id: string; name: string; score: number; avatarUrl?: string | null; role?: string; foundArtist?: boolean; foundTitle?: boolean; foundBoth?: boolean }
 export interface RoundResult { round: number; correctAnswer: string; artist: string; albumImage: string }
 export interface Ranking { rank: number; name: string; score: number; xp: number; answers?: any[] }
-export interface TrackEntry { round: number; name: string; artist: string; albumImage?: string }
+export interface TrackEntry { round: number; name: string; artist: string; albumImage?: string; rank?: number }
 
 export async function fetchGenres(): Promise<{ id: string; label: string }[]> {
   const res = await fetch(`${API_URL}/api/genres`);
@@ -239,11 +239,11 @@ export async function testSpotify(): Promise<{ ok: boolean; status?: number; cat
   return fetchWithAuth(`${API_URL}/api/admin/test/spotify`, { method: 'POST' });
 }
 
-export async function testGenre(genre: string): Promise<{ ok: boolean; count: number; tracks: { name: string; artist: string; previewUrl: boolean; genre: string }[]; error?: string }> {
+export async function testGenre(genre: string, count: number = 5): Promise<{ ok: boolean; count: number; tracks: { name: string; artist: string; previewUrl: boolean; genre: string }[]; error?: string }> {
   return fetchWithAuth(`${API_URL}/api/admin/test/genre`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ genre }),
+    body: JSON.stringify({ genre, count }),
   });
 }
 
@@ -275,11 +275,11 @@ export async function testDeezer(): Promise<{ label: string; status: number | st
   return fetchWithAuth(`${API_URL}/api/admin/test/deezer`, { method: 'POST' });
 }
 
-export async function testDeezerGenre(genre: string): Promise<{ ok: boolean; count: number; previewCount: number; durationMs: number; ms: number; tracks: { name: string; artist: string; previewUrl: boolean; durationMs: number; id: string }[]; error?: string }> {
+export async function testDeezerGenre(genre: string, count: number = 10): Promise<{ ok: boolean; count: number; previewCount: number; latencyMs: number; tracks: { name: string; artist: string; previewUrl: boolean; durationMs: number; id: string; rank: number }[]; error?: string }> {
   return fetchWithAuth(`${API_URL}/api/admin/test/deezer/genre`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ genre }),
+    body: JSON.stringify({ genre, count }),
   });
 }
 

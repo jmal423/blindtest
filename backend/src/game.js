@@ -550,6 +550,7 @@ export class GameRoom {
       name: track.name,
       artist: track.artist,
       albumImage: track.albumImage,
+      rank: track.rank ?? 0,
     });
     this.state = 'round_result';
     this.roundResult = {
@@ -557,6 +558,7 @@ export class GameRoom {
       correctAnswer: track.name,
       artist: track.artist,
       albumImage: track.albumImage,
+      rank: track.rank ?? 0,
     };
     this.broadcast();
 
@@ -647,6 +649,8 @@ export class GameRoom {
         provenance: `${source} → ${track.youtubeVideoId ? 'YouTube Audio' : 'Preview Audio'}`,
         durationMs: track.durationMs || 30000,
         targetOffset: this.audioOffset,
+        rank: track.rank ?? 0,
+        genre: track.genre,
       };
     };
 

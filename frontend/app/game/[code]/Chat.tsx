@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { Socket } from 'socket.io-client';
+import { useTranslation } from '@/lib/useTranslation';
 
 interface ChatMessage {
   isSystem?: boolean;
@@ -13,6 +14,7 @@ interface ChatMessage {
 const PLAYER_COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#06b6d4', '#8b5cf6', '#84cc16'];
 
 export default function Chat({ socket }: { socket: Socket | null }) {
+  const { t } = useTranslation();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -52,12 +54,12 @@ export default function Chat({ socket }: { socket: Socket | null }) {
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center gap-2 mb-2 px-1">
-        <span className="text-[11px] text-zinc-400 font-semibold uppercase tracking-wider">Chat</span>
+        <span className="text-[11px] text-zinc-400 font-semibold uppercase tracking-wider">{t('chat_title')}</span>
         <span className="text-[10px] text-zinc-600">{messages.length}</span>
       </div>
       <div className="flex-1 overflow-y-auto space-y-1.5 min-h-0 pr-1 scrollbar-thin">
         {messages.length === 0 && (
-          <p className="text-[11px] text-zinc-600 italic text-center py-4">No messages yet...</p>
+          <p className="text-[11px] text-zinc-600 italic text-center py-4">{t('no_messages')}</p>
         )}
         {messages.map((m, i) => (
           m.isSystem ? (
@@ -79,7 +81,7 @@ export default function Chat({ socket }: { socket: Socket | null }) {
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && send()}
-          placeholder="Message..."
+          placeholder={t('message_placeholder')}
           maxLength={200}
           className="flex-1 px-3 py-1.5 text-[11px] bg-white/5 border border-white/10 rounded-lg text-white placeholder-zinc-600 focus:outline-none focus:border-[var(--primary)]/50 transition-colors"
         />
@@ -88,7 +90,7 @@ export default function Chat({ socket }: { socket: Socket | null }) {
           disabled={!input.trim()}
           className="px-2.5 py-1.5 text-[11px] bg-[var(--primary)] hover:bg-[var(--primary-hover)] disabled:opacity-30 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
         >
-          Send
+          {t('send_btn')}
         </button>
       </div>
     </div>

@@ -59,7 +59,7 @@ function Gatekeeper() {
   const handleGuest = async () => {
     const trimmedName = guestName.trim();
     if (!trimmedName) {
-      setGuestError('Please enter a name');
+      setGuestError(t('please_enter_name'));
       return;
     }
     setGuestLoading(true);
@@ -106,7 +106,7 @@ function Gatekeeper() {
             <div className="w-full border-t border-white/10" />
           </div>
           <div className="relative flex justify-center">
-            <span className="bg-[var(--bg)] px-4 text-sm text-zinc-500">or</span>
+            <span className="bg-[var(--bg)] px-4 text-sm text-zinc-500">{t('or_separator')}</span>
           </div>
         </div>
 
@@ -114,7 +114,7 @@ function Gatekeeper() {
           <input
             value={guestName}
             onChange={e => setGuestName(e.target.value)}
-            placeholder="Your name"
+            placeholder={t('your_name_placeholder')}
             maxLength={20}
             className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl text-white placeholder-zinc-500 text-center focus:outline-none focus:border-[var(--primary)] transition-colors"
           />
@@ -123,7 +123,7 @@ function Gatekeeper() {
             disabled={guestLoading || !guestName.trim()}
             className="w-full px-6 py-3 bg-zinc-600/30 hover:bg-zinc-600/50 disabled:opacity-50 text-white font-semibold rounded-xl border border-white/10 transition-colors"
           >
-            {guestLoading ? 'Logging in...' : t('guest_button')}
+            {guestLoading ? t('logging_in') : t('guest_button')}
           </button>
           {guestError && <p className="text-red-400 text-xs text-center">{guestError}</p>}
         </div>
@@ -150,13 +150,13 @@ function Dashboard({ user }: { user: any }) {
       localStorage.setItem('blindtest_name', user.username);
       router.push(`/game/${code}`);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      setError(err instanceof Error ? err.message : t('something_went_wrong'));
       setLoading(false);
     }
   };
 
   const handleJoin = async () => {
-    if (!joinCode.trim()) { setError('Enter a room code'); return; }
+    if (!joinCode.trim()) { setError(t('enter_room_code')); return; }
     setLoading(true);
     setError('');
     try {
@@ -165,7 +165,7 @@ function Dashboard({ user }: { user: any }) {
       localStorage.setItem('blindtest_name', user.username);
       router.push(`/game/${roomCode}`);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      setError(err instanceof Error ? err.message : t('something_went_wrong'));
       setLoading(false);
     }
   };
@@ -254,7 +254,7 @@ function Dashboard({ user }: { user: any }) {
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
-          {loading ? 'Creating...' : t('create_lobby')}
+          {loading ? t('creating') : t('create_lobby')}
         </button>
 
         <div className="relative">
@@ -262,7 +262,7 @@ function Dashboard({ user }: { user: any }) {
             <div className="w-full border-t border-white/10" />
           </div>
           <div className="relative flex justify-center">
-            <span className="bg-[var(--bg)] px-4 text-sm text-zinc-500">or join</span>
+            <span className="bg-[var(--bg)] px-4 text-sm text-zinc-500">{t('or_join')}</span>
           </div>
         </div>
 
@@ -271,7 +271,7 @@ function Dashboard({ user }: { user: any }) {
             type="text"
             value={joinCode}
             onChange={e => setJoinCode(e.target.value.toUpperCase())}
-            placeholder="Room code"
+            placeholder={t('room_code_placeholder')}
             maxLength={4}
             className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl text-white placeholder-zinc-500 text-center text-xl font-bold tracking-[0.3em] focus:outline-none focus:border-[var(--primary)] transition-colors uppercase"
           />
@@ -280,7 +280,7 @@ function Dashboard({ user }: { user: any }) {
             disabled={loading || !joinCode.trim()}
             className="w-full px-6 py-3 bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white font-semibold rounded-xl border border-white/10 transition-colors"
           >
-            {loading ? 'Joining...' : t('join_lobby')}
+            {loading ? t('joining') : t('join_lobby')}
           </button>
         </div>
 

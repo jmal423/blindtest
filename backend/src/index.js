@@ -496,11 +496,11 @@ app.post('/api/admin/test/spotify', requireAdmin, async (req, res) => {
 });
 
 app.post('/api/admin/test/genre', requireAdmin, async (req, res) => {
-  const { genre } = req.body;
+  const { genre, count } = req.body;
   if (!genre) return res.status(400).json({ error: 'Genre required' });
   try {
     const { getTracksByGenre } = await import('./spotify.js');
-    const tracks = await getTracksByGenre(genre, 5);
+    const tracks = await getTracksByGenre(genre, count || 5);
     res.json({
       ok: true,
       count: tracks.length,
@@ -592,25 +592,25 @@ app.post('/api/admin/test/deezer', requireAdmin, async (req, res) => {
 });
 
 app.post('/api/admin/test/deezer/genre', requireAdmin, async (req, res) => {
-  const { genre } = req.body;
+  const { genre, count } = req.body;
   if (!genre) return res.status(400).json({ error: 'Genre required' });
   try {
     const { getTracksByGenre } = await import('./deezer.js');
     const start = Date.now();
-    const tracks = await getTracksByGenre(genre, 10);
+    const tracks = await getTracksByGenre(genre, count || 10);
     const ms = Date.now() - start;
     res.json({
       ok: true,
       count: tracks.length,
       previewCount: tracks.filter(t => t.previewUrl).length,
-      durationMs: tracks[0]?.durationMs || 0,
-      ms,
+      latencyMs: ms,
       tracks: tracks.map(t => ({
         name: t.name,
         artist: t.artist,
         previewUrl: !!t.previewUrl,
         durationMs: t.durationMs,
         id: t.id,
+        rank: t.rank || 0,
       })),
     });
   } catch (err) {
