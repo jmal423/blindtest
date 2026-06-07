@@ -87,6 +87,7 @@ export class GameRoom {
     this.state = 'waiting';
     this.currentRound = 0;
     this.totalRounds = 0;
+    this.tracksPlayed = 0;
     this.roundStartTime = null;
     this.roundTimer = null;
     this.countdownTimer = null;
@@ -187,8 +188,8 @@ export class GameRoom {
       }
     }
 
-    this.tracks = shuffle(allTracks).slice(0, this.settings.rounds);
-    this.totalRounds = this.tracks.length;
+    this.tracks = shuffle(allTracks).slice(0, this.settings.rounds * 3);
+    this.totalRounds = this.settings.rounds;
 
     if (this.tracks.length === 0) {
       return lastError || 'No tracks found';
@@ -201,27 +202,41 @@ export class GameRoom {
   }
 
   async startRound() {
-    if (this.currentRound >= this.tracks.length) {
+    while (this.currentRound < this.tracks.length && this.tracksPlayed < this.totalRounds) {
+      const track = this.tracks[this.currentRound];
+      if (!track.youtubeVideoId) {
+        try {
+          const { searchYouTubeVideo } = await import('./youtube.js');
+          track.youtubeVideoId = await searchYouTubeVideo(track.name, track.artist);
+        } catch (err) {
+          console.error(`[YouTube] Failed to fetch video for "${track.artist} - ${track.name}":`, err.message);
+        }
+      }
+
+      if (track.youtubeVideoId) {
+        break;
+      }
+
+      console.warn(`Skipping track "${track.artist} - ${track.name}" - no YouTube video`);
+      this.currentRound++;
+    }
+
+    if (this.currentRound >= this.tracks.length || this.tracksPlayed >= this.totalRounds) {
       this.endGame();
       return;
     }
 
     const track = this.tracks[this.currentRound];
-    if (!track.youtubeVideoId) {
-      try {
-        const { searchYouTubeVideo } = await import('./youtube.js');
-        track.youtubeVideoId = await searchYouTubeVideo(track.name, track.artist);
-      } catch (err) {
-        console.error(`[YouTube] Failed to fetch video for "${track.artist} - ${track.name}":`, err.message);
-      }
-    }
 
-    const nextTrack = this.tracks[this.currentRound + 1];
-    if (nextTrack && !nextTrack.youtubeVideoId) {
-      const { searchYouTubeVideo } = await import('./youtube.js');
-      searchYouTubeVideo(nextTrack.name, nextTrack.artist)
-        .then(id => { nextTrack.youtubeVideoId = id; })
-        .catch(() => {});
+    const nextIdx = this.currentRound + 1;
+    if (nextIdx < this.tracks.length) {
+      const nextTrack = this.tracks[nextIdx];
+      if (nextTrack && !nextTrack.youtubeVideoId) {
+        const { searchYouTubeVideo } = await import('./youtube.js');
+        searchYouTubeVideo(nextTrack.name, nextTrack.artist)
+          .then(id => { nextTrack.youtubeVideoId = id; })
+          .catch(() => {});
+      }
     }
 
     this.foundOrder = [];
@@ -365,18 +380,8 @@ export class GameRoom {
     if (this.state !== 'round_preparing' && this.state !== 'playing') return;
     this.clearPlayingInterval();
 
-    const track = this.tracks[this.currentRound];
-    if (track && track.name && track.artist) {
-      this.trackHistory.push({
-        round: this.currentRound + 1,
-        name: track.name,
-        artist: track.artist,
-        albumImage: track.albumImage || null,
-      });
-    }
-
     this.currentRound++;
-    if (this.currentRound >= this.tracks.length) {
+    if (this.currentRound >= this.tracks.length || this.tracksPlayed >= this.totalRounds) {
       this.endGame();
     } else {
       this.startRound();
@@ -398,15 +403,16 @@ export class GameRoom {
     });
 
     const track = this.tracks[this.currentRound];
+    this.tracksPlayed++;
     this.trackHistory.push({
-      round: this.currentRound + 1,
+      round: this.tracksPlayed,
       name: track.name,
       artist: track.artist,
       albumImage: track.albumImage,
     });
     this.state = 'round_result';
     this.roundResult = {
-      round: this.currentRound + 1,
+      round: this.tracksPlayed,
       correctAnswer: track.name,
       artist: track.artist,
       albumImage: track.albumImage,
@@ -416,7 +422,7 @@ export class GameRoom {
     this.pauseStartTime = Date.now();
     this.pauseTimer = setTimeout(() => {
       this.currentRound++;
-      if (this.currentRound >= this.tracks.length) {
+      if (this.currentRound >= this.tracks.length || this.tracksPlayed >= this.totalRounds) {
         this.endGame();
       } else {
         this.startRound();
@@ -540,6 +546,7 @@ export class GameRoom {
     this.trackHistory = [];
     this.currentRound = 0;
     this.totalRounds = 0;
+    this.tracksPlayed = 0;
     this.state = 'waiting';
     this.foundOrder = [];
     this.roundResult = null;
