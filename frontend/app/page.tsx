@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
-import { getMe, getToken, getDiscordAuthUrl, getLeaderboard, createRoom, joinRoom, fetchGenres } from '@/lib/api';
+import { getMe, getToken, getDiscordAuthUrl, createRoom, joinRoom } from '@/lib/api';
 
 export default function Home() {
   const router = useRouter();
@@ -67,25 +67,15 @@ export default function Home() {
 
 function Dashboard({ user }: { user: any }) {
   const router = useRouter();
-  const [leaderboard, setLeaderboard] = useState<any[]>([]);
-  const [allGenres, setAllGenres] = useState<{ id: string; label: string }[]>([]);
-  const [createGenres, setCreateGenres] = useState<string[]>([]);
-  const [createRounds, setCreateRounds] = useState(10);
-  const [createTime, setCreateTime] = useState(15);
   const [joinCode, setJoinCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    getLeaderboard().then(setLeaderboard).catch(() => {});
-    fetchGenres().then(setAllGenres).catch(() => {});
-  }, []);
 
   const handleCreate = async () => {
     setLoading(true);
     setError('');
     try {
-      const { code, playerId } = await createRoom(user.username, createGenres, user.avatar_url, user.role);
+      const { code, playerId } = await createRoom(user.username, [], user.avatar_url, user.role);
       localStorage.setItem(`blindtest_player_${code}`, playerId);
       router.push(`/game/${code}`);
     } catch (err: unknown) {
@@ -108,169 +98,57 @@ function Dashboard({ user }: { user: any }) {
     }
   };
 
-  const toggleGenre = (id: string) => {
-    const set = new Set(createGenres);
-    if (set.has(id)) set.delete(id);
-    else set.add(id);
-    setCreateGenres(Array.from(set));
-  };
-
   return (
-    <div className="flex-1 p-4 md:p-8 max-w-6xl mx-auto w-full">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="lg:col-span-2 space-y-6"
+    <div className="flex-1 flex items-center justify-center p-4 md:p-8">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-lg space-y-4"
+      >
+        <button
+          onClick={handleCreate}
+          disabled={loading}
+          className="w-full py-8 bg-[var(--surface)] hover:bg-[var(--primary)]/10 border-2 border-dashed border-white/20 hover:border-[var(--primary)]/50 text-white font-bold text-xl rounded-2xl transition-all duration-200 flex items-center justify-center gap-4"
         >
-          <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6 space-y-5">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full overflow-hidden shrink-0">
-                {user.avatar_url ? (
-                  <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-[var(--primary)] flex items-center justify-center text-sm font-bold">
-                    {user.username[0].toUpperCase()}
-                  </div>
-                )}
-              </div>
-              <div>
-                <p className="text-sm text-zinc-400">Playing as</p>
-                <p className="font-semibold">
-                  {user.username}
-                  {user.role === 'admin' && (
-                    <span className="ml-2 rounded bg-[#00cec9]/20 px-2 py-0.5 text-[10px] font-bold tracking-wider text-[#00cec9] ring-1 ring-[#00cec9]/50">
-                      ADMIN
-                    </span>
-                  )}
-                </p>
-              </div>
-            </div>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          Create Lobby
+        </button>
 
-            <div>
-              <p className="text-sm text-zinc-400 font-medium mb-2">Genres</p>
-              <div className="flex flex-wrap gap-1.5">
-                {allGenres.map(g => (
-                  <button
-                    key={g.id}
-                    onClick={() => toggleGenre(g.id)}
-                    className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
-                      createGenres.includes(g.id)
-                        ? 'bg-[var(--primary)]/20 border-[var(--primary)]/50 text-[var(--primary)]'
-                        : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white hover:border-white/30'
-                    }`}
-                  >
-                    {g.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <label className="text-xs text-zinc-500 font-medium">Rounds</label>
-                <input
-                  type="number"
-                  value={createRounds}
-                  onChange={e => setCreateRounds(Math.max(3, Math.min(25, Number(e.target.value))))}
-                  className="w-full mt-1 px-3 py-2 bg-black/20 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
-                />
-              </div>
-              <div className="flex-1">
-                <label className="text-xs text-zinc-500 font-medium">Round Time (s)</label>
-                <input
-                  type="number"
-                  value={createTime}
-                  onChange={e => setCreateTime(Math.max(8, Math.min(30, Number(e.target.value))))}
-                  className="w-full mt-1 px-3 py-2 bg-black/20 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
-                />
-              </div>
-            </div>
-
-            <button
-              onClick={handleCreate}
-              disabled={loading || createGenres.length === 0}
-              className={`w-full px-6 py-3 text-white font-semibold rounded-xl transition-colors ${
-                createGenres.length > 0
-                  ? 'bg-[var(--primary)] hover:bg-[var(--primary-hover)]'
-                  : 'bg-gray-600 opacity-50 cursor-not-allowed'
-              }`}
-            >
-              {loading ? 'Creating...' : createGenres.length === 0 ? 'Select a Genre' : 'Create Room'}
-            </button>
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-white/10" />
           </div>
-
-          <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6 space-y-4">
-            <h3 className="font-semibold">Join a Room</h3>
-            <input
-              type="text"
-              value={joinCode}
-              onChange={e => setJoinCode(e.target.value.toUpperCase())}
-              placeholder="Room code (e.g. ABCD)"
-              maxLength={4}
-              className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl text-white placeholder-zinc-500 text-center text-xl font-bold tracking-[0.5em] focus:outline-none focus:border-[var(--primary)] transition-colors uppercase"
-            />
-            <button
-              onClick={handleJoin}
-              disabled={loading}
-              className="w-full px-6 py-3 bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white font-semibold rounded-xl border border-white/10 transition-colors"
-            >
-              {loading ? 'Joining...' : 'Join Room'}
-            </button>
+          <div className="relative flex justify-center">
+            <span className="bg-[var(--bg)] px-4 text-sm text-zinc-500">or</span>
           </div>
+        </div>
 
-          {error && (
-            <p className="text-red-400 text-sm text-center">{error}</p>
-          )}
-        </motion.div>
+        <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6 space-y-4">
+          <h3 className="font-semibold text-center">Join a Lobby</h3>
+          <input
+            type="text"
+            value={joinCode}
+            onChange={e => setJoinCode(e.target.value.toUpperCase())}
+            placeholder="Room code"
+            maxLength={4}
+            className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl text-white placeholder-zinc-500 text-center text-xl font-bold tracking-[0.3em] focus:outline-none focus:border-[var(--primary)] transition-colors uppercase"
+          />
+          <button
+            onClick={handleJoin}
+            disabled={loading || !joinCode.trim()}
+            className="w-full px-6 py-3 bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white font-semibold rounded-xl border border-white/10 transition-colors"
+          >
+            {loading ? 'Joining...' : 'Join Lobby'}
+          </button>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2 }}
-          className="lg:col-span-1"
-        >
-          <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-5 sticky top-20">
-            <h3 className="font-semibold mb-4 flex items-center gap-2">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--accent)]">
-                <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 6 9 6 9z"/>
-                <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5C17 4 18 9 18 9z"/>
-                <path d="M4 22h16"/>
-                <path d="M10 22V2h4v20"/>
-              </svg>
-              Leaderboard
-            </h3>
-            <div className="space-y-1">
-              {leaderboard.slice(0, 10).map((e: any, i: number) => (
-                <div
-                  key={e.id}
-                  className={`flex items-center gap-2.5 px-3 py-2 rounded-lg ${
-                    i === 0 ? 'bg-yellow-500/10' : i === 1 ? 'bg-zinc-300/5' : i === 2 ? 'bg-amber-600/10' : ''
-                  }`}
-                >
-                  <span className={`w-5 text-center text-xs font-bold ${
-                    i === 0 ? 'text-yellow-400' : i === 1 ? 'text-zinc-300' : i === 2 ? 'text-amber-600' : 'text-zinc-600'
-                  }`}>
-                    {i + 1}
-                  </span>
-                  <div className="w-6 h-6 rounded-full overflow-hidden shrink-0 bg-zinc-700 flex items-center justify-center text-[10px] font-bold">
-                    {e.avatar_url ? (
-                      <img src={e.avatar_url} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      e.username[0].toUpperCase()
-                    )}
-                  </div>
-                  <span className="flex-1 text-sm truncate">{e.username}</span>
-                  <span className="text-xs font-semibold text-[var(--accent)]">{e.total_score}</span>
-                </div>
-              ))}
-              {leaderboard.length === 0 && (
-                <p className="text-zinc-500 text-sm text-center py-4">No games played yet.</p>
-              )}
-            </div>
-          </div>
-        </motion.div>
-      </div>
+        {error && (
+          <p className="text-red-400 text-sm text-center">{error}</p>
+        )}
+      </motion.div>
     </div>
   );
 }

@@ -15,11 +15,21 @@ export default function Header() {
   const [open, setOpen] = useState(false);
   const [debugOn, setDebugOn] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [inGame, setInGame] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (getToken()) {
       getMe().then(setUser).catch(() => {});
+    }
+    if (typeof window !== 'undefined') {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('blindtest_player_')) {
+          setInGame(true);
+          break;
+        }
+      }
     }
     setDebugOn(isDebugMode());
   }, []);
@@ -42,6 +52,10 @@ export default function Header() {
 
   const handleDisconnect = () => {
     localStorage.removeItem('blindtest_token');
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('blindtest_player_')) localStorage.removeItem(key);
+    }
     setUser(null);
     setOpen(false);
     router.push('/');
@@ -53,6 +67,8 @@ export default function Header() {
     setDebugMode(next);
   };
 
+  const showMenu = user || inGame;
+
   return (
     <header className="flex items-center justify-between px-6 py-3 border-b border-white/10">
       <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
@@ -62,18 +78,16 @@ export default function Header() {
         </h1>
       </Link>
 
-      {user && (
+      {showMenu && (
         <div ref={menuRef} className="relative">
           <button
             onClick={() => setOpen(!open)}
-            className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-transparent hover:ring-[var(--primary)] transition-all duration-200"
+            className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-transparent hover:ring-[var(--primary)] transition-all duration-200 flex items-center justify-center bg-[var(--primary)] text-sm font-bold"
           >
-            {user.avatar_url ? (
+            {user?.avatar_url ? (
               <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full bg-[var(--primary)] flex items-center justify-center text-sm font-bold">
-                {user.username[0].toUpperCase()}
-              </div>
+              user?.username?.[0]?.toUpperCase() || '?'
             )}
           </button>
 
@@ -86,55 +100,65 @@ export default function Header() {
                 transition={{ duration: 0.15 }}
                 className="absolute right-0 top-12 w-64 bg-[var(--surface)] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50"
               >
-                <div className="p-4 border-b border-white/10">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full overflow-hidden shrink-0">
-                      {user.avatar_url ? (
-                        <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full bg-[var(--primary)] flex items-center justify-center text-sm font-bold">
-                          {user.username[0].toUpperCase()}
+                {user ? (
+                  <>
+                    <div className="p-4 border-b border-white/10">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full overflow-hidden shrink-0">
+                          {user.avatar_url ? (
+                            <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full bg-[var(--primary)] flex items-center justify-center text-sm font-bold">
+                              {user.username[0].toUpperCase()}
+                            </div>
+                          )}
                         </div>
-                      )}
+                        <div>
+                          <p className="font-semibold text-sm">
+                            {user.username}
+                            {user.role === 'admin' && (
+                              <span className="ml-2 rounded bg-[#00cec9]/20 px-1.5 py-0.5 text-[10px] font-bold tracking-wider text-[#00cec9] ring-1 ring-[#00cec9]/50">
+                                ADMIN
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-semibold text-sm">
-                        {user.username}
-                        {user.role === 'admin' && (
-                          <span className="ml-2 rounded bg-[#00cec9]/20 px-1.5 py-0.5 text-[10px] font-bold tracking-wider text-[#00cec9] ring-1 ring-[#00cec9]/50">
-                            ADMIN
-                          </span>
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                </div>
 
-                <div className="p-4 border-b border-white/10">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="text-center">
-                      <p className="text-lg font-bold text-[var(--accent)]">{stats?.totalPoints ?? '-'}</p>
-                      <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Score</p>
+                    <div className="p-4 border-b border-white/10">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="text-center">
+                          <p className="text-lg font-bold text-[var(--accent)]">{stats?.totalPoints ?? '-'}</p>
+                          <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Score</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-lg font-bold text-white">{stats?.gamesPlayed ?? '-'}</p>
+                          <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Games</p>
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-center">
-                      <p className="text-lg font-bold text-white">{stats?.gamesPlayed ?? '-'}</p>
-                      <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Games</p>
-                    </div>
+                  </>
+                ) : (
+                  <div className="p-4 border-b border-white/10">
+                    <p className="text-sm text-zinc-400 text-center">Guest Player</p>
                   </div>
-                </div>
+                )}
 
                 <div className="p-2 space-y-0.5">
-                  <Link
-                    href="/profile"
-                    onClick={() => setOpen(false)}
-                    className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                      <circle cx="12" cy="7" r="4"/>
-                    </svg>
-                    Profile
-                  </Link>
+                  {user && (
+                    <Link
+                      href="/profile"
+                      onClick={() => setOpen(false)}
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                      </svg>
+                      Profile
+                    </Link>
+                  )}
 
                   <button
                     onClick={() => { setOpen(false); setShowSettings(true); }}
@@ -147,7 +171,7 @@ export default function Header() {
                     Settings
                   </button>
 
-                  {user.role === 'admin' && (
+                  {user?.role === 'admin' && (
                     <>
                       <Link
                         href="/admin"
