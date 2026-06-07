@@ -11,9 +11,13 @@ function normalizeString(str) {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/\(.*?\)/g, '')
-    .replace(/[^a-z0-9\s]/g, '')
+    .replace(/[^a-z0-9\s-]/g, '')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+function splitParts(str) {
+  return str.split(/[-–—]|,|\s+feat\.?\s*|\s+ft\.?\s*/).map(s => s.trim()).filter(Boolean);
 }
 
 function levenshtein(a, b) {
@@ -35,19 +39,31 @@ function evaluateAnswer(guess, target) {
   if (!a || !t) return { matched: false, score: 0 };
   if (a === t) return { matched: true, score: 100 };
 
+  // Check if guess matches any part of a multi-part title (e.g. "Dracula - Jennie Remix")
+  const targetParts = splitParts(t);
+  for (const part of targetParts) {
+    if (part === a) return { matched: true, score: 100 };
+    const dist = levenshtein(a, part);
+    const maxLen = Math.max(a.length, part.length);
+    const maxDist = maxLen <= 4 ? 1 : 2;
+    if (dist <= maxDist) return { matched: true, score: Math.round((1 - dist / maxLen) * 100) };
+  }
+
+  // Check if guess is a substring of target (e.g. "hello" in "hello world")
   const shorter = a.length <= t.length ? a : t;
   const longer = a.length <= t.length ? t : a;
-  if (shorter.length >= 4 && shorter.length >= longer.length * 0.6 && longer.includes(shorter)) {
+  if (shorter.length >= 3 && longer.includes(shorter)) {
     return { matched: true, score: 100 };
   }
 
+  // Full Levenshtein comparison
   const dist = levenshtein(a, t);
   const maxLen = Math.max(a.length, t.length);
   const ratio = dist / maxLen;
 
   const maxDist = maxLen <= 4 ? 1 : 2;
   if (dist <= maxDist) return { matched: true, score: Math.round((1 - ratio) * 100) };
-  if (ratio <= 0.15) return { matched: true, score: Math.round((1 - ratio) * 100) };
+  if (ratio <= 0.20) return { matched: true, score: Math.round((1 - ratio) * 100) };
   return { matched: false, score: Math.round((1 - Math.min(ratio, 1)) * 100) };
 }
 
@@ -190,8 +206,7 @@ export class GameRoom {
       p.foundTitle = false;
       p.foundBoth = false;
     });
-    const maxOffset = Math.max(0, 30 - this.settings.roundTime);
-    this.audioOffset = Math.floor(Math.random() * maxOffset);
+    this.audioOffset = Math.floor(Math.random() * 15);
     this.roundResult = null;
 
     this.state = 'round_preparing';
@@ -412,6 +427,32 @@ export class GameRoom {
     }
 
     return base;
+  }
+
+  resetGame() {
+    if (this.roundTimer) clearTimeout(this.roundTimer);
+    if (this.countdownTimer) clearTimeout(this.countdownTimer);
+    if (this.pauseTimer) clearTimeout(this.pauseTimer);
+    if (this.autoStartTimer) clearTimeout(this.autoStartTimer);
+    this.tracks = [];
+    this.trackHistory = [];
+    this.currentRound = 0;
+    this.totalRounds = 0;
+    this.state = 'waiting';
+    this.foundOrder = [];
+    this.roundResult = null;
+    this.rankings = [];
+    this.audioOffset = 0;
+    this.waitingForPlayback = false;
+    this.players.forEach(p => { p.score = 0; p.answers = []; p.streak = 0; });
+    this.lastGenres = null;  // force fresh track fetch on next startGame
+    this.broadcast();
+    if (this.io) {
+      this.io.to(this.code).emit('new_chat_message', {
+        isSystem: true,
+        content: '🔄 Game reset! Ready for a new round.',
+      });
+    }
   }
 
   destroy() {

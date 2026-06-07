@@ -147,7 +147,8 @@ async function getTracksByGenre(genre, count = 10) {
 
   const fetchAll = async (query) => {
     const results = [];
-    let offset = 0;
+    const startOffset = Math.floor(Math.random() * 50);
+    let offset = startOffset;
     while (results.length < count) {
       const url = `${API_BASE}/search?q=${encodeURIComponent(query)}&type=track&limit=${MAX_PER_PAGE}&offset=${offset}&market=FR`;
       const data = await spotifyFetch(url);

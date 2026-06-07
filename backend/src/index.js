@@ -65,6 +65,15 @@ io.on('connection', (socket) => {
     });
   });
 
+  socket.on('play_again', (roomCode) => {
+    if (!roomCode) return;
+    const room = rooms.get(roomCode);
+    if (!room) return;
+    const info = socketPlayerMap.get(socket.id);
+    if (!info || info.playerId !== room.hostId) return;
+    room.resetGame();
+  });
+
   socket.on('disconnect', () => {
     socketPlayerMap.delete(socket.id);
   });

@@ -260,6 +260,11 @@ export default function GamePage({
     setGuess('');
   }, [guess]);
 
+  const handlePlayAgain = useCallback(() => {
+    if (!socketRef.current) return;
+    socketRef.current.emit('play_again', code);
+  }, [code]);
+
   if (!playerId) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -336,7 +341,7 @@ export default function GamePage({
           )}
 
           {gameState.state === 'game_over' && (
-            <Podium code={code} rankings={gameState.rankings} playerId={playerId} onPlayAgain={() => router.push('/')} />
+            <Podium code={code} rankings={gameState.rankings} playerId={playerId} onPlayAgain={handlePlayAgain} />
           )}
         </div>
 
