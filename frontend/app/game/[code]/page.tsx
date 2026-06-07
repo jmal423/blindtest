@@ -464,6 +464,7 @@ function WaitingRoom({
   onSettingsChange,
   onGenresChange,
   onKickPlayer,
+  startLoading,
 }: {
   players: { id: string; name: string; avatarUrl?: string | null; role?: string }[];
   settings: RoomSettings;
