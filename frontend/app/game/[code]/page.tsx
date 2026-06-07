@@ -110,6 +110,8 @@ export default function GamePage({
   const [bothFound, setBothFound] = useState(false);
   const [encouragement, setEncouragement] = useState<string | null>(null);
   const playSound = useSound();
+  const playSoundRef = useRef(playSound);
+  playSoundRef.current = playSound;
 
   const handleAudioPlaying = useCallback(() => {
     if (localTimerRef.current) return;
@@ -160,13 +162,13 @@ export default function GamePage({
       localTimerRef.current = null;
     }
     if (state.state === 'game_over') {
-      playSound('endGame');
+      playSoundRef.current('endGame');
     }
     if (state.state === 'game_over' || state.state === 'round_result') {
       setGuess('');
       setGuessResult(null);
     }
-  }, [playSound]);
+  }, []);
 
   useEffect(() => {
     const pid = localStorage.getItem(`blindtest_player_${code}`);
