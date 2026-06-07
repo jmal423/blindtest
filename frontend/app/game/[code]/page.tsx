@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, use, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import { io as socketIo, Socket } from 'socket.io-client';
-import { getToken, GameState, Player, RoomSettings, startGame, submitAnswer, updateSettings, fetchGenres } from '@/lib/api';
+import { getToken, GameState, Player, RoomSettings, startGame, updateSettings, fetchGenres } from '@/lib/api';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -12,12 +12,14 @@ function AudioPlayer({
   previewUrl,
   audioOffset,
   playing,
+  preloading,
   onPlaying,
   onTimeUpdate,
 }: {
   previewUrl: string | null;
   audioOffset: number;
   playing: boolean;
+  preloading: boolean;
   onPlaying: () => void;
   onTimeUpdate: (t: number) => void;
 }) {
@@ -25,12 +27,15 @@ function AudioPlayer({
   const onPlayingRef = useRef(onPlaying);
   const firedRef = useRef(false);
   onPlayingRef.current = onPlaying;
+  const offsetRef = useRef(audioOffset);
+  offsetRef.current = audioOffset;
 
   useEffect(() => {
-    if (!previewUrl || !playing) {
+    if (!previewUrl) {
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.src = '';
+        audioRef.current = null;
       }
       firedRef.current = false;
       return;
@@ -39,20 +44,38 @@ function AudioPlayer({
     firedRef.current = false;
     const audio = new Audio(previewUrl);
     audioRef.current = audio;
-    audio.currentTime = audioOffset;
 
-    audio.addEventListener('canplay', () => {
-      audio.play().catch((err) => {
-        console.error('Autoplay blocked:', err);
-      });
+    audio.addEventListener('loadedmetadata', () => {
+      const safeOffset = Math.min(offsetRef.current, (audio.duration || 30) - 1);
+      if (safeOffset > 0) audio.currentTime = safeOffset;
     });
+
+    if (preloading) {
+      audio.preload = 'auto';
+      audio.load();
+    }
 
     return () => {
       audio.pause();
       audio.src = '';
-      audioRef.current = null;
+      if (audioRef.current === audio) audioRef.current = null;
     };
-  }, [previewUrl, playing, audioOffset]);
+  }, [previewUrl, preloading]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !playing || !previewUrl) return;
+
+    if (audio.readyState >= 3) {
+      audio.play().catch(err => console.error('Autoplay blocked:', err));
+    } else {
+      const onCanPlay = () => {
+        audio.play().catch(err => console.error('Autoplay blocked:', err));
+      };
+      audio.addEventListener('canplay', onCanPlay, { once: true });
+      return () => audio.removeEventListener('canplay', onCanPlay);
+    }
+  }, [playing, previewUrl]);
 
   useEffect(() => {
     if (!playing || !audioRef.current) return;
@@ -155,6 +178,7 @@ export default function GamePage({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [audioOffset, setAudioOffset] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isPreloading, setIsPreloading] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(30);
   const [localTimeLeft, setLocalTimeLeft] = useState<number | null>(null);
@@ -191,31 +215,50 @@ export default function GamePage({
 
   const applyGameState = useCallback((state: GameState) => {
     setGameState(state);
-    if (state.state === 'playing' || state.state === 'countdown') {
+
+    if (state.state === 'round_preparing') {
       setPreviewUrl((state as any).previewUrl || null);
       setAudioOffset((state as any).audioOffset || 0);
-      if (state.state === 'playing') {
-        setIsPlaying(true);
-        setArtistFound(false);
-        setTitleFound(false);
-        setBothFound(false);
-        setGuess('');
-        setGuessResult(null);
-      }
-      setLocalTimeLeft(null);
-      if (localTimerRef.current) {
-        clearInterval(localTimerRef.current);
-        localTimerRef.current = null;
-      }
-    }
-    if (state.state !== 'playing') {
       setIsPlaying(false);
-      setPreviewUrl(null);
+      setIsPreloading(true);
+      setArtistFound(false);
+      setTitleFound(false);
+      setBothFound(false);
+      setGuess('');
+      setGuessResult(null);
       setLocalTimeLeft(null);
       if (localTimerRef.current) {
         clearInterval(localTimerRef.current);
         localTimerRef.current = null;
       }
+      return;
+    }
+
+    if (state.state === 'playing') {
+      setPreviewUrl((state as any).previewUrl || null);
+      setAudioOffset((state as any).audioOffset || 0);
+      setIsPlaying(true);
+      setIsPreloading(false);
+      setArtistFound(false);
+      setTitleFound(false);
+      setBothFound(false);
+      setGuess('');
+      setGuessResult(null);
+      setLocalTimeLeft(null);
+      if (localTimerRef.current) {
+        clearInterval(localTimerRef.current);
+        localTimerRef.current = null;
+      }
+      return;
+    }
+
+    setIsPlaying(false);
+    setIsPreloading(false);
+    setPreviewUrl(null);
+    setLocalTimeLeft(null);
+    if (localTimerRef.current) {
+      clearInterval(localTimerRef.current);
+      localTimerRef.current = null;
     }
     if (state.state === 'finished' || state.state === 'round_result') {
       setGuess('');
@@ -254,6 +297,7 @@ export default function GamePage({
       if (result.artist_result === 'Good') setArtistFound(true);
       if (result.title_result === 'Good') setTitleFound(true);
       if (result.found_both) setBothFound(true);
+      setGuessResult(result);
     });
 
     socket.on('connect_error', () => {
@@ -290,16 +334,11 @@ export default function GamePage({
     }
   }, [code, playerId]);
 
-  const handleSubmit = useCallback(async () => {
-    if (!guess.trim()) return;
-    try {
-      const result = await submitAnswer(code, playerId, guess.trim());
-      setGuessResult(result);
-      setGuess('');
-    } catch {
-      // ignore duplicate submits
-    }
-  }, [code, playerId, guess]);
+  const handleSubmit = useCallback(() => {
+    if (!guess.trim() || !socketRef.current) return;
+    socketRef.current.emit('submit_guess', { input: guess.trim() });
+    setGuess('');
+  }, [guess]);
 
   const handleInteract = () => {
     new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAVFYAAFRWAAABAAgAZGF0YQAAAAA=').play().catch(() => {});
@@ -379,7 +418,7 @@ export default function GamePage({
         />
       )}
 
-      {(gameState.state === 'playing' || gameState.state === 'countdown') && (
+      {(gameState.state === 'playing' || gameState.state === 'round_preparing') && (
         <PlayingPhase
           state={gameState.state}
           currentRound={gameState.currentRound}
@@ -408,7 +447,7 @@ export default function GamePage({
         <GameFinished code={code} rankings={gameState.rankings} playerId={playerId} onPlayAgain={() => router.push('/')} />
       )}
 
-      <AudioPlayer previewUrl={previewUrl} audioOffset={audioOffset} playing={isPlaying} onPlaying={handleAudioPlaying} onTimeUpdate={handleAudioTimeUpdate} />
+      <AudioPlayer previewUrl={previewUrl} audioOffset={audioOffset} playing={isPlaying} preloading={isPreloading} onPlaying={handleAudioPlaying} onTimeUpdate={handleAudioTimeUpdate} />
     </div>
   );
 }
@@ -639,19 +678,17 @@ function PlayingPhase({
     return { text: '...', cls: 'text-zinc-600' };
   };
 
-  if (state === 'countdown') {
+  if (state === 'round_preparing') {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-12">
-        <motion.h1
-          key={count}
-          initial={{ scale: 0.3, opacity: 0 }}
-          animate={{ scale: 1.4, opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.4, ease: 'easeOut' }}
-          className="text-9xl font-bold text-[var(--primary)]"
+        <motion.p
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1.2, opacity: 1 }}
+          transition={{ duration: 0.6 }}
+          className="text-5xl font-bold text-[var(--accent)] tracking-wide"
         >
-          {count > 0 ? count : 'GO!'}
-        </motion.h1>
+          PREPARE-SE...
+        </motion.p>
 
         <div className="w-full max-w-xs space-y-1">
           <p className="text-xs text-zinc-500 uppercase tracking-wider mb-2 text-center">Players</p>

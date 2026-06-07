@@ -161,7 +161,7 @@ export class GameRoom {
     this.audioOffset = Math.floor(Math.random() * maxOffset);
     this.roundResult = null;
 
-    this.state = 'countdown';
+    this.state = 'round_preparing';
     this.broadcast();
 
     clearTimeout(this.countdownTimer);
@@ -173,8 +173,8 @@ export class GameRoom {
       clearTimeout(this.roundTimer);
       this.roundTimer = setTimeout(() => {
         this.endRound();
-      }, (this.settings.roundTime + 3) * 1000);
-    }, 5000);
+      }, this.settings.roundTime * 1000);
+    }, 3000);
   }
 
   submitAnswer(playerId, answer) {
@@ -297,7 +297,7 @@ export class GameRoom {
       totalRounds: this.totalRounds,
     };
 
-    if (this.state === 'countdown') {
+    if (this.state === 'round_preparing') {
       const track = this.tracks[this.currentRound];
       return {
         ...base,

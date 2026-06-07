@@ -17,10 +17,10 @@ export default function Home() {
 
     if (token) {
       localStorage.setItem('blindtest_token', token);
-      window.history.replaceState({}, '', '/');
+      window.history.replaceState({}, document.title, window.location.pathname);
       getMe().then(u => { setUser(u); setChecking(false); }).catch(() => setChecking(false));
     } else if (error) {
-      window.history.replaceState({}, '', '/');
+      window.history.replaceState({}, document.title, window.location.pathname);
       setChecking(false);
     } else if (getToken()) {
       getMe().then(u => { setUser(u); setChecking(false); }).catch(() => setChecking(false));

@@ -10,7 +10,7 @@ export interface RoomSettings {
 
 export type GameState =
   | { state: 'waiting'; genres: string[]; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number }
-  | { state: 'countdown'; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; roundTime: number; previewUrl: string | null; audioOffset: number }
+  | { state: 'round_preparing'; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; roundTime: number; previewUrl: string | null; audioOffset: number }
   | { state: 'playing'; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; timeLeft: number; roundTime: number; youtubeVideoId: string | null; trackId: string }
   | { state: 'round_result'; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; roundResult: RoundResult; pauseTimeLeft: number }
   | { state: 'finished'; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; rankings: Ranking[] };

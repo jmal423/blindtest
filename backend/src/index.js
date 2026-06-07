@@ -2,11 +2,10 @@ import { createServer } from 'node:http';
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import jwt from 'jsonwebtoken';
 import { Server } from 'socket.io';
 import { GameRoom } from './game.js';
 import { GENRES, getGenreLabel } from './spotify.js';
-import { generateId, get, all, run, insertRoundResult } from './db.js';
+import { generateId, get, all, run } from './db.js';
 import { getAuthUrl, handleDiscordCallback, authenticate, requireAdmin } from './auth.js';
 
 dotenv.config();
@@ -21,16 +20,32 @@ const io = new Server(server, {
 });
 
 const rooms = new Map();
+const socketPlayerMap = new Map();
 
 io.on('connection', (socket) => {
   socket.on('join_room', (roomCode, playerId) => {
     if (!roomCode) return;
     socket.join(roomCode);
+    if (playerId) socketPlayerMap.set(socket.id, { roomCode, playerId });
     const room = rooms.get(roomCode);
     if (room) {
       if (playerId) room.setPlayerSocket(playerId, socket.id);
       socket.emit('game_state', room.getState());
     }
+  });
+
+  socket.on('submit_guess', (data) => {
+    const info = socketPlayerMap.get(socket.id);
+    if (!info) return;
+    const room = rooms.get(info.roomCode);
+    if (!room) return;
+    const result = room.submitAnswer(info.playerId, (data.input || '').trim());
+    if (!result) return;
+    broadcastState(info.roomCode);
+  });
+
+  socket.on('disconnect', () => {
+    socketPlayerMap.delete(socket.id);
   });
 });
 
@@ -130,43 +145,7 @@ app.post('/api/game/:code/start', async (req, res) => {
   res.json({ ok: true });
 });
 
-app.post('/api/game/:code/submit', async (req, res) => {
-  const room = rooms.get(req.params.code.toUpperCase());
-  if (!room) return res.status(404).json({ error: 'Room not found' });
-
-  const { playerId, answer } = req.body;
-  if (!playerId || !answer) {
-    return res.status(400).json({ error: 'playerId and answer required' });
-  }
-
-  const result = room.submitAnswer(playerId, answer.trim());
-  if (!result) return res.status(400).json({ error: 'Cannot submit now' });
-
-  broadcastState(room.code);
-
-  // Persist round result if user is authenticated (non-blocking)
-  const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    try {
-      const decoded = jwt.verify(authHeader.slice(7), process.env.JWT_SECRET || 'blindtest-dev-secret-change-in-production');
-      if (decoded?.userId) {
-        insertRoundResult(
-          decoded.userId,
-          room.code,
-          result.genre,
-          result.trackId,
-          result.guessTimeMs,
-          result.points,
-          result.correct
-        ).catch(err => console.error('Failed to save round result:', err.message));
-      }
-    } catch {
-      // Invalid token — skip persistence
-    }
-  }
-
-  res.json(result);
-});
+// (submit_guess moved to WebSocket — see io.on('connection') above)
 
 app.post('/api/game/:code/save', authenticate, async (req, res) => {
   const room = rooms.get(req.params.code.toUpperCase());
