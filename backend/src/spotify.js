@@ -144,6 +144,27 @@ async function getTracksByGenre(genre, count = 10) {
   const MAX_PER_PAGE = 50;
   const tracks = [];
 
+  // Strategy 1: Recommendations endpoint (different rate-limit bucket than search)
+  try {
+    const recUrl = `${API_BASE}/recommendations?seed_genres=${encodeURIComponent(genre)}&limit=${Math.min(count, MAX_PER_PAGE)}&market=FR`;
+    const recData = await spotifyFetch(recUrl);
+    const recTracks = recData?.tracks || [];
+    if (recTracks.length > 0) {
+      console.log(`[Spotify] Recommendations returned ${recTracks.length} tracks for "${genre}"`);
+      return recTracks.map(t => ({
+        id: t.id, name: t.name,
+        artist: t.artists?.[0]?.name || 'Unknown',
+        albumImage: t.album?.images?.[0]?.url || null,
+        previewUrl: t.preview_url || null,
+        durationMs: t.duration_ms || 0,
+        genre,
+      }));
+    }
+  } catch (err) {
+    console.error(`[Spotify] Recommendations failed for "${genre}":`, err.message);
+  }
+
+  // Strategy 2: Search endpoint (may be rate-limited separately)
   const fetchAll = async (query) => {
     const results = [];
     const startOffset = Math.floor(Math.random() * 50);
