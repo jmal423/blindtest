@@ -139,11 +139,19 @@ async function getTracksByGenre(genre, count = 10) {
 
   const tracks = [];
 
+  // Test basic API connectivity first
+  try {
+    const testData = await spotifyFetch(`${API_BASE}/search?q=test&type=track&limit=1`);
+    console.log(`[Spotify] API test OK — got ${testData?.tracks?.items?.length || 0} items`);
+  } catch (err) {
+    console.error(`[Spotify] API connectivity test FAILED:`, err.message);
+  }
+
   // Strategy 1: search by genre tag with market=FR
   if (tracks.length === 0) {
     try {
       const q = encodeURIComponent(`genre:"${genre}"`);
-      const url = `${API_BASE}/search?q=${q}&type=track&limit=50&market=FR`;
+      const url = `${API_BASE}/search?q=${q}&type=track&limit=20&market=FR`;
       console.log(`[Spotify] Search URL:`, url);
       const data = await spotifyFetch(url);
       for (const item of (data?.tracks?.items || [])) {
@@ -164,7 +172,7 @@ async function getTracksByGenre(genre, count = 10) {
   if (tracks.length === 0) {
     try {
       const q = encodeURIComponent(`genre:"${genre}"`);
-      const url = `${API_BASE}/search?q=${q}&type=track&limit=50`;
+      const url = `${API_BASE}/search?q=${q}&type=track&limit=20`;
       console.log(`[Spotify] Search URL (no market):`, url);
       const data = await spotifyFetch(url);
       for (const item of (data?.tracks?.items || [])) {
@@ -184,7 +192,7 @@ async function getTracksByGenre(genre, count = 10) {
   // Strategy 3: keyword search as last resort
   if (tracks.length === 0) {
     try {
-      const url = `${API_BASE}/search?q=${encodeURIComponent(genre)}&type=track&limit=50&market=FR`;
+      const url = `${API_BASE}/search?q=${encodeURIComponent(genre)}&type=track&limit=20&market=FR`;
       console.log(`[Spotify] Keyword search URL:`, url);
       const data = await spotifyFetch(url);
       for (const item of (data?.tracks?.items || [])) {
