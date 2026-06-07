@@ -346,7 +346,7 @@ export class GameRoom {
     };
 
     const makeDebugTrackInfo = (track) => track ? {
-      title: track.title,
+      title: track.name || track.title,
       artist: track.artist,
       spotifyId: track.id,
       youtubeVideoId: track.youtubeVideoId,
