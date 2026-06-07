@@ -12,8 +12,8 @@ export interface RoomSettings {
 
 export type GameState =
   | { state: 'waiting'; hostId: string | null; genres: string[]; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number }
-  | { state: 'round_preparing'; hostId: string | null; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; roundTime: number; previewUrl: string | null; youtubeVideoId: string | null; audioOffset: number }
-  | { state: 'playing'; hostId: string | null; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; timeLeft: number; roundTime: number; youtubeVideoId: string | null; trackId: string }
+  | { state: 'round_preparing'; hostId: string | null; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; roundTime: number; previewUrl: string | null; youtubeVideoId: string | null; audioOffset: number; skipVotes: number; skipVotesNeeded: number }
+  | { state: 'playing'; hostId: string | null; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; timeLeft: number; roundTime: number; youtubeVideoId: string | null; trackId: string; skipVotes: number; skipVotesNeeded: number }
   | { state: 'round_result'; hostId: string | null; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; roundResult: RoundResult; pauseTimeLeft: number; trackHistory: TrackEntry[] }
   | { state: 'game_over'; hostId: string | null; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; rankings: Ranking[]; trackHistory: TrackEntry[] };
 

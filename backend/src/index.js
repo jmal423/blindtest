@@ -48,9 +48,16 @@ io.on('connection', (socket) => {
     const room = rooms.get(info.roomCode);
     if (!room) return;
     const player = room.getPlayer(info.playerId);
-    if (!player || (player.role !== 'admin' && info.playerId !== room.hostId)) return;
-    room.skipRound();
+    if (!player) return;
+    const isAdmin = player.role === 'admin';
+    const isHost = info.playerId === room.hostId;
+    const result = room.voteSkip(info.playerId, isAdmin, isHost);
     broadcastState(info.roomCode);
+    if (result.skipped) {
+      io.to(info.roomCode).emit('new_chat_message', { isSystem: true, content: '⏭ Round skipped!' });
+    } else {
+      io.to(info.roomCode).emit('new_chat_message', { isSystem: true, content: `Skip vote: ${result.votes}/${result.needed}` });
+    }
   });
 
   socket.on('kick_player', (targetPlayerId) => {

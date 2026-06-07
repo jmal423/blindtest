@@ -100,7 +100,7 @@ export class GameRoom {
     this.hostId = null;
     this.pauseStartTime = null;
     this.playersReady = new Set();
-    this.playbackTimeout = null;
+    this.skipVotes = new Set();
     this.io = io;
     this.playerSockets = {};
   }
@@ -289,6 +289,7 @@ export class GameRoom {
   async startRound() {
     if (this.pauseInterval) { clearInterval(this.pauseInterval); this.pauseInterval = null; }
     this.roundStartTime = null;
+    this.skipVotes = new Set();
 
     while (this.currentRound < this.tracks.length && this.tracksPlayed < this.totalRounds) {
       const track = this.tracks[this.currentRound];
@@ -351,21 +352,19 @@ export class GameRoom {
     clearTimeout(this.countdownTimer);
     this.countdownTimer = setTimeout(() => {
       this.state = 'playing';
+      this.startRoundTimer();
       this.broadcast();
-      this.playbackTimeout = setTimeout(() => {
-        this.startRoundTimer();
-      }, 2000);
     }, 3000);
   }
 
   submitAnswer(playerId, answer) {
     const player = this.getPlayer(playerId);
-    if (!player || this.state !== 'playing' || !this.roundStartTime) return null;
+    if (!player || this.state !== 'playing') return null;
 
     const track = this.tracks[this.currentRound];
     if (!track) return null;
 
-    const guessTimeMs = Date.now() - this.roundStartTime;
+    const guessTimeMs = this.roundStartTime ? Date.now() - this.roundStartTime : 0;
 
     const artistCheck = !player.foundArtist ? evaluateAnswer(answer, track.artist) : { matched: false, score: 100 };
     const titleCheck = !player.foundTitle ? evaluateAnswer(answer, track.name) : { matched: false, score: 100 };
@@ -398,7 +397,7 @@ export class GameRoom {
       if (this.io) {
         this.io.to(this.code).emit('new_chat_message', {
           isSystem: true,
-          content: `🔥 ${player.name} encontrou a resposta exata!`,
+          content: `🔥 ${player.name} found the exact answer!`,
         });
       }
     }
@@ -456,17 +455,11 @@ export class GameRoom {
 
   markPlayerReady(playerId) {
     this.playersReady.add(playerId);
-    const connectedPlayers = this.players.filter(p => this.playerSockets[p.id]);
-    const allReady = connectedPlayers.every(p => this.playersReady.has(p.id));
-    if (allReady) {
-      if (this.playbackTimeout) { clearTimeout(this.playbackTimeout); this.playbackTimeout = null; }
-      this.startRoundTimer();
-    }
   }
 
   startRoundTimer() {
-    if (this.roundStartTime || this.state !== 'playing') return;
-    if (this.playbackTimeout) { clearTimeout(this.playbackTimeout); this.playbackTimeout = null; }
+    if (this.roundStartTime) return;
+    if (this.state !== 'playing') return;
     this.roundStartTime = Date.now();
     clearTimeout(this.roundTimer);
     this.roundTimer = setTimeout(() => {
@@ -483,10 +476,30 @@ export class GameRoom {
     if (this.playingInterval) { clearInterval(this.playingInterval); this.playingInterval = null; }
   }
 
+  voteSkip(playerId, isAdmin, isHost) {
+    if (this.state !== 'round_preparing' && this.state !== 'playing') return { skipped: false, votes: this.skipVotes.size, needed: 0 };
+
+    // Admin or host skips immediately
+    if (isAdmin || isHost) {
+      this.skipRound();
+      return { skipped: true, votes: this.skipVotes.size, needed: 0 };
+    }
+
+    // Regular player: add vote
+    this.skipVotes.add(playerId);
+    const needed = Math.ceil(this.players.length / 2);
+
+    if (this.skipVotes.size >= needed) {
+      this.skipRound();
+      return { skipped: true, votes: this.skipVotes.size, needed };
+    }
+
+    return { skipped: false, votes: this.skipVotes.size, needed };
+  }
+
   skipRound() {
     if (this.state !== 'round_preparing' && this.state !== 'playing') return;
     if (this.countdownTimer) { clearTimeout(this.countdownTimer); this.countdownTimer = null; }
-    if (this.playbackTimeout) { clearTimeout(this.playbackTimeout); this.playbackTimeout = null; }
     if (this.roundTimer) { clearTimeout(this.roundTimer); this.roundTimer = null; }
     this.roundStartTime = null;
     this.clearPlayingInterval();
@@ -585,6 +598,11 @@ export class GameRoom {
     }
   }
 
+  getSkipVoteInfo() {
+    const needed = Math.ceil(this.players.length / 2);
+    return { skipVotes: this.skipVotes.size, skipVotesNeeded: needed };
+  }
+
   getState() {
     const base = {
       state: this.state,
@@ -601,6 +619,8 @@ export class GameRoom {
       totalRounds: this.totalRounds,
       trackHistory: this.trackHistory,
     };
+
+    const skipVoteInfo = this.getSkipVoteInfo();
 
     const makeDebugTrackInfo = (track) => {
       if (!track) return null;
@@ -620,6 +640,7 @@ export class GameRoom {
       const track = this.tracks[this.currentRound];
       return {
         ...base,
+        ...skipVoteInfo,
         _debugTrackInfo: makeDebugTrackInfo(track),
         previewUrl: track?.previewUrl || null,
         youtubeVideoId: track?.youtubeVideoId || null,
@@ -631,29 +652,13 @@ export class GameRoom {
 
     if (this.state === 'playing') {
       const track = this.tracks[this.currentRound];
-      if (!this.roundStartTime) {
-        return {
-          ...base,
-          _debugTrackInfo: makeDebugTrackInfo(track),
-          timeLeft: null,
-          waitingForPlayers: true,
-          roundTime: this.settings.roundTime,
-          previewUrl: track.previewUrl,
-          durationMs: track.durationMs || 0,
-          audioOffset: this.audioOffset ?? 0,
-          youtubeVideoId: track.youtubeVideoId,
-          trackId: track.id,
-          playersReady: this.playersReady.size,
-          playersTotal: this.players.filter(p => this.playerSockets[p.id]).length,
-        };
-      }
-      const elapsed = (Date.now() - this.roundStartTime) / 1000;
-      const timeLeft = Math.max(0, Math.ceil(this.settings.roundTime - elapsed));
+      const elapsed = this.roundStartTime ? (Date.now() - this.roundStartTime) / 1000 : 0;
+      const timeLeft = this.roundStartTime ? Math.max(0, Math.ceil(this.settings.roundTime - elapsed)) : this.settings.roundTime;
       return {
         ...base,
+        ...skipVoteInfo,
         _debugTrackInfo: makeDebugTrackInfo(track),
         timeLeft,
-        waitingForPlayers: false,
         roundTime: this.settings.roundTime,
         previewUrl: track.previewUrl,
         durationMs: track.durationMs || 0,
@@ -682,7 +687,6 @@ export class GameRoom {
     if (this.pauseTimer) clearTimeout(this.pauseTimer);
     if (this.pauseInterval) clearInterval(this.pauseInterval);
     if (this.autoStartTimer) clearTimeout(this.autoStartTimer);
-    if (this.playbackTimeout) clearTimeout(this.playbackTimeout);
     this.clearPlayingInterval();
     this.tracks = [];
     this.currentRound = 0;
@@ -693,11 +697,11 @@ export class GameRoom {
     this.roundResult = null;
     this.rankings = [];
     this.audioOffset = 0;
-    this.roundStartTime = 0;
+    this.roundStartTime = null;
     this.playersReady = new Set();
-    this.playbackTimeout = null;
+    this.skipVotes = new Set();
     this.players.forEach(p => { p.score = 0; p.answers = []; p.streak = 0; });
-    this.lastGenres = null;  // force fresh track fetch on next startGame
+    this.lastGenres = null;
     this.broadcast();
     if (this.io) {
       this.io.to(this.code).emit('new_chat_message', {
@@ -714,7 +718,6 @@ export class GameRoom {
     if (this.pauseInterval) clearInterval(this.pauseInterval);
     if (this.playingInterval) clearInterval(this.playingInterval);
     if (this.autoStartTimer) clearTimeout(this.autoStartTimer);
-    if (this.playbackTimeout) clearTimeout(this.playbackTimeout);
     this.players = [];
     this.tracks = [];
     this.trackHistory = [];

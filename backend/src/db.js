@@ -36,6 +36,7 @@ if (process.env.DATABASE_URL) {
   db = new Database(DB_PATH);
   db.pragma('journal_mode = WAL');
   db.pragma('busy_timeout = 5000');
+  db.pragma('foreign_keys = OFF');
   db.db = db;
   console.log(`[DB] SQLite connected: ${DB_PATH}`);
 }
@@ -55,7 +56,7 @@ async function init() {
     await db.query(`
       CREATE TABLE IF NOT EXISTS game_scores (
         id TEXT PRIMARY KEY,
-        user_id TEXT REFERENCES users(id),
+        user_id TEXT,
         game_code TEXT,
         score INTEGER,
         total_rounds INTEGER,
@@ -64,8 +65,8 @@ async function init() {
     `);
     await db.query(`
       CREATE TABLE IF NOT EXISTS friendships (
-        user_id TEXT REFERENCES users(id),
-        friend_id TEXT REFERENCES users(id),
+        user_id TEXT,
+        friend_id TEXT,
         status TEXT DEFAULT 'pending',
         created_at TIMESTAMP DEFAULT NOW(),
         PRIMARY KEY (user_id, friend_id)
@@ -74,7 +75,7 @@ async function init() {
     await db.query(`
       CREATE TABLE IF NOT EXISTS round_results (
         id SERIAL PRIMARY KEY,
-        user_id TEXT REFERENCES users(id),
+        user_id TEXT,
         game_id VARCHAR(50),
         genre VARCHAR(50),
         track_id VARCHAR(100),
@@ -98,7 +99,7 @@ async function init() {
     db.exec(`
       CREATE TABLE IF NOT EXISTS game_scores (
         id TEXT PRIMARY KEY,
-        user_id TEXT REFERENCES users(id),
+        user_id TEXT,
         game_code TEXT,
         score INTEGER,
         total_rounds INTEGER,
@@ -107,8 +108,8 @@ async function init() {
     `);
     db.exec(`
       CREATE TABLE IF NOT EXISTS friendships (
-        user_id TEXT REFERENCES users(id),
-        friend_id TEXT REFERENCES users(id),
+        user_id TEXT,
+        friend_id TEXT,
         status TEXT DEFAULT 'pending',
         created_at TEXT DEFAULT (datetime('now')),
         PRIMARY KEY (user_id, friend_id)
@@ -117,7 +118,7 @@ async function init() {
     db.exec(`
       CREATE TABLE IF NOT EXISTS round_results (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id TEXT REFERENCES users(id),
+        user_id TEXT,
         game_id VARCHAR(50),
         genre VARCHAR(50),
         track_id VARCHAR(100),

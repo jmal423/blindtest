@@ -43,7 +43,7 @@ export default function Podium({ rankings, playerId, code, onPlayAgain }: Podium
             className="flex flex-col items-center gap-2"
           >
             <div className="w-14 h-14 rounded-full bg-gradient-to-b from-zinc-300 to-zinc-500 flex items-center justify-center text-2xl font-bold shadow-lg">
-              {top3[1].name[0].toUpperCase()}
+              {[...top3[1].name][0]}
             </div>
             <p className="text-sm font-semibold text-zinc-300">{top3[1].name}</p>
             <p className="text-xs text-zinc-500">{top3[1].score} pts</p>
@@ -68,7 +68,7 @@ export default function Podium({ rankings, playerId, code, onPlayAgain }: Podium
               👑
             </motion.div>
             <div className="w-16 h-16 rounded-full bg-gradient-to-b from-yellow-300 to-yellow-500 flex items-center justify-center text-2xl font-bold shadow-lg ring-2 ring-yellow-300/50">
-              {top3[0].name[0].toUpperCase()}
+              {[...top3[0].name][0]}
             </div>
             <p className="text-base font-bold text-yellow-300">{top3[0].name}</p>
             <p className="text-sm text-yellow-400/80">{top3[0].score} pts</p>
@@ -86,7 +86,7 @@ export default function Podium({ rankings, playerId, code, onPlayAgain }: Podium
             className="flex flex-col items-center gap-2"
           >
             <div className="w-12 h-12 rounded-full bg-gradient-to-b from-amber-600 to-amber-800 flex items-center justify-center text-xl font-bold shadow-lg">
-              {top3[2].name[0].toUpperCase()}
+              {[...top3[2].name][0]}
             </div>
             <p className="text-sm font-semibold text-amber-600">{top3[2].name}</p>
             <p className="text-xs text-amber-600/70">{top3[2].score} pts</p>

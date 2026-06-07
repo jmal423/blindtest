@@ -150,6 +150,7 @@ export default function GamePage({
   const [guessMarkers, setGuessMarkers] = useState<{ playerName: string; artistFound: boolean; titleFound: boolean; guessTimeMs: number }[]>([]);
   const [startLoading, setStartLoading] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [hasVotedSkip, setHasVotedSkip] = useState(false);
   const playSound = useSound();
   const { settings: userSettings } = useSettings();
   const playSoundRef = useRef(playSound);
@@ -158,41 +159,8 @@ export default function GamePage({
 
   const handleAudioPlaying = useCallback(() => {
     socketRef.current?.emit('playback_started');
-    if (localTimerRef.current) return;
-    const state = gameState;
-    if (!state || state.state !== 'playing') return;
-    const roundTime = (state as any).roundTime || 15;
-    setLocalTimeLeft(Math.ceil(roundTime));
-    setSmoothTime(0);
     guessInputRef.current?.focus();
-
-    localTimerRef.current = setInterval(() => {
-      setLocalTimeLeft(prev => {
-        if (prev === null || prev <= 1) {
-          if (localTimerRef.current) {
-            clearInterval(localTimerRef.current);
-            localTimerRef.current = null;
-          }
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    smoothTimerRef.current = setInterval(() => {
-      setSmoothTime(t => {
-        const next = t + 0.05;
-        if (next >= roundTime) {
-          if (smoothTimerRef.current) {
-            clearInterval(smoothTimerRef.current);
-            smoothTimerRef.current = null;
-          }
-          return roundTime;
-        }
-        return next;
-      });
-    }, 50);
-  }, [gameState]);
+  }, []);
 
   const handleAudioTimeUpdate = useCallback((t: number, d?: number) => {
     setCurrentTime(t);
@@ -219,9 +187,9 @@ export default function GamePage({
         setGuess('');
         setGuessResult(null);
         setEncouragement(null);
-        setLocalTimeLeft(null);
-        setSmoothTime(0);
         setGuessMarkers([]);
+        setHasVotedSkip(false);
+
         if (localTimerRef.current) {
           clearInterval(localTimerRef.current);
           localTimerRef.current = null;
@@ -230,6 +198,42 @@ export default function GamePage({
           clearInterval(smoothTimerRef.current);
           smoothTimerRef.current = null;
         }
+        setLocalTimeLeft(null);
+        setSmoothTime(0);
+      }
+
+      if (state.state === 'playing' && !localTimerRef.current) {
+        const roundTime = state.roundTime || 15;
+        const serverTimeLeft = state.timeLeft ?? roundTime;
+        setLocalTimeLeft(serverTimeLeft);
+        setSmoothTime(Math.max(0, roundTime - serverTimeLeft));
+
+        localTimerRef.current = setInterval(() => {
+          setLocalTimeLeft(prev => {
+            if (prev === null || prev <= 1) {
+              if (localTimerRef.current) {
+                clearInterval(localTimerRef.current);
+                localTimerRef.current = null;
+              }
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+
+        smoothTimerRef.current = setInterval(() => {
+          setSmoothTime(t => {
+            const next = t + 0.05;
+            if (next >= roundTime) {
+              if (smoothTimerRef.current) {
+                clearInterval(smoothTimerRef.current);
+                smoothTimerRef.current = null;
+              }
+              return roundTime;
+            }
+            return next;
+          });
+        }, 50);
       }
       return;
     }
@@ -362,6 +366,12 @@ export default function GamePage({
     socketRef.current.emit('play_again', code);
   }, [code]);
 
+  const handleSkipVote = useCallback(() => {
+    if (!socketRef.current || hasVotedSkip) return;
+    socketRef.current.emit('skip_round');
+    setHasVotedSkip(true);
+  }, [hasVotedSkip]);
+
   if (!playerId) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -454,7 +464,7 @@ export default function GamePage({
           </div>
         )}
 
-        <div className="flex-1 flex flex-col gap-4 max-w-2xl min-w-0">
+        <div className={`flex-1 flex flex-col gap-4 min-w-0 ${gameState.state === 'game_over' ? '' : 'max-w-2xl'}`}>
           {gameState.state === 'waiting' && (
             <WaitingRoom
               gameCode={code}
@@ -492,14 +502,14 @@ export default function GamePage({
               bothFound={bothFound}
               players={gameState.players}
               playerId={playerId}
-              encouragement={encouragement}
-              waitingForPlayers={(gameState as any).waitingForPlayers}
-              roundTime={(gameState as any).settings?.roundTime || 15}
-              playersReady={(gameState as any).playersReady}
-              playersTotal={(gameState as any).playersTotal}
-              youtubeVideoId={(gameState as any).youtubeVideoId}
-              onSkipRound={() => socketRef.current?.emit('skip_round')}
-              hostId={gameState.hostId}
+encouragement={encouragement}
+               roundTime={(gameState as any).settings?.roundTime || 15}
+               youtubeVideoId={(gameState as any).youtubeVideoId}
+               onSkipVote={handleSkipVote}
+               hasVotedSkip={hasVotedSkip}
+               skipVotes={gameState.state === 'playing' || gameState.state === 'round_preparing' ? (gameState as any).skipVotes ?? 0 : 0}
+               skipVotesNeeded={gameState.state === 'playing' || gameState.state === 'round_preparing' ? (gameState as any).skipVotesNeeded ?? 1 : 1}
+               hostId={gameState.hostId}
             />
           )}
 
@@ -825,7 +835,7 @@ function WaitingRoom({
   );
 }
 
-function PreparingCountdown({ currentRound, totalRounds, players, playerId }: { currentRound: number; totalRounds: number; players: Player[]; playerId: string }) {
+function PreparingCountdown({ currentRound, totalRounds, players, playerId, onSkipVote, hasVotedSkip, skipVotes, skipVotesNeeded, hostId }: { currentRound: number; totalRounds: number; players: Player[]; playerId: string; onSkipVote: () => void; hasVotedSkip: boolean; skipVotes: number; skipVotesNeeded: number; hostId?: string | null }) {
   const [count, setCount] = useState(3);
 
   useEffect(() => {
@@ -868,6 +878,28 @@ function PreparingCountdown({ currentRound, totalRounds, players, playerId }: { 
       </div>
 
       <p className="text-sm text-zinc-500">Round {currentRound}/{totalRounds}</p>
+
+      {players.length > 0 && (
+        <div className="flex items-center gap-2">
+          {playerId === hostId ? (
+            <button onClick={onSkipVote} className="px-3 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 transition-colors">
+              Skip
+            </button>
+          ) : (
+            <button
+              onClick={hasVotedSkip ? undefined : onSkipVote}
+              disabled={hasVotedSkip}
+              className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
+                hasVotedSkip
+                  ? 'bg-zinc-800 text-zinc-600 border-zinc-800 cursor-not-allowed'
+                  : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border-zinc-700'
+              }`}
+            >
+              {hasVotedSkip ? `Voted ${skipVotes}/${skipVotesNeeded}` : `Vote Skip ${skipVotes}/${skipVotesNeeded}`}
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -891,10 +923,10 @@ function PlayingPhase({
   players,
   playerId,
   encouragement,
-  waitingForPlayers,
-  playersReady,
-  playersTotal,
-  onSkipRound,
+  onSkipVote,
+  hasVotedSkip,
+  skipVotes,
+  skipVotesNeeded,
   smoothTime,
   youtubeVideoId,
   roundTime,
@@ -919,10 +951,10 @@ function PlayingPhase({
   players: Player[];
   playerId: string;
   encouragement: string | null;
-  waitingForPlayers?: boolean;
-  playersReady?: number;
-  playersTotal?: number;
-  onSkipRound?: () => void;
+  onSkipVote: () => void;
+  hasVotedSkip: boolean;
+  skipVotes: number;
+  skipVotesNeeded: number;
   roundTime?: number;
   youtubeVideoId?: string | null;
   hostId?: string | null;
@@ -935,7 +967,7 @@ function PlayingPhase({
       : 'Type the artist or title...';
 
   if (state === 'round_preparing') {
-    return <PreparingCountdown currentRound={currentRound} totalRounds={totalRounds} players={players} playerId={playerId} />;
+    return <PreparingCountdown currentRound={currentRound} totalRounds={totalRounds} players={players} playerId={playerId} onSkipVote={onSkipVote} hasVotedSkip={hasVotedSkip} skipVotes={skipVotes} skipVotesNeeded={skipVotesNeeded} hostId={hostId} />;
   }
 
   const me = players.find(p => p.id === playerId);
@@ -946,36 +978,6 @@ function PlayingPhase({
     if (p.foundArtist || p.foundTitle) return 'partial';
     return 'guessing';
   };
-
-  if (waitingForPlayers) {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-6">
-        <div className="flex items-center gap-6">
-          <span className="text-sm text-zinc-400">Round {currentRound}/{totalRounds}</span>
-        </div>
-        <div className="text-center space-y-4">
-          <div className="flex items-center justify-center gap-3">
-            {Array.from({ length: playersTotal || 0 }).map((_, i) => (
-              <div
-                key={i}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  i < (playersReady || 0) ? 'bg-green-400 scale-110' : 'bg-zinc-700'
-                }`}
-              />
-            ))}
-          </div>
-          <p className="text-zinc-400 text-lg">Waiting for players to connect...</p>
-          <p className="text-zinc-500 text-sm">{playersReady}/{playersTotal} ready</p>
-        </div>
-        <MiniViz duration={duration} currentTime={currentTime} />
-        {isAdmin && onSkipRound && (
-          <button onClick={onSkipRound} className="px-4 py-2 text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 transition-colors">
-            Skip Round
-          </button>
-        )}
-      </div>
-    );
-  }
 
   const pillStyle = (found: boolean) =>
     found
@@ -995,13 +997,26 @@ function PlayingPhase({
           >
             {timeLeft ?? '--'}
           </motion.span>
-          {isAdmin && onSkipRound && (
+          {isAdmin ? (
             <button
-              onClick={onSkipRound}
-              className="px-2 py-0.5 text-[10px] bg-zinc-800 hover:bg-zinc-700 text-zinc-500 rounded border border-zinc-700 transition-colors"
+              onClick={onSkipVote}
+              className="px-2 py-0.5 text-[10px] bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white rounded border border-zinc-700 transition-colors"
               title="Skip this round"
             >
               Skip
+            </button>
+          ) : (
+            <button
+              onClick={hasVotedSkip ? undefined : onSkipVote}
+              disabled={hasVotedSkip}
+              className={`px-2 py-0.5 text-[10px] rounded border transition-colors ${
+                hasVotedSkip
+                  ? 'bg-zinc-800 text-zinc-600 border-zinc-800 cursor-not-allowed'
+                  : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white border-zinc-700'
+              }`}
+              title={hasVotedSkip ? 'Vote cast' : 'Vote to skip'}
+            >
+              {hasVotedSkip ? `Skip ${skipVotes}/${skipVotesNeeded}` : `Skip ${skipVotes}/${skipVotesNeeded}`}
             </button>
           )}
         </div>
@@ -1029,7 +1044,7 @@ function PlayingPhase({
               }`}
               title={`${p.name} — ${p.score}pts`}
             >
-              {p.name[0].toUpperCase()}{p.name.length > 1 ? p.name.slice(0, 2) : ''}
+              {[...p.name].slice(0, 2).join('')}
             </div>
           );
         })}
@@ -1057,20 +1072,10 @@ function PlayingPhase({
           autoComplete="off"
           className={`relative w-full px-5 py-4 bg-[var(--surface)] border-2 rounded-2xl text-white text-lg text-center placeholder-zinc-500 focus:outline-none transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${
             bothFound
-              ? 'border-green-500/50 shadow-green-500/10'
-              : 'border-[var(--primary)]/30 focus:border-[var(--primary)] shadow-[var(--primary)]/5 focus:shadow-lg'
+              ? 'border-green-500/50'
+              : 'border-[var(--primary)]/30 focus:border-[var(--primary)]'
           }`}
         />
-        {!bothFound && (
-          <div className="absolute right-4 top-1/2 -translate-y-1/2">
-            <button
-              onClick={onSubmit}
-              className="px-4 py-2 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white text-sm font-semibold rounded-xl transition-colors"
-            >
-              Send
-            </button>
-          </div>
-        )}
       </div>
 
       {guessResult && (() => {
@@ -1114,7 +1119,7 @@ function PlayingPhase({
 }
 
 function MiniViz({ duration, currentTime }: { duration: number; currentTime: number }) {
-  const pct = duration > 0 ? (currentTime / duration) * 100 : 0;
+  const pct = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0;
   const [tick, setTick] = useState(0);
   useEffect(() => {
     const id = setInterval(() => setTick(t => t + 1), 50);
@@ -1126,14 +1131,19 @@ function MiniViz({ duration, currentTime }: { duration: number; currentTime: num
       {Array.from({ length: bars }).map((_, i) => {
         const barPct = (i / bars) * 100;
         const active = barPct <= pct;
-        const h = active ? 30 + Math.sin(i * 1.7 + tick * 0.15) * 20 + 15 : 6;
+        const h = active
+          ? 30 + Math.sin(i * 1.7 + tick * 0.15) * 20 + 15
+          : 15 + Math.sin(i * 1.7 + tick * 0.1) * 8;
         return (
           <div
             key={i}
-            className="w-[3px] rounded-t-sm flex-shrink-0 transition-all duration-200"
+            className="w-[3px] rounded-t-sm flex-shrink-0"
             style={{
               height: `${h}%`,
-              background: active ? `hsl(${260 + i * 5}, 70%, ${48 + Math.sin(i * 0.8 + tick * 0.05) * 12}%)` : '#3f3f46',
+              background: active
+                ? `hsl(${260 + i * 5}, 70%, ${48 + Math.sin(i * 0.8 + tick * 0.05) * 12}%)`
+                : `hsl(${260 + i * 5}, 20%, 25%)`,
+              transition: 'height 50ms linear',
             }}
           />
         );
