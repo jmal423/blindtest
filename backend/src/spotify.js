@@ -143,6 +143,7 @@ async function getTracksByGenre(genre, count = 10) {
   }
 
   const MAX_PER_PAGE = 10;
+  const tracks = [];
 
   const fetchAll = async (query) => {
     const results = [];
