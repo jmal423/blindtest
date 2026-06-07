@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import { useAuth } from '@/app/context/AuthContext';
-import { getDiscordAuthUrl, createRoom, joinRoom, guestLogin } from '@/lib/api';
+import { getDiscordAuthUrl, createRoom, joinRoom, guestLogin, getLeaderboard } from '@/lib/api';
 import { useTranslation } from '@/lib/useTranslation';
 import LanguageSwitcher from '@/app/components/LanguageSwitcher';
 
@@ -140,6 +140,12 @@ function Dashboard({ user }: { user: any }) {
   const [joinCode, setJoinCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  const [lbLoading, setLbLoading] = useState(true);
+
+  useEffect(() => {
+    getLeaderboard().then(d => setLeaderboard(d)).catch(() => {}).finally(() => setLbLoading(false));
+  }, []);
 
   const handleCreate = async () => {
     setLoading(true);
@@ -171,123 +177,117 @@ function Dashboard({ user }: { user: any }) {
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 gap-8">
-      <div className="text-center space-y-3">
-        <motion.h1
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-5xl md:text-6xl font-bold"
-        >
-          <span className="text-[var(--primary)]">Blind</span>Test
-        </motion.h1>
-        <p className="text-zinc-400 text-lg">{t('subtitle')}</p>
-      </div>
-
-      <LanguageSwitcher />
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-2xl">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6 text-center"
-        >
-          <div className="w-12 h-12 rounded-full bg-[var(--primary)]/10 flex items-center justify-center mx-auto mb-3">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 18V5l12-2v13"/>
-              <circle cx="6" cy="18" r="3"/>
-              <circle cx="18" cy="16" r="3"/>
-            </svg>
-          </div>
-          <p className="text-sm font-semibold text-white">{t('feature_1_title')}</p>
-          <p className="text-xs text-zinc-500 mt-1">{t('feature_1_desc')}</p>
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6 text-center"
-        >
-          <div className="w-12 h-12 rounded-full bg-[var(--primary)]/10 flex items-center justify-center mx-auto mb-3">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/>
-              <path d="M9 18h6"/>
-              <path d="M10 22h4"/>
-            </svg>
-          </div>
-          <p className="text-sm font-semibold text-white">{t('feature_2_title')}</p>
-          <p className="text-xs text-zinc-500 mt-1">{t('feature_2_desc')}</p>
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6 text-center"
-        >
-          <div className="w-12 h-12 rounded-full bg-[var(--primary)]/10 flex items-center justify-center mx-auto mb-3">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 6 9 6 9Z"/>
-              <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5C17 4 18 9 18 9Z"/>
-              <path d="M4 22h16"/>
-              <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20 7 22"/>
-              <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20 17 22"/>
-              <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
-            </svg>
-          </div>
-          <p className="text-sm font-semibold text-white">{t('feature_3_title')}</p>
-          <p className="text-xs text-zinc-500 mt-1">{t('feature_3_desc')}</p>
-        </motion.div>
-      </div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="w-full max-w-md space-y-4"
-      >
-        <button
-          onClick={handleCreate}
-          disabled={loading}
-          className="w-full py-5 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white font-bold text-lg rounded-2xl transition-all duration-200 flex items-center justify-center gap-3 shadow-lg shadow-[var(--primary)]/25 disabled:opacity-50"
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-          {loading ? t('creating') : t('create_lobby')}
-        </button>
-
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-white/10" />
-          </div>
-          <div className="relative flex justify-center">
-            <span className="bg-[var(--bg)] px-4 text-sm text-zinc-500">{t('or_join')}</span>
-          </div>
-        </div>
-
-        <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-5 space-y-3">
-          <input
-            type="text"
-            value={joinCode}
-            onChange={e => setJoinCode(e.target.value.toUpperCase())}
-            placeholder={t('room_code_placeholder')}
-            maxLength={4}
-            className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl text-white placeholder-zinc-500 text-center text-xl font-bold tracking-[0.3em] focus:outline-none focus:border-[var(--primary)] transition-colors uppercase"
-          />
-          <button
-            onClick={handleJoin}
-            disabled={loading || !joinCode.trim()}
-            className="w-full px-6 py-3 bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white font-semibold rounded-xl border border-white/10 transition-colors"
+    <div className="flex-1 flex flex-col md:flex-row items-center md:items-stretch justify-center p-4 md:p-8 gap-6 md:gap-8 max-w-5xl mx-auto w-full">
+      {/* Main content */}
+      <div className="flex-1 flex flex-col items-center justify-center gap-8 min-w-0">
+        <div className="text-center space-y-3">
+          <motion.h1
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-5xl md:text-6xl font-bold"
           >
-            {loading ? t('joining') : t('join_lobby')}
-          </button>
+            <span className="text-[var(--primary)]">Blind</span>Test
+          </motion.h1>
+          <p className="text-zinc-400 text-lg">{t('subtitle')}</p>
         </div>
 
-        {error && (
-          <p className="text-red-400 text-sm text-center">{error}</p>
+        <LanguageSwitcher />
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-2xl">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6 text-center">
+            <div className="w-12 h-12 rounded-full bg-[var(--primary)]/10 flex items-center justify-center mx-auto mb-3">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            </div>
+            <p className="text-sm font-semibold text-white">{t('feature_1_title')}</p>
+            <p className="text-xs text-zinc-500 mt-1">{t('feature_1_desc')}</p>
+          </motion.div>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6 text-center">
+            <div className="w-12 h-12 rounded-full bg-[var(--primary)]/10 flex items-center justify-center mx-auto mb-3">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+            </div>
+            <p className="text-sm font-semibold text-white">{t('feature_2_title')}</p>
+            <p className="text-xs text-zinc-500 mt-1">{t('feature_2_desc')}</p>
+          </motion.div>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6 text-center">
+            <div className="w-12 h-12 rounded-full bg-[var(--primary)]/10 flex items-center justify-center mx-auto mb-3">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 6 9 6 9Z"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5C17 4 18 9 18 9Z"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+            </div>
+            <p className="text-sm font-semibold text-white">{t('feature_3_title')}</p>
+            <p className="text-xs text-zinc-500 mt-1">{t('feature_3_desc')}</p>
+          </motion.div>
+        </div>
+
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="w-full max-w-md space-y-4">
+          <button
+            onClick={handleCreate}
+            disabled={loading}
+            className="w-full py-5 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white font-bold text-lg rounded-2xl transition-all duration-200 flex items-center justify-center gap-3 shadow-lg shadow-[var(--primary)]/25 disabled:opacity-50"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+            {loading ? t('creating') : t('create_lobby')}
+          </button>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/10" /></div>
+            <div className="relative flex justify-center"><span className="bg-[var(--bg)] px-4 text-sm text-zinc-500">{t('or_join')}</span></div>
+          </div>
+
+          <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-5 space-y-3">
+            <input
+              type="text"
+              value={joinCode}
+              onChange={e => setJoinCode(e.target.value.toUpperCase())}
+              placeholder={t('room_code_placeholder')}
+              maxLength={4}
+              className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl text-white placeholder-zinc-500 text-center text-xl font-bold tracking-[0.3em] focus:outline-none focus:border-[var(--primary)] transition-colors uppercase"
+            />
+            <button
+              onClick={handleJoin}
+              disabled={loading || !joinCode.trim()}
+              className="w-full px-6 py-3 bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white font-semibold rounded-xl border border-white/10 transition-colors"
+            >
+              {loading ? t('joining') : t('join_lobby')}
+            </button>
+          </div>
+
+          {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+        </motion.div>
+      </div>
+
+      {/* Leaderboard sidebar */}
+      <div className="hidden md:flex w-72 shrink-0 flex-col bg-[var(--surface)] rounded-2xl border border-white/10 p-4 max-h-[80vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-400">Leaderboard</h2>
+          <a href="/leaderboard" className="text-[10px] text-[var(--primary)] hover:underline">View all</a>
+        </div>
+        {lbLoading ? (
+          <div className="flex-1 flex items-center justify-center"><p className="text-xs text-zinc-500">Loading...</p></div>
+        ) : leaderboard.length === 0 ? (
+          <p className="text-xs text-zinc-500 text-center py-8">No scores yet</p>
+        ) : (
+          <div className="space-y-1.5 flex-1 overflow-y-auto">
+            {leaderboard.slice(0, 10).map((e, i) => (
+              <a key={e.id || e.player_id} href={`/leaderboard`} className="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-white/5 transition-colors">
+                <span className={`w-5 text-center text-xs font-bold ${i === 0 ? 'text-yellow-400' : i === 1 ? 'text-zinc-300' : i === 2 ? 'text-amber-600' : 'text-zinc-600'}`}>
+                  {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}`}
+                </span>
+                <div className="w-7 h-7 rounded-full bg-[var(--surface-light)] flex items-center justify-center text-[10px] font-bold overflow-hidden shrink-0">
+                  {e.avatar_url ? (
+                    <img src={e.avatar_url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    (e.username || e.player_name || '?')[0].toUpperCase()
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium truncate">{e.username || e.player_name || 'Unknown'}</p>
+                  <p className="text-[9px] text-zinc-500">{e.games_played} games</p>
+                </div>
+                <span className="text-xs font-bold text-[var(--accent)]">{e.total_score}</span>
+              </a>
+            ))}
+          </div>
         )}
-      </motion.div>
+      </div>
     </div>
   );
 }
