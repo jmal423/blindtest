@@ -74,7 +74,7 @@ async function spotifyFetch(endpoint, retries = 3) {
       } catch {
         message = body;
       }
-      throw new Error(`Spotify API error (${res.status}): ${message}`);
+      throw new Error(`Spotify API error (${res.status}) [${url}]: ${message}`);
     }
 
     return res.json();
@@ -85,7 +85,7 @@ async function spotifyFetch(endpoint, retries = 3) {
 
 async function getPlaylistTracks(playlistId, market = 'FR') {
   let allItems = [];
-  let url = `/v1/playlists/${playlistId}/items?market=${market}&limit=50`;
+  let url = `playlists/${playlistId}/items?market=${market}&limit=50`;
 
   while (url) {
     const data = await spotifyFetch(url);
@@ -107,7 +107,7 @@ async function getPlaylistTracks(playlistId, market = 'FR') {
     if (data?.next && data?.next.startsWith('https')) {
       const offset = data.next.match(/offset=(\d+)/)?.[1];
       if (offset) {
-        url = `/v1/playlists/${playlistId}/items?market=${market}&limit=50&offset=${offset}`;
+        url = `playlists/${playlistId}/items?market=${market}&limit=50&offset=${offset}`;
       }
     }
   }
@@ -139,28 +139,13 @@ async function getTracksByGenre(genre, count = 10) {
 
   const tracks = [];
 
-  // Strategy 1: recommendations (no market — let Spotify auto-detect)
-  try {
-    const recUrl = `${API_BASE}/recommendations?seed_genres=${encodeURIComponent(genre)}&limit=50`;
-    const recData = await spotifyFetch(recUrl);
-    const recItems = recData?.tracks || [];
-    for (const item of recItems) {
-      tracks.push({
-        id: item.id, name: item.name,
-        artist: item.artists?.[0]?.name || 'Unknown',
-        albumImage: item.album?.images?.[0]?.url || null,
-        previewUrl: item.preview_url || null, genre,
-      });
-    }
-  } catch (err) {
-    console.error(`[Spotify] Recommendations failed for "${genre}":`, err.message);
-  }
-
-  // Strategy 2: search with market=FR
+  // Strategy 1: search by genre tag with market=FR
   if (tracks.length === 0) {
     try {
       const q = encodeURIComponent(`genre:"${genre}"`);
-      const data = await spotifyFetch(`${API_BASE}/search?q=${q}&type=track&limit=50&market=FR`);
+      const url = `${API_BASE}/search?q=${q}&type=track&limit=50&market=FR`;
+      console.log(`[Spotify] Search URL:`, url);
+      const data = await spotifyFetch(url);
       for (const item of (data?.tracks?.items || [])) {
         const t = item.track ? item.track : item;
         tracks.push({
@@ -175,11 +160,13 @@ async function getTracksByGenre(genre, count = 10) {
     }
   }
 
-  // Strategy 3: search without market restriction
+  // Strategy 2: search without market restriction
   if (tracks.length === 0) {
     try {
       const q = encodeURIComponent(`genre:"${genre}"`);
-      const data = await spotifyFetch(`${API_BASE}/search?q=${q}&type=track&limit=50`);
+      const url = `${API_BASE}/search?q=${q}&type=track&limit=50`;
+      console.log(`[Spotify] Search URL (no market):`, url);
+      const data = await spotifyFetch(url);
       for (const item of (data?.tracks?.items || [])) {
         const t = item.track ? item.track : item;
         tracks.push({
@@ -191,6 +178,26 @@ async function getTracksByGenre(genre, count = 10) {
       }
     } catch (err) {
       console.error(`[Spotify] Search (no market) failed for "${genre}":`, err.message);
+    }
+  }
+
+  // Strategy 3: keyword search as last resort
+  if (tracks.length === 0) {
+    try {
+      const url = `${API_BASE}/search?q=${encodeURIComponent(genre)}&type=track&limit=50&market=FR`;
+      console.log(`[Spotify] Keyword search URL:`, url);
+      const data = await spotifyFetch(url);
+      for (const item of (data?.tracks?.items || [])) {
+        const t = item.track ? item.track : item;
+        tracks.push({
+          id: t.id, name: t.name,
+          artist: t.artists?.[0]?.name || 'Unknown',
+          albumImage: t.album?.images?.[0]?.url || null,
+          previewUrl: t.preview_url || null, genre,
+        });
+      }
+    } catch (err) {
+      console.error(`[Spotify] Keyword search failed for "${genre}":`, err.message);
     }
   }
 
