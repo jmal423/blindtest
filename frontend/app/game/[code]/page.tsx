@@ -114,6 +114,7 @@ export default function GamePage({
   playSoundRef.current = playSound;
 
   const handleAudioPlaying = useCallback(() => {
+    socketRef.current?.emit('playback_started');
     if (localTimerRef.current) return;
     const state = gameState;
     if (!state || state.state !== 'playing') return;
@@ -578,6 +579,53 @@ function WaitingRoom({
   );
 }
 
+function PreparingCountdown({ currentRound, totalRounds, players, playerId }: { currentRound: number; totalRounds: number; players: Player[]; playerId: string }) {
+  const [count, setCount] = useState(5);
+
+  useEffect(() => {
+    setCount(5);
+    const t = setInterval(() => setCount(c => Math.max(0, c - 1)), 1000);
+    return () => clearInterval(t);
+  }, [currentRound]);
+
+  const statusLabel = (p: any) => {
+    if (p.foundBoth) return { text: 'Found!', cls: 'bg-yellow-500/20 text-yellow-400 ring-1 ring-yellow-500/50' };
+    if (p.foundArtist && p.foundTitle) return { text: 'Both', cls: 'bg-green-500/20 text-green-400' };
+    if (p.foundArtist) return { text: 'Artist', cls: 'bg-[#00cec9]/20 text-[#00cec9] text-[10px]' };
+    if (p.foundTitle) return { text: 'Title', cls: 'bg-[#00cec9]/20 text-[#00cec9] text-[10px]' };
+    return { text: '...', cls: 'text-zinc-600' };
+  };
+
+  return (
+    <div className="flex-1 flex flex-col items-center justify-center gap-12">
+      <motion.p
+        key={count}
+        initial={{ scale: 1.5, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.3 }}
+        className="text-7xl font-bold text-[var(--accent)]"
+      >
+        {count > 0 ? count : 'GO!'}
+      </motion.p>
+
+      <div className="w-full max-w-xs space-y-1">
+        <p className="text-xs text-zinc-500 uppercase tracking-wider mb-2 text-center">Players</p>
+        {players.map(p => {
+          const s = statusLabel(p);
+          return (
+            <div key={p.id} className={`flex items-center gap-2 px-3 py-2 rounded-lg ${p.id === playerId ? 'bg-white/5 ring-1 ring-white/20' : ''}`}>
+              <span className="text-sm flex-1 truncate">{p.name}</span>
+              <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${s.cls}`}>{s.text}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      <p className="text-sm text-zinc-500">Round {currentRound}/{totalRounds}</p>
+    </div>
+  );
+}
+
 function PlayingPhase({
   state,
   currentRound,
@@ -635,33 +683,7 @@ function PlayingPhase({
   };
 
   if (state === 'round_preparing') {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-12">
-        <motion.p
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1.2, opacity: 1 }}
-          transition={{ duration: 0.6 }}
-          className="text-5xl font-bold text-[var(--accent)] tracking-wide"
-        >
-          PREPARE-SE...
-        </motion.p>
-
-        <div className="w-full max-w-xs space-y-1">
-          <p className="text-xs text-zinc-500 uppercase tracking-wider mb-2 text-center">Players</p>
-          {players.map(p => {
-            const s = statusLabel(p);
-            return (
-              <div key={p.id} className={`flex items-center gap-2 px-3 py-2 rounded-lg ${p.id === playerId ? 'bg-white/5 ring-1 ring-white/20' : ''}`}>
-                <span className="text-sm flex-1 truncate">{p.name}</span>
-                <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${s.cls}`}>{s.text}</span>
-              </div>
-            );
-          })}
-        </div>
-
-        <p className="text-sm text-zinc-500">Round {currentRound}/{totalRounds}</p>
-      </div>
-    );
+    return <PreparingCountdown currentRound={currentRound} totalRounds={totalRounds} players={players} playerId={playerId} />;
   }
 
   return (
@@ -714,13 +736,6 @@ function PlayingPhase({
               className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-[var(--primary)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
-          <button
-            onClick={onSubmit}
-            disabled={!guess.trim() || bothFound}
-            className="w-full px-6 py-3 bg-[var(--accent)] hover:opacity-90 disabled:opacity-50 text-black font-semibold rounded-xl transition-colors"
-          >
-            Guess!
-          </button>
         </div>
 
         {guessResult && (() => {

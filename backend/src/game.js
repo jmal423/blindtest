@@ -34,12 +34,20 @@ function evaluateAnswer(guess, target) {
   const t = normalizeString(target);
   if (!a || !t) return { matched: false, score: 0 };
   if (a === t) return { matched: true, score: 100 };
-  if (a.includes(t) || t.includes(a)) return { matched: true, score: 100 };
+
+  const shorter = a.length <= t.length ? a : t;
+  const longer = a.length <= t.length ? t : a;
+  if (shorter.length >= 4 && shorter.length >= longer.length * 0.6 && longer.includes(shorter)) {
+    return { matched: true, score: 100 };
+  }
+
   const dist = levenshtein(a, t);
   const maxLen = Math.max(a.length, t.length);
   const ratio = dist / maxLen;
-  if (dist <= 2) return { matched: true, score: Math.round((1 - ratio) * 100) };
-  if (ratio <= 0.25) return { matched: true, score: Math.round((1 - ratio) * 100) };
+
+  const maxDist = maxLen <= 4 ? 1 : 2;
+  if (dist <= maxDist) return { matched: true, score: Math.round((1 - ratio) * 100) };
+  if (ratio <= 0.15) return { matched: true, score: Math.round((1 - ratio) * 100) };
   return { matched: false, score: Math.round((1 - Math.min(ratio, 1)) * 100) };
 }
 
@@ -185,16 +193,12 @@ export class GameRoom {
     this.state = 'round_preparing';
     this.broadcast();
 
+    this.waitingForPlayback = true;
     clearTimeout(this.countdownTimer);
     this.countdownTimer = setTimeout(() => {
-      this.roundStartTime = Date.now();
       this.state = 'playing';
       this.broadcast();
-
-      clearTimeout(this.roundTimer);
-      this.roundTimer = setTimeout(() => {
-        this.endRound();
-      }, this.settings.roundTime * 1000);
+      // round timer starts when playback_started socket event arrives
     }, 5000);
   }
 
@@ -267,6 +271,16 @@ export class GameRoom {
     }
 
     return { ...inputResult, guessTimeMs, trackId: track.id, genre: track.genre };
+  }
+
+  startRoundTimer() {
+    if (!this.waitingForPlayback || this.state !== 'playing') return;
+    this.waitingForPlayback = false;
+    this.roundStartTime = Date.now();
+    clearTimeout(this.roundTimer);
+    this.roundTimer = setTimeout(() => {
+      this.endRound();
+    }, this.settings.roundTime * 1000);
   }
 
   endRound() {
@@ -404,5 +418,6 @@ export class GameRoom {
     this.players = [];
     this.tracks = [];
     this.trackHistory = [];
+    this.waitingForPlayback = false;
   }
 }

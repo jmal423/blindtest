@@ -34,6 +34,13 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('playback_started', () => {
+    const info = socketPlayerMap.get(socket.id);
+    if (!info) return;
+    const room = rooms.get(info.roomCode);
+    if (room) room.startRoundTimer();
+  });
+
   socket.on('submit_guess', (data) => {
     const info = socketPlayerMap.get(socket.id);
     if (!info) return;

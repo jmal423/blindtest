@@ -69,7 +69,7 @@ function Dashboard({ user }: { user: any }) {
   const router = useRouter();
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [allGenres, setAllGenres] = useState<{ id: string; label: string }[]>([]);
-  const [createGenres, setCreateGenres] = useState<string[]>(['pop']);
+  const [createGenres, setCreateGenres] = useState<string[]>([]);
   const [createRounds, setCreateRounds] = useState(10);
   const [createTime, setCreateTime] = useState(15);
   const [joinCode, setJoinCode] = useState('');
@@ -112,7 +112,7 @@ function Dashboard({ user }: { user: any }) {
     const set = new Set(createGenres);
     if (set.has(id)) set.delete(id);
     else set.add(id);
-    if (set.size > 0) setCreateGenres(Array.from(set));
+    setCreateGenres(Array.from(set));
   };
 
   return (
@@ -189,10 +189,14 @@ function Dashboard({ user }: { user: any }) {
 
             <button
               onClick={handleCreate}
-              disabled={loading}
-              className="w-full px-6 py-3 bg-[var(--primary)] hover:bg-[var(--primary-hover)] disabled:opacity-50 text-white font-semibold rounded-xl transition-colors"
+              disabled={loading || createGenres.length === 0}
+              className={`w-full px-6 py-3 text-white font-semibold rounded-xl transition-colors ${
+                createGenres.length > 0
+                  ? 'bg-[var(--primary)] hover:bg-[var(--primary-hover)]'
+                  : 'bg-gray-600 opacity-50 cursor-not-allowed'
+              }`}
             >
-              {loading ? 'Creating...' : 'Create Room'}
+              {loading ? 'Creating...' : createGenres.length === 0 ? 'Select a Genre' : 'Create Room'}
             </button>
           </div>
 
