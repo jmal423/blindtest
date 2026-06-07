@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import Link from 'next/link';
 import { getMe, getMyStats, getToken } from '@/lib/api';
@@ -10,26 +10,18 @@ import SettingsModal from './SettingsModal';
 
 export default function Header() {
   const router = useRouter();
+  const pathname = usePathname();
   const [user, setUser] = useState<any>(null);
   const [stats, setStats] = useState<any>(null);
   const [open, setOpen] = useState(false);
   const [debugOn, setDebugOn] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [inGame, setInGame] = useState(false);
+  const inGame = pathname.startsWith('/game/');
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (getToken()) {
       getMe().then(setUser).catch(() => {});
-    }
-    if (typeof window !== 'undefined') {
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith('blindtest_player_')) {
-          setInGame(true);
-          break;
-        }
-      }
     }
     setDebugOn(isDebugMode());
   }, []);
