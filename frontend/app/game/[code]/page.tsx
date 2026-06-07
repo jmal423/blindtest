@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, use, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import { io as socketIo, Socket } from 'socket.io-client';
-import { GameState, Player, RoomSettings, startGame, submitAnswer, updateSettings, fetchGenres } from '@/lib/api';
+import { getToken, GameState, Player, RoomSettings, startGame, submitAnswer, updateSettings, fetchGenres } from '@/lib/api';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -42,7 +42,9 @@ function AudioPlayer({
     audio.currentTime = audioOffset;
 
     audio.addEventListener('canplay', () => {
-      audio.play().catch(() => {});
+      audio.play().catch((err) => {
+        console.error('Autoplay blocked:', err);
+      });
     });
 
     return () => {
@@ -146,6 +148,7 @@ export default function GamePage({
 
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [playerId, setPlayerId] = useState<string>('');
+  const [hasInteracted, setHasInteracted] = useState(false);
   const [guess, setGuess] = useState('');
   const [guessResult, setGuessResult] = useState<{ artist_result: string; title_result: string; points_awarded_this_guess: number; found_both: boolean } | null>(null);
   const [error, setError] = useState('');
@@ -222,14 +225,25 @@ export default function GamePage({
 
   useEffect(() => {
     const pid = localStorage.getItem(`blindtest_player_${code}`);
-    if (!pid) { router.push('/'); return; }
+    if (!pid) {
+      if (!getToken()) {
+        router.push(`/?redirect=/game/${code}`);
+        return;
+      }
+      router.push('/');
+      return;
+    }
     setPlayerId(pid);
+  }, [code, router]);
+
+  useEffect(() => {
+    if (!playerId || !hasInteracted) return;
 
     const socket = socketIo(API_URL);
     socketRef.current = socket;
 
     socket.on('connect', () => {
-      socket.emit('join_room', code, pid);
+      socket.emit('join_room', code, playerId);
     });
 
     socket.on('game_state', (state: GameState) => {
@@ -250,7 +264,7 @@ export default function GamePage({
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [code, router, applyGameState]);
+  }, [code, playerId, hasInteracted, applyGameState]);
 
   const handleStart = useCallback(async () => {
     try {
@@ -287,6 +301,45 @@ export default function GamePage({
     }
   }, [code, playerId, guess]);
 
+  const handleInteract = () => {
+    new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAVFYAAFRWAAABAAgAZGF0YQAAAAA=').play().catch(() => {});
+    setHasInteracted(true);
+  };
+
+  if (!playerId) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <p className="text-zinc-400 text-lg">Connecting...</p>
+      </div>
+    );
+  }
+
+  if (!hasInteracted) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center p-8 gap-8 cursor-pointer" onClick={handleInteract}>
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.4 }}
+          className="text-center max-w-sm"
+        >
+          <p className="text-3xl font-bold mb-2">Room <span className="text-[var(--primary)]">{code}</span></p>
+          <p className="text-zinc-400 text-sm mb-8">Click anywhere to enter</p>
+          <motion.div
+            animate={{ scale: [1, 1.05, 1] }}
+            transition={{ repeat: Infinity, duration: 2 }}
+            className="inline-flex items-center gap-3 px-8 py-4 bg-[var(--primary)] text-white font-semibold rounded-2xl"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+            Click to Enter Room
+          </motion.div>
+        </motion.div>
+      </div>
+    );
+  }
+
   if (error) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 gap-4">
@@ -302,7 +355,7 @@ export default function GamePage({
   if (!gameState) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <p className="text-zinc-400 text-lg">Loading...</p>
+        <p className="text-zinc-400 text-lg">Connecting to game...</p>
       </div>
     );
   }
