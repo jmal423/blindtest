@@ -134,13 +134,29 @@ function getGenreLabel(genre) {
 
 async function getTracksByGenre(genre, count = 10) {
   const tracks = [];
-  const maxPerPage = 10;
-  const maxResults = 100;
   const market = 'FR';
 
-  for (let offset = 0; offset < maxResults; offset += maxPerPage) {
+  // Try recommendations first — returns popular mainstream tracks for the genre
+  const recUrl = `${API_BASE}/recommendations?seed_genres=${encodeURIComponent(genre)}&limit=50&market=${market}`;
+  const recData = await spotifyFetch(recUrl);
+  const recItems = recData?.tracks || [];
+
+  for (const item of recItems) {
+    tracks.push({
+      id: item.id,
+      name: item.name,
+      artist: item.artists?.[0]?.name || 'Unknown',
+      albumImage: item.album?.images?.[0]?.url || null,
+      previewUrl: item.preview_url || null,
+      genre,
+    });
+  }
+
+  // Fallback to search if recommendations returned nothing
+  if (tracks.length === 0) {
+    const maxPerPage = 50;
     const q = encodeURIComponent(`genre:"${genre}"`);
-    const url = `${API_BASE}/search?q=${q}&type=track&limit=${maxPerPage}&offset=${offset}&market=${market}`;
+    const url = `${API_BASE}/search?q=${q}&type=track&limit=${maxPerPage}&market=${market}`;
 
     const data = await spotifyFetch(url);
     const items = data?.tracks?.items || [];
@@ -156,9 +172,6 @@ async function getTracksByGenre(genre, count = 10) {
         genre,
       });
     }
-
-    if (tracks.length >= count) break;
-    if (items.length < maxPerPage) break;
   }
 
   if (tracks.length === 0) {
