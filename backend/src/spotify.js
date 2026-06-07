@@ -112,15 +112,18 @@ async function getTracksByGenre(genre, count = 10) {
     const items = data?.tracks?.items || [];
 
     for (const item of items) {
+      const trackNode = item.track ? item.track : item;
       tracks.push({
-        id: item.id,
-        name: item.name,
-        artist: item.artists?.[0]?.name || 'Unknown',
-        albumImage: item.album?.images?.[0]?.url || null,
-        previewUrl: item.preview_url || null,
+        id: trackNode.id,
+        name: trackNode.name,
+        artist: trackNode.artists?.[0]?.name || 'Unknown',
+        albumImage: trackNode.album?.images?.[0]?.url || null,
+        previewUrl: trackNode.preview_url || null,
         genre,
       });
     }
+
+    console.log(`[Spotify Fetch] Mapped ${tracks.length} tracks for genre "${genre}". First track previewUrl:`, tracks[0]?.previewUrl);
 
     if (tracks.length >= count) break;
     if (items.length < maxPerPage) break;

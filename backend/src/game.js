@@ -120,7 +120,9 @@ export class GameRoom {
       }
     }
 
+    console.log(`[Sanity Filter] ${allTracks.length} total tracks fetched across genres`);
     const playableTracks = allTracks.filter(track => track.previewUrl && track.previewUrl.startsWith('http'));
+    console.log(`[Sanity Filter] ${playableTracks.length} tracks survived the audio check`);
     this.tracks = shuffle(playableTracks).slice(0, this.settings.rounds);
     this.totalRounds = this.tracks.length;
 
