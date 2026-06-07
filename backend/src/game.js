@@ -1,19 +1,18 @@
 import crypto from 'node:crypto';
 
-const POINTS_CORRECT = 100;
-const POINTS_BONUS_PER_SECOND = 10;
-
 function generateId() {
   return crypto.randomUUID();
 }
 
-function normalize(str) {
+function normalizeString(str) {
   return str
     .toLowerCase()
     .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\(.*?\)/g, '')
     .replace(/[^a-z0-9\s]/g, '')
     .replace(/\s+/g, ' ')
-    .replace(/\(feat\..*\)|\(ft\..*\)|\(remastered\)|\(.*?version\)/g, '')
     .trim();
 }
 
@@ -30,9 +29,9 @@ function levenshtein(a, b) {
   return dp[m][n];
 }
 
-function isCorrectGuess(answer, trackName) {
-  const a = normalize(answer);
-  const t = normalize(trackName);
+function evaluateAnswer(guess, target) {
+  const a = normalizeString(guess);
+  const t = normalizeString(target);
   if (!a || !t) return false;
   if (a === t) return true;
   if (a.includes(t) || t.includes(a)) return true;
@@ -70,6 +69,11 @@ export class GameRoom {
     this.hostId = null;
     this.pauseStartTime = null;
     this.io = io;
+    this.playerSockets = {};
+  }
+
+  setPlayerSocket(playerId, socketId) {
+    this.playerSockets[playerId] = socketId;
   }
 
   broadcast() {
@@ -120,7 +124,7 @@ export class GameRoom {
 
     if (this.tracks.length === 0) return 'No tracks found';
 
-    this.players.forEach(p => { p.score = 0; p.answers = []; });
+    this.players.forEach(p => { p.score = 0; p.answers = []; p.streak = 0; });
     this.currentRound = 0;
     this.startRound();
     return null;
@@ -147,6 +151,12 @@ export class GameRoom {
     }
 
     this.roundStartTime = Date.now();
+    this.foundOrder = [];
+    this.players.forEach(p => {
+      p.foundArtist = false;
+      p.foundTitle = false;
+      p.foundBoth = false;
+    });
     const maxOffset = Math.max(0, 30 - this.settings.roundTime);
     this.audioOffset = Math.floor(Math.random() * maxOffset);
     this.state = 'playing';
@@ -160,34 +170,76 @@ export class GameRoom {
 
   submitAnswer(playerId, answer) {
     const player = this.getPlayer(playerId);
-    if (!player || this.state !== 'playing') return;
+    if (!player || this.state !== 'playing') return null;
 
     const track = this.tracks[this.currentRound];
-    if (!track) return;
+    if (!track) return null;
 
     const guessTimeMs = Date.now() - this.roundStartTime;
-    const isCorrect = isCorrectGuess(answer, track.name);
-    let points = 0;
 
-    if (isCorrect) {
-      const elapsed = guessTimeMs / 1000;
-      const timeBonus = Math.max(0, Math.floor((this.settings.roundTime - elapsed) * POINTS_BONUS_PER_SECOND));
-      points = POINTS_CORRECT + timeBonus;
+    const artistCorrect = !player.foundArtist && evaluateAnswer(answer, track.artist);
+    const titleCorrect = !player.foundTitle && evaluateAnswer(answer, track.name);
+
+    let pointsThisGuess = 0;
+
+    if (artistCorrect) {
+      player.foundArtist = true;
+      pointsThisGuess += 3;
     }
 
-    player.score += points;
+    if (titleCorrect) {
+      player.foundTitle = true;
+      pointsThisGuess += 3;
+    }
+
+    const bothNow = player.foundArtist && player.foundTitle;
+    if (bothNow && !player.foundBoth) {
+      player.foundBoth = true;
+      pointsThisGuess += 4;
+
+      const position = this.foundOrder.length + 1;
+      this.foundOrder.push(playerId);
+      if (position === 1) pointsThisGuess += 3;
+      else if (position === 2) pointsThisGuess += 2;
+      else if (position === 3) pointsThisGuess += 1;
+    }
+
+    player.score += pointsThisGuess;
     player.answers.push({
       round: this.currentRound,
       answer,
-      correct: isCorrect,
-      points,
+      artistCorrect,
+      titleCorrect,
+      points: pointsThisGuess,
     });
 
-    return { correct: isCorrect, points, correctAnswer: track.name, artist: track.artist, guessTimeMs, trackId: track.id, genre: track.genre };
+    const inputResult = {
+      artist_result: artistCorrect ? 'Good' : 'Bad',
+      title_result: titleCorrect ? 'Good' : 'Bad',
+      points_awarded_this_guess: pointsThisGuess,
+      found_both: bothNow,
+    };
+
+    const sid = this.playerSockets[playerId];
+    if (sid && this.io) {
+      this.io.to(sid).emit('input_result', inputResult);
+    }
+
+    return { ...inputResult, guessTimeMs, trackId: track.id, genre: track.genre };
   }
 
   endRound() {
     if (this.roundTimer) { clearTimeout(this.roundTimer); this.roundTimer = null; }
+
+    this.players.forEach(p => {
+      if (p.foundArtist && p.foundTitle) {
+        p.streak = (p.streak || 0) + 1;
+        if (p.streak >= 3) p.score += 4;
+        else if (p.streak === 2) p.score += 2;
+      } else {
+        p.streak = 0;
+      }
+    });
 
     const track = this.tracks[this.currentRound];
     this.state = 'round_result';

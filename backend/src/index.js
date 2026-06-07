@@ -23,11 +23,12 @@ const io = new Server(server, {
 const rooms = new Map();
 
 io.on('connection', (socket) => {
-  socket.on('join_room', (roomCode) => {
+  socket.on('join_room', (roomCode, playerId) => {
     if (!roomCode) return;
     socket.join(roomCode);
     const room = rooms.get(roomCode);
     if (room) {
+      if (playerId) room.setPlayerSocket(playerId, socket.id);
       socket.emit('game_state', room.getState());
     }
   });

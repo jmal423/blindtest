@@ -219,7 +219,7 @@ export default function GamePage({
     socketRef.current = socket;
 
     socket.on('connect', () => {
-      socket.emit('join_room', code);
+      socket.emit('join_room', code, pid);
     });
 
     socket.on('game_state', (state: GameState) => {
