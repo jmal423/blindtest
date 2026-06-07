@@ -140,7 +140,9 @@ export default function GamePage({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(30);
   const [localTimeLeft, setLocalTimeLeft] = useState<number | null>(null);
+  const [smoothTime, setSmoothTime] = useState<number>(0);
   const localTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const smoothTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const guessInputRef = useRef<HTMLInputElement>(null);
   const [artistFound, setArtistFound] = useState(false);
   const [titleFound, setTitleFound] = useState(false);
@@ -148,6 +150,8 @@ export default function GamePage({
   const [encouragement, setEncouragement] = useState<string | null>(null);
   const [guessMarkers, setGuessMarkers] = useState<{ playerName: string; artistFound: boolean; titleFound: boolean; guessTimeMs: number }[]>([]);
   const [startLoading, setStartLoading] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const playSound = useSound();
   const { settings: userSettings } = useSettings();
   const playSoundRef = useRef(playSound);
@@ -160,8 +164,10 @@ export default function GamePage({
     const state = gameState;
     if (!state || state.state !== 'playing') return;
     const roundTime = (state as any).roundTime || 15;
-    setLocalTimeLeft(roundTime);
+    setLocalTimeLeft(Math.ceil(roundTime));
+    setSmoothTime(0);
     guessInputRef.current?.focus();
+
     localTimerRef.current = setInterval(() => {
       setLocalTimeLeft(prev => {
         if (prev === null || prev <= 1) {
@@ -174,6 +180,20 @@ export default function GamePage({
         return prev - 1;
       });
     }, 1000);
+
+    smoothTimerRef.current = setInterval(() => {
+      setSmoothTime(t => {
+        const next = t + 0.05;
+        if (next >= roundTime) {
+          if (smoothTimerRef.current) {
+            clearInterval(smoothTimerRef.current);
+            smoothTimerRef.current = null;
+          }
+          return roundTime;
+        }
+        return next;
+      });
+    }, 50);
   }, [gameState]);
 
   const handleAudioTimeUpdate = useCallback((t: number, d?: number) => {
@@ -202,10 +222,15 @@ export default function GamePage({
         setGuessResult(null);
         setEncouragement(null);
         setLocalTimeLeft(null);
+        setSmoothTime(0);
         setGuessMarkers([]);
         if (localTimerRef.current) {
           clearInterval(localTimerRef.current);
           localTimerRef.current = null;
+        }
+        if (smoothTimerRef.current) {
+          clearInterval(smoothTimerRef.current);
+          smoothTimerRef.current = null;
         }
       }
       return;
@@ -217,6 +242,10 @@ export default function GamePage({
     if (localTimerRef.current) {
       clearInterval(localTimerRef.current);
       localTimerRef.current = null;
+    }
+    if (smoothTimerRef.current) {
+      clearInterval(smoothTimerRef.current);
+      smoothTimerRef.current = null;
     }
     if (state.state === 'game_over') {
       playSoundRef.current('endGame');
@@ -364,14 +393,39 @@ export default function GamePage({
   }
 
   return (
-    <div className="flex-1 flex flex-col p-4 md:p-8 max-w-5xl mx-auto w-full gap-6">
-      <div className="text-center">
-        <p className="text-sm text-zinc-400">Room Code</p>
-        <p className="text-3xl font-bold tracking-[0.3em] text-[var(--primary)]">{code}</p>
+    <div className="flex-1 flex flex-col p-3 md:p-6 max-w-5xl mx-auto w-full gap-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <p className="text-xl font-bold tracking-[0.2em] text-[var(--primary)]">{code}</p>
+          <button
+            onClick={() => { navigator.clipboard.writeText(code); }}
+            className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-zinc-500 hover:text-zinc-300 transition-colors"
+          >
+            Copy
+          </button>
+        </div>
+        <div className="flex items-center gap-2">
+          {gameState.state !== 'waiting' && gameState.state !== 'game_over' && (
+            <button
+              onClick={() => setChatOpen(o => !o)}
+              className="md:hidden text-[10px] px-2 py-0.5 rounded bg-white/5 text-zinc-400 hover:text-zinc-300 transition-colors"
+            >
+              {chatOpen ? 'Hide Chat' : 'Chat'}
+            </button>
+          )}
+          {((gameState as any)?.trackHistory?.length > 0 || historyOpen) && (
+            <button
+              onClick={() => setHistoryOpen(o => !o)}
+              className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-zinc-400 hover:text-zinc-300 transition-colors"
+            >
+              {historyOpen ? 'Hide History' : 'History'}
+            </button>
+          )}
+        </div>
       </div>
 
-      <div className="flex gap-6">
-        <div className="flex-1 flex flex-col gap-6 max-w-2xl">
+      <div className="flex gap-4 md:gap-6">
+        <div className="flex-1 flex flex-col gap-4 max-w-2xl min-w-0">
           {gameState.state === 'waiting' && (
             <WaitingRoom
               gameCode={code}
@@ -395,6 +449,7 @@ export default function GamePage({
               currentRound={gameState.currentRound}
               totalRounds={gameState.totalRounds}
               timeLeft={localTimeLeft ?? (gameState as any).timeLeft}
+              smoothTime={smoothTime}
               guess={guess}
               onGuessChange={setGuess}
               onSubmit={handleSubmit}
@@ -411,7 +466,6 @@ export default function GamePage({
               encouragement={encouragement}
               waitingForPlayers={(gameState as any).waitingForPlayers}
               roundTime={(gameState as any).settings?.roundTime || 15}
-              settings={(gameState as any).settings}
               playersReady={(gameState as any).playersReady}
               playersTotal={(gameState as any).playersTotal}
               youtubeVideoId={(gameState as any).youtubeVideoId}
@@ -430,11 +484,22 @@ export default function GamePage({
         </div>
 
         {gameState.state !== 'waiting' && gameState.state !== 'game_over' && (
-          <div className="hidden md:block w-72 shrink-0">
-            <Chat socket={socket} />
+          <div className={`${chatOpen ? 'fixed inset-0 z-40 bg-black/80 md:bg-transparent md:static flex items-end md:block' : 'hidden md:block'} w-64 shrink-0`}>
+            <div className="w-full md:w-64 bg-[var(--surface)] md:bg-transparent rounded-t-2xl md:rounded-none md:h-auto max-h-[60vh] md:max-h-none overflow-y-auto">
+              {chatOpen && (
+                <button onClick={() => setChatOpen(false)} className="md:hidden w-full text-center py-2 text-xs text-zinc-500 border-b border-white/5">
+                  Close
+                </button>
+              )}
+              <Chat socket={socket} />
+            </div>
           </div>
         )}
       </div>
+
+      {historyOpen && ((gameState as any)?.trackHistory?.length > 0) && (
+        <TrackHistory tracks={(gameState as any)?.trackHistory || []} />
+      )}
 
       {gameState.state !== 'game_over' && (
         <AudioPlayer
@@ -451,7 +516,6 @@ export default function GamePage({
       {isDebugMode() && (
         <DebugOverlay gameState={gameState} socketConnected={socketConnected} />
       )}
-      <TrackHistory tracks={(gameState as any)?.trackHistory || []} />
     </div>
   );
 }
@@ -806,6 +870,7 @@ function PlayingPhase({
   playersReady,
   playersTotal,
   onSkipRound,
+  smoothTime,
   youtubeVideoId,
   roundTime,
   hostId,
@@ -814,6 +879,7 @@ function PlayingPhase({
   currentRound: number;
   totalRounds: number;
   timeLeft: number | null;
+  smoothTime?: number;
   guess: string;
   onGuessChange: (v: string) => void;
   onSubmit: () => void;
@@ -833,7 +899,6 @@ function PlayingPhase({
   playersTotal?: number;
   onSkipRound?: () => void;
   roundTime?: number;
-  settings?: RoomSettings;
   youtubeVideoId?: string | null;
   hostId?: string | null;
 }) {
@@ -844,19 +909,6 @@ function PlayingPhase({
       ? 'Artist found! Now type the title...'
       : 'Type the artist or title...';
 
-  const pills = [
-    { label: 'Artist', found: artistFound },
-    { label: 'Title', found: titleFound },
-  ];
-
-  const statusLabel = (p: any) => {
-    if (p.foundBoth) return { text: 'Found!', cls: 'bg-yellow-500/20 text-yellow-400 ring-1 ring-yellow-500/50' };
-    if (p.foundArtist && p.foundTitle) return { text: 'Both', cls: 'bg-green-500/20 text-green-400' };
-    if (p.foundArtist) return { text: 'Artist', cls: 'bg-[#00cec9]/20 text-[#00cec9] text-[10px]' };
-    if (p.foundTitle) return { text: 'Title', cls: 'bg-[#00cec9]/20 text-[#00cec9] text-[10px]' };
-    return { text: '...', cls: 'text-zinc-600' };
-  };
-
   if (state === 'round_preparing') {
     return <PreparingCountdown currentRound={currentRound} totalRounds={totalRounds} players={players} playerId={playerId} />;
   }
@@ -864,9 +916,15 @@ function PlayingPhase({
   const me = players.find(p => p.id === playerId);
   const isAdmin = me?.role === 'admin' || playerId === hostId;
 
+  const playerStatus = (p: any) => {
+    if (p.foundBoth) return 'found';
+    if (p.foundArtist || p.foundTitle) return 'partial';
+    return 'guessing';
+  };
+
   if (waitingForPlayers) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-8">
+      <div className="flex-1 flex flex-col items-center justify-center gap-6">
         <div className="flex items-center gap-6">
           <span className="text-sm text-zinc-400">Round {currentRound}/{totalRounds}</span>
         </div>
@@ -875,7 +933,7 @@ function PlayingPhase({
             {Array.from({ length: playersTotal || 0 }).map((_, i) => (
               <div
                 key={i}
-                className={`w-4 h-4 rounded-full transition-all duration-300 ${
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${
                   i < (playersReady || 0) ? 'bg-green-400 scale-110' : 'bg-zinc-700'
                 }`}
               />
@@ -884,171 +942,213 @@ function PlayingPhase({
           <p className="text-zinc-400 text-lg">Waiting for players to connect...</p>
           <p className="text-zinc-500 text-sm">{playersReady}/{playersTotal} ready</p>
         </div>
-        <Visualizer duration={duration} currentTime={currentTime} />
-        <ProgressBar duration={roundDuration} currentTime={0} markers={[]} />
+        <MiniViz duration={duration} currentTime={currentTime} />
         {isAdmin && onSkipRound && (
-          <button
-            onClick={onSkipRound}
-            className="px-4 py-2 text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 transition-colors"
-          >
-            Skip Round (Admin)
+          <button onClick={onSkipRound} className="px-4 py-2 text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 transition-colors">
+            Skip Round
           </button>
         )}
       </div>
     );
   }
 
+  const pillStyle = (found: boolean) =>
+    found
+      ? 'bg-[var(--primary)] text-white border-[var(--primary)]'
+      : 'bg-transparent text-zinc-600 border-zinc-700';
+
   return (
-    <div className="flex-1 flex flex-col lg:flex-row items-start gap-6 w-full max-w-4xl mx-auto">
-      <div className="flex-1 flex flex-col items-center justify-center gap-6 w-full">
-        <div className="flex items-center gap-6">
-          <span className="text-sm text-zinc-400">Round {currentRound}/{totalRounds}</span>
-          <motion.div
-            key={currentRound}
-            initial={{ scale: 1.3, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
+    <div className="flex-1 flex flex-col gap-4 w-full max-w-lg mx-auto">
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-zinc-500 tabular-nums">Round {currentRound}/{totalRounds}</span>
+        <div className="flex items-center gap-3">
+          <motion.span
+            key={timeLeft}
+            initial={{ scale: 1.3 }}
+            animate={{ scale: 1 }}
             className={`text-3xl font-bold tabular-nums ${timeLeft != null && timeLeft <= 5 ? 'text-red-400' : 'text-white'}`}
           >
             {timeLeft ?? '--'}
-          </motion.div>
+          </motion.span>
           {isAdmin && onSkipRound && (
             <button
               onClick={onSkipRound}
-              className="px-3 py-1 text-[10px] bg-zinc-800 hover:bg-zinc-700 text-zinc-400 rounded-md border border-zinc-700 transition-colors"
+              className="px-2 py-0.5 text-[10px] bg-zinc-800 hover:bg-zinc-700 text-zinc-500 rounded border border-zinc-700 transition-colors"
               title="Skip this round"
             >
               Skip
             </button>
           )}
         </div>
-
-        <Visualizer duration={duration} currentTime={currentTime} />
-
-        <ProgressBar duration={roundDuration} currentTime={roundDuration - (timeLeft || 0)} markers={guessMarkers} />
-
-        <div className="w-full max-w-sm space-y-3">
-          <div className="flex gap-2">
-            {pills.map(p => (
-              <motion.div
-                key={p.label}
-                initial={p.found ? { scale: 0.8 } : false}
-                animate={p.found ? { scale: [0.8, 1.1, 1] } : {}}
-                transition={{ duration: 0.3 }}
-                className={`flex-1 text-center px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all ${
-                  p.found
-                    ? 'bg-[#00cec9] text-black border-[#00cec9]'
-                    : 'bg-transparent text-zinc-500 border-zinc-700'
-                }`}
-              >
-                {p.label}
-              </motion.div>
-            ))}
-          </div>
-
-          <div className="relative">
-            <input
-              ref={inputRef}
-              type="text"
-              value={guess}
-              onChange={e => onGuessChange(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && !bothFound && onSubmit()}
-              placeholder={placeholder}
-              disabled={bothFound}
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-[var(--primary)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            />
-          </div>
-        </div>
-
-        {guessResult && (() => {
-          const pts = guessResult.points_awarded_this_guess || 0;
-          const succeeded = pts > 0;
-          const scores = [];
-          if (guessResult.artist_score !== undefined) scores.push(`Artist: ${guessResult.artist_score}%`);
-          if (guessResult.title_score !== undefined) scores.push(`Title: ${guessResult.title_score}%`);
-          const ms = guessResult.guessTimeMs;
-          return (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`px-6 py-3 rounded-xl text-center ${
-                succeeded
-                  ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                  : 'bg-red-500/20 text-red-400 border border-red-500/30'
-              }`}
-            >
-              <p className="font-semibold">{succeeded ? `+${pts} pts` : 'Wrong!'}</p>
-              {scores.length > 0 && (
-                <p className="text-[10px] mt-0.5 opacity-70">{scores.join(' | ')}</p>
-              )}
-              {ms != null && (
-                <p className="text-[10px] mt-0.5 text-zinc-400">{(ms / 1000).toFixed(1)}s</p>
-              )}
-            </motion.div>
-          );
-        })()}
-        {encouragement && (
-          <motion.p
-            key={encouragement}
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="text-xs text-zinc-400 italic text-center"
-          >
-            {encouragement}
-          </motion.p>
-        )}
       </div>
 
-      <div className="w-full lg:w-56 shrink-0 space-y-1">
-        <p className="text-xs text-zinc-500 uppercase tracking-wider mb-2">Players</p>
+      <MiniViz duration={duration} currentTime={currentTime} />
+
+      <div className="h-1 rounded-full bg-zinc-800 overflow-hidden">
+        <div
+          className="h-full rounded-full bg-[var(--primary)] transition-none"
+          style={{ width: `${roundDuration > 0 ? ((smoothTime ?? 0) / roundDuration) * 100 : 0}%` }}
+        />
+      </div>
+
+      <div className="flex gap-1">
         {players.map(p => {
-          const s = statusLabel(p);
+          const s = playerStatus(p);
           return (
-            <div key={p.id} className={`flex items-center gap-2 px-3 py-2 rounded-lg ${p.id === playerId ? 'bg-white/5 ring-1 ring-white/20' : ''}`}>
-              <span className="text-sm flex-1 truncate">{p.name}</span>
-              <span className="font-bold text-[var(--accent)] text-sm">{p.score}</span>
-              <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${s.cls}`}>{s.text}</span>
+            <div
+              key={p.id}
+              className={`flex-1 text-center px-1.5 py-1 rounded text-[10px] font-medium transition-all ${
+                s === 'found' ? 'bg-yellow-500/20 text-yellow-400'
+                : s === 'partial' ? 'bg-[var(--primary)]/10 text-[var(--primary)]'
+                : 'text-zinc-600'
+              }`}
+              title={`${p.name} — ${p.score}pts`}
+            >
+              {p.name[0].toUpperCase()}{p.name.length > 1 ? p.name.slice(0, 2) : ''}
             </div>
           );
         })}
       </div>
+
+      <div className="flex gap-2">
+        <div className={`flex-1 text-center px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all ${pillStyle(artistFound)}`}>
+          Artist
+        </div>
+        <div className={`flex-1 text-center px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all ${pillStyle(titleFound)}`}>
+          Title
+        </div>
+      </div>
+
+      <div className="relative">
+        <input
+          ref={inputRef}
+          type="text"
+          value={guess}
+          onChange={e => onGuessChange(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && !bothFound && onSubmit()}
+          placeholder={placeholder}
+          disabled={bothFound}
+          autoComplete="off"
+          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center placeholder-zinc-500 focus:outline-none focus:border-[var(--primary)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        />
+      </div>
+
+      {guessResult && (() => {
+        const pts = guessResult.points_awarded_this_guess || 0;
+        const succeeded = pts > 0;
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`px-4 py-2 rounded-xl text-center text-xs ${
+              succeeded
+                ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                : 'bg-red-500/10 text-red-400 border border-red-500/20'
+            }`}
+          >
+            <span className="font-semibold">{succeeded ? `+${pts} pts` : 'Wrong!'}</span>
+            {guessResult.artist_score != null && (
+              <span className="ml-2 text-zinc-500">A:{guessResult.artist_score}%</span>
+            )}
+            {guessResult.title_score != null && (
+              <span className="ml-1 text-zinc-500">T:{guessResult.title_score}%</span>
+            )}
+            {guessResult.guessTimeMs != null && (
+              <span className="ml-2 text-zinc-600">{(guessResult.guessTimeMs / 1000).toFixed(1)}s</span>
+            )}
+          </motion.div>
+        );
+      })()}
+      {encouragement && (
+        <motion.p
+          key={encouragement}
+          initial={{ opacity: 0, x: -8 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="text-xs text-zinc-500 italic text-center"
+        >
+          {encouragement}
+        </motion.p>
+      )}
+    </div>
+  );
+}
+
+function MiniViz({ duration, currentTime }: { duration: number; currentTime: number }) {
+  const pct = duration > 0 ? (currentTime / duration) * 100 : 0;
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick(t => t + 1), 50);
+    return () => clearInterval(id);
+  }, []);
+  const bars = 32;
+  return (
+    <div className="flex items-end justify-center gap-[2px] h-12 w-full">
+      {Array.from({ length: bars }).map((_, i) => {
+        const barPct = (i / bars) * 100;
+        const active = barPct <= pct;
+        const h = active ? 30 + Math.sin(i * 1.7 + tick * 0.15) * 20 + 15 : 6;
+        return (
+          <div
+            key={i}
+            className="w-[3px] rounded-t-sm flex-shrink-0 transition-all duration-200"
+            style={{
+              height: `${h}%`,
+              background: active ? `hsl(${260 + i * 5}, 70%, ${48 + Math.sin(i * 0.8 + tick * 0.05) * 12}%)` : '#3f3f46',
+            }}
+          />
+        );
+      })}
     </div>
   );
 }
 
 function RoundResult({ data, players = [], pauseTimeLeft, trackHistory = [] }: { data?: { correctAnswer?: string; artist?: string; albumImage?: string } | null; players?: { name: string; score: number }[]; pauseTimeLeft: number; trackHistory?: { round: number; name: string; artist: string; albumImage?: string }[] }) {
   return (
-    <div className="flex-1 flex flex-col items-center gap-6 animate-slide-up">
-      <div className="flex flex-col items-center gap-4">
+    <div className="flex-1 flex flex-col items-center gap-5 max-w-sm mx-auto w-full">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.35, ease: 'easeOut' }}
+        className="flex flex-col items-center gap-4"
+      >
         {data?.albumImage && (
           <img
             src={data.albumImage}
             alt=""
-            className="w-48 h-48 md:w-56 md:h-56 rounded-2xl shadow-xl object-cover border border-white/10"
+            className="w-40 h-40 md:w-48 md:h-48 rounded-2xl shadow-2xl object-cover border border-white/10"
           />
         )}
-        <div className="flex flex-col items-center gap-1">
-          <h2 className="text-xl font-semibold">
-            <span className="text-[var(--primary)]">{data?.correctAnswer || 'Unknown Track'}</span>
-          </h2>
-          <p className="text-lg text-zinc-400">{data?.artist || 'Unknown Artist'}</p>
+        <div className="text-center">
+          <h2 className="text-xl font-bold text-white">{data?.correctAnswer || 'Unknown Track'}</h2>
+          <p className="text-sm text-zinc-400 mt-1">{data?.artist || 'Unknown Artist'}</p>
         </div>
-      </div>
+      </motion.div>
 
-      <div className="w-full max-w-xs space-y-1">
-        {players.map((p, i) => (
-          <div key={i} className="flex justify-between px-4 py-2 bg-[var(--surface)] rounded-lg">
-            <span>{p.name}</span>
-            <span className="text-[var(--accent)] font-medium">{p.score}</span>
-          </div>
+      <div className="w-full space-y-1">
+        {[...players].sort((a, b) => b.score - a.score).map((p, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.08 }}
+            className="flex items-center justify-between px-4 py-2.5 bg-[var(--surface)] rounded-xl border border-white/5"
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-zinc-600 w-4">{i + 1}</span>
+              <span className="text-sm font-medium">{p.name}</span>
+            </div>
+            <span className="text-sm font-bold text-[var(--accent)]">{p.score} pts</span>
+          </motion.div>
         ))}
       </div>
+
       <div className="text-center">
-        <p className="text-zinc-500 text-sm">Next round in</p>
+        <p className="text-xs text-zinc-500">Next round in</p>
         <motion.p
           key={pauseTimeLeft}
           initial={{ scale: 1.3, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="text-2xl font-bold tabular-nums text-white"
+          className="text-2xl font-bold tabular-nums"
         >
           {pauseTimeLeft}
         </motion.p>

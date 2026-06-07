@@ -50,7 +50,7 @@ export default function DebugOverlay({ gameState, socketConnected }: DebugOverla
           <p className="text-[9px] uppercase tracking-wider text-zinc-600">Track Info</p>
           <p><span className="text-zinc-500">Target:</span> {info.artist} — {info.title}</p>
           <p><span className="text-zinc-500">Source:</span> {info.provenance}</p>
-          <p><span className="text-zinc-500">IDs:</span> YT: {info.youtubeVideoId} | SP: {info.spotifyId}</p>
+          <p><span className="text-zinc-500">IDs:</span> YT: {info.youtubeVideoId} | Track: {info.id}</p>
           <p>
             <span className="text-zinc-500">Timings:</span> Offset: {info.targetOffset}s / {info.durationMs}ms
           </p>

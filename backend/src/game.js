@@ -339,8 +339,9 @@ export class GameRoom {
     });
     const durSec = Math.max(30, (track.durationMs || 180000) / 1000);
     const effectiveDur = track.youtubeVideoId ? durSec : 30;
-    const minOff = Math.max(10, Math.floor(effectiveDur * 0.15));
-    const maxOff = Math.floor(effectiveDur * 0.55);
+    const isPreview = effectiveDur <= 60;
+    const minOff = isPreview ? 2 : Math.max(10, Math.floor(effectiveDur * 0.10));
+    const maxOff = isPreview ? 8 : Math.floor(effectiveDur * 0.55);
     this.audioOffset = Math.floor(Math.random() * Math.max(1, maxOff - minOff)) + minOff;
     this.roundResult = null;
 
