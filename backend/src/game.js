@@ -397,6 +397,16 @@ export class GameRoom {
       });
     }
 
+    // Persist round result to database
+    if (player.userId) {
+      import('./db.js').then(({ insertRoundResult }) => {
+        insertRoundResult(
+          player.userId, this.code, track.genre, track.id,
+          guessTimeMs, pointsThisGuess, artistCorrect || titleCorrect
+        ).catch(err => console.error('[DB] Failed to save round result:', err.message));
+      });
+    }
+
     return { ...inputResult, guessTimeMs, trackId: track.id, genre: track.genre };
   }
 
@@ -514,6 +524,19 @@ export class GameRoom {
       };
     });
     this.broadcast();
+
+    // Auto-save game scores for authenticated players
+    for (const p of this.players) {
+      if (p.userId) {
+        import('./db.js').then(({ run }) => {
+          const id = crypto.randomUUID();
+          run(
+            'INSERT INTO game_scores (id, user_id, game_code, score, total_rounds) VALUES (?, ?, ?, ?, ?)',
+            [id, p.userId, this.code, p.score, this.totalRounds]
+          ).catch(err => console.error('[DB] Failed to save game score:', err.message));
+        });
+      }
+    }
   }
 
   getState() {

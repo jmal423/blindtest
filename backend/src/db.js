@@ -148,14 +148,6 @@ async function run(sql, params = []) {
 }
 
 async function insertRoundResult(userId, gameId, genre, trackId, guessTimeMs, pointsEarned, isCorrect) {
-  if (process.env.DATABASE_URL) {
-    await run(
-      'INSERT INTO round_results (user_id, game_id, genre, track_id, guess_time_ms, points_earned, is_correct) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-      [userId, gameId, genre, trackId, guessTimeMs, pointsEarned, !!isCorrect]
-    );
-    return;
-  }
-
   await run(
     'INSERT INTO round_results (user_id, game_id, genre, track_id, guess_time_ms, points_earned, is_correct) VALUES (?, ?, ?, ?, ?, ?, ?)',
     [userId, gameId, genre, trackId, guessTimeMs, pointsEarned, isCorrect ? 1 : 0]
