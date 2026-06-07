@@ -733,11 +733,20 @@ function PlayingPhase({
 function RoundResult({ data, players = [], pauseTimeLeft, trackHistory = [] }: { data?: { correctAnswer?: string; artist?: string; albumImage?: string } | null; players?: { name: string; score: number }[]; pauseTimeLeft: number; trackHistory?: { round: number; name: string; artist: string; albumImage?: string }[] }) {
   return (
     <div className="flex-1 flex flex-col items-center gap-6 animate-slide-up">
-      <div className="flex flex-col items-center gap-2">
-        <h2 className="text-xl font-semibold">
-          <span className="text-[var(--primary)]">{data?.correctAnswer || 'Unknown Track'}</span>
-        </h2>
-        <p className="text-lg text-zinc-400">{data?.artist || 'Unknown Artist'}</p>
+      <div className="flex flex-col items-center gap-4">
+        {data?.albumImage && (
+          <img
+            src={data.albumImage}
+            alt=""
+            className="w-48 h-48 md:w-56 md:h-56 rounded-2xl shadow-xl object-cover border border-white/10"
+          />
+        )}
+        <div className="flex flex-col items-center gap-1">
+          <h2 className="text-xl font-semibold">
+            <span className="text-[var(--primary)]">{data?.correctAnswer || 'Unknown Track'}</span>
+          </h2>
+          <p className="text-lg text-zinc-400">{data?.artist || 'Unknown Artist'}</p>
+        </div>
       </div>
 
       {trackHistory.length > 1 && (
