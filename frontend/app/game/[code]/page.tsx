@@ -456,6 +456,40 @@ export default function GamePage({
   );
 }
 
+function SliderSetting({ label, value, min, max, suffix = '', isHost, onChange }: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  suffix?: string;
+  isHost: boolean;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-xs text-zinc-500">{label}</span>
+        <span className="text-xs text-zinc-300 tabular-nums">{value}{suffix}</span>
+      </div>
+      {isHost ? (
+        <input
+          type="range" min={min} max={max} step="1"
+          value={value}
+          onChange={e => onChange(Number(e.target.value))}
+          className="w-full accent-[var(--primary)] h-1.5"
+        />
+      ) : (
+        <div className="w-full h-1.5 rounded-full bg-[var(--surface-light)]">
+          <div
+            className="h-full rounded-full bg-[var(--primary)]/40 transition-all"
+            style={{ width: `${((value - min) / (max - min)) * 100}%` }}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
 function WaitingRoom({
   gameCode,
   players,
@@ -532,12 +566,12 @@ function WaitingRoom({
         ))}
       </div>
 
-      <div className="w-full max-w-sm space-y-3 bg-[var(--surface)] rounded-xl p-4">
+      <div className="w-full max-w-sm space-y-4 bg-[var(--surface)] rounded-2xl p-5 border border-white/5">
         <p className="text-sm text-zinc-400 font-medium">Settings</p>
 
         <div>
-          <label className="text-xs text-zinc-500">Genres</label>
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-xs text-zinc-500">Genres</label>
             {isHost && (
               <button
                 onClick={() => {
@@ -547,13 +581,13 @@ function WaitingRoom({
                     onGenresChange(allGenres.map(g => g.id));
                   }
                 }}
-                className="text-[10px] px-2 py-1 rounded bg-white/5 text-zinc-400 hover:bg-white/10 transition-colors"
+                className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-zinc-400 hover:bg-white/10 transition-colors"
               >
-                {genres.length === allGenres.length && allGenres.length > 0 ? 'Deselect All' : 'Select All'}
+                {genres.length === allGenres.length && allGenres.length > 0 ? 'Clear' : 'All'}
               </button>
             )}
           </div>
-          <div className="flex flex-wrap gap-1.5 mt-1">
+          <div className="flex flex-wrap gap-1.5">
             {allGenres.map(g => {
               const selected = genres.includes(g.id);
               return (
@@ -573,136 +607,98 @@ function WaitingRoom({
           </div>
         </div>
 
-        <div>
-          <label className="text-xs text-zinc-500">Rounds: {settings.rounds}</label>
-          {isHost ? (
-            <input
-              type="range" min="3" max="25" step="1"
-              value={settings.rounds}
-              onChange={e => onSettingsChange({ rounds: Number(e.target.value) })}
-              className="w-full accent-[var(--primary)] mt-1"
-            />
-          ) : (
-            <p className="text-sm text-zinc-300 mt-1">{settings.rounds}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="text-xs text-zinc-500">Time per round: {settings.roundTime}s</label>
-          {isHost ? (
-            <input
-              type="range" min="8" max="30" step="1"
-              value={settings.roundTime}
-              onChange={e => onSettingsChange({ roundTime: Number(e.target.value) })}
-              className="w-full accent-[var(--primary)] mt-1"
-            />
-          ) : (
-            <p className="text-sm text-zinc-300 mt-1">{settings.roundTime}s</p>
-          )}
-        </div>
-
-        <div>
-          <label className="text-xs text-zinc-500">Pause between rounds: {settings.pauseTime}s</label>
-          {isHost ? (
-            <input
-              type="range" min="2" max="15" step="1"
-              value={settings.pauseTime}
-              onChange={e => onSettingsChange({ pauseTime: Number(e.target.value) })}
-              className="w-full accent-[var(--primary)] mt-1"
-            />
-          ) : (
-            <p className="text-sm text-zinc-300 mt-1">{settings.pauseTime}s</p>
-          )}
-        </div>
+        <SliderSetting label="Rounds" value={settings.rounds} min={3} max={25} isHost={isHost} onChange={v => onSettingsChange({ rounds: v })} />
+        <SliderSetting label="Time per round" value={settings.roundTime} min={8} max={30} suffix="s" isHost={isHost} onChange={v => onSettingsChange({ roundTime: v })} />
+        <SliderSetting label="Pause between" value={settings.pauseTime} min={2} max={15} suffix="s" isHost={isHost} onChange={v => onSettingsChange({ pauseTime: v })} />
 
         {isHost && (
-          <div className="space-y-3">
-            <div>
-              <label className="text-xs text-zinc-500">Audio Source</label>
-              <div className="flex gap-1 mt-1">
-                {(['spotify', 'youtube', 'both'] as const).map(src => {
-                  const selected = settings.audioSource === src;
-                  const labels = { spotify: 'Spotify', youtube: 'YouTube', both: 'Both' };
-                  return (
-                    <button
-                      key={src}
-                      onClick={() => isHost && onSettingsChange({ audioSource: src })}
-                      disabled={!isHost}
-                      className={`flex-1 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                        selected
-                          ? 'bg-[var(--primary)] text-white'
-                          : 'bg-[var(--surface-light)] text-zinc-400'
-                      } ${!isHost ? 'opacity-80 cursor-default' : 'hover:brightness-110'}`}
-                    >
-                      {labels[src]}
-                    </button>
-                  );
-                })}
-              </div>
-              <p className="text-[10px] text-zinc-600 mt-0.5">
-                {settings.audioSource === 'spotify' && '30s previews (Deezer/Spotify), most reliable'}
-                {settings.audioSource === 'youtube' && 'Full songs via YouTube, may fail if quota exceeded'}
-                {settings.audioSource === 'both' && 'Tries Spotify first, then YouTube. Deezer as backup.'}
-              </p>
+          <div>
+            <label className="text-xs text-zinc-500 block mb-2">Audio Source</label>
+            <div className="grid grid-cols-2 gap-2">
+              {([
+                { id: 'spotify', label: 'Spotify', desc: '30s previews' },
+                { id: 'deezer', label: 'Deezer', desc: 'Free, no auth' },
+                { id: 'youtube', label: 'YouTube', desc: 'Full songs' },
+                { id: 'both', label: 'Auto', desc: 'Best available' },
+              ] as const).map(src => {
+                const selected = settings.audioSource === src.id;
+                return (
+                  <button
+                    key={src.id}
+                    onClick={() => onSettingsChange({ audioSource: src.id })}
+                    className={`relative text-left p-3 rounded-xl border transition-all ${
+                      selected
+                        ? 'border-[var(--primary)] bg-[var(--primary)]/10'
+                        : 'border-white/10 bg-[var(--surface-light)] hover:border-white/20'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
+                        selected ? 'bg-[var(--primary)]' : 'bg-zinc-500'
+                      }`} />
+                      <span className={`text-xs font-semibold ${selected ? 'text-white' : 'text-zinc-300'}`}>
+                        {src.label}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-zinc-500 mt-1 ml-[18px] leading-tight">{src.desc}</p>
+                  </button>
+                );
+              })}
             </div>
 
-            {isHost && (
-              <div>
-                <button
-                  onClick={async () => {
-                    setSourceTestLoading(true);
-                    setSourceTestResult(null);
-                    try {
-                      const result = await testGameSource(gameCode, playerId, settings.audioSource as 'spotify' | 'youtube' | 'both');
-                      setSourceTestResult(result);
-                    } catch (e: any) {
-                      setSourceTestResult({ ok: false, error: e.message });
-                    }
-                    setSourceTestLoading(false);
-                  }}
-                  disabled={sourceTestLoading}
-                  className="w-full px-3 py-1.5 bg-[var(--accent)]/10 text-[var(--accent)] rounded-lg text-xs font-medium hover:bg-[var(--accent)]/20 transition-colors disabled:opacity-50"
-                >
-                  {sourceTestLoading ? 'Testing source...' : `Test "${settings.audioSource}" source`}
-                </button>
-                {sourceTestResult && (
-                  <div className={`mt-2 rounded-lg p-2.5 text-xs font-mono space-y-1 ${
-                    sourceTestResult.ok ? 'bg-green-500/10 border border-green-500/20' : 'bg-red-500/10 border border-red-500/20'
-                  }`}>
-                    <p>
-                      <span className="text-zinc-400">Result: </span>
-                      <span className={sourceTestResult.ok ? 'text-green-400' : 'text-red-400'}>
-                        {sourceTestResult.ok ? 'OK' : 'Failed'}
-                      </span>
-                      {sourceTestResult.genre && <span className="text-zinc-500 ml-2">({sourceTestResult.genre})</span>}
-                      {sourceTestResult.ms != null && <span className="text-zinc-500 ml-2">{sourceTestResult.ms}ms</span>}
-                    </p>
+            <div className="mt-2">
+              <button
+                onClick={async () => {
+                  setSourceTestLoading(true);
+                  setSourceTestResult(null);
+                  try {
+                    const result = await testGameSource(gameCode, playerId, settings.audioSource);
+                    setSourceTestResult(result);
+                  } catch (e: any) {
+                    setSourceTestResult({ ok: false, error: e.message });
+                  }
+                  setSourceTestLoading(false);
+                }}
+                disabled={sourceTestLoading}
+                className="w-full px-3 py-1.5 bg-[var(--accent)]/10 text-[var(--accent)] rounded-lg text-[11px] font-medium hover:bg-[var(--accent)]/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+              >
+                <span>{sourceTestLoading ? '●' : '▶'}</span>
+                {sourceTestLoading ? 'Testing...' : 'Test source'}
+              </button>
+              {sourceTestResult && (
+                <div className={`mt-2 rounded-lg p-2.5 text-xs font-mono space-y-1 ${
+                  sourceTestResult.ok ? 'bg-green-500/10 border border-green-500/20' : 'bg-red-500/10 border border-red-500/20'
+                }`}>
+                  <div className="flex items-center gap-2">
+                    <span className={sourceTestResult.ok ? 'text-green-400' : 'text-red-400'}>
+                      {sourceTestResult.ok ? '✓' : '✗'}
+                    </span>
+                    <span className="text-zinc-400">{sourceTestResult.genre}</span>
+                    <span className="text-zinc-600">{sourceTestResult.ms}ms</span>
                     {sourceTestResult.sourcesTried && (
-                      <p>
-                        <span className="text-zinc-400">Sources used: </span>
-                        <span className="text-zinc-300">{sourceTestResult.sourcesTried.join(' → ') || 'none'}</span>
-                      </p>
+                      <span className="text-zinc-500">{sourceTestResult.sourcesTried.join('→')}</span>
                     )}
-                    {sourceTestResult.tracks?.length > 0 && sourceTestResult.tracks.map((t: any, i: number) => (
-                      <p key={i} className="text-white/90">
-                        {i + 1}. {t.name} — {t.artist}
-                        <span className="text-zinc-500 ml-1">[{t.source}]</span>
-                        {t.previewUrl && <span className="text-green-400 ml-1">✓preview</span>}
-                        {t.youtubeVideoId && <span className="text-red-400 ml-1">▶YT</span>}
-                      </p>
-                    ))}
-                    {sourceTestResult.errors?.length > 0 && sourceTestResult.errors.map((e: string, i: number) => (
-                      <p key={i} className="text-yellow-400/80">{e}</p>
-                    ))}
-                    {sourceTestResult.error && <p className="text-red-400">{sourceTestResult.error}</p>}
                   </div>
-                )}
-              </div>
-            )}
-            <div className="flex items-center justify-between">
+                  {sourceTestResult.tracks?.length > 0 && sourceTestResult.tracks.map((t: any, i: number) => (
+                    <p key={i} className="text-white/80">
+                      {t.name} — {t.artist}
+                      <span className="text-zinc-500 ml-1">[{t.source}]</span>
+                      {t.previewUrl && <span className="text-green-400 ml-0.5">•</span>}
+                      {t.youtubeVideoId && <span className="text-red-400 ml-0.5">▶</span>}
+                    </p>
+                  ))}
+                  {sourceTestResult.errors?.length > 0 && sourceTestResult.errors.map((e: string, i: number) => (
+                    <p key={i} className="text-yellow-400/70">{e}</p>
+                  ))}
+                  {sourceTestResult.error && <p className="text-red-400">{sourceTestResult.error}</p>}
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/5">
               <div>
-                <span className="text-xs text-zinc-500">Auto-start</span>
-                <p className="text-[10px] text-zinc-600 mt-0.5">Starts game automatically 5s after 2+ players join</p>
+                <span className="text-xs text-zinc-400">Auto-start</span>
+                <p className="text-[10px] text-zinc-600 mt-0.5">Game starts 5s after 2+ players join</p>
               </div>
               <button
                 onClick={() => onSettingsChange({ autoStart: !settings.autoStart })}

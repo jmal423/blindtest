@@ -7,7 +7,7 @@ export interface RoomSettings {
   roundTime: number;
   pauseTime: number;
   autoStart: boolean;
-  audioSource: 'spotify' | 'youtube' | 'both';
+  audioSource: 'spotify' | 'deezer' | 'youtube' | 'both';
 }
 
 export type GameState =
@@ -291,7 +291,7 @@ export async function testSourcePreview(genre: string, source: 'spotify' | 'deez
   });
 }
 
-export async function testGameSource(code: string, playerId: string, source: 'spotify' | 'youtube' | 'both'): Promise<{ ok: boolean; genre: string; sourcesAttempted: string[]; sourcesTried: string[]; ms: number; count: number; tracks: { name: string; artist: string; previewUrl: boolean; youtubeVideoId: string | null; source: string }[]; errors: string[] }> {
+export async function testGameSource(code: string, playerId: string, source: 'spotify' | 'deezer' | 'youtube' | 'both'): Promise<{ ok: boolean; genre: string; sourcesAttempted: string[]; sourcesTried: string[]; ms: number; count: number; tracks: { name: string; artist: string; previewUrl: boolean; youtubeVideoId: string | null; source: string }[]; errors: string[] }> {
   const res = await fetch(`${API_URL}/api/game/${code}/test-source`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

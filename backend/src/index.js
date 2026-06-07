@@ -669,7 +669,7 @@ app.post('/api/game/:code/test-source', async (req, res) => {
   if (room.hostId !== req.body.playerId) return res.status(403).json({ error: 'Only host can test' });
 
   const { source } = req.body;
-  if (!source || !['spotify', 'youtube', 'both'].includes(source)) {
+  if (!source || !['spotify', 'deezer', 'youtube', 'both'].includes(source)) {
     return res.status(400).json({ error: 'Invalid source' });
   }
 
@@ -680,7 +680,7 @@ app.post('/api/game/:code/test-source', async (req, res) => {
   let tracks = [];
   let errors = [];
   const sourcesTried = [];
-  const usedSources = source === 'both' ? ['spotify', 'youtube'] : [source];
+  const usedSources = source === 'both' ? ['spotify', 'deezer', 'youtube'] : [source];
 
   try {
     for (const src of usedSources) {
@@ -691,6 +691,13 @@ app.post('/api/game/:code/test-source', async (req, res) => {
           if (t.length > 0) {
             tracks.push(...t);
             sourcesTried.push('spotify');
+          }
+        } else if (src === 'deezer') {
+          const { getTracksByGenre } = await import('./deezer.js');
+          const t = await getTracksByGenre(testGenre, 1);
+          if (t.length > 0) {
+            tracks.push(...t);
+            sourcesTried.push('deezer');
           }
         } else if (src === 'youtube') {
           const { getTracksByGenre } = await import('./deezer.js');
