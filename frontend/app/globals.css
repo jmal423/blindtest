@@ -27,6 +27,16 @@ body {
   color: var(--foreground);
 }
 
+[data-theme="light"] {
+  --background: #f0f0f5;
+  --foreground: #1a1a2e;
+  --primary: #6c5ce7;
+  --primary-hover: #5a4bd1;
+  --accent: #00b8b3;
+  --surface: #ffffff;
+  --surface-light: #e4e4f0;
+}
+
 @keyframes pulse-glow {
   0%, 100% { box-shadow: 0 0 5px var(--primary), 0 0 10px var(--primary); }
   50% { box-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary); }

@@ -8,6 +8,7 @@ export interface Settings {
   autoFocusInput: boolean;
   reducedMotion: boolean;
   colorblindMode: boolean;
+  theme: 'dark' | 'light';
 }
 
 interface SettingsContextValue {
@@ -21,6 +22,7 @@ const defaults: Settings = {
   autoFocusInput: true,
   reducedMotion: false,
   colorblindMode: false,
+  theme: 'dark',
 };
 
 const SettingsContext = createContext<SettingsContextValue | null>(null);
@@ -51,6 +53,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     save(settings);
   }, [settings]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', settings.theme);
+  }, [settings.theme]);
 
   const updateSettings = (partial: Partial<Settings>) => {
     setSettings(prev => ({ ...prev, ...partial }));

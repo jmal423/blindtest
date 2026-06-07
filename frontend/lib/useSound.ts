@@ -32,16 +32,16 @@ function playTone(frequency: number, duration: number, type: OscillatorType = 's
 }
 
 const SFX = {
-  correct: () => { playTone(880, 0.12, 'sine', 1); },
-  wrong: () => { playTone(220, 0.2, 'sawtooth', 0.6); },
-  complete: () => {
+  correct: (vol: number) => { playTone(880, 0.12, 'sine', vol); },
+  wrong: (vol: number) => { playTone(220, 0.2, 'sawtooth', vol * 0.6); },
+  complete: (vol: number) => {
     withCtx(ac => {
       [523, 659, 784].forEach((f, i) => {
         const osc = ac.createOscillator();
         const gain = ac.createGain();
         osc.type = 'sine';
         osc.frequency.value = f;
-        gain.gain.value = 0.25;
+        gain.gain.value = vol * 0.25;
         gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.15 + i * 0.1);
         osc.connect(gain);
         gain.connect(ac.destination);
@@ -50,14 +50,14 @@ const SFX = {
       });
     });
   },
-  endGame: () => {
+  endGame: (vol: number) => {
     withCtx(ac => {
       [392, 440, 494, 523].forEach((f, i) => {
         const osc = ac.createOscillator();
         const gain = ac.createGain();
         osc.type = 'triangle';
         osc.frequency.value = f;
-        gain.gain.value = 0.2;
+        gain.gain.value = vol * 0.2;
         gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.3 + i * 0.15);
         osc.connect(gain);
         gain.connect(ac.destination);
@@ -80,7 +80,7 @@ export function useSound() {
     const now = Date.now();
     if (now - lastPlayed.current < 80) return;
     lastPlayed.current = now;
-    SFX[name]();
+    SFX[name](vol);
   }, [settings.masterVolume, settings.sfxVolume]);
 
   return play;

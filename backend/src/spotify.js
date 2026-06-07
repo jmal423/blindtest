@@ -137,19 +137,23 @@ async function getTracksByGenre(genre, count = 10) {
   const market = 'FR';
 
   // Try recommendations first — returns popular mainstream tracks for the genre
-  const recUrl = `${API_BASE}/recommendations?seed_genres=${encodeURIComponent(genre)}&limit=50&market=${market}`;
-  const recData = await spotifyFetch(recUrl);
-  const recItems = recData?.tracks || [];
+  try {
+    const recUrl = `${API_BASE}/recommendations?seed_genres=${encodeURIComponent(genre)}&limit=50&market=${market}`;
+    const recData = await spotifyFetch(recUrl);
+    const recItems = recData?.tracks || [];
 
-  for (const item of recItems) {
-    tracks.push({
-      id: item.id,
-      name: item.name,
-      artist: item.artists?.[0]?.name || 'Unknown',
-      albumImage: item.album?.images?.[0]?.url || null,
-      previewUrl: item.preview_url || null,
-      genre,
-    });
+    for (const item of recItems) {
+      tracks.push({
+        id: item.id,
+        name: item.name,
+        artist: item.artists?.[0]?.name || 'Unknown',
+        albumImage: item.album?.images?.[0]?.url || null,
+        previewUrl: item.preview_url || null,
+        genre,
+      });
+    }
+  } catch (err) {
+    console.error(`[Spotify] Recommendations failed for genre "${genre}", falling back to search:`, err.message);
   }
 
   // Fallback to search if recommendations returned nothing

@@ -442,21 +442,12 @@ function WaitingRoom({
         <div>
           <label className="text-xs text-zinc-500">Rounds: {settings.rounds}</label>
           {isHost ? (
-            <div className="flex gap-2 mt-1">
-              {[5, 10, 15, 20].map(n => (
-                <button
-                  key={n}
-                  onClick={() => onSettingsChange({ rounds: n })}
-                  className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    settings.rounds === n
-                      ? 'bg-[var(--primary)] text-white'
-                      : 'bg-[var(--surface-light)] text-zinc-300 hover:bg-zinc-600'
-                  }`}
-                >
-                  {n}
-                </button>
-              ))}
-            </div>
+            <input
+              type="range" min="3" max="25" step="1"
+              value={settings.rounds}
+              onChange={e => onSettingsChange({ rounds: Number(e.target.value) })}
+              className="w-full accent-[var(--primary)] mt-1"
+            />
           ) : (
             <p className="text-sm text-zinc-300 mt-1">{settings.rounds}</p>
           )}
@@ -465,21 +456,12 @@ function WaitingRoom({
         <div>
           <label className="text-xs text-zinc-500">Time per round: {settings.roundTime}s</label>
           {isHost ? (
-            <div className="flex gap-2 mt-1">
-              {[10, 15, 20, 30].map(t => (
-                <button
-                  key={t}
-                  onClick={() => onSettingsChange({ roundTime: t })}
-                  className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    settings.roundTime === t
-                      ? 'bg-[var(--primary)] text-white'
-                      : 'bg-[var(--surface-light)] text-zinc-300 hover:bg-zinc-600'
-                  }`}
-                >
-                  {t}s
-                </button>
-              ))}
-            </div>
+            <input
+              type="range" min="8" max="30" step="1"
+              value={settings.roundTime}
+              onChange={e => onSettingsChange({ roundTime: Number(e.target.value) })}
+              className="w-full accent-[var(--primary)] mt-1"
+            />
           ) : (
             <p className="text-sm text-zinc-300 mt-1">{settings.roundTime}s</p>
           )}
@@ -488,21 +470,12 @@ function WaitingRoom({
         <div>
           <label className="text-xs text-zinc-500">Pause between rounds: {settings.pauseTime}s</label>
           {isHost ? (
-            <div className="flex gap-2 mt-1">
-              {[2, 4, 6, 10].map(t => (
-                <button
-                  key={t}
-                  onClick={() => onSettingsChange({ pauseTime: t })}
-                  className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    settings.pauseTime === t
-                      ? 'bg-[var(--primary)] text-white'
-                      : 'bg-[var(--surface-light)] text-zinc-300 hover:bg-zinc-600'
-                  }`}
-                >
-                  {t}s
-                </button>
-              ))}
-            </div>
+            <input
+              type="range" min="2" max="15" step="1"
+              value={settings.pauseTime}
+              onChange={e => onSettingsChange({ pauseTime: Number(e.target.value) })}
+              className="w-full accent-[var(--primary)] mt-1"
+            />
           ) : (
             <p className="text-sm text-zinc-300 mt-1">{settings.pauseTime}s</p>
           )}
