@@ -102,7 +102,7 @@ async function getTracksByGenre(genre, count = 10) {
   const tracks = [];
   const maxPerPage = 10;
   const maxResults = 100;
-  const market = 'US';
+  const market = 'FR';
 
   for (let offset = 0; offset < maxResults; offset += maxPerPage) {
     const q = encodeURIComponent(`genre:"${genre}"`);
