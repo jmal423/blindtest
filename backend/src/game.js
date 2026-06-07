@@ -389,6 +389,7 @@ export class GameRoom {
       })),
       currentRound: this.currentRound + 1,
       totalRounds: this.totalRounds,
+      trackHistory: this.trackHistory,
     };
 
     const makeDebugTrackInfo = (track) => track ? {

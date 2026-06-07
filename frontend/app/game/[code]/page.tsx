@@ -10,6 +10,7 @@ import AudioPlayer from '@/app/components/AudioPlayer';
 import Chat from './Chat';
 import Podium from './Podium';
 import DebugOverlay from './DebugOverlay';
+import TrackHistory from './TrackHistory';
 import { useSound } from '@/lib/useSound';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -402,6 +403,7 @@ export default function GamePage({
       {isDebugMode() && (
         <DebugOverlay gameState={gameState} socketConnected={socketConnected} />
       )}
+      <TrackHistory tracks={(gameState as any)?.trackHistory || []} />
     </div>
   );
 }
@@ -802,28 +804,6 @@ function RoundResult({ data, players = [], pauseTimeLeft, trackHistory = [] }: {
           <p className="text-lg text-zinc-400">{data?.artist || 'Unknown Artist'}</p>
         </div>
       </div>
-
-      {trackHistory.length > 0 && (
-        <div className="w-full max-w-sm">
-          <p className="text-[10px] text-zinc-600 uppercase tracking-wider mb-2">Track History</p>
-          <div className="space-y-1.5">
-            {trackHistory.map(t => (
-              <div key={t.round} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${
-                t.round === trackHistory.length ? 'bg-[var(--primary)]/10 border border-[var(--primary)]/20' : 'bg-white/5'
-              }`}>
-                {t.albumImage && (
-                  <img src={t.albumImage} alt="" className="w-7 h-7 rounded-md object-cover shrink-0" />
-                )}
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-medium truncate">{t.name}</p>
-                  <p className="text-[10px] text-zinc-500 truncate">{t.artist}</p>
-                </div>
-                <span className="text-[10px] text-zinc-600 shrink-0">#{t.round}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       <div className="w-full max-w-xs space-y-1">
         {players.map((p, i) => (
