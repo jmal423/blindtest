@@ -133,48 +133,64 @@ function getGenreLabel(genre) {
 }
 
 async function getTracksByGenre(genre, count = 10) {
-  const tracks = [];
-  const market = 'FR';
+  if (!process.env.SPOTIFY_CLIENT_ID || !process.env.SPOTIFY_CLIENT_SECRET) {
+    throw new Error('Spotify credentials not configured (SPOTIFY_CLIENT_ID / SPOTIFY_CLIENT_SECRET)');
+  }
 
-  // Try recommendations first — returns popular mainstream tracks for the genre
+  const tracks = [];
+
+  // Strategy 1: recommendations (no market — let Spotify auto-detect)
   try {
-    const recUrl = `${API_BASE}/recommendations?seed_genres=${encodeURIComponent(genre)}&limit=50&market=${market}`;
+    const recUrl = `${API_BASE}/recommendations?seed_genres=${encodeURIComponent(genre)}&limit=50`;
     const recData = await spotifyFetch(recUrl);
     const recItems = recData?.tracks || [];
-
     for (const item of recItems) {
       tracks.push({
-        id: item.id,
-        name: item.name,
+        id: item.id, name: item.name,
         artist: item.artists?.[0]?.name || 'Unknown',
         albumImage: item.album?.images?.[0]?.url || null,
-        previewUrl: item.preview_url || null,
-        genre,
+        previewUrl: item.preview_url || null, genre,
       });
     }
   } catch (err) {
-    console.error(`[Spotify] Recommendations failed for genre "${genre}", falling back to search:`, err.message);
+    console.error(`[Spotify] Recommendations failed for "${genre}":`, err.message);
   }
 
-  // Fallback to search if recommendations returned nothing
+  // Strategy 2: search with market=FR
   if (tracks.length === 0) {
-    const maxPerPage = 50;
-    const q = encodeURIComponent(`genre:"${genre}"`);
-    const url = `${API_BASE}/search?q=${q}&type=track&limit=${maxPerPage}&market=${market}`;
+    try {
+      const q = encodeURIComponent(`genre:"${genre}"`);
+      const data = await spotifyFetch(`${API_BASE}/search?q=${q}&type=track&limit=50&market=FR`);
+      for (const item of (data?.tracks?.items || [])) {
+        const t = item.track ? item.track : item;
+        tracks.push({
+          id: t.id, name: t.name,
+          artist: t.artists?.[0]?.name || 'Unknown',
+          albumImage: t.album?.images?.[0]?.url || null,
+          previewUrl: t.preview_url || null, genre,
+        });
+      }
+    } catch (err) {
+      console.error(`[Spotify] Search (FR) failed for "${genre}":`, err.message);
+    }
+  }
 
-    const data = await spotifyFetch(url);
-    const items = data?.tracks?.items || [];
-
-    for (const item of items) {
-      const trackNode = item.track ? item.track : item;
-      tracks.push({
-        id: trackNode.id,
-        name: trackNode.name,
-        artist: trackNode.artists?.[0]?.name || 'Unknown',
-        albumImage: trackNode.album?.images?.[0]?.url || null,
-        previewUrl: trackNode.preview_url || null,
-        genre,
-      });
+  // Strategy 3: search without market restriction
+  if (tracks.length === 0) {
+    try {
+      const q = encodeURIComponent(`genre:"${genre}"`);
+      const data = await spotifyFetch(`${API_BASE}/search?q=${q}&type=track&limit=50`);
+      for (const item of (data?.tracks?.items || [])) {
+        const t = item.track ? item.track : item;
+        tracks.push({
+          id: t.id, name: t.name,
+          artist: t.artists?.[0]?.name || 'Unknown',
+          albumImage: t.album?.images?.[0]?.url || null,
+          previewUrl: t.preview_url || null, genre,
+        });
+      }
+    } catch (err) {
+      console.error(`[Spotify] Search (no market) failed for "${genre}":`, err.message);
     }
   }
 
