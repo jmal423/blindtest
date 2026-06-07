@@ -1,7 +1,9 @@
+import { createServer } from 'node:http';
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
+import { Server } from 'socket.io';
 import { GameRoom } from './game.js';
 import { GENRES, getGenreLabel } from './spotify.js';
 import { generateId, get, all, run, insertRoundResult } from './db.js';
@@ -13,7 +15,30 @@ const app = express();
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
+const server = createServer(app);
+const io = new Server(server, {
+  cors: { origin: process.env.FRONTEND_URL || '*', credentials: true },
+});
+
 const rooms = new Map();
+
+io.on('connection', (socket) => {
+  socket.on('join_room', (roomCode) => {
+    if (!roomCode) return;
+    socket.join(roomCode);
+    const room = rooms.get(roomCode);
+    if (room) {
+      socket.emit('game_state', room.getState());
+    }
+  });
+});
+
+function broadcastState(code) {
+  const room = rooms.get(code);
+  if (room) {
+    io.to(code).emit('game_state', room.getState());
+  }
+}
 
 function generateCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -40,7 +65,7 @@ app.post('/api/rooms', (req, res) => {
   }
 
   const code = generateCode();
-  const room = new GameRoom(code, genres);
+  const room = new GameRoom(code, genres, io);
   if (rounds || roundTime) room.updateSettings({ rounds, roundTime });
   const playerId = room.addPlayer(playerName.trim());
   rooms.set(code, room);
@@ -59,6 +84,7 @@ app.post('/api/rooms/join', (req, res) => {
   if (room.state !== 'waiting') return res.status(400).json({ error: 'Game already in progress' });
 
   const playerId = room.addPlayer(playerName.trim());
+  broadcastState(room.code);
   res.json({ code: room.code, playerId });
 });
 
@@ -75,12 +101,6 @@ app.get('/api/rooms/:code', (req, res) => {
 });
 
 // Game
-app.get('/api/game/:code', (req, res) => {
-  const room = rooms.get(req.params.code.toUpperCase());
-  if (!room) return res.status(404).json({ error: 'Room not found' });
-  res.json(room.getState());
-});
-
 app.post('/api/game/:code/settings', (req, res) => {
   const room = rooms.get(req.params.code.toUpperCase());
   if (!room) return res.status(404).json({ error: 'Room not found' });
@@ -91,6 +111,7 @@ app.post('/api/game/:code/settings', (req, res) => {
     room.genres = req.body.genres;
   }
   room.updateSettings(req.body);
+  broadcastState(room.code);
   res.json(room.getSettings());
 });
 
@@ -119,6 +140,8 @@ app.post('/api/game/:code/submit', async (req, res) => {
 
   const result = room.submitAnswer(playerId, answer.trim());
   if (!result) return res.status(400).json({ error: 'Cannot submit now' });
+
+  broadcastState(room.code);
 
   // Persist round result if user is authenticated (non-blocking)
   const authHeader = req.headers.authorization;
@@ -171,6 +194,8 @@ app.post('/api/game/:code/leave', (req, res) => {
   if (room.players.length === 0) {
     room.destroy();
     rooms.delete(req.params.code.toUpperCase());
+  } else {
+    broadcastState(room.code);
   }
 
   res.json({ ok: true });
@@ -357,6 +382,6 @@ app.delete('/api/admin/users/:id', requireAdmin, async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`BlindTest server running on port ${PORT}`);
 });

@@ -52,7 +52,7 @@ function shuffle(array) {
 }
 
 export class GameRoom {
-  constructor(code, genres) {
+  constructor(code, genres, io) {
     this.code = code;
     this.genres = genres;
     this.settings = { rounds: 10, roundTime: 15, pauseTime: 4 };
@@ -68,6 +68,13 @@ export class GameRoom {
     this.rankings = null;
     this.hostId = null;
     this.pauseStartTime = null;
+    this.io = io;
+  }
+
+  broadcast() {
+    if (this.io) {
+      this.io.to(this.code).emit('game_state', this.getState());
+    }
   }
 
   getSettings() {
@@ -141,6 +148,7 @@ export class GameRoom {
     this.roundStartTime = Date.now();
     this.state = 'playing';
     this.roundResult = null;
+    this.broadcast();
 
     this.roundTimer = setTimeout(() => {
       this.endRound();
@@ -186,6 +194,7 @@ export class GameRoom {
       artist: track.artist,
       albumImage: track.albumImage,
     };
+    this.broadcast();
 
     this.pauseStartTime = Date.now();
     this.pauseTimer = setTimeout(() => {
@@ -205,6 +214,7 @@ export class GameRoom {
     this.state = 'finished';
     this.rankings = [...this.players].sort((a, b) => b.score - a.score)
       .map((p, i) => ({ rank: i + 1, name: p.name, score: p.score, answers: p.answers }));
+    this.broadcast();
   }
 
   getState() {

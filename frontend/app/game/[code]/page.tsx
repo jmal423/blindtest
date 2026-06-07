@@ -3,7 +3,8 @@
 import { useEffect, useState, useRef, use, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
-import { GameState, RoomSettings, startGame, submitAnswer, fetchGameState, updateSettings, fetchGenres } from '@/lib/api';
+import { io as socketIo, Socket } from 'socket.io-client';
+import { GameState, RoomSettings, startGame, submitAnswer, updateSettings, fetchGenres } from '@/lib/api';
 
 declare global {
   interface Window {
@@ -12,6 +13,7 @@ declare global {
   }
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 let apiReadyPromise: Promise<void> | null = null;
 
 function loadYouTubeAPI(): Promise<void> {
@@ -175,7 +177,7 @@ export default function GamePage({
 }) {
   const { code } = use(params);
   const router = useRouter();
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const socketRef = useRef<Socket | null>(null);
 
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [playerId, setPlayerId] = useState<string>('');
@@ -216,54 +218,56 @@ export default function GamePage({
     }, 1000);
   }, [gameState]);
 
+  const applyGameState = useCallback((state: GameState) => {
+    setGameState(state);
+    if (state.state === 'playing') {
+      setYoutubeVideoId(state.youtubeVideoId);
+      setIsPlaying(true);
+      setLocalTimeLeft(null);
+      if (localTimerRef.current) {
+        clearInterval(localTimerRef.current);
+        localTimerRef.current = null;
+      }
+    }
+    if (state.state !== 'playing') {
+      setIsPlaying(false);
+      setLocalTimeLeft(null);
+      if (localTimerRef.current) {
+        clearInterval(localTimerRef.current);
+        localTimerRef.current = null;
+      }
+    }
+    if (state.state === 'finished' || state.state === 'round_result') {
+      setGuess('');
+      setGuessResult(null);
+    }
+  }, []);
+
   useEffect(() => {
     const pid = localStorage.getItem(`blindtest_player_${code}`);
     if (!pid) { router.push('/'); return; }
     setPlayerId(pid);
 
-    let attempts = 0;
-    const poll = async () => {
-      try {
-        const state = await fetchGameState(code);
-        attempts = 0;
-        setGameState(state);
+    const socket = socketIo(API_URL);
+    socketRef.current = socket;
 
-        if (state.state === 'playing') {
-          setYoutubeVideoId(state.youtubeVideoId);
-          setIsPlaying(true);
-          setLocalTimeLeft(null);
-          if (localTimerRef.current) {
-            clearInterval(localTimerRef.current);
-            localTimerRef.current = null;
-          }
-        }
-        if (state.state !== 'playing') {
-          setIsPlaying(false);
-          setLocalTimeLeft(null);
-          if (localTimerRef.current) {
-            clearInterval(localTimerRef.current);
-            localTimerRef.current = null;
-          }
-        }
-        if (state.state === 'finished' || state.state === 'round_result') {
-          setGuess('');
-        }
-      } catch (err) {
-        attempts++;
-        if (attempts > 5) {
-          setError(err instanceof Error ? err.message : 'Lost connection to server');
-          if (pollRef.current) clearInterval(pollRef.current);
-        }
-      }
-    };
+    socket.on('connect', () => {
+      socket.emit('join_room', code);
+    });
 
-    poll();
-    pollRef.current = setInterval(poll, 1000);
+    socket.on('game_state', (state: GameState) => {
+      applyGameState(state);
+    });
+
+    socket.on('connect_error', () => {
+      setError('Lost connection to server');
+    });
 
     return () => {
-      if (pollRef.current) clearInterval(pollRef.current);
+      socket.disconnect();
+      socketRef.current = null;
     };
-  }, [code, router]);
+  }, [code, router, applyGameState]);
 
   useEffect(() => {
     if (!isPlaying) return;
