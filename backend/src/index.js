@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 import { Server } from 'socket.io';
 import { GameRoom } from './game.js';
 import { GENRES, getGenreLabel } from './spotify.js';
-import { generateId, get, all, run, ping, getTableCounts } from './db.js';
+import { generateId, get, all, run, ping, getTableCounts, createGame, finishGame, addGamePlayer, addRoundResultV2, getGameHistory, getPlayerStats, getLeaderboardV2, getRecentGames, getGameDetails } from './db.js';
 import { getAuthUrl, handleDiscordCallback, authenticate, requireAdmin, tryDecodeToken } from './auth.js';
 
 dotenv.config();
@@ -393,12 +393,81 @@ app.get('/api/users/:id', async (req, res) => {
 // Leaderboard
 app.get('/api/leaderboard', async (req, res) => {
   const limit = Math.min(parseInt(req.query.limit) || 50, 100);
+  try {
+    const entries = await getLeaderboardV2(limit);
+    if (entries.length > 0) {
+      res.json(entries);
+      return;
+    }
+  } catch (err) {
+    console.error('[DB] Leaderboard v2 failed, falling back:', err.message);
+  }
+
+  // Fallback to old table if v2 is empty
   const entries = await all(`
     SELECT u.id, u.username, u.avatar_url, SUM(gs.score) as total_score, COUNT(gs.id) as games_played
     FROM game_scores gs JOIN users u ON u.id = gs.user_id
     GROUP BY u.id ORDER BY total_score DESC LIMIT ?
   `, [limit]);
   res.json(entries);
+});
+
+// Game history for a player
+app.get('/api/users/me/history', authenticate, async (req, res) => {
+  const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+  try {
+    const userId = req.user.guest ? req.user.userId : req.user.userId;
+    const games = await getGameHistory(userId, limit);
+    res.json(games);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Player stats (enhanced)
+app.get('/api/users/me/stats', authenticate, async (req, res) => {
+  const userId = req.user.guest ? req.user.userId : req.user.userId;
+  try {
+    const stats = await getPlayerStats(userId);
+    res.json(stats);
+  } catch (err) {
+    // Fallback to old stats
+    const [totalPoints, avgSpeed, bestGenre] = await Promise.all([
+      get('SELECT COALESCE(SUM(points_earned), 0) as total FROM round_results WHERE user_id = ?', [userId]),
+      get('SELECT AVG(guess_time_ms) as avg FROM round_results WHERE user_id = ? AND is_correct = true', [userId]),
+      get('SELECT genre FROM round_results WHERE user_id = ? AND is_correct = true GROUP BY genre ORDER BY COUNT(*) DESC LIMIT 1', [userId]),
+    ]);
+    res.json({
+      totalPoints: totalPoints?.total || 0,
+      averageSpeedMs: avgSpeed?.avg ? Math.round(Number(avgSpeed.avg)) : null,
+      bestGenre: bestGenre?.genre || null,
+    });
+  }
+});
+
+// Recent games (public)
+app.get('/api/games/recent', async (req, res) => {
+  const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+  try {
+    const games = await getRecentGames(limit);
+    // Parse genres JSON
+    const parsed = games.map(g => ({ ...g, genres: g.genres ? JSON.parse(g.genres) : [] }));
+    res.json(parsed);
+  } catch (err) {
+    res.json([]);
+  }
+});
+
+// Game details (public)
+app.get('/api/games/:id', async (req, res) => {
+  try {
+    const game = await getGameDetails(req.params.id);
+    if (!game) return res.status(404).json({ error: 'Game not found' });
+    game.genres = game.genres ? JSON.parse(game.genres) : [];
+    res.json(game);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Friends
@@ -783,11 +852,12 @@ app.get('/api/admin/db-status', requireAdmin, async (req, res) => {
 });
 
 app.get('/api/admin/stats', requireAdmin, async (req, res) => {
-  const [userCount, roundCount] = await Promise.all([
+  const [userCount, roundCount, gameCount] = await Promise.all([
     get('SELECT COUNT(*) as count FROM users'),
-    get('SELECT COUNT(*) as count FROM round_results'),
+    get('SELECT COUNT(*) as count FROM round_results_v2'),
+    get('SELECT COUNT(*) as count FROM games'),
   ]);
-  res.json({ totalUsers: userCount?.count || 0, totalRounds: roundCount?.count || 0, activeRooms: rooms.size });
+  res.json({ totalUsers: userCount?.count || 0, totalRounds: roundCount?.count || 0, totalGames: gameCount?.count || 0, activeRooms: rooms.size });
 });
 
 app.get('/api/admin/rooms', requireAdmin, (req, res) => {

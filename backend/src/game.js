@@ -103,6 +103,7 @@ export class GameRoom {
     this.skipVotes = new Set();
     this.io = io;
     this.playerSockets = {};
+    this.gameId = null;
   }
 
   setPlayerSocket(playerId, socketId) {
@@ -282,6 +283,15 @@ export class GameRoom {
     this.players.forEach(p => { p.score = 0; p.answers = []; p.streak = 0; });
     this.currentRound = 0;
     this.tracksPlayed = 0;
+    this.gameId = crypto.randomUUID();
+
+    // Persist game to database
+    import('./db.js').then(({ createGame }) => {
+      createGame(this.gameId, this.code, this.genres, this.settings.audioSource, this.totalRounds, this.settings.roundTime)
+        .then(() => console.log(`[DB] Game ${this.gameId} created (${this.code})`))
+        .catch(err => console.error('[DB] Failed to create game:', err.message));
+    }).catch(() => {});
+
     this.startRound();
     return null;
   }
@@ -453,15 +463,25 @@ export class GameRoom {
     }
 
     // Persist round result to database
-    if (player.userId) {
-      import('./db.js').then(({ insertRoundResult }) => {
-        insertRoundResult(
-          player.userId, this.code, track.genre, track.id,
-          guessTimeMs, pointsThisGuess, artistCorrect || titleCorrect
+    if (this.gameId) {
+      import('./db.js').then(({ addRoundResultV2, insertRoundResult }) => {
+        addRoundResultV2(
+          crypto.randomUUID(), this.gameId, player.userId || player.id, player.name,
+          this.tracksPlayed + 1, track.name, track.artist, track.genre,
+          answer, guessTimeMs, pointsThisGuess,
+          artistCorrect, titleCorrect, bothNow
         ).then(() => {
-          console.log(`[DB] Saved round result for ${player.name}: ${track.artist} - ${track.name} (${pointsThisGuess}pts)`);
-        }).catch(err => console.error('[DB] Failed to save round result:', err.message));
-      }).catch(err => console.error('[DB] Failed to import db module:', err.message));
+          console.log(`[DB] R${this.tracksPlayed + 1} ${player.name}: ${pointsThisGuess}pts (${answer})`);
+        }).catch(err => console.error('[DB] Failed to save round result v2:', err.message));
+
+        // Also save to old table for authenticated users
+        if (player.userId) {
+          insertRoundResult(
+            player.userId, this.code, track.genre, track.id,
+            guessTimeMs, pointsThisGuess, artistCorrect || titleCorrect
+          ).catch(err => console.error('[DB] Failed to save round result:', err.message));
+        }
+      }).catch(() => {});
     }
 
     return { ...inputResult, guessTimeMs, trackId: track.id, genre: track.genre };
@@ -598,19 +618,28 @@ export class GameRoom {
     });
     this.broadcast();
 
-    // Auto-save game scores for authenticated players
-    for (const p of this.players) {
-      if (p.userId) {
-        import('./db.js').then(({ run }) => {
-          const id = crypto.randomUUID();
-          run(
-            'INSERT INTO game_scores (id, user_id, game_code, score, total_rounds) VALUES (?, ?, ?, ?, ?)',
-            [id, p.userId, this.code, p.score, this.totalRounds]
-          ).then(() => {
-            console.log(`[DB] Saved game score for ${p.name}: ${p.score}pts (${this.totalRounds} rounds)`);
-          }).catch(err => console.error('[DB] Failed to save game score:', err.message));
-        }).catch(err => console.error('[DB] Failed to import db module:', err.message));
-      }
+    // Persist game results to database
+    if (this.gameId) {
+      import('./db.js').then(({ finishGame, addGamePlayer, run }) => {
+        finishGame(this.gameId).then(() => {
+          console.log(`[DB] Game ${this.gameId} finished`);
+        }).catch(err => console.error('[DB] Failed to finish game:', err.message));
+
+        for (const p of this.players) {
+          const pos = this.rankings.findIndex(r => r.name === p.name) + 1;
+          addGamePlayer(crypto.randomUUID(), this.gameId, p.userId || p.id, p.name, p.score, pos || this.players.length)
+            .then(() => console.log(`[DB] Saved player ${p.name}: ${p.score}pts (position ${pos})`))
+            .catch(err => console.error(`[DB] Failed to save player ${p.name}:`, err.message));
+
+          // Also save to old game_scores table for authenticated users
+          if (p.userId) {
+            run(
+              'INSERT INTO game_scores (id, user_id, game_code, score, total_rounds) VALUES (?, ?, ?, ?, ?)',
+              [crypto.randomUUID(), p.userId, this.code, p.score, this.totalRounds]
+            ).catch(err => console.error('[DB] Failed to save game score:', err.message));
+          }
+        }
+      }).catch(() => {});
     }
   }
 
