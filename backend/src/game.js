@@ -154,11 +154,12 @@ export class GameRoom {
     const track = this.tracks[this.currentRound];
     if (!track) return;
 
+    const guessTimeMs = Date.now() - this.roundStartTime;
     const isCorrect = isCorrectGuess(answer, track.name);
     let points = 0;
 
     if (isCorrect) {
-      const elapsed = (Date.now() - this.roundStartTime) / 1000;
+      const elapsed = guessTimeMs / 1000;
       const timeBonus = Math.max(0, Math.floor((this.settings.roundTime - elapsed) * POINTS_BONUS_PER_SECOND));
       points = POINTS_CORRECT + timeBonus;
     }
@@ -171,7 +172,7 @@ export class GameRoom {
       points,
     });
 
-    return { correct: isCorrect, points, correctAnswer: track.name, artist: track.artist };
+    return { correct: isCorrect, points, correctAnswer: track.name, artist: track.artist, guessTimeMs, trackId: track.id, genre: track.genre };
   }
 
   endRound() {

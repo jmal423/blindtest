@@ -117,6 +117,7 @@ async function getTracksByGenre(genre, count = 10) {
         name: item.name,
         artist: item.artists?.[0]?.name || 'Unknown',
         albumImage: item.album?.images?.[0]?.url || null,
+        genre,
       });
     }
 

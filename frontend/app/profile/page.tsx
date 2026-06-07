@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getMe, getMyScores, getFriends, sendFriendRequest, acceptFriendRequest, removeFriend } from '@/lib/api';
+import { getMe, getMyScores, getFriends, getMyStats, sendFriendRequest, acceptFriendRequest, removeFriend } from '@/lib/api';
 import Link from 'next/link';
 
 export default function ProfilePage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [scores, setScores] = useState<any[]>([]);
+  const [stats, setStats] = useState<any>(null);
   const [friends, setFriends] = useState<any[]>([]);
   const [pending, setPending] = useState<any[]>([]);
   const [friendInput, setFriendInput] = useState('');
@@ -20,6 +21,7 @@ export default function ProfilePage() {
 
     getMe().then(setUser).catch(() => { localStorage.removeItem('blindtest_token'); router.push('/login'); });
     getMyScores().then(setScores).catch(() => {});
+    getMyStats().then(setStats).catch(() => {});
     getFriends().then(d => { setFriends(d.friends); setPending(d.pending); }).catch(() => {});
   }, [router]);
 
@@ -49,9 +51,6 @@ export default function ProfilePage() {
 
   if (!user) return <div className="flex-1 flex items-center justify-center"><p className="text-zinc-400">Loading...</p></div>;
 
-  const totalScore = scores.reduce((s, g) => s + g.score, 0);
-  const bestScore = scores.length > 0 ? Math.max(...scores.map(s => s.score)) : 0;
-
   return (
     <div className="flex-1 flex flex-col p-4 md:p-8 max-w-2xl mx-auto w-full gap-6">
       <div className="flex items-center gap-4">
@@ -72,19 +71,21 @@ export default function ProfilePage() {
 
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-[var(--surface)] rounded-xl p-4 text-center">
-          <p className="text-2xl font-bold text-[var(--accent)]">{totalScore}</p>
-          <p className="text-xs text-zinc-500">Total Score</p>
+          <p className="text-3xl font-bold text-[var(--accent)]">{stats?.totalPoints ?? '-'}</p>
+          <p className="text-xs text-zinc-500">Total Points</p>
         </div>
         <div className="bg-[var(--surface)] rounded-xl p-4 text-center">
-          <p className="text-2xl font-bold text-[var(--primary)]">{bestScore}</p>
-          <p className="text-xs text-zinc-500">Best Game</p>
+          <p className="text-3xl font-bold text-[var(--primary)]">
+            {stats?.averageSpeedMs != null ? `${(stats.averageSpeedMs / 1000).toFixed(1)}s` : '-'}
+          </p>
+          <p className="text-xs text-zinc-500">Average Answer Speed</p>
         </div>
         <div className="bg-[var(--surface)] rounded-xl p-4 text-center">
-          <p className="text-2xl font-bold text-white">{scores.length}</p>
-          <p className="text-xs text-zinc-500">Games Played</p>
+          <p className="text-3xl font-bold text-white capitalize">{stats?.bestGenre ?? '-'}</p>
+          <p className="text-xs text-zinc-500">Best Genre</p>
         </div>
         <div className="bg-[var(--surface)] rounded-xl p-4 text-center">
-          <p className="text-2xl font-bold text-white">{friends.length}</p>
+          <p className="text-3xl font-bold text-white">{friends.length}</p>
           <p className="text-xs text-zinc-500">Friends</p>
         </div>
       </div>

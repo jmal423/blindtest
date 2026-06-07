@@ -58,6 +58,19 @@ async function init() {
         PRIMARY KEY (user_id, friend_id)
       )
     `);
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS round_results (
+        id SERIAL PRIMARY KEY,
+        user_id TEXT REFERENCES users(id),
+        game_id VARCHAR(50),
+        genre VARCHAR(50),
+        track_id VARCHAR(100),
+        guess_time_ms INT,
+        points_earned INT,
+        is_correct BOOLEAN,
+        played_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
   } else {
     db.exec(`
       CREATE TABLE IF NOT EXISTS users (
@@ -86,6 +99,19 @@ async function init() {
         status TEXT DEFAULT 'pending',
         created_at TEXT DEFAULT (datetime('now')),
         PRIMARY KEY (user_id, friend_id)
+      )
+    `);
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS round_results (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id TEXT REFERENCES users(id),
+        game_id VARCHAR(50),
+        genre VARCHAR(50),
+        track_id VARCHAR(100),
+        guess_time_ms INT,
+        points_earned INT,
+        is_correct INTEGER,
+        played_at TEXT DEFAULT (datetime('now'))
       )
     `);
   }
@@ -119,4 +145,11 @@ async function run(sql, params = []) {
   await query(sql, params);
 }
 
-export { generateId, query, get, all, run };
+async function insertRoundResult(userId, gameId, genre, trackId, guessTimeMs, pointsEarned, isCorrect) {
+  await run(
+    'INSERT INTO round_results (user_id, game_id, genre, track_id, guess_time_ms, points_earned, is_correct) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [userId, gameId, genre, trackId, guessTimeMs, pointsEarned, isCorrect]
+  );
+}
+
+export { generateId, query, get, all, run, insertRoundResult };

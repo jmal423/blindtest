@@ -77,10 +77,14 @@ export async function updateSettings(code: string, playerId: string, settings: P
   return res.json();
 }
 
-export async function submitAnswer(code: string, playerId: string, answer: string): Promise<{ correct: boolean; points: number; correctAnswer: string; artist: string }> {
+export async function submitAnswer(code: string, playerId: string, answer: string): Promise<{ correct: boolean; points: number; correctAnswer: string; artist: string; guessTimeMs: number; trackId: string; genre: string }> {
+  const token = getToken();
   const res = await fetch(`${API_URL}/api/game/${code}/submit`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     body: JSON.stringify({ playerId, answer }),
   });
   if (!res.ok) {
@@ -195,6 +199,16 @@ export async function acceptFriendRequest(userId: string): Promise<void> {
 
 export async function removeFriend(userId: string): Promise<void> {
   await fetchWithAuth(`${API_URL}/api/friends/${userId}`, { method: 'DELETE' });
+}
+
+export interface UserStats {
+  totalPoints: number;
+  averageSpeedMs: number | null;
+  bestGenre: string | null;
+}
+
+export async function getMyStats(): Promise<UserStats> {
+  return fetchWithAuth(`${API_URL}/api/users/me/stats`);
 }
 
 export async function saveGameScore(code: string, playerId: string): Promise<void> {

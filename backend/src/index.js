@@ -1,9 +1,10 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import jwt from 'jsonwebtoken';
 import { GameRoom } from './game.js';
 import { GENRES, getGenreLabel } from './spotify.js';
-import { generateId, get, all, run } from './db.js';
+import { generateId, get, all, run, insertRoundResult } from './db.js';
 import { getAuthUrl, handleDiscordCallback, authenticate, requireAdmin } from './auth.js';
 
 dotenv.config();
@@ -107,7 +108,7 @@ app.post('/api/game/:code/start', async (req, res) => {
   res.json({ ok: true });
 });
 
-app.post('/api/game/:code/submit', (req, res) => {
+app.post('/api/game/:code/submit', async (req, res) => {
   const room = rooms.get(req.params.code.toUpperCase());
   if (!room) return res.status(404).json({ error: 'Room not found' });
 
@@ -118,6 +119,28 @@ app.post('/api/game/:code/submit', (req, res) => {
 
   const result = room.submitAnswer(playerId, answer.trim());
   if (!result) return res.status(400).json({ error: 'Cannot submit now' });
+
+  // Persist round result if user is authenticated (non-blocking)
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    try {
+      const decoded = jwt.verify(authHeader.slice(7), process.env.JWT_SECRET || 'blindtest-dev-secret-change-in-production');
+      if (decoded?.userId) {
+        insertRoundResult(
+          decoded.userId,
+          room.code,
+          result.genre,
+          result.trackId,
+          result.guessTimeMs,
+          result.points,
+          result.correct
+        ).catch(err => console.error('Failed to save round result:', err.message));
+      }
+    } catch {
+      // Invalid token — skip persistence
+    }
+  }
+
   res.json(result);
 });
 
@@ -200,6 +223,20 @@ app.get('/api/users/me/scores', authenticate, async (req, res) => {
     [req.user.userId]
   );
   res.json(scores);
+});
+
+app.get('/api/users/me/stats', authenticate, async (req, res) => {
+  const correctVal = process.env.DATABASE_URL ? true : 1;
+  const [totalPoints, avgSpeed, bestGenre] = await Promise.all([
+    get('SELECT COALESCE(SUM(points_earned), 0) as total FROM round_results WHERE user_id = ?', [req.user.userId]),
+    get('SELECT AVG(guess_time_ms) as avg FROM round_results WHERE user_id = ? AND is_correct = ?', [req.user.userId, correctVal]),
+    get('SELECT genre FROM round_results WHERE user_id = ? AND is_correct = ? GROUP BY genre ORDER BY COUNT(*) DESC LIMIT 1', [req.user.userId, correctVal]),
+  ]);
+  res.json({
+    totalPoints: totalPoints?.total || 0,
+    averageSpeedMs: avgSpeed?.avg ? Math.round(Number(avgSpeed.avg)) : null,
+    bestGenre: bestGenre?.genre || null,
+  });
 });
 
 app.get('/api/users/:id', async (req, res) => {
