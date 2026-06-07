@@ -391,6 +391,7 @@ export default function GamePage({
               settings={(gameState as any).settings}
               playersReady={(gameState as any).playersReady}
               playersTotal={(gameState as any).playersTotal}
+              youtubeVideoId={(gameState as any).youtubeVideoId}
               onSkipRound={() => socketRef.current?.emit('skip_round')}
             />
           )}
@@ -668,6 +669,7 @@ function PlayingPhase({
   playersReady,
   playersTotal,
   onSkipRound,
+  youtubeVideoId,
   roundTime,
 }: {
   state: string;
@@ -694,6 +696,7 @@ function PlayingPhase({
   onSkipRound?: () => void;
   roundTime?: number;
   settings?: RoomSettings;
+  youtubeVideoId?: string | null;
 }) {
   const roundDuration = roundTime || 15;
   const placeholder = bothFound
@@ -780,6 +783,13 @@ function PlayingPhase({
         </div>
 
         <Visualizer duration={duration} currentTime={currentTime} />
+
+        {!youtubeVideoId && (
+          <div className="w-full max-w-lg mx-auto p-4 text-center bg-zinc-800/50 border border-zinc-700 rounded-xl">
+            <p className="text-zinc-400">No audio preview available for this track</p>
+            <p className="text-zinc-500 text-sm mt-1">You can still guess based on the round timer</p>
+          </div>
+        )}
 
         <ProgressBar duration={roundDuration} currentTime={roundDuration - (timeLeft || 0)} markers={guessMarkers} />
 

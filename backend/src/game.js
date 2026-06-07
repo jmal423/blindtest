@@ -364,6 +364,17 @@ export class GameRoom {
   skipRound() {
     if (this.state !== 'round_preparing' && this.state !== 'playing') return;
     this.clearPlayingInterval();
+
+    const track = this.tracks[this.currentRound];
+    if (track) {
+      this.trackHistory.push({
+        round: this.currentRound + 1,
+        name: track.name,
+        artist: track.artist,
+        albumImage: track.albumImage,
+      });
+    }
+
     this.currentRound++;
     if (this.currentRound >= this.tracks.length) {
       this.endGame();
