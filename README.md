@@ -71,6 +71,9 @@ Game Over → Podium → Play Again / Main Menu
 ## Quick Start
 
 ```bash
+# Start PostgreSQL
+docker compose up -d
+
 # Backend
 cd backend && npm install
 cp .env.example .env  # Fill in your API keys
@@ -96,8 +99,8 @@ npm run dev
 | `DISCORD_ALLOWED_GUILD_ID` | No | Restrict to a specific Discord server |
 | `ADMIN_DISCORD_IDS` | No | Comma-separated Discord IDs for admin role |
 | `JWT_SECRET` | Yes | Token signing secret (generate a random string) |
-| `DATABASE_URL` | No | PostgreSQL URL (uses SQLite if unset) |
-| `SQLITE_PATH` | No | Custom SQLite file path |
+| `DATABASE_URL` | Yes | PostgreSQL connection string |
+| `NODE_ENV` | No | Set to `production` for SSL with self-signed certs |
 | `FRONTEND_URL` | No | CORS origin + OAuth redirect base |
 | `PORT` | No | `3001` |
 
@@ -211,10 +214,10 @@ Fuzzy matching handles typos, punctuation, and "(feat. ...)" suffixes.
 ## Database
 
 ### Local development
-SQLite with `better-sqlite3` — zero config, auto-created at `backend/data.db`.
+PostgreSQL via Docker — `docker compose up -d` starts a Postgres 16 container with persistent volume.
 
 ### Production (Railway)
-Add the PostgreSQL plugin to your Railway project. `DATABASE_URL` is auto-set. The backend auto-detects PostgreSQL and uses it with connection pooling, retries, and health checks.
+Add the PostgreSQL plugin to your Railway project. `DATABASE_URL` is auto-set. The backend uses `pg.Pool` with connection retry and health checks.
 
 ### Migrations
 Migrations run automatically on startup from `backend/src/migrations/`:
@@ -230,11 +233,11 @@ See `DEPLOY.md` for full deployment guide.
 | Layer | Technology |
 |-------|------------|
 | Frontend | Next.js 16, React 19, Tailwind CSS 4, motion (Framer Motion), Socket.io |
-| Backend | Express 5, Socket.io, better-sqlite3 / pg |
+| Backend | Express 5, Socket.io, pg (PostgreSQL) |
 | Audio | Spotify Web API, Deezer API (free), YouTube Data API / scraping |
 | Auth | Discord OAuth2 + JWT, Guest tokens |
 | i18n | Custom JSON-based (en, fr, pt, es), persisted in localStorage |
-| Database | PostgreSQL (production) / SQLite (local), migration system |
+| Database | PostgreSQL (Docker local, Railway production), migration system |
 | Deployment | Vercel (frontend) + Railway (backend + PostgreSQL) |
 
 ---
@@ -253,7 +256,7 @@ blindtest/
 │       ├── spotify.js         # Spotify client credentials + genre search
 │       ├── deezer.js          # Deezer genre charts + artist top tracks, rank sorting
 │       ├── youtube.js         # YouTube Data API + scraping fallback
-│       ├── db.js              # Database abstraction (PostgreSQL / SQLite), migrations, retry
+│       ├── db.js              # PostgreSQL connection pool, query builder, migrations
 │       ├── auth.js            # Discord OAuth + JWT middleware
 │       └── migrations/
 │           ├── 001_initial.js # Core tables

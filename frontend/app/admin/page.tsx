@@ -102,7 +102,7 @@ function SystemTab() {
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <span className={`w-2 h-2 rounded-full ${dbStatus.hasData ? 'bg-green-400' : 'bg-yellow-400'}`} />
-                <span className="text-sm">{dbStatus.isPostgres ? 'Postgres' : 'SQLite'}</span>
+                <span className="text-sm">PostgreSQL</span>
                 <span className={`text-xs px-2 py-0.5 rounded-full ${dbStatus.hasData ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
                   {dbStatus.hasData ? 'Has data' : 'Empty'}
                 </span>
@@ -497,7 +497,7 @@ function ApiTab() {
               <div className="space-y-1.5 text-[10px]">
                 <div className="flex items-center justify-between">
                   <span className="text-zinc-500">Type</span>
-                  <span>{dbStatus.isPostgres ? 'Postgres' : 'SQLite'}</span>
+                  <span>PostgreSQL</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-zinc-500">Status</span>

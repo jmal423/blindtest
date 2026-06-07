@@ -78,7 +78,10 @@ Replace `https://your-app.railway.app` with your Railway backend URL (shown in R
 ## Local Development
 
 ```bash
-# Backend (uses SQLite automatically)
+# Start PostgreSQL
+docker compose up -d
+
+# Backend
 cd backend
 cp .env.example .env
 # Edit .env with your Spotify credentials
@@ -94,13 +97,7 @@ npm run dev
 For local dev:
 - Backend runs on `http://localhost:3001`
 - Frontend runs on `http://localhost:3000`
-- Database: SQLite file at `backend/data.db` (auto-created, zero config)
-
-To test PostgreSQL locally:
-```bash
-# Set in backend/.env
-DATABASE_URL=postgresql://user:password@localhost:5432/blindtest
-```
+- Database: PostgreSQL 16 in Docker (persistent volume at `~/.docker/volumes/`)
 
 ---
 
@@ -144,7 +141,7 @@ Use this for Railway health checks or uptime monitoring.
 | Problem | Solution |
 |---------|----------|
 | DB empty | Make sure `DATABASE_URL` is set on Railway (PostgreSQL plugin auto-sets it) |
-| SQLite on Railway | Don't use SQLite on Railway — add the PostgreSQL plugin |
-| `better-sqlite3` build fails | This package compiles native code. Railway's Nixpacks handles it. On Vercel, don't use SQLite |
+| Connection refused | Check that PostgreSQL is running and `DATABASE_URL` is correct |
+| Migration fails | Check server logs — each migration is applied once and tracked in `_migrations` table |
 | Socket.io disconnects | Only backend on Railway supports Socket.io. Set Vercel `NEXT_PUBLIC_API_URL` to Railway URL |
 | Cold starts | Vercel frontend may cold start (1-2s). Railway backend stays warm |

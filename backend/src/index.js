@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 import { Server } from 'socket.io';
 import { GameRoom } from './game.js';
 import { GENRES, getGenreLabel } from './spotify.js';
-import { generateId, get, all, run, ping, getTableCounts, isPostgres } from './db.js';
+import { generateId, get, all, run, ping, getTableCounts } from './db.js';
 import { getAuthUrl, handleDiscordCallback, authenticate, requireAdmin, tryDecodeToken } from './auth.js';
 
 dotenv.config();
@@ -135,7 +135,7 @@ app.get('/api/health', async (req, res) => {
     res.json({
       ok: dbOk,
       uptime: process.uptime(),
-      database: { connected: dbOk, type: isPostgres ? 'PostgreSQL' : 'SQLite', tables: counts },
+      database: { connected: dbOk, type: 'PostgreSQL', tables: counts },
     });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
@@ -361,11 +361,10 @@ app.get('/api/users/me/scores', authenticate, async (req, res) => {
 });
 
 app.get('/api/users/me/stats', authenticate, async (req, res) => {
-  const correctVal = process.env.DATABASE_URL ? true : 1;
   const [totalPoints, avgSpeed, bestGenre] = await Promise.all([
     get('SELECT COALESCE(SUM(points_earned), 0) as total FROM round_results WHERE user_id = ?', [req.user.userId]),
-    get('SELECT AVG(guess_time_ms) as avg FROM round_results WHERE user_id = ? AND is_correct = ?', [req.user.userId, correctVal]),
-    get('SELECT genre FROM round_results WHERE user_id = ? AND is_correct = ? GROUP BY genre ORDER BY COUNT(*) DESC LIMIT 1', [req.user.userId, correctVal]),
+    get('SELECT AVG(guess_time_ms) as avg FROM round_results WHERE user_id = ? AND is_correct = true', [req.user.userId]),
+    get('SELECT genre FROM round_results WHERE user_id = ? AND is_correct = true GROUP BY genre ORDER BY COUNT(*) DESC LIMIT 1', [req.user.userId]),
   ]);
   res.json({
     totalPoints: totalPoints?.total || 0,
@@ -774,7 +773,7 @@ app.get('/api/admin/db-status', requireAdmin, async (req, res) => {
     const tables = await getTableCounts();
     res.json({
       ok: true,
-      isPostgres,
+      isPostgres: true,
       hasData: tables.users > 0,
       tables,
     });
