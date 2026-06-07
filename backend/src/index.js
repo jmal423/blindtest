@@ -254,12 +254,8 @@ app.get('/api/auth/discord/callback', async (req, res) => {
   }
 });
 
-// Guest/dev login — bypasses Discord auth
+// Guest login — bypasses Discord auth for quick access
 app.post('/api/auth/guest', (req, res) => {
-  if (process.env.NODE_ENV === 'production' && process.env.ALLOW_GUEST !== 'true') {
-    return res.status(403).json({ error: 'Guest login not available in production' });
-  }
-
   const name = typeof req.body?.name === 'string' ? req.body.name.trim() : 'Guest';
   const userId = `guest_${generateId()}`;
   const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`;
