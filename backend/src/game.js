@@ -192,6 +192,7 @@ export class GameRoom {
   async startGame() {
     if (this.players.length === 0) return;
     if (this.state !== 'waiting') return;
+    console.log(`[Game] Starting game in room ${this.code} with ${this.players.length} players, genres: [${this.genres.join(', ')}]`);
 
     const { getTracksByGenre } = await import('./spotify.js');
 
@@ -226,6 +227,7 @@ export class GameRoom {
     }
 
     const playable = this.tracks.filter(t => t.youtubeVideoId || t.previewUrl);
+    console.log(`[Game] Room ${this.code}: ${playable.length}/${this.tracks.length} tracks playable`);
     if (playable.length === 0) {
       return 'No tracks with audio available. YouTube quota may be exhausted and Spotify previews not available for these genres. Try different genres.';
     }

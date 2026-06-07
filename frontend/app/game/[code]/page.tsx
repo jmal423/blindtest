@@ -146,6 +146,7 @@ export default function GamePage({
   const [bothFound, setBothFound] = useState(false);
   const [encouragement, setEncouragement] = useState<string | null>(null);
   const [guessMarkers, setGuessMarkers] = useState<{ playerName: string; artistFound: boolean; titleFound: boolean; guessTimeMs: number }[]>([]);
+  const [startLoading, setStartLoading] = useState(false);
   const playSound = useSound();
   const playSoundRef = useRef(playSound);
   const activeRoundRef = useRef<string | null>(null);
@@ -295,10 +296,13 @@ export default function GamePage({
   }, [code, playerId, applyGameState, router]);
 
   const handleStart = useCallback(async () => {
+    setStartLoading(true);
     try {
       await startGame(code, playerId);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to start');
+    } finally {
+      setStartLoading(false);
     }
   }, [code, playerId]);
 
@@ -378,6 +382,7 @@ export default function GamePage({
               onSettingsChange={handleSettingsUpdate}
               onGenresChange={handleGenresUpdate}
               onKickPlayer={(pid) => socketRef.current?.emit('kick_player', pid)}
+              startLoading={startLoading}
             />
           )}
 
@@ -470,6 +475,7 @@ function WaitingRoom({
   onSettingsChange: (s: Partial<RoomSettings>) => void;
   onGenresChange: (g: string[]) => void;
   onKickPlayer?: (playerId: string) => void;
+  startLoading?: boolean;
 }) {
   const [allGenres, setAllGenres] = useState<{ id: string; label: string }[]>([]);
 
@@ -602,20 +608,25 @@ function WaitingRoom({
         </div>
 
         {isHost && (
-          <div className="flex items-center justify-between">
-            <label className="text-xs text-zinc-500">Auto-start</label>
-            <button
-              onClick={() => onSettingsChange({ autoStart: !settings.autoStart })}
-              className={`relative w-10 h-5 rounded-full transition-colors ${
-                settings.autoStart ? 'bg-[var(--primary)]' : 'bg-zinc-700'
-              }`}
-            >
-              <span
-                className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-                  settings.autoStart ? 'translate-x-5' : 'translate-x-0.5'
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-xs text-zinc-500">Auto-start</span>
+                <p className="text-[10px] text-zinc-600 mt-0.5">Starts game automatically 5s after 2+ players join</p>
+              </div>
+              <button
+                onClick={() => onSettingsChange({ autoStart: !settings.autoStart })}
+                className={`relative w-10 h-5 rounded-full flex-shrink-0 transition-colors ${
+                  settings.autoStart ? 'bg-[var(--primary)]' : 'bg-zinc-600'
                 }`}
-              />
-            </button>
+              >
+                <span
+                  className={`absolute top-[2px] w-4 h-4 rounded-full bg-white shadow transition-all duration-200 ${
+                    settings.autoStart ? 'left-[22px]' : 'left-[2px]'
+                  }`}
+                />
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -623,14 +634,14 @@ function WaitingRoom({
       {isHost && (
         <button
           onClick={onStart}
-          disabled={!genres || genres.length === 0}
+          disabled={startLoading || !genres || genres.length === 0}
           className={`px-8 py-4 text-white font-semibold rounded-xl transition-colors ${
-            genres && genres.length > 0
+            genres && genres.length > 0 && !startLoading
               ? 'bg-[var(--primary)] hover:bg-[var(--primary-hover)] animate-pulse-glow'
               : 'bg-gray-600 opacity-50 cursor-not-allowed'
           }`}
         >
-          {genres && genres.length > 0 ? 'Start Game' : 'Select a Genre to Start'}
+          {startLoading ? 'Starting...' : genres && genres.length > 0 ? 'Start Game' : 'Select a Genre to Start'}
         </button>
       )}
 
