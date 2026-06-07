@@ -32,13 +32,15 @@ function levenshtein(a, b) {
 function evaluateAnswer(guess, target) {
   const a = normalizeString(guess);
   const t = normalizeString(target);
-  if (!a || !t) return false;
-  if (a === t) return true;
-  if (a.includes(t) || t.includes(a)) return true;
+  if (!a || !t) return { matched: false, score: 0 };
+  if (a === t) return { matched: true, score: 100 };
+  if (a.includes(t) || t.includes(a)) return { matched: true, score: 100 };
   const dist = levenshtein(a, t);
-  if (dist <= 2) return true;
-  if (dist / Math.max(a.length, t.length) <= 0.25) return true;
-  return false;
+  const maxLen = Math.max(a.length, t.length);
+  const ratio = dist / maxLen;
+  if (dist <= 2) return { matched: true, score: Math.round((1 - ratio) * 100) };
+  if (ratio <= 0.25) return { matched: true, score: Math.round((1 - ratio) * 100) };
+  return { matched: false, score: Math.round((1 - Math.min(ratio, 1)) * 100) };
 }
 
 function shuffle(array) {
@@ -54,8 +56,9 @@ export class GameRoom {
   constructor(code, genres, io) {
     this.code = code;
     this.genres = genres;
-    this.settings = { rounds: 10, roundTime: 15, pauseTime: 4 };
+    this.settings = { rounds: 10, roundTime: 15, pauseTime: 4, autoStart: false };
     this.tracks = [];
+    this.trackHistory = [];
     this.players = [];
     this.state = 'waiting';
     this.currentRound = 0;
@@ -64,6 +67,7 @@ export class GameRoom {
     this.roundTimer = null;
     this.countdownTimer = null;
     this.pauseTimer = null;
+    this.autoStartTimer = null;
     this.audioOffset = 0;
     this.roundResult = null;
     this.rankings = null;
@@ -91,12 +95,25 @@ export class GameRoom {
     if (updates.rounds) this.settings.rounds = Math.max(3, Math.min(25, Math.round(updates.rounds)));
     if (updates.roundTime) this.settings.roundTime = Math.max(8, Math.min(30, Math.round(updates.roundTime)));
     if (updates.pauseTime !== undefined) this.settings.pauseTime = Math.max(2, Math.min(15, Math.round(updates.pauseTime)));
+    if (updates.autoStart !== undefined) this.settings.autoStart = !!updates.autoStart;
   }
 
   addPlayer(name, avatarUrl = null, role = 'user') {
     const id = generateId();
     this.players.push({ id, name, avatarUrl, role, score: 0, answers: [] });
     if (!this.hostId) this.hostId = id;
+    if (this.settings.autoStart && this.players.length >= 2 && this.state === 'waiting') {
+      clearTimeout(this.autoStartTimer);
+      if (this.io) {
+        this.io.to(this.code).emit('new_chat_message', {
+          isSystem: true,
+          content: `⏳ Auto-starting in 5 seconds...`,
+        });
+      }
+      this.autoStartTimer = setTimeout(() => {
+        if (this.state === 'waiting') this.startGame();
+      }, 5000);
+    }
     return id;
   }
 
@@ -190,8 +207,10 @@ export class GameRoom {
 
     const guessTimeMs = Date.now() - this.roundStartTime;
 
-    const artistCorrect = !player.foundArtist && evaluateAnswer(answer, track.artist);
-    const titleCorrect = !player.foundTitle && evaluateAnswer(answer, track.name);
+    const artistCheck = !player.foundArtist ? evaluateAnswer(answer, track.artist) : { matched: false, score: 100 };
+    const titleCheck = !player.foundTitle ? evaluateAnswer(answer, track.name) : { matched: false, score: 100 };
+    const artistCorrect = artistCheck.matched;
+    const titleCorrect = titleCheck.matched;
 
     let pointsThisGuess = 0;
 
@@ -235,7 +254,9 @@ export class GameRoom {
 
     const inputResult = {
       artist_result: artistCorrect ? 'Good' : 'Bad',
+      artist_score: artistCheck.score,
       title_result: titleCorrect ? 'Good' : 'Bad',
+      title_score: titleCheck.score,
       points_awarded_this_guess: pointsThisGuess,
       found_both: bothNow,
     };
@@ -262,6 +283,12 @@ export class GameRoom {
     });
 
     const track = this.tracks[this.currentRound];
+    this.trackHistory.push({
+      round: this.currentRound + 1,
+      name: track.name,
+      artist: track.artist,
+      albumImage: track.albumImage,
+    });
     this.state = 'round_result';
     this.roundResult = {
       round: this.currentRound + 1,
@@ -359,11 +386,11 @@ export class GameRoom {
     if (this.state === 'round_result') {
       const pauseElapsed = this.pauseStartTime ? (Date.now() - this.pauseStartTime) / 1000 : 0;
       const pauseTimeLeft = Math.max(0, Math.ceil(this.settings.pauseTime - pauseElapsed));
-      return { ...base, roundResult: this.roundResult, pauseTimeLeft };
+      return { ...base, roundResult: this.roundResult, pauseTimeLeft, trackHistory: this.trackHistory };
     }
 
     if (this.state === 'game_over') {
-      return { ...base, rankings: this.rankings };
+      return { ...base, rankings: this.rankings, trackHistory: this.trackHistory };
     }
 
     return base;
@@ -373,7 +400,9 @@ export class GameRoom {
     if (this.roundTimer) clearTimeout(this.roundTimer);
     if (this.countdownTimer) clearTimeout(this.countdownTimer);
     if (this.pauseTimer) clearTimeout(this.pauseTimer);
+    if (this.autoStartTimer) clearTimeout(this.autoStartTimer);
     this.players = [];
     this.tracks = [];
+    this.trackHistory = [];
   }
 }

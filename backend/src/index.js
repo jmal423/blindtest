@@ -163,7 +163,7 @@ app.post('/api/game/:code/start', async (req, res) => {
 app.post('/api/game/:code/save', authenticate, async (req, res) => {
   const room = rooms.get(req.params.code.toUpperCase());
   if (!room) return res.status(404).json({ error: 'Room not found' });
-  if (room.state !== 'finished') return res.status(400).json({ error: 'Game not finished' });
+  if (room.state !== 'game_over') return res.status(400).json({ error: 'Game not finished' });
 
   const player = room.players.find(p => p.id === req.body.playerId);
   if (!player) return res.status(404).json({ error: 'Player not in game' });

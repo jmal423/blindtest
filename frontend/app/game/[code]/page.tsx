@@ -10,8 +10,13 @@ import AudioPlayer from '@/app/components/AudioPlayer';
 import Chat from './Chat';
 import Podium from './Podium';
 import DebugOverlay from './DebugOverlay';
+import { useSound } from '@/lib/useSound';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+const WRONG_MSGS = ['Too bad!', 'Nope!', 'Not quite!', 'Try again!', 'Missed!'];
+const CORRECT_MSGS = ['Nice!', 'Good one!', 'Well done!', 'Got it!', 'Keep going!'];
+const COMPLETE_MSGS = ['Perfect!', 'You nailed it!', 'Brilliant!', 'Unstoppable!', 'Flawless!'];
 
 const BAR_COUNT = 48;
 
@@ -92,7 +97,7 @@ export default function GamePage({
   const [playerId, setPlayerId] = useState<string>('');
   const [hasInteracted, setHasInteracted] = useState(false);
   const [guess, setGuess] = useState('');
-  const [guessResult, setGuessResult] = useState<{ artist_result: string; title_result: string; points_awarded_this_guess: number; found_both: boolean } | null>(null);
+  const [guessResult, setGuessResult] = useState<{ artist_result: string; artist_score: number; title_result: string; title_score: number; points_awarded_this_guess: number; found_both: boolean } | null>(null);
   const [error, setError] = useState('');
   const [socketConnected, setSocketConnected] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -103,6 +108,8 @@ export default function GamePage({
   const [artistFound, setArtistFound] = useState(false);
   const [titleFound, setTitleFound] = useState(false);
   const [bothFound, setBothFound] = useState(false);
+  const [encouragement, setEncouragement] = useState<string | null>(null);
+  const playSound = useSound();
 
   const handleAudioPlaying = useCallback(() => {
     if (localTimerRef.current) return;
@@ -138,6 +145,7 @@ export default function GamePage({
       setBothFound(false);
       setGuess('');
       setGuessResult(null);
+      setEncouragement(null);
       setLocalTimeLeft(null);
       if (localTimerRef.current) {
         clearInterval(localTimerRef.current);
@@ -151,11 +159,14 @@ export default function GamePage({
       clearInterval(localTimerRef.current);
       localTimerRef.current = null;
     }
+    if (state.state === 'game_over') {
+      playSound('endGame');
+    }
     if (state.state === 'game_over' || state.state === 'round_result') {
       setGuess('');
       setGuessResult(null);
     }
-  }, []);
+  }, [playSound]);
 
   useEffect(() => {
     const pid = localStorage.getItem(`blindtest_player_${code}`);
@@ -191,9 +202,19 @@ export default function GamePage({
     });
 
     socket.on('input_result', (result: any) => {
-      if (result.artist_result === 'Good') setArtistFound(true);
-      if (result.title_result === 'Good') setTitleFound(true);
-      if (result.found_both) setBothFound(true);
+      if (result.found_both) {
+        setBothFound(true);
+        playSound('complete');
+        setEncouragement(COMPLETE_MSGS[Math.floor(Math.random() * COMPLETE_MSGS.length)]);
+      } else if (result.artist_result === 'Good' || result.title_result === 'Good') {
+        if (result.artist_result === 'Good') setArtistFound(true);
+        if (result.title_result === 'Good') setTitleFound(true);
+        playSound('correct');
+        setEncouragement(CORRECT_MSGS[Math.floor(Math.random() * CORRECT_MSGS.length)]);
+      } else {
+        playSound('wrong');
+        setEncouragement(WRONG_MSGS[Math.floor(Math.random() * WRONG_MSGS.length)]);
+      }
       setGuessResult(result);
     });
 
@@ -336,11 +357,12 @@ export default function GamePage({
               bothFound={bothFound}
               players={gameState.players}
               playerId={playerId}
+              encouragement={encouragement}
             />
           )}
 
           {gameState.state === 'round_result' && (
-            <RoundResult data={gameState.roundResult} players={gameState.players} pauseTimeLeft={(gameState as any).pauseTimeLeft} />
+            <RoundResult data={gameState.roundResult} players={gameState.players} pauseTimeLeft={(gameState as any).pauseTimeLeft} trackHistory={(gameState as any).trackHistory} />
           )}
 
           {gameState.state === 'game_over' && (
@@ -515,6 +537,24 @@ function WaitingRoom({
             <p className="text-sm text-zinc-300 mt-1">{settings.pauseTime}s</p>
           )}
         </div>
+
+        {isHost && (
+          <div className="flex items-center justify-between">
+            <label className="text-xs text-zinc-500">Auto-start</label>
+            <button
+              onClick={() => onSettingsChange({ autoStart: !settings.autoStart })}
+              className={`relative w-10 h-5 rounded-full transition-colors ${
+                settings.autoStart ? 'bg-[var(--primary)]' : 'bg-zinc-700'
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+                  settings.autoStart ? 'translate-x-5' : 'translate-x-0.5'
+                }`}
+              />
+            </button>
+          </div>
+        )}
       </div>
 
       {isHost && (
@@ -553,6 +593,7 @@ function PlayingPhase({
   bothFound,
   players,
   playerId,
+  encouragement,
 }: {
   state: string;
   currentRound: number;
@@ -561,7 +602,7 @@ function PlayingPhase({
   guess: string;
   onGuessChange: (v: string) => void;
   onSubmit: () => void;
-  guessResult: { artist_result: string; title_result: string; points_awarded_this_guess: number; found_both: boolean } | null;
+  guessResult: { artist_result: string; artist_score: number; title_result: string; title_score: number; points_awarded_this_guess: number; found_both: boolean } | null;
   duration: number;
   currentTime: number;
   inputRef: React.RefObject<HTMLInputElement | null>;
@@ -570,6 +611,7 @@ function PlayingPhase({
   bothFound: boolean;
   players: Player[];
   playerId: string;
+  encouragement: string | null;
 }) {
   const placeholder = bothFound
     ? 'You nailed it!'
@@ -682,6 +724,9 @@ function PlayingPhase({
         {guessResult && (() => {
           const pts = guessResult.points_awarded_this_guess || 0;
           const succeeded = pts > 0;
+          const scores = [];
+          if (guessResult.artist_score !== undefined) scores.push(`Artist: ${guessResult.artist_score}%`);
+          if (guessResult.title_score !== undefined) scores.push(`Title: ${guessResult.title_score}%`);
           return (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -692,10 +737,23 @@ function PlayingPhase({
                   : 'bg-red-500/20 text-red-400 border border-red-500/30'
               }`}
             >
-              {succeeded ? `+${pts} pts` : 'Wrong!'}
+              <p className="font-semibold">{succeeded ? `+${pts} pts` : 'Wrong!'}</p>
+              {scores.length > 0 && (
+                <p className="text-[10px] mt-0.5 opacity-70">{scores.join(' | ')}</p>
+              )}
             </motion.div>
           );
         })()}
+        {encouragement && (
+          <motion.p
+            key={encouragement}
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="text-xs text-zinc-400 italic text-center"
+          >
+            {encouragement}
+          </motion.p>
+        )}
       </div>
 
       <div className="w-full lg:w-56 shrink-0 space-y-1">
@@ -715,13 +773,36 @@ function PlayingPhase({
   );
 }
 
-function RoundResult({ data, players = [], pauseTimeLeft }: { data?: { correctAnswer?: string; artist?: string; albumImage?: string } | null; players?: { name: string; score: number }[]; pauseTimeLeft: number }) {
+function RoundResult({ data, players = [], pauseTimeLeft, trackHistory = [] }: { data?: { correctAnswer?: string; artist?: string; albumImage?: string } | null; players?: { name: string; score: number }[]; pauseTimeLeft: number; trackHistory?: { round: number; name: string; artist: string; albumImage?: string }[] }) {
   return (
-    <div className="flex-1 flex flex-col items-center justify-center gap-6 animate-slide-up">
-      <h2 className="text-xl font-semibold">
-        <span className="text-[var(--primary)]">{data?.correctAnswer || 'Unknown Track'}</span>
-      </h2>
-      <p className="text-lg text-zinc-400">{data?.artist || 'Unknown Artist'}</p>
+    <div className="flex-1 flex flex-col items-center gap-6 animate-slide-up">
+      <div className="flex flex-col items-center gap-2">
+        <h2 className="text-xl font-semibold">
+          <span className="text-[var(--primary)]">{data?.correctAnswer || 'Unknown Track'}</span>
+        </h2>
+        <p className="text-lg text-zinc-400">{data?.artist || 'Unknown Artist'}</p>
+      </div>
+
+      {trackHistory.length > 1 && (
+        <div className="w-full max-w-sm">
+          <p className="text-[10px] text-zinc-600 uppercase tracking-wider mb-1">Track History</p>
+          <div className="flex flex-wrap gap-1">
+            {trackHistory.map(t => (
+              <span
+                key={t.round}
+                className={`text-[10px] px-2 py-0.5 rounded-full ${
+                  t.round === trackHistory.length
+                    ? 'bg-[var(--primary)]/20 text-[var(--primary)]'
+                    : 'bg-zinc-800/50 text-zinc-500'
+                }`}
+              >
+                R{t.round}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="w-full max-w-xs space-y-1">
         {players.map((p, i) => (
           <div key={i} className="flex justify-between px-4 py-2 bg-[var(--surface)] rounded-lg">
