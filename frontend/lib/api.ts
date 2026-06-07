@@ -126,8 +126,12 @@ export async function searchYouTube(name: string, artist: string): Promise<{ vid
 }
 
 // Auth
-export function getDiscordAuthUrl() {
-  return `${API_URL}/api/auth/discord`;
+export function getDiscordAuthUrl(redirect?: string) {
+  const base = `${API_URL}/api/auth/discord`;
+  if (redirect) {
+    return `${base}?redirect=${encodeURIComponent(redirect)}`;
+  }
+  return base;
 }
 
 export function getToken(): string | null {
@@ -230,6 +234,19 @@ export async function saveGameScore(code: string, playerId: string): Promise<voi
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ playerId }),
   });
+}
+
+export async function guestLogin(name: string): Promise<{ token: string; user: any }> {
+  const res = await fetch(`${API_URL}/api/auth/guest`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Guest login failed');
+  }
+  return res.json();
 }
 
 export async function getAdminStats(): Promise<{ totalUsers: number; totalRounds: number }> {

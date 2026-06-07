@@ -8,16 +8,19 @@ function getRedirectUri(host) {
   return `https://${host}/api/auth/discord/callback`;
 }
 
-function getAuthUrl(host) {
+function getAuthUrl(host, redirectUrl) {
   const url = new URL('https://discord.com/api/oauth2/authorize');
   url.searchParams.set('client_id', DISCORD_CLIENT_ID);
   url.searchParams.set('redirect_uri', getRedirectUri(host));
   url.searchParams.set('response_type', 'code');
   url.searchParams.set('scope', 'identify');
+  if (redirectUrl) {
+    url.searchParams.set('state', redirectUrl);
+  }
   return url.toString();
 }
 
-async function handleDiscordCallback(code, host) {
+async function handleDiscordCallback(code, host, state) {
   const tokenRes = await fetch('https://discord.com/api/oauth2/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -86,7 +89,7 @@ async function handleDiscordCallback(code, host) {
   const token = jwt.sign(
     { userId: user.id, role: user.role },
     JWT_SECRET,
-    { expiresIn: '30d' }
+    { expiresIn: '365d' }
   );
 
   return {
@@ -97,6 +100,7 @@ async function handleDiscordCallback(code, host) {
       avatarUrl: user.avatar_url,
       role: user.role,
     },
+    redirectUrl: state || null,
   };
 }
 

@@ -1,4 +1,5 @@
 import { createServer } from 'node:http';
+import jwt from 'jsonwebtoken';
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -233,20 +234,43 @@ app.get('/api/youtube/search', async (req, res) => {
 
 // Auth
 app.get('/api/auth/discord', (req, res) => {
-  const url = getAuthUrl(req.headers.host);
+  const redirectUrl = typeof req.query.redirect === 'string' ? req.query.redirect : null;
+  const url = getAuthUrl(req.headers.host, redirectUrl);
   res.redirect(url);
 });
 
 app.get('/api/auth/discord/callback', async (req, res) => {
-  const { code } = req.query;
+  const { code, state } = req.query;
   if (!code) return res.status(400).json({ error: 'Missing code' });
 
   try {
-    const result = await handleDiscordCallback(code, req.headers.host);
-    res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}?token=${result.token}`);
+    const result = await handleDiscordCallback(code, req.headers.host, state);
+    const fallback = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const target = result.redirectUrl || fallback;
+    res.redirect(`${target}?token=${result.token}`);
   } catch (err) {
-    res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}?error=${encodeURIComponent(err.message)}`);
+    const fallback = process.env.FRONTEND_URL || 'http://localhost:3000';
+    res.redirect(`${fallback}?error=${encodeURIComponent(err.message)}`);
   }
+});
+
+// Guest/dev login — bypasses Discord auth
+app.post('/api/auth/guest', (req, res) => {
+  const isDev = process.env.NODE_ENV !== 'production' || process.env.ALLOW_GUEST === 'true';
+  if (!isDev) return res.status(403).json({ error: 'Guest login not available in production' });
+
+  const name = typeof req.body?.name === 'string' ? req.body.name.trim() : 'Guest';
+  const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`;
+  const token = jwt.sign(
+    { userId: `guest_${generateId()}`, role: 'user', guest: true },
+    process.env.JWT_SECRET || 'blindtest-dev-secret-change-in-production',
+    { expiresIn: '365d' }
+  );
+
+  res.json({
+    token,
+    user: { id: token.split('guest_')[1] || 'unknown', username: name, avatar_url: avatarUrl, role: 'user', created_at: new Date().toISOString() },
+  });
 });
 
 // Users
