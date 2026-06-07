@@ -95,7 +95,6 @@ export default function GamePage({
 
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [playerId, setPlayerId] = useState<string>('');
-  const [hasInteracted, setHasInteracted] = useState(false);
   const [guess, setGuess] = useState('');
   const [guessResult, setGuessResult] = useState<{ artist_result: string; artist_score: number; title_result: string; title_score: number; points_awarded_this_guess: number; found_both: boolean } | null>(null);
   const [error, setError] = useState('');
@@ -185,7 +184,7 @@ export default function GamePage({
   }, [code, router]);
 
   useEffect(() => {
-    if (!playerId || !hasInteracted) return;
+    if (!playerId) return;
 
     const socket = socketIo(API_URL);
     socketRef.current = socket;
@@ -229,7 +228,7 @@ export default function GamePage({
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [code, playerId, hasInteracted, applyGameState]);
+  }, [code, playerId, applyGameState]);
 
   const handleStart = useCallback(async () => {
     try {
@@ -261,42 +260,10 @@ export default function GamePage({
     setGuess('');
   }, [guess]);
 
-  const handleInteract = () => {
-    const silent = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAVFYAAFRWAAABAAgAZGF0YQAAAAA=');
-    silent.play().then(() => silent.pause()).catch(() => {});
-    setHasInteracted(true);
-  };
-
   if (!playerId) {
     return (
       <div className="flex-1 flex items-center justify-center">
         <p className="text-zinc-400 text-lg">Connecting...</p>
-      </div>
-    );
-  }
-
-  if (!hasInteracted) {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 gap-8 cursor-pointer" onClick={handleInteract}>
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.4 }}
-          className="text-center max-w-sm"
-        >
-          <p className="text-3xl font-bold mb-2">Room <span className="text-[var(--primary)]">{code}</span></p>
-          <p className="text-zinc-400 text-sm mb-8">Click anywhere to enter</p>
-          <motion.div
-            animate={{ scale: [1, 1.05, 1] }}
-            transition={{ repeat: Infinity, duration: 2 }}
-            className="inline-flex items-center gap-3 px-8 py-4 bg-[var(--primary)] text-white font-semibold rounded-2xl"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="5 3 19 12 5 21 5 3"/>
-            </svg>
-            Click to Enter Room
-          </motion.div>
-        </motion.div>
       </div>
     );
   }
