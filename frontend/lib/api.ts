@@ -221,6 +221,14 @@ export async function saveGameScore(code: string, playerId: string): Promise<voi
   });
 }
 
+export async function getAdminStats(): Promise<{ totalUsers: number; totalRounds: number }> {
+  return fetchWithAuth(`${API_URL}/api/admin/stats`);
+}
+
+export async function wipeUserScores(userId: string): Promise<void> {
+  await fetchWithAuth(`${API_URL}/api/admin/users/${userId}/scores`, { method: 'DELETE' });
+}
+
 export async function getAdminUsers(): Promise<User[]> {
   return fetchWithAuth(`${API_URL}/api/admin/users`);
 }

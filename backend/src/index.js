@@ -359,6 +359,20 @@ app.delete('/api/friends/:userId', authenticate, async (req, res) => {
 });
 
 // Admin
+app.get('/api/admin/stats', requireAdmin, async (req, res) => {
+  const [userCount, roundCount] = await Promise.all([
+    get('SELECT COUNT(*) as count FROM users'),
+    get('SELECT COUNT(*) as count FROM round_results'),
+  ]);
+  res.json({ totalUsers: userCount?.count || 0, totalRounds: roundCount?.count || 0 });
+});
+
+app.delete('/api/admin/users/:id/scores', requireAdmin, async (req, res) => {
+  await run('DELETE FROM round_results WHERE user_id = ?', [req.params.id]);
+  await run('DELETE FROM game_scores WHERE user_id = ?', [req.params.id]);
+  res.json({ ok: true });
+});
+
 app.get('/api/admin/users', requireAdmin, async (req, res) => {
   const users = await all('SELECT id, username, avatar_url, role, created_at FROM users ORDER BY created_at DESC');
   res.json(users);
