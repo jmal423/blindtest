@@ -33,7 +33,7 @@ export default function AudioPlayer({
   audioOffset: number;
   state: string;
   onPlaying: () => void;
-  onTimeUpdate: (t: number) => void;
+  onTimeUpdate: (t: number, d?: number) => void;
 }) {
   const { settings } = useSettings();
   const volRef = useRef(settings.masterVolume);
@@ -80,6 +80,7 @@ export default function AudioPlayer({
           rel: 0,
           iv_load_policy: 3,
           playsinline: 1,
+          start: offsetRef.current,
         },
         events: {
           onReady: () => { readyRef.current = true; },
@@ -129,14 +130,12 @@ export default function AudioPlayer({
     };
     trySeek();
 
-    // Mobile: one-shot gesture handler for first playback
+    // Mobile: one-shot gesture handler for first playback (autoplay unlock)
     const onGesture = () => {
-      if (stopped) return;
+      if (stopped || firedRef.current) return;
       const player = playerRef.current;
       if (!player || !readyRef.current) return;
       try {
-        player.seekTo(offsetRef.current, true);
-        player.setVolume(Math.round(volRef.current * 100));
         player.playVideo();
       } catch {}
     };
@@ -155,7 +154,9 @@ export default function AudioPlayer({
     if (!player || !readyRef.current) return;
     try {
       const t = player.getCurrentTime();
-      onTimeUpdate(t);
+      const d = player.getDuration();
+      if (d && d > 0) onTimeUpdate(t, d);
+      else onTimeUpdate(t, 30);
       if (!firedRef.current && t >= offsetRef.current + 0.1) {
         firedRef.current = true;
         onPlayingRef.current();
@@ -165,7 +166,7 @@ export default function AudioPlayer({
 
   useEffect(() => {
     if (state !== 'playing') return;
-    const interval = setInterval(tick, 200);
+    const interval = setInterval(tick, 80);
     return () => clearInterval(interval);
   }, [state, tick]);
 

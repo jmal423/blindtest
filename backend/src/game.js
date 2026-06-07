@@ -208,6 +208,8 @@ export class GameRoom {
   async startRound() {
     if (this.pauseInterval) { clearInterval(this.pauseInterval); this.pauseInterval = null; }
     this.roundStartTime = null;
+
+    const skippedTracks = [];
     while (this.currentRound < this.tracks.length && this.tracksPlayed < this.totalRounds) {
       const track = this.tracks[this.currentRound];
       if (!track.youtubeVideoId) {
@@ -224,12 +226,17 @@ export class GameRoom {
       }
 
       console.warn(`Skipping track "${track.artist} - ${track.name}" - no YouTube video`);
+      skippedTracks.push(this.currentRound);
       this.currentRound++;
     }
 
     if (this.currentRound >= this.tracks.length || this.tracksPlayed >= this.totalRounds) {
-      this.endGame();
-      return;
+      if (this.tracksPlayed < this.totalRounds && skippedTracks.length > 0 && this.currentRound >= this.tracks.length) {
+        this.currentRound = Math.max(0, skippedTracks[0]);
+      } else {
+        this.endGame();
+        return;
+      }
     }
 
     const track = this.tracks[this.currentRound];

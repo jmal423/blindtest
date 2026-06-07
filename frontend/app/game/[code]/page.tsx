@@ -173,8 +173,9 @@ export default function GamePage({
     }, 1000);
   }, [gameState]);
 
-  const handleAudioTimeUpdate = useCallback((t: number) => {
+  const handleAudioTimeUpdate = useCallback((t: number, d?: number) => {
     setCurrentTime(t);
+    if (d && d > 0) setDuration(d);
   }, []);
 
   const applyGameState = useCallback((state: GameState) => {
@@ -469,7 +470,7 @@ function WaitingRoom({
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center gap-6 overflow-y-auto">
+    <div className="flex-1 flex flex-col items-center gap-6 overflow-y-auto pb-24 md:pb-8">
       <div className="w-full max-w-sm space-y-2">
         <p className="text-sm text-zinc-400 font-medium">Players ({players.length})</p>
         {players.map((p, i) => (
