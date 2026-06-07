@@ -11,7 +11,18 @@ export default function Home() {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    if (getToken()) {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    const error = params.get('error');
+
+    if (token) {
+      localStorage.setItem('blindtest_token', token);
+      window.history.replaceState({}, '', '/');
+      getMe().then(u => { setUser(u); setChecking(false); }).catch(() => setChecking(false));
+    } else if (error) {
+      window.history.replaceState({}, '', '/');
+      setChecking(false);
+    } else if (getToken()) {
       getMe().then(u => { setUser(u); setChecking(false); }).catch(() => setChecking(false));
     } else {
       setChecking(false);

@@ -229,9 +229,9 @@ app.get('/api/auth/discord/callback', async (req, res) => {
 
   try {
     const result = await handleDiscordCallback(code, req.headers.host);
-    res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?token=${result.token}`);
+    res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}?token=${result.token}`);
   } catch (err) {
-    res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?error=${encodeURIComponent(err.message)}`);
+    res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}?error=${encodeURIComponent(err.message)}`);
   }
 });
 
