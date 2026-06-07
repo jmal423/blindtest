@@ -201,12 +201,14 @@ export class GameRoom {
 
     const allTracks = [];
     let lastError = '';
-    const perGenre = this.settings.audioSource === 'spotify'
-      ? Math.max(40, this.settings.rounds * 5)
-      : Math.max(15, this.settings.rounds * 2);
-    for (const genre of this.genres) {
+    const totalNeeded = this.settings.audioSource === 'spotify'
+      ? Math.max(this.settings.rounds, 30)
+      : Math.max(this.settings.rounds * 3, 30);
+    const shuffledGenres = shuffle([...this.genres]);
+    for (const genre of shuffledGenres) {
+      if (allTracks.length >= totalNeeded) break;
       try {
-        const tracks = await getTracksByGenre(genre, perGenre);
+        const tracks = await getTracksByGenre(genre, 10);
         allTracks.push(...tracks);
       } catch (err) {
         lastError = err.message;

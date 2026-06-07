@@ -60,9 +60,12 @@ async function spotifyFetch(endpoint, retries = 3) {
     });
 
     if (res.status === 429) {
-      const retryAfter = parseInt(res.headers.get('Retry-After') || '1', 10);
-      await new Promise(r => setTimeout(r, retryAfter * 1000));
-      continue;
+      const retryAfter = parseInt(res.headers.get('Retry-After') || '2', 10);
+      if (attempt < retries) {
+        await new Promise(r => setTimeout(r, Math.min(retryAfter, 3) * 1000));
+        continue;
+      }
+      throw new Error(`Spotify API rate limited`);
     }
 
     if (res.status === 401) {
