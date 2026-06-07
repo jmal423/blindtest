@@ -20,7 +20,7 @@ export default function LeaderboardPage() {
 
       <div className="space-y-2">
         {entries.map((e, i) => (
-          <div key={e.id} className={`flex items-center gap-4 px-4 py-3 rounded-xl ${
+          <div key={e.id || e.player_id} className={`flex items-center gap-4 px-4 py-3 rounded-xl ${
             i === 0 ? 'bg-yellow-500/20 border border-yellow-500/30' :
             i === 1 ? 'bg-zinc-400/10 border border-zinc-400/20' :
             i === 2 ? 'bg-amber-600/20 border border-amber-600/30' :
@@ -33,12 +33,12 @@ export default function LeaderboardPage() {
               {e.avatar_url ? (
                 <img src={e.avatar_url} alt="" className="w-full h-full object-cover" />
               ) : (
-                e.username[0].toUpperCase()
+                (e.username || e.player_name || '?')[0].toUpperCase()
               )}
             </div>
             <div className="flex-1">
-              <p className="font-semibold">{e.username}</p>
-              <p className="text-xs text-zinc-500">{e.games_played} games</p>
+              <p className="font-semibold">{e.username || e.player_name || 'Unknown'}</p>
+              <p className="text-xs text-zinc-500">{e.games_played} games · {e.wins || 0} wins</p>
             </div>
             <span className="text-lg font-bold text-[var(--accent)]">{e.total_score}</span>
           </div>

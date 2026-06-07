@@ -89,9 +89,10 @@ function SystemTab() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <StatCard value={stats?.totalUsers ?? '-'} label="Registered Users" color="var(--primary)" />
         <StatCard value={stats?.totalRounds ?? '-'} label="Rounds Played" color="var(--accent)" />
+        <StatCard value={stats?.totalGames ?? '-'} label="Games Completed" color="#8b5cf6" />
         <StatCard value={stats?.activeRooms ?? '-'} label="Active Rooms" color="#10b981" />
       </div>
 
@@ -342,7 +343,7 @@ function LeaderboardTab() {
     <div className="space-y-1">
       {leaderboard.map((e: any, i: number) => (
         <div
-          key={e.id}
+          key={e.id || e.player_id}
           className={`flex items-center gap-3 px-4 py-3 rounded-xl ${
             i === 0 ? 'bg-yellow-500/10 border border-yellow-500/20'
               : i === 1 ? 'bg-zinc-300/5 border border-white/5'
@@ -359,15 +360,15 @@ function LeaderboardTab() {
             {e.avatar_url ? (
               <img src={e.avatar_url} alt="" className="w-full h-full object-cover" />
             ) : (
-              e.username[0].toUpperCase()
+              (e.username || e.player_name || '?')[0].toUpperCase()
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-medium text-sm truncate">{e.username}</p>
-            <p className="text-xs text-zinc-500">{e.games_played} games</p>
+            <p className="font-medium text-sm truncate">{e.username || e.player_name || 'Unknown'}</p>
+            <p className="text-xs text-zinc-500">{e.games_played} games · {e.wins || 0} wins</p>
           </div>
           <span className="text-lg font-bold text-[var(--accent)]">{e.total_score}</span>
-          <button onClick={() => handleWipe(e.id, e.username)} className="px-3 py-1.5 bg-red-500/20 text-red-400 rounded-lg text-xs font-medium hover:bg-red-500/30 transition-colors shrink-0">
+          <button onClick={() => handleWipe(e.id || e.player_id, e.username || e.player_name)} className="px-3 py-1.5 bg-red-500/20 text-red-400 rounded-lg text-xs font-medium hover:bg-red-500/30 transition-colors shrink-0">
             Wipe
           </button>
         </div>

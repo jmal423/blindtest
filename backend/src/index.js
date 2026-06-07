@@ -360,19 +360,6 @@ app.get('/api/users/me/scores', authenticate, async (req, res) => {
   res.json(scores);
 });
 
-app.get('/api/users/me/stats', authenticate, async (req, res) => {
-  const [totalPoints, avgSpeed, bestGenre] = await Promise.all([
-    get('SELECT COALESCE(SUM(points_earned), 0) as total FROM round_results WHERE user_id = ?', [req.user.userId]),
-    get('SELECT AVG(guess_time_ms) as avg FROM round_results WHERE user_id = ? AND is_correct = true', [req.user.userId]),
-    get('SELECT genre FROM round_results WHERE user_id = ? AND is_correct = true GROUP BY genre ORDER BY COUNT(*) DESC LIMIT 1', [req.user.userId]),
-  ]);
-  res.json({
-    totalPoints: totalPoints?.total || 0,
-    averageSpeedMs: avgSpeed?.avg ? Math.round(Number(avgSpeed.avg)) : null,
-    bestGenre: bestGenre?.genre || null,
-  });
-});
-
 app.get('/api/users/:id', async (req, res) => {
   const user = await get('SELECT id, username, avatar_url, created_at FROM users WHERE id = ?', [req.params.id]);
   if (!user) return res.status(404).json({ error: 'User not found' });
@@ -395,21 +382,11 @@ app.get('/api/leaderboard', async (req, res) => {
   const limit = Math.min(parseInt(req.query.limit) || 50, 100);
   try {
     const entries = await getLeaderboardV2(limit);
-    if (entries.length > 0) {
-      res.json(entries);
-      return;
-    }
+    res.json(entries);
   } catch (err) {
-    console.error('[DB] Leaderboard v2 failed, falling back:', err.message);
+    console.error('[DB] Leaderboard v2 failed:', err.message);
+    res.json([]);
   }
-
-  // Fallback to old table if v2 is empty
-  const entries = await all(`
-    SELECT u.id, u.username, u.avatar_url, SUM(gs.score) as total_score, COUNT(gs.id) as games_played
-    FROM game_scores gs JOIN users u ON u.id = gs.user_id
-    GROUP BY u.id ORDER BY total_score DESC LIMIT ?
-  `, [limit]);
-  res.json(entries);
 });
 
 // Game history for a player
@@ -855,7 +832,7 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
   const [userCount, roundCount, gameCount] = await Promise.all([
     get('SELECT COUNT(*) as count FROM users'),
     get('SELECT COUNT(*) as count FROM round_results_v2'),
-    get('SELECT COUNT(*) as count FROM games'),
+    get('SELECT COUNT(*) as count FROM games WHERE status = \'finished\''),
   ]);
   res.json({ totalUsers: userCount?.count || 0, totalRounds: roundCount?.count || 0, totalGames: gameCount?.count || 0, activeRooms: rooms.size });
 });
@@ -880,6 +857,8 @@ app.get('/api/admin/rooms', requireAdmin, (req, res) => {
 app.delete('/api/admin/users/:id/scores', requireAdmin, async (req, res) => {
   await run('DELETE FROM round_results WHERE user_id = ?', [req.params.id]);
   await run('DELETE FROM game_scores WHERE user_id = ?', [req.params.id]);
+  await run('DELETE FROM round_results_v2 WHERE player_id = ?', [req.params.id]);
+  await run('DELETE FROM game_players WHERE player_id = ?', [req.params.id]);
   res.json({ ok: true });
 });
 
@@ -899,6 +878,9 @@ app.put('/api/admin/users/:id/role', requireAdmin, async (req, res) => {
 });
 
 app.delete('/api/admin/users/:id', requireAdmin, async (req, res) => {
+  await run('DELETE FROM round_results WHERE user_id = ?', [req.params.id]);
+  await run('DELETE FROM round_results_v2 WHERE player_id = ?', [req.params.id]);
+  await run('DELETE FROM game_players WHERE player_id = ?', [req.params.id]);
   await run('DELETE FROM game_scores WHERE user_id = ?', [req.params.id]);
   await run('DELETE FROM friendships WHERE user_id = ? OR friend_id = ?', [req.params.id, req.params.id]);
   await run('DELETE FROM users WHERE id = ?', [req.params.id]);

@@ -78,11 +78,27 @@ export default function ProfilePage() {
           <p className="text-3xl font-bold text-[var(--primary)]">
             {stats?.averageSpeedMs != null ? `${(stats.averageSpeedMs / 1000).toFixed(1)}s` : '-'}
           </p>
-          <p className="text-xs text-zinc-500">Average Answer Speed</p>
+          <p className="text-xs text-zinc-500">Average Speed</p>
         </div>
         <div className="bg-[var(--surface)] rounded-xl p-4 text-center">
           <p className="text-3xl font-bold text-white capitalize">{stats?.bestGenre ?? '-'}</p>
           <p className="text-xs text-zinc-500">Best Genre</p>
+        </div>
+        <div className="bg-[var(--surface)] rounded-xl p-4 text-center">
+          <p className="text-3xl font-bold text-[var(--accent)]">{stats?.gamesPlayed ?? '-'}</p>
+          <p className="text-xs text-zinc-500">Games Played</p>
+        </div>
+        <div className="bg-[var(--surface)] rounded-xl p-4 text-center">
+          <p className="text-3xl font-bold text-[var(--primary)]">{stats?.bestScore ?? '-'}</p>
+          <p className="text-xs text-zinc-500">Best Score</p>
+        </div>
+        <div className="bg-[var(--surface)] rounded-xl p-4 text-center">
+          <p className="text-3xl font-bold text-white">{stats?.perfects ?? '-'}</p>
+          <p className="text-xs text-zinc-500">Perfect Rounds</p>
+        </div>
+        <div className="bg-[var(--surface)] rounded-xl p-4 text-center">
+          <p className="text-3xl font-bold text-white">{stats?.totalRounds ?? '-'}</p>
+          <p className="text-xs text-zinc-500">Rounds Played</p>
         </div>
         <div className="bg-[var(--surface)] rounded-xl p-4 text-center">
           <p className="text-3xl font-bold text-white">{friends.length}</p>

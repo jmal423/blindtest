@@ -620,7 +620,7 @@ export class GameRoom {
 
     // Persist game results to database
     if (this.gameId) {
-      import('./db.js').then(({ finishGame, addGamePlayer, run }) => {
+      import('./db.js').then(({ finishGame, addGamePlayer }) => {
         finishGame(this.gameId).then(() => {
           console.log(`[DB] Game ${this.gameId} finished`);
         }).catch(err => console.error('[DB] Failed to finish game:', err.message));
@@ -630,14 +630,6 @@ export class GameRoom {
           addGamePlayer(crypto.randomUUID(), this.gameId, p.userId || p.id, p.name, p.score, pos || this.players.length)
             .then(() => console.log(`[DB] Saved player ${p.name}: ${p.score}pts (position ${pos})`))
             .catch(err => console.error(`[DB] Failed to save player ${p.name}:`, err.message));
-
-          // Also save to old game_scores table for authenticated users
-          if (p.userId) {
-            run(
-              'INSERT INTO game_scores (id, user_id, game_code, score, total_rounds) VALUES (?, ?, ?, ?, ?)',
-              [crypto.randomUUID(), p.userId, this.code, p.score, this.totalRounds]
-            ).catch(err => console.error('[DB] Failed to save game score:', err.message));
-          }
         }
       }).catch(() => {});
     }

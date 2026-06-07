@@ -149,10 +149,14 @@ export default function Header() {
                     </div>
 
                     <div className="p-4 border-b border-white/10">
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-3 gap-3">
                         <div className="text-center">
                           <p className="text-lg font-bold text-[var(--accent)]">{stats?.totalPoints ?? '-'}</p>
                           <p className="text-[10px] text-zinc-500 uppercase tracking-wider">{t('score')}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-lg font-bold text-white">{stats?.gamesPlayed ?? '-'}</p>
+                          <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Games</p>
                         </div>
                         <div className="text-center">
                           <p className="text-lg font-bold text-white capitalize">

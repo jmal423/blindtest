@@ -200,6 +200,12 @@ export interface UserStats {
   totalPoints: number;
   averageSpeedMs: number | null;
   bestGenre: string | null;
+  gamesPlayed: number;
+  avgScore: number;
+  bestScore: number;
+  totalRounds: number;
+  roundPoints: number;
+  perfects: number;
 }
 
 export async function getMyStats(): Promise<UserStats> {
@@ -227,7 +233,7 @@ export async function guestLogin(name: string): Promise<{ token: string; user: a
   return res.json();
 }
 
-export async function getAdminStats(): Promise<{ totalUsers: number; totalRounds: number; activeRooms: number }> {
+export async function getAdminStats(): Promise<{ totalUsers: number; totalRounds: number; totalGames: number; activeRooms: number }> {
   return fetchWithAuth(`${API_URL}/api/admin/stats`);
 }
 
