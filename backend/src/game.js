@@ -215,21 +215,10 @@ export class GameRoom {
       return lastError || 'No tracks found';
     }
 
-    // Pre-fetch YouTube for tracks without preview URLs so rounds have audio
-    const withoutAudio = this.tracks.filter(t => !t.previewUrl && !t.youtubeVideoId);
-    for (const track of withoutAudio.slice(0, Math.min(withoutAudio.length, 15))) {
-      try {
-        const { searchYouTubeVideo } = await import('./youtube.js');
-        track.youtubeVideoId = await searchYouTubeVideo(track.name, track.artist);
-      } catch (err) {
-        console.error(`[YouTube] Pre-fetch failed for "${track.artist} - ${track.name}":`, err.message);
-      }
-    }
-
     const playable = this.tracks.filter(t => t.youtubeVideoId || t.previewUrl);
-    console.log(`[Game] Room ${this.code}: ${playable.length}/${this.tracks.length} tracks playable`);
+    console.log(`[Game] Room ${this.code}: ${playable.length}/${this.tracks.length} tracks playable (${this.genres.join(', ')})`);
     if (playable.length === 0) {
-      return 'No tracks with audio available. YouTube quota may be exhausted and Spotify previews not available for these genres. Try different genres.';
+      return 'No tracks with audio available for these genres. Try different ones.';
     }
 
     this.players.forEach(p => { p.score = 0; p.answers = []; p.streak = 0; });

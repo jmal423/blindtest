@@ -21,7 +21,10 @@ async function searchYouTubeVideo(name, artist) {
   const url = `${API_BASE}/search?part=id&q=${encodeURIComponent(query)}&type=video&maxResults=1&key=${key}`;
 
   try {
-    const res = await fetch(url);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5000);
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timer);
     if (!res.ok) {
       if (res.status === 429 || res.status === 403) {
         console.error('YouTube API quota exceeded or forbidden');
