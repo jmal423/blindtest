@@ -6,103 +6,68 @@ import { motion } from 'motion/react';
 import { io as socketIo, Socket } from 'socket.io-client';
 import { GameState, RoomSettings, startGame, submitAnswer, updateSettings, fetchGenres } from '@/lib/api';
 
-declare global {
-  interface Window {
-    YT: any;
-    onYouTubeIframeAPIReady: () => void;
-  }
-}
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-let apiReadyPromise: Promise<void> | null = null;
 
-function loadYouTubeAPI(): Promise<void> {
-  if (apiReadyPromise) return apiReadyPromise;
-  if (window.YT?.Player) return Promise.resolve();
-
-  apiReadyPromise = new Promise<void>((resolve) => {
-    const tag = document.createElement('script');
-    tag.src = 'https://www.youtube.com/iframe_api';
-    tag.onload = () => {
-      window.onYouTubeIframeAPIReady = () => resolve();
-    };
-    document.head.appendChild(tag);
-  });
-
-  return apiReadyPromise;
-}
-
-function YouTubePlayer({
-  videoId,
+function AudioPlayer({
+  previewUrl,
+  audioOffset,
   playing,
-  onPlayerRef,
   onPlaying,
+  onTimeUpdate,
 }: {
-  videoId: string | null;
+  previewUrl: string | null;
+  audioOffset: number;
   playing: boolean;
-  onPlayerRef: (p: any) => void;
   onPlaying: () => void;
+  onTimeUpdate: (t: number) => void;
 }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const playerRef = useRef<any>(null);
-  const currentIdRef = useRef<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const onPlayingRef = useRef(onPlaying);
+  const firedRef = useRef(false);
   onPlayingRef.current = onPlaying;
 
   useEffect(() => {
-    if (!videoId || !playing) {
-      if (playerRef.current) playerRef.current.stopVideo();
+    if (!previewUrl || !playing) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = '';
+      }
+      firedRef.current = false;
       return;
     }
 
-    if (videoId === currentIdRef.current && playerRef.current) {
-      playerRef.current.playVideo();
-      return;
-    }
+    firedRef.current = false;
+    const audio = new Audio(previewUrl);
+    audioRef.current = audio;
+    audio.currentTime = audioOffset;
 
-    currentIdRef.current = videoId;
-
-    loadYouTubeAPI().then(() => {
-      if (!containerRef.current) return;
-      if (playerRef.current) playerRef.current.destroy();
-
-      playerRef.current = new window.YT.Player(containerRef.current, {
-        height: 0,
-        width: 0,
-        videoId,
-        playerVars: {
-          autoplay: 1,
-          controls: 0,
-          disablekb: 1,
-          fs: 0,
-          modestbranding: 1,
-          playsinline: 1,
-        },
-        events: {
-          onReady: (e: any) => {
-            onPlayerRef(e.target);
-            e.target.playVideo();
-          },
-          onStateChange: (e: any) => {
-            if (e.data === window.YT.PlayerState.PLAYING) {
-              onPlayingRef.current();
-            }
-          },
-        },
-      });
+    audio.addEventListener('canplay', () => {
+      audio.play().catch(() => {});
     });
 
     return () => {
-      if (playerRef.current) playerRef.current.stopVideo();
+      audio.pause();
+      audio.src = '';
+      audioRef.current = null;
     };
-  }, [videoId, playing, onPlayerRef]);
+  }, [previewUrl, playing, audioOffset]);
 
-  return (
-    <div
-      ref={containerRef}
-      style={{ position: 'absolute', width: 0, height: 0, opacity: 0, pointerEvents: 'none', overflow: 'hidden' }}
-    />
-  );
+  useEffect(() => {
+    if (!playing || !audioRef.current) return;
+    const interval = setInterval(() => {
+      const a = audioRef.current;
+      if (a && !a.paused) {
+        onTimeUpdate(a.currentTime);
+        if (!firedRef.current && a.currentTime >= audioOffset + 0.1) {
+          firedRef.current = true;
+          onPlayingRef.current();
+        }
+      }
+    }, 200);
+    return () => clearInterval(interval);
+  }, [playing, audioOffset, onTimeUpdate]);
+
+  return null;
 }
 
 const BAR_COUNT = 48;
@@ -184,20 +149,16 @@ export default function GamePage({
   const [guess, setGuess] = useState('');
   const [guessResult, setGuessResult] = useState<{ correct: boolean; points: number } | null>(null);
   const [error, setError] = useState('');
-  const [youtubeVideoId, setYoutubeVideoId] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [audioOffset, setAudioOffset] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(30);
   const [localTimeLeft, setLocalTimeLeft] = useState<number | null>(null);
-  const ytPlayerRef = useRef<any>(null);
   const localTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const guessInputRef = useRef<HTMLInputElement>(null);
 
-  const handlePlayerRef = useCallback((player: any) => {
-    ytPlayerRef.current = player;
-  }, []);
-
-  const handleYoutubePlaying = useCallback(() => {
+  const handleAudioPlaying = useCallback(() => {
     if (localTimerRef.current) return;
     const state = gameState;
     if (!state || state.state !== 'playing') return;
@@ -218,10 +179,15 @@ export default function GamePage({
     }, 1000);
   }, [gameState]);
 
+  const handleAudioTimeUpdate = useCallback((t: number) => {
+    setCurrentTime(t);
+  }, []);
+
   const applyGameState = useCallback((state: GameState) => {
     setGameState(state);
     if (state.state === 'playing') {
-      setYoutubeVideoId(state.youtubeVideoId);
+      setPreviewUrl((state as any).previewUrl || null);
+      setAudioOffset((state as any).audioOffset || 0);
       setIsPlaying(true);
       setLocalTimeLeft(null);
       if (localTimerRef.current) {
@@ -231,6 +197,7 @@ export default function GamePage({
     }
     if (state.state !== 'playing') {
       setIsPlaying(false);
+      setPreviewUrl(null);
       setLocalTimeLeft(null);
       if (localTimerRef.current) {
         clearInterval(localTimerRef.current);
@@ -268,22 +235,6 @@ export default function GamePage({
       socketRef.current = null;
     };
   }, [code, router, applyGameState]);
-
-  useEffect(() => {
-    if (!isPlaying) return;
-    const interval = setInterval(() => {
-      const player = ytPlayerRef.current;
-      if (player && typeof player.getCurrentTime === 'function') {
-        const ct = player.getCurrentTime();
-        const dur = player.getDuration();
-        if (dur > 0) {
-          setCurrentTime(ct);
-          setDuration(dur);
-        }
-      }
-    }, 200);
-    return () => clearInterval(interval);
-  }, [isPlaying]);
 
   const handleStart = useCallback(async () => {
     try {
@@ -382,7 +333,7 @@ export default function GamePage({
         <GameFinished code={code} rankings={gameState.rankings} playerId={playerId} onPlayAgain={() => router.push('/')} />
       )}
 
-      <YouTubePlayer videoId={youtubeVideoId} playing={isPlaying} onPlayerRef={handlePlayerRef} onPlaying={handleYoutubePlaying} />
+      <AudioPlayer previewUrl={previewUrl} audioOffset={audioOffset} playing={isPlaying} onPlaying={handleAudioPlaying} onTimeUpdate={handleAudioTimeUpdate} />
     </div>
   );
 }
@@ -396,7 +347,7 @@ function WaitingRoom({
   onSettingsChange,
   onGenresChange,
 }: {
-  players: { id: string; name: string }[];
+  players: { id: string; name: string; avatarUrl?: string | null; role?: string }[];
   settings: RoomSettings;
   genres: string[];
   isHost: boolean;
@@ -423,10 +374,22 @@ function WaitingRoom({
         <p className="text-sm text-zinc-400 font-medium">Players ({players.length})</p>
         {players.map((p, i) => (
           <div key={p.id} className="flex items-center gap-3 px-4 py-3 bg-[var(--surface)] rounded-xl">
-            <div className="w-8 h-8 rounded-full bg-[var(--primary)] flex items-center justify-center text-sm font-bold">
-              {p.name[0].toUpperCase()}
-            </div>
-            <span className="font-medium">{p.name} {i === 0 && '(Host)'}</span>
+            {p.avatarUrl ? (
+              <img src={p.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-[var(--primary)] flex items-center justify-center text-sm font-bold">
+                {p.name[0].toUpperCase()}
+              </div>
+            )}
+            <span className="font-medium">
+              {p.name}
+              {p.role === 'admin' && (
+                <span className="ml-2 rounded bg-[#00cec9]/20 px-2 py-0.5 text-[10px] font-bold tracking-wider text-[#00cec9] ring-1 ring-[#00cec9]/50">
+                  ADMIN
+                </span>
+              )}
+            </span>
+            {i === 0 && <span className="text-xs text-zinc-500 ml-auto">Host</span>}
           </div>
         ))}
       </div>
@@ -614,13 +577,13 @@ function PlayingPhase({
   );
 }
 
-function RoundResult({ data, players, pauseTimeLeft }: { data: { correctAnswer: string; artist: string; albumImage: string }; players: { name: string; score: number }[]; pauseTimeLeft: number }) {
+function RoundResult({ data, players = [], pauseTimeLeft }: { data?: { correctAnswer?: string; artist?: string; albumImage?: string } | null; players?: { name: string; score: number }[]; pauseTimeLeft: number }) {
   return (
     <div className="flex-1 flex flex-col items-center justify-center gap-6 animate-slide-up">
       <h2 className="text-xl font-semibold">
-        <span className="text-[var(--primary)]">{data.correctAnswer}</span>
+        <span className="text-[var(--primary)]">{data?.correctAnswer || 'Unknown Track'}</span>
       </h2>
-      <p className="text-lg text-zinc-400">{data.artist}</p>
+      <p className="text-lg text-zinc-400">{data?.artist || 'Unknown Artist'}</p>
       <div className="w-full max-w-xs space-y-1">
         {players.map((p, i) => (
           <div key={i} className="flex justify-between px-4 py-2 bg-[var(--surface)] rounded-lg">

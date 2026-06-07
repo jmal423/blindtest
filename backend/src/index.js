@@ -59,7 +59,7 @@ app.get('/api/genres', (req, res) => {
 
 // Rooms
 app.post('/api/rooms', (req, res) => {
-  const { genres = ['pop', 'rock'], playerName, rounds, roundTime } = req.body;
+  const { genres = ['pop', 'rock'], playerName, avatarUrl, role, rounds, roundTime } = req.body;
   if (!playerName || !playerName.trim()) {
     return res.status(400).json({ error: 'Player name is required' });
   }
@@ -67,14 +67,14 @@ app.post('/api/rooms', (req, res) => {
   const code = generateCode();
   const room = new GameRoom(code, genres, io);
   if (rounds || roundTime) room.updateSettings({ rounds, roundTime });
-  const playerId = room.addPlayer(playerName.trim());
+  const playerId = room.addPlayer(playerName.trim(), avatarUrl || null, role || 'user');
   rooms.set(code, room);
 
   res.json({ code, playerId, settings: room.getSettings(), genres: room.genres });
 });
 
 app.post('/api/rooms/join', (req, res) => {
-  const { code, playerName } = req.body;
+  const { code, playerName, avatarUrl, role } = req.body;
   if (!code || !playerName || !playerName.trim()) {
     return res.status(400).json({ error: 'Code and name are required' });
   }
@@ -83,7 +83,7 @@ app.post('/api/rooms/join', (req, res) => {
   if (!room) return res.status(404).json({ error: 'Room not found' });
   if (room.state !== 'waiting') return res.status(400).json({ error: 'Game already in progress' });
 
-  const playerId = room.addPlayer(playerName.trim());
+  const playerId = room.addPlayer(playerName.trim(), avatarUrl || null, role || 'user');
   broadcastState(room.code);
   res.json({ code: room.code, playerId });
 });

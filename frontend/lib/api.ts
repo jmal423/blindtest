@@ -25,12 +25,14 @@ export async function fetchGenres(): Promise<{ id: string; label: string }[]> {
 
 export async function createRoom(
   playerName: string,
-  genres?: string[]
+  genres?: string[],
+  avatarUrl?: string | null,
+  role?: string
 ): Promise<{ code: string; playerId: string; settings: RoomSettings; genres: string[] }> {
   const res = await fetch(`${API_URL}/api/rooms`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ genres, playerName: playerName.trim() }),
+    body: JSON.stringify({ genres, playerName: playerName.trim(), avatarUrl, role }),
   });
   if (!res.ok) {
     const data = await res.json();
@@ -39,11 +41,11 @@ export async function createRoom(
   return res.json();
 }
 
-export async function joinRoom(code: string, playerName: string): Promise<{ code: string; playerId: string }> {
+export async function joinRoom(code: string, playerName: string, avatarUrl?: string | null, role?: string): Promise<{ code: string; playerId: string }> {
   const res = await fetch(`${API_URL}/api/rooms/join`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ code: code.toUpperCase(), playerName: playerName.trim() }),
+    body: JSON.stringify({ code: code.toUpperCase(), playerName: playerName.trim(), avatarUrl, role }),
   });
   if (!res.ok) {
     const data = await res.json();

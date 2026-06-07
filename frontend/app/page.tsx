@@ -53,7 +53,7 @@ export default function Home() {
                 </span>
                 <div className="w-7 h-7 rounded-full bg-zinc-700 flex items-center justify-center text-xs font-bold overflow-hidden shrink-0">
                   {entry.avatar_url ? (
-                    <img src={`https://cdn.discordapp.com/avatars/${entry.id}/${entry.avatar_url}.png`} alt="" className="w-full h-full object-cover" />
+                    <img src={entry.avatar_url} alt="" className="w-full h-full object-cover" />
                   ) : (
                     entry.username[0].toUpperCase()
                   )}

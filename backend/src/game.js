@@ -64,6 +64,7 @@ export class GameRoom {
     this.roundStartTime = null;
     this.roundTimer = null;
     this.pauseTimer = null;
+    this.audioOffset = 0;
     this.roundResult = null;
     this.rankings = null;
     this.hostId = null;
@@ -87,9 +88,9 @@ export class GameRoom {
     if (updates.pauseTime !== undefined) this.settings.pauseTime = Math.max(2, Math.min(15, Math.round(updates.pauseTime)));
   }
 
-  addPlayer(name) {
+  addPlayer(name, avatarUrl = null, role = 'user') {
     const id = generateId();
-    this.players.push({ id, name, score: 0, answers: [] });
+    this.players.push({ id, name, avatarUrl, role, score: 0, answers: [] });
     if (!this.hostId) this.hostId = id;
     return id;
   }
@@ -146,6 +147,8 @@ export class GameRoom {
     }
 
     this.roundStartTime = Date.now();
+    const maxOffset = Math.max(0, 30 - this.settings.roundTime);
+    this.audioOffset = Math.floor(Math.random() * maxOffset);
     this.state = 'playing';
     this.roundResult = null;
     this.broadcast();
@@ -222,7 +225,7 @@ export class GameRoom {
       state: this.state,
       settings: this.getSettings(),
       genres: this.genres,
-      players: this.players.map(p => ({ id: p.id, name: p.name, score: p.score })),
+      players: this.players.map(p => ({ id: p.id, name: p.name, avatarUrl: p.avatarUrl, role: p.role, score: p.score })),
       currentRound: this.currentRound + 1,
       totalRounds: this.totalRounds,
     };
@@ -235,6 +238,8 @@ export class GameRoom {
         ...base,
         timeLeft,
         roundTime: this.settings.roundTime,
+        previewUrl: track.previewUrl,
+        audioOffset: this.audioOffset ?? 0,
         youtubeVideoId: track.youtubeVideoId,
         trackId: track.id,
       };

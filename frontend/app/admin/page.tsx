@@ -66,7 +66,7 @@ export default function AdminPage() {
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-[var(--surface)] flex items-center justify-center text-xs font-bold overflow-hidden shrink-0">
                       {u.avatar_url ? (
-                        <img src={`https://cdn.discordapp.com/avatars/${u.id}/${u.avatar_url}.png`} alt="" className="w-full h-full object-cover" />
+                        <img src={u.avatar_url} alt="" className="w-full h-full object-cover" />
                       ) : (
                         u.username[0].toUpperCase()
                       )}

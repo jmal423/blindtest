@@ -33,7 +33,7 @@ export default function CreateRoom() {
     setError('');
 
     try {
-      const { code, playerId } = await createRoom(name);
+      const { code, playerId } = await createRoom(name, undefined, user?.avatar_url, user?.role);
       localStorage.setItem(`blindtest_player_${code}`, playerId);
       router.push(`/game/${code}`);
     } catch (err: unknown) {
@@ -77,30 +77,41 @@ export default function CreateRoom() {
     );
   }
 
+  const isDiscordUser = user.id != null;
+
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-8 gap-8 max-w-sm mx-auto w-full">
       <h2 className="text-2xl font-bold">Create a Room</h2>
 
-      {user.avatar_url && (
-        <div className="flex items-center gap-3 px-4 py-2 bg-[var(--surface)] rounded-xl">
-          <div className="w-8 h-8 rounded-full overflow-hidden bg-zinc-700">
-            <img src={`https://cdn.discordapp.com/avatars/${user.id}/${user.avatar_url}.png`} alt="" className="w-full h-full object-cover" />
+      {isDiscordUser ? (
+        <div className="flex items-center gap-3 px-4 py-2 bg-[var(--surface)] rounded-xl border border-white/10 w-full">
+          <div className="w-8 h-8 rounded-full overflow-hidden bg-zinc-700 flex-shrink-0">
+            {user.avatar_url && (
+              <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
+            )}
           </div>
-          <span className="text-sm text-zinc-300">{user.username}</span>
+          <span className="text-sm text-zinc-300">
+            Playing as <strong>{user.username}</strong>
+            {user.role === 'admin' && (
+              <span className="ml-2 rounded bg-[#00cec9]/20 px-2 py-0.5 text-[10px] font-bold tracking-wider text-[#00cec9] ring-1 ring-[#00cec9]/50">
+                ADMIN
+              </span>
+            )}
+          </span>
+        </div>
+      ) : (
+        <div className="w-full space-y-2">
+          <label className="text-sm text-zinc-400 font-medium">Your Name</label>
+          <input
+            type="text"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            placeholder="Enter your name"
+            maxLength={20}
+            className="w-full px-4 py-3 bg-[var(--surface)] border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-[var(--primary)] transition-colors"
+          />
         </div>
       )}
-
-      <div className="w-full space-y-2">
-        <label className="text-sm text-zinc-400 font-medium">Your Name</label>
-        <input
-          type="text"
-          value={name}
-          onChange={e => setName(e.target.value)}
-          placeholder="Enter your name"
-          maxLength={20}
-          className="w-full px-4 py-3 bg-[var(--surface)] border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-[var(--primary)] transition-colors"
-        />
-      </div>
 
       {error && <p className="text-red-400 text-sm">{error}</p>}
 

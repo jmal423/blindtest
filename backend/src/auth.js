@@ -59,15 +59,26 @@ async function handleDiscordCallback(code, host) {
     }
   }
 
+  let fullAvatarUrl = null;
+  if (discordUser.avatar) {
+    const ext = discordUser.avatar.startsWith('a_') ? 'gif' : 'png';
+    fullAvatarUrl = `https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.${ext}`;
+  } else {
+    const defaultIndex = (BigInt(discordUser.id) >> 22n) % 6n;
+    fullAvatarUrl = `https://cdn.discordapp.com/embed/avatars/${defaultIndex}.png`;
+  }
+
   let user = await get('SELECT * FROM users WHERE discord_id = ?', [discordUser.id]);
 
-  if (!user) {
+  if (user) {
+    await run('UPDATE users SET username = ?, avatar_url = ? WHERE id = ?', [discordUser.global_name || discordUser.username, fullAvatarUrl, user.id]);
+  } else {
     const id = generateId();
     const adminIds = (process.env.ADMIN_DISCORD_IDS || '').split(',').map(s => s.trim()).filter(Boolean);
     const role = adminIds.includes(discordUser.id) ? 'admin' : 'user';
     await run(
       'INSERT INTO users (id, discord_id, username, avatar_url, role) VALUES (?, ?, ?, ?, ?)',
-      [id, discordUser.id, discordUser.global_name || discordUser.username, discordUser.avatar, role]
+      [id, discordUser.id, discordUser.global_name || discordUser.username, fullAvatarUrl, role]
     );
     user = await get('SELECT * FROM users WHERE id = ?', [id]);
   }

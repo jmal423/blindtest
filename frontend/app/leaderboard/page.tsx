@@ -31,7 +31,7 @@ export default function LeaderboardPage() {
             </span>
             <div className="w-10 h-10 rounded-full bg-[var(--surface-light)] flex items-center justify-center text-sm font-bold overflow-hidden shrink-0">
               {e.avatar_url ? (
-                <img src={`https://cdn.discordapp.com/avatars/${e.id}/${e.avatar_url}.png`} alt="" className="w-full h-full object-cover" />
+                <img src={e.avatar_url} alt="" className="w-full h-full object-cover" />
               ) : (
                 e.username[0].toUpperCase()
               )}

@@ -56,7 +56,7 @@ export default function ProfilePage() {
       <div className="flex items-center gap-4">
         <div className="w-14 h-14 rounded-full bg-[var(--surface)] flex items-center justify-center text-xl font-bold text-[var(--primary)] overflow-hidden">
           {user.avatar_url ? (
-            <img src={`https://cdn.discordapp.com/avatars/${user.id}/${user.avatar_url}.png`} alt="" className="w-full h-full object-cover" />
+            <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
           ) : (
             user.username[0].toUpperCase()
           )}
@@ -126,7 +126,7 @@ export default function ProfilePage() {
           <div key={f.id} className="flex items-center gap-3 px-4 py-3 bg-[var(--surface)] rounded-xl">
             <div className="w-8 h-8 rounded-full bg-[var(--surface-light)] flex items-center justify-center text-xs font-bold overflow-hidden">
               {f.avatar_url ? (
-                <img src={`https://cdn.discordapp.com/avatars/${f.id}/${f.avatar_url}.png`} alt="" className="w-full h-full object-cover" />
+                <img src={f.avatar_url} alt="" className="w-full h-full object-cover" />
               ) : (
                 f.username[0].toUpperCase()
               )}
