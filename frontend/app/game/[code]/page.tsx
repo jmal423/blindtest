@@ -355,7 +355,7 @@ export default function GamePage({
         )}
       </div>
 
-      <AudioPlayer previewUrl={(gameState as any).previewUrl || null} audioOffset={(gameState as any).audioOffset || 0} state={gameState.state} onPlaying={handleAudioPlaying} onTimeUpdate={handleAudioTimeUpdate} />
+      <AudioPlayer youtubeVideoId={(gameState as any).youtubeVideoId || null} audioOffset={(gameState as any).audioOffset || 0} state={gameState.state} onPlaying={handleAudioPlaying} onTimeUpdate={handleAudioTimeUpdate} />
 
       {isDebugMode() && (
         <DebugOverlay gameState={gameState} socketConnected={socketConnected} />
