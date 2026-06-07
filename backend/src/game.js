@@ -197,46 +197,49 @@ export class GameRoom {
     if (this.state !== 'waiting') return;
     console.log(`[Game] Starting game in room ${this.code} with ${this.players.length} players, genres: [${this.genres.join(', ')}]`);
 
-    const { getTracksByGenre } = await import('./spotify.js');
-
-    const allTracks = [];
-    let lastError = '';
-    const totalNeeded = this.settings.audioSource === 'spotify'
-      ? Math.max(this.settings.rounds, 30)
-      : Math.max(this.settings.rounds * 3, 30);
-    const shuffledGenres = shuffle([...this.genres]);
-    for (const genre of shuffledGenres) {
-      if (allTracks.length >= totalNeeded) break;
-      try {
-        const tracks = await getTracksByGenre(genre, 10);
-        allTracks.push(...tracks);
-      } catch (err) {
-        lastError = err.message;
-        console.error(`Failed to fetch tracks for genre "${genre}":`, err.message);
-      }
-    }
-
-    if (allTracks.length === 0) {
-      return lastError || 'No tracks found';
-    }
-
-    if (this.settings.audioSource === 'spotify') {
-      this.tracks = shuffle(allTracks.filter(t => !!t.previewUrl));
-    } else {
-      this.tracks = shuffle(allTracks);
-    }
-    this.totalRounds = Math.min(this.settings.rounds, this.tracks.length);
-
-    console.log(`[Game] Room ${this.code}: ${this.tracks.length} tracks available (source: ${this.settings.audioSource}, target: ${this.totalRounds} rounds)`);
-
+    // If tracks already injected (test mode), skip Spotify fetch
     if (this.tracks.length === 0) {
-      if (this.settings.audioSource === 'spotify') return 'No tracks with Spotify previews found for these genres. Try different genres or more genres.';
-      if (this.settings.audioSource === 'youtube') return 'No tracks with YouTube videos found. YouTube API may be down. Try switching to Spotify.';
-      return 'No playable tracks. Try switching audio source or different genres.';
-    }
+      const { getTracksByGenre } = await import('./spotify.js');
 
-    if (this.tracks.length < 3) {
-      return `Only ${this.tracks.length} tracks available. Need at least 3. Try more genres.`;
+      const allTracks = [];
+      let lastError = '';
+      const totalNeeded = this.settings.audioSource === 'spotify'
+        ? Math.max(this.settings.rounds * 2, 20)
+        : Math.max(this.settings.rounds * 2, 20);
+      const shuffledGenres = shuffle([...this.genres]);
+      for (const genre of shuffledGenres) {
+        if (allTracks.length >= totalNeeded) break;
+        try {
+          const tracks = await getTracksByGenre(genre, 50);
+          allTracks.push(...tracks);
+        } catch (err) {
+          lastError = err.message;
+          console.error(`Failed to fetch tracks for genre "${genre}":`, err.message);
+        }
+      }
+
+      if (allTracks.length === 0) {
+        return lastError || 'No tracks found';
+      }
+
+      if (this.settings.audioSource === 'spotify') {
+        this.tracks = shuffle(allTracks.filter(t => !!t.previewUrl));
+      } else {
+        this.tracks = shuffle(allTracks);
+      }
+      this.totalRounds = Math.min(this.settings.rounds, this.tracks.length);
+
+      console.log(`[Game] Room ${this.code}: ${this.tracks.length} tracks available (source: ${this.settings.audioSource}, target: ${this.totalRounds} rounds)`);
+
+      if (this.tracks.length === 0) {
+        if (this.settings.audioSource === 'spotify') return 'No tracks with Spotify previews found for these genres. Try different genres or more genres.';
+        if (this.settings.audioSource === 'youtube') return 'No tracks with YouTube videos found. YouTube API may be down. Try switching to Spotify.';
+        return 'No playable tracks. Try switching audio source or different genres.';
+      }
+
+      if (this.tracks.length < 3) {
+        return `Only ${this.tracks.length} tracks available. Need at least 3. Try more genres.`;
+      }
     }
 
     this.players.forEach(p => { p.score = 0; p.answers = []; p.streak = 0; });
