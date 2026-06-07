@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 import { Server } from 'socket.io';
 import { GameRoom } from './game.js';
 import { GENRES, getGenreLabel } from './spotify.js';
-import { generateId, get, all, run, ping, getTableCounts, createGame, finishGame, addGamePlayer, addRoundResultV2, getGameHistory, getPlayerStats, getLeaderboardV2, getRecentGames, getGameDetails } from './db.js';
+import { generateId, get, all, run, ping, getTableCounts, createGame, finishGame, addGamePlayer, addRoundResultV2, getGameHistory, getPlayerStats, getLeaderboardV2, getRecentGames, getGameDetails, ensureUser } from './db.js';
 import { getAuthUrl, handleDiscordCallback, authenticate, requireAdmin, tryDecodeToken } from './auth.js';
 
 dotenv.config();
@@ -147,7 +147,7 @@ app.get('/api/genres', (req, res) => {
 });
 
 // Rooms
-app.post('/api/rooms', (req, res) => {
+app.post('/api/rooms', async (req, res) => {
   const { genres = [], playerName, avatarUrl, role, rounds, roundTime } = req.body;
   if (!playerName || !playerName.trim()) {
     return res.status(400).json({ error: 'Player name is required' });
@@ -160,6 +160,11 @@ app.post('/api/rooms', (req, res) => {
     if (decoded) userId = decoded.userId;
   }
 
+  // Persist user in DB so they count in registered users
+  if (userId) {
+    ensureUser(userId, playerName.trim(), avatarUrl || null, role || 'user').catch(err => console.error('[DB] Failed to ensure user:', err.message));
+  }
+
   const code = generateCode();
   const room = new GameRoom(code, genres, io);
   if (rounds || roundTime) room.updateSettings({ rounds, roundTime });
@@ -169,7 +174,7 @@ app.post('/api/rooms', (req, res) => {
   res.json({ code, playerId, settings: room.getSettings(), genres: room.genres });
 });
 
-app.post('/api/rooms/join', (req, res) => {
+app.post('/api/rooms/join', async (req, res) => {
   const { code, playerName, avatarUrl, role } = req.body;
   if (!code || !playerName || !playerName.trim()) {
     return res.status(400).json({ error: 'Code and name are required' });
@@ -180,6 +185,11 @@ app.post('/api/rooms/join', (req, res) => {
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const decoded = tryDecodeToken(authHeader.slice(7));
     if (decoded) userId = decoded.userId;
+  }
+
+  // Persist user in DB so they count in registered users
+  if (userId) {
+    ensureUser(userId, playerName.trim(), avatarUrl || null, role || 'user').catch(err => console.error('[DB] Failed to ensure user:', err.message));
   }
 
   const room = rooms.get(code.toUpperCase());
@@ -317,12 +327,14 @@ app.post('/api/auth/guest', async (req, res) => {
 
   let avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`;
   if (isJl) {
-    // Use JL's Discord avatar from the database
     const adminUser = await get('SELECT avatar_url FROM users WHERE username IS NOT NULL AND role = ? LIMIT 1', ['admin']);
     if (adminUser?.avatar_url) {
       avatarUrl = adminUser.avatar_url;
     }
   }
+
+  // Persist guest user in DB so they count in registered users
+  await ensureUser(userId, name, avatarUrl, role);
 
   const token = jwt.sign(
     { userId, role, guest: true, username: name },
@@ -338,17 +350,18 @@ app.post('/api/auth/guest', async (req, res) => {
 
 // Users
 app.get('/api/users/me', authenticate, async (req, res) => {
-  if (req.user.guest) {
+  // Look up user from DB (works for both Discord and guest users now)
+  const user = await get('SELECT id, username, avatar_url, role, created_at FROM users WHERE id = ?', [req.user.userId]);
+  if (!user) {
+    // Fallback for users not yet in DB (shouldn't happen after ensureUser)
     return res.json({
       id: req.user.userId,
-      username: req.user.username || 'Guest',
+      username: req.user.username || req.user.userId,
       avatar_url: null,
       role: req.user.role || 'user',
       created_at: new Date().toISOString(),
     });
   }
-  const user = await get('SELECT id, username, avatar_url, role, created_at FROM users WHERE id = ?', [req.user.userId]);
-  if (!user) return res.status(404).json({ error: 'User not found' });
   res.json(user);
 });
 
@@ -834,7 +847,12 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
     get('SELECT COUNT(*) as count FROM round_results_v2'),
     get('SELECT COUNT(*) as count FROM games WHERE status = \'finished\''),
   ]);
-  res.json({ totalUsers: userCount?.count || 0, totalRounds: roundCount?.count || 0, totalGames: gameCount?.count || 0, activeRooms: rooms.size });
+  res.json({
+    totalUsers: Number(userCount?.count || 0),
+    totalRounds: Number(roundCount?.count || 0),
+    totalGames: Number(gameCount?.count || 0),
+    activeRooms: rooms.size,
+  });
 });
 
 app.get('/api/admin/rooms', requireAdmin, (req, res) => {

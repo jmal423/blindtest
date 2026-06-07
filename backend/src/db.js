@@ -110,6 +110,18 @@ async function run(sql, params = []) {
   await query(sql, params);
 }
 
+async function ensureUser(userId, username, avatarUrl, role = 'user') {
+  const existing = await get('SELECT id FROM users WHERE id = ?', [userId]);
+  if (existing) {
+    await run('UPDATE users SET username = ?, avatar_url = ? WHERE id = ?', [username, avatarUrl, userId]);
+  } else {
+    await run(
+      'INSERT INTO users (id, username, avatar_url, role) VALUES (?, ?, ?, ?) ON CONFLICT (id) DO UPDATE SET username = EXCLUDED.username, avatar_url = EXCLUDED.avatar_url',
+      [userId, username, avatarUrl, role]
+    );
+  }
+}
+
 async function insertRoundResult(userId, gameId, genre, trackId, guessTimeMs, pointsEarned, isCorrect) {
   await run(
     'INSERT INTO round_results (user_id, game_id, genre, track_id, guess_time_ms, points_earned, is_correct) VALUES (?, ?, ?, ?, ?, ?, ?)',
@@ -241,4 +253,4 @@ async function getTableCounts() {
   return rows[0];
 }
 
-export { generateId, query, get, all, run, insertRoundResult, createGame, finishGame, addGamePlayer, addRoundResultV2, getGameHistory, getPlayerStats, getLeaderboardV2, getRecentGames, getGameDetails, ping, getTableCounts, pool };
+export { generateId, query, get, all, run, insertRoundResult, createGame, finishGame, addGamePlayer, addRoundResultV2, getGameHistory, getPlayerStats, getLeaderboardV2, getRecentGames, getGameDetails, ping, getTableCounts, ensureUser, pool };
