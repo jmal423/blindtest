@@ -646,7 +646,7 @@ export class GameRoom {
     }
 
     if (this.state === 'game_over') {
-      return { ...base, rankings: this.rankings, trackHistory: this.trackHistory };
+      return { ...base, currentRound: this.tracksPlayed, rankings: this.rankings, trackHistory: this.trackHistory };
     }
 
     return base;
