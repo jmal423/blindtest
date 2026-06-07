@@ -80,7 +80,7 @@ export class GameRoom {
   constructor(code, genres, io) {
     this.code = code;
     this.genres = genres;
-    this.settings = { rounds: 10, roundTime: 15, pauseTime: 4, autoStart: false };
+    this.settings = { rounds: 10, roundTime: 15, pauseTime: 4, autoStart: false, audioSource: 'both' };
     this.tracks = [];
     this.trackHistory = [];
     this.players = [];
@@ -123,6 +123,9 @@ export class GameRoom {
     if (updates.rounds) this.settings.rounds = Math.max(3, Math.min(25, Math.round(updates.rounds)));
     if (updates.roundTime) this.settings.roundTime = Math.max(8, Math.min(30, Math.round(updates.roundTime)));
     if (updates.pauseTime !== undefined) this.settings.pauseTime = Math.max(2, Math.min(15, Math.round(updates.pauseTime)));
+    if (updates.audioSource && ['spotify', 'youtube', 'both'].includes(updates.audioSource)) {
+      this.settings.audioSource = updates.audioSource;
+    }
     if (updates.autoStart !== undefined) {
       const wasAutoStart = this.settings.autoStart;
       this.settings.autoStart = !!updates.autoStart;
@@ -215,10 +218,16 @@ export class GameRoom {
       return lastError || 'No tracks found';
     }
 
-    const playable = this.tracks.filter(t => t.youtubeVideoId || t.previewUrl);
-    console.log(`[Game] Room ${this.code}: ${playable.length}/${this.tracks.length} tracks playable (${this.genres.join(', ')})`);
+    const playable = this.tracks.filter(t => {
+      if (this.settings.audioSource === 'spotify') return !!t.previewUrl;
+      if (this.settings.audioSource === 'youtube') return !!t.youtubeVideoId;
+      return !!(t.youtubeVideoId || t.previewUrl);
+    });
+    console.log(`[Game] Room ${this.code}: ${playable.length}/${this.tracks.length} tracks playable (source: ${this.settings.audioSource})`);
     if (playable.length === 0) {
-      return 'No tracks with audio available for these genres. Try different ones.';
+      if (this.settings.audioSource === 'spotify') return 'No tracks with Spotify previews for these genres. Try different genres.';
+      if (this.settings.audioSource === 'youtube') return 'No tracks with YouTube videos found. YouTube API may be down. Try switching to Spotify mode.';
+      return 'No playable tracks. Try switching audio source or different genres.';
     }
 
     this.players.forEach(p => { p.score = 0; p.answers = []; p.streak = 0; });
@@ -234,7 +243,8 @@ export class GameRoom {
 
     while (this.currentRound < this.tracks.length && this.tracksPlayed < this.totalRounds) {
       const track = this.tracks[this.currentRound];
-      if (!track.youtubeVideoId) {
+      const wantYouTube = this.settings.audioSource === 'youtube' || this.settings.audioSource === 'both';
+      if (wantYouTube && !track.youtubeVideoId) {
         try {
           const { searchYouTubeVideo } = await import('./youtube.js');
           track.youtubeVideoId = await searchYouTubeVideo(track.name, track.artist);
@@ -243,9 +253,11 @@ export class GameRoom {
         }
       }
 
-      if (track.youtubeVideoId || track.previewUrl) {
-        break;
-      }
+      const hasAudio = (this.settings.audioSource === 'spotify') ? !!track.previewUrl
+        : (this.settings.audioSource === 'youtube') ? !!track.youtubeVideoId
+        : !!(track.youtubeVideoId || track.previewUrl);
+
+      if (hasAudio) break;
 
       console.warn(`Skipping track "${track.artist} - ${track.name}" - no audio source available`);
       this.currentRound++;

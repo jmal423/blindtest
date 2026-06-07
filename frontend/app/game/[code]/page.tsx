@@ -609,7 +609,35 @@ function WaitingRoom({
         </div>
 
         {isHost && (
-          <div className="space-y-2">
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs text-zinc-500">Audio Source</label>
+              <div className="flex gap-1 mt-1">
+                {(['spotify', 'youtube', 'both'] as const).map(src => {
+                  const selected = settings.audioSource === src;
+                  const labels = { spotify: 'Spotify', youtube: 'YouTube', both: 'Both' };
+                  return (
+                    <button
+                      key={src}
+                      onClick={() => isHost && onSettingsChange({ audioSource: src })}
+                      disabled={!isHost}
+                      className={`flex-1 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                        selected
+                          ? 'bg-[var(--primary)] text-white'
+                          : 'bg-[var(--surface-light)] text-zinc-400'
+                      } ${!isHost ? 'opacity-80 cursor-default' : 'hover:brightness-110'}`}
+                    >
+                      {labels[src]}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-[10px] text-zinc-600 mt-0.5">
+                {settings.audioSource === 'spotify' && '30s previews, always available'}
+                {settings.audioSource === 'youtube' && 'Full songs, may fail if quota exceeded'}
+                {settings.audioSource === 'both' && 'Tries YouTube first, falls back to Spotify'}
+              </p>
+            </div>
             <div className="flex items-center justify-between">
               <div>
                 <span className="text-xs text-zinc-500">Auto-start</span>

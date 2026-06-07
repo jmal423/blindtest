@@ -7,6 +7,7 @@ export interface RoomSettings {
   roundTime: number;
   pauseTime: number;
   autoStart: boolean;
+  audioSource: 'spotify' | 'youtube' | 'both';
 }
 
 export type GameState =
