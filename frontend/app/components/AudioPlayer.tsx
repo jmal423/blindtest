@@ -51,7 +51,7 @@ export default function AudioPlayer({
 
   // Create/destroy player when videoId changes
   useEffect(() => {
-    const shouldCreate = !(state === 'waiting' || state === 'finished' || state === 'game_over') && youtubeVideoId;
+    const shouldCreate = state === 'playing' && youtubeVideoId;
     if (!shouldCreate) {
       if (playerRef.current) {
         playerRef.current.destroy();

@@ -366,12 +366,12 @@ export class GameRoom {
     this.clearPlayingInterval();
 
     const track = this.tracks[this.currentRound];
-    if (track) {
+    if (track && track.name && track.artist) {
       this.trackHistory.push({
         round: this.currentRound + 1,
         name: track.name,
         artist: track.artist,
-        albumImage: track.albumImage,
+        albumImage: track.albumImage || null,
       });
     }
 
