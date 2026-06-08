@@ -79,6 +79,21 @@ export default function DebugOverlay({ gameState, socketConnected }: DebugOverla
         </Section>
       )}
 
+      {gameState.trackHistory?.length > 0 && (
+        <Section title={`Track History (${gameState.trackHistory.length})`}>
+          {[...gameState.trackHistory].reverse().map((t: any, i: number) => (
+            <div key={i} className="flex items-center gap-1.5 text-[9px] leading-relaxed mb-1 last:mb-0">
+              <span className="text-zinc-600 w-4 shrink-0">#{t.round}</span>
+              {t.skipped && <span className="text-zinc-500">⏭</span>}
+              <span className={`truncate flex-1 ${t.skipped ? 'line-through text-zinc-600' : 'text-zinc-300'}`}>
+                {t.name}
+              </span>
+              <span className="text-zinc-500 truncate max-w-[80px]">{t.artist}</span>
+            </div>
+          ))}
+        </Section>
+      )}
+
       {playingOrPreparing && info && (
         <Section title="Audio / Timing">
           <Row label="Audio offset" value={`${info.targetOffset ?? 0}s`} />

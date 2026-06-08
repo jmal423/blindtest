@@ -246,17 +246,16 @@ async function cacheSongs(tracks) {
   for (const t of tracks) {
     if (!t.id || !t.name || !t.artist) continue;
     await run(
-      `INSERT INTO songs_cache (id, name, artist, album_image, preview_url, duration_ms, genre, rank, source)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `INSERT INTO songs_cache (id, name, artist, album_image, duration_ms, genre, rank, source)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT (id) DO UPDATE SET
          name = EXCLUDED.name,
          artist = EXCLUDED.artist,
          album_image = EXCLUDED.album_image,
-         preview_url = EXCLUDED.preview_url,
          duration_ms = EXCLUDED.duration_ms,
          rank = EXCLUDED.rank,
          fetched_at = NOW()`,
-      [t.id, t.name, t.artist, t.albumImage || null, t.previewUrl || null, t.durationMs || 0, t.genre || null, t.rank || 0, 'deezer']
+      [t.id, t.name, t.artist, t.albumImage || null, t.durationMs || 0, t.genre || null, t.rank || 0, 'deezer']
     );
   }
 }
@@ -270,7 +269,7 @@ async function recordPlay(songId, gameId) {
 
 async function getCachedTracksByGenre(genre, count) {
   const rows = await all(
-    `SELECT sc.*, sc.fetched_at,
+    `SELECT sc.*,
        COALESCE(
          CASE
            WHEN sp.last_played IS NULL THEN 1.0
@@ -286,7 +285,7 @@ async function getCachedTracksByGenre(genre, count) {
        FROM songs_played
        GROUP BY song_id
      ) sp ON sp.song_id = sc.id
-     WHERE sc.genre = ? AND sc.preview_url IS NOT NULL
+     WHERE sc.genre = ?
      ORDER BY (sc.rank + 1000) * COALESCE(
        CASE
          WHEN sp.last_played IS NULL THEN 1.0
@@ -299,28 +298,22 @@ async function getCachedTracksByGenre(genre, count) {
      LIMIT ?`,
     [genre, count * 3]
   );
-  const TEN_MIN_MS = 10 * 60 * 1000;
-  const now = Date.now();
-  return rows.map(r => {
-    const age = now - new Date(r.fetched_at).getTime();
-    return {
-      id: r.id,
-      name: r.name,
-      artist: r.artist,
-      albumImage: r.album_image,
-      previewUrl: age < TEN_MIN_MS ? r.preview_url : null,
-      durationMs: r.duration_ms,
-      genre: r.genre,
-      rank: r.rank,
-    };
-  });
+  return rows.map(r => ({
+    id: r.id,
+    name: r.name,
+    artist: r.artist,
+    albumImage: r.album_image,
+    previewUrl: null,
+    durationMs: r.duration_ms,
+    genre: r.genre,
+    rank: r.rank,
+  }));
 }
 
 async function getSongCacheCounts() {
   const { rows } = await pool.query(`
     SELECT
       (SELECT COUNT(*) FROM songs_cache) AS total,
-      (SELECT COUNT(*) FROM songs_cache WHERE preview_url IS NOT NULL) AS with_preview,
       (SELECT COUNT(DISTINCT genre) FROM songs_cache) AS genres,
       (SELECT COUNT(*) FROM songs_played) AS plays
   `);

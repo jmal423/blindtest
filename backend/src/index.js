@@ -578,7 +578,7 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
     get('SELECT COUNT(*) as count FROM users'),
     get('SELECT COUNT(*) as count FROM round_results_v2'),
     get('SELECT COUNT(*) as count FROM games WHERE status = \'finished\''),
-    getSongCacheCounts().catch(() => ({ total: 0, with_preview: 0, genres: 0, plays: 0 })),
+    getSongCacheCounts().catch(() => ({ total: 0, genres: 0, plays: 0 })),
   ]);
   res.json({
     totalUsers: Number(userCount?.count || 0),
@@ -586,7 +586,7 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
     totalGames: Number(gameCount?.count || 0),
     activeRooms: rooms.size,
     songCacheTotal: Number(songCache.total || 0),
-    songCacheWithPreview: Number(songCache.with_preview || 0),
+    songCacheTracks: Number(songCache.total || 0),
     songCacheGenres: Number(songCache.genres || 0),
     songCachePlays: Number(songCache.plays || 0),
   });
