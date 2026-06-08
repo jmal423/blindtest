@@ -58,6 +58,7 @@ export default function GamePage({
   const audioPlayerRef = useRef<AudioPlayerHandle>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [hasVotedSkip, setHasVotedSkip] = useState(false);
+  const [skipCooldown, setSkipCooldown] = useState(false);
   const prevVolumeRef = useRef(1);
   const playSound = useSound();
   const { settings: userSettings, updateSettings: updateLocalSettings } = useSettings();
@@ -116,6 +117,7 @@ export default function GamePage({
         setGuessResult(null);
         setEncouragement(null);
         setGuessMarkers([]);
+        setHasVotedSkip(false);
         setHasVotedSkip(false);
 
         if (localTimerRef.current) {
@@ -298,10 +300,12 @@ export default function GamePage({
   }, [code]);
 
   const handleSkipVote = useCallback(() => {
-    if (!socketRef.current || hasVotedSkip) return;
+    if (!socketRef.current || hasVotedSkip || skipCooldown) return;
+    setSkipCooldown(true);
+    setTimeout(() => setSkipCooldown(false), 2000);
     socketRef.current.emit('skip_round');
     setHasVotedSkip(true);
-  }, [hasVotedSkip]);
+  }, [hasVotedSkip, skipCooldown]);
 
   if (!playerId) {
     return (
@@ -484,9 +488,10 @@ export default function GamePage({
               playerId={playerId}
 encouragement={encouragement}
                roundTime={(gameState as any).settings?.roundTime || 15}
-               onSkipVote={handleSkipVote}
-               hasVotedSkip={hasVotedSkip}
-               skipVotes={gameState.state === 'playing' || gameState.state === 'round_preparing' ? (gameState as any).skipVotes ?? 0 : 0}
+onSkipVote={handleSkipVote}
+                hasVotedSkip={hasVotedSkip}
+                skipCooldown={skipCooldown}
+                skipVotes={gameState.state === 'playing' || gameState.state === 'round_preparing' ? (gameState as any).skipVotes ?? 0 : 0}
                skipVotesNeeded={gameState.state === 'playing' || gameState.state === 'round_preparing' ? (gameState as any).skipVotesNeeded ?? 1 : 1}
                hostId={gameState.hostId}
             />
@@ -766,7 +771,7 @@ function WaitingRoom({
   );
 }
 
-function PreparingCountdown({ currentRound, totalRounds, players, playerId, onSkipVote, hasVotedSkip, skipVotes, skipVotesNeeded, hostId }: { currentRound: number; totalRounds: number; players: Player[]; playerId: string; onSkipVote: () => void; hasVotedSkip: boolean; skipVotes: number; skipVotesNeeded: number; hostId?: string | null }) {
+function PreparingCountdown({ currentRound, totalRounds, players, playerId, onSkipVote, hasVotedSkip, skipCooldown, skipVotes, skipVotesNeeded, hostId }: { currentRound: number; totalRounds: number; players: Player[]; playerId: string; onSkipVote: () => void; hasVotedSkip: boolean; skipCooldown: boolean; skipVotes: number; skipVotesNeeded: number; hostId?: string | null }) {
   const [count, setCount] = useState(3);
   const { t } = useTranslation();
 
@@ -814,15 +819,15 @@ function PreparingCountdown({ currentRound, totalRounds, players, playerId, onSk
       {players.length > 0 && (
         <div className="flex items-center gap-2">
           {playerId === hostId ? (
-            <button onClick={onSkipVote} className="px-3 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 transition-colors">
+            <button onClick={onSkipVote} disabled={skipCooldown} className="px-3 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
               {t('skip')}
             </button>
           ) : (
             <button
               onClick={hasVotedSkip ? undefined : onSkipVote}
-              disabled={hasVotedSkip}
+              disabled={hasVotedSkip || skipCooldown}
               className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
-                hasVotedSkip
+                hasVotedSkip || skipCooldown
                   ? 'bg-zinc-800 text-zinc-600 border-zinc-800 cursor-not-allowed'
                   : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border-zinc-700'
               }`}
@@ -855,6 +860,7 @@ function PlayingPhase({
   encouragement,
   onSkipVote,
   hasVotedSkip,
+  skipCooldown,
   skipVotes,
   skipVotesNeeded,
   smoothTime,
@@ -880,6 +886,7 @@ function PlayingPhase({
   encouragement: string | null;
   onSkipVote: () => void;
   hasVotedSkip: boolean;
+  skipCooldown: boolean;
   skipVotes: number;
   skipVotesNeeded: number;
   roundTime?: number;
@@ -894,7 +901,7 @@ function PlayingPhase({
       : t('guess_placeholder');
 
   if (state === 'round_preparing') {
-    return <PreparingCountdown currentRound={currentRound} totalRounds={totalRounds} players={players} playerId={playerId} onSkipVote={onSkipVote} hasVotedSkip={hasVotedSkip} skipVotes={skipVotes} skipVotesNeeded={skipVotesNeeded} hostId={hostId} />;
+    return <PreparingCountdown currentRound={currentRound} totalRounds={totalRounds} players={players} playerId={playerId} onSkipVote={onSkipVote} hasVotedSkip={hasVotedSkip} skipCooldown={skipCooldown} skipVotes={skipVotes} skipVotesNeeded={skipVotesNeeded} hostId={hostId} />;
   }
 
   const me = players.find(p => p.id === playerId);
@@ -925,15 +932,15 @@ function PlayingPhase({
             {timeLeft ?? '--'}
           </motion.span>
           {isAdmin ? (
-            <button onClick={onSkipVote} className="px-3 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 transition-colors">
+            <button onClick={onSkipVote} disabled={skipCooldown} className="px-3 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
               {t('skip')}
             </button>
           ) : (
             <button
               onClick={hasVotedSkip ? undefined : onSkipVote}
-              disabled={hasVotedSkip}
+              disabled={hasVotedSkip || skipCooldown}
               className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
-                hasVotedSkip
+                hasVotedSkip || skipCooldown
                   ? 'bg-zinc-800 text-zinc-600 border-zinc-800 cursor-not-allowed'
                   : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border-zinc-700'
               }`}
@@ -1055,7 +1062,7 @@ function MiniViz({ progress }: { progress: number }) {
   );
 }
 
-function RoundResult({ data, players = [], pauseTimeLeft, trackHistory = [] }: { data?: { correctAnswer?: string; artist?: string; albumImage?: string } | null; players?: { name: string; score: number }[]; pauseTimeLeft: number; trackHistory?: { round: number; name: string; artist: string; albumImage?: string }[] }) {
+function RoundResult({ data, players = [], pauseTimeLeft, trackHistory = [] }: { data?: { correctAnswer?: string; artist?: string; albumImage?: string; skipped?: boolean } | null; players?: { name: string; score: number }[]; pauseTimeLeft: number; trackHistory?: { round: number; name: string; artist: string; albumImage?: string }[] }) {
   const { t } = useTranslation();
   return (
     <div className="flex-1 flex flex-col items-center gap-5 max-w-sm mx-auto w-full">
@@ -1065,6 +1072,11 @@ function RoundResult({ data, players = [], pauseTimeLeft, trackHistory = [] }: {
         transition={{ duration: 0.35, ease: 'easeOut' }}
         className="flex flex-col items-center gap-4"
       >
+        {data?.skipped && (
+          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
+            ⏭ Skipped
+          </span>
+        )}
         {data?.albumImage && (
           <img
             src={data.albumImage}

@@ -479,26 +479,61 @@ export class GameRoom {
     this.roundStartTime = null;
     this.clearPlayingInterval();
 
-    // Add skipped track to history
     const track = this.tracks[this.currentRound];
-    if (track) {
-      this.tracksPlayed++;
-      this.trackHistory.push({
-        round: this.tracksPlayed,
-        name: track.name,
-        artist: track.artist,
-        albumImage: track.albumImage,
-        rank: track.rank ?? 0,
-        skipped: true,
-      });
+    if (!track) {
+      this.currentRound++;
+      if (this.currentRound >= this.tracks.length || this.tracksPlayed >= this.totalRounds) {
+        this.endGame();
+      } else {
+        this.startRound();
+      }
+      return;
     }
 
-    this.currentRound++;
-    if (this.currentRound >= this.tracks.length || this.tracksPlayed >= this.totalRounds) {
-      this.endGame();
-    } else {
-      this.startRound();
+    this.tracksPlayed++;
+    this.trackHistory.push({
+      round: this.tracksPlayed,
+      name: track.name,
+      artist: track.artist,
+      albumImage: track.albumImage,
+      rank: track.rank ?? 0,
+      skipped: true,
+    });
+
+    if (this.gameId && track.id) {
+      import('./db.js').then(({ recordPlay }) => {
+        recordPlay(track.id, this.gameId)
+          .then(() => console.log(`[DB] Recorded play: ${track.name}`))
+          .catch(err => console.error('[DB] Failed to record play:', err.message));
+      }).catch(() => {});
     }
+
+    this.state = 'round_result';
+    this.roundResult = {
+      round: this.tracksPlayed,
+      correctAnswer: track.name,
+      artist: track.artist,
+      albumImage: track.albumImage,
+      rank: track.rank ?? 0,
+      skipped: true,
+    };
+    this.broadcast();
+
+    if (this.pauseInterval) { clearInterval(this.pauseInterval); this.pauseInterval = null; }
+    this.pauseStartTime = Date.now();
+    this.pauseDuration = 3;
+    this.pauseInterval = setInterval(() => {
+      if (this.state === 'round_result') this.broadcast();
+    }, 1000);
+    this.pauseTimer = setTimeout(() => {
+      if (this.pauseInterval) { clearInterval(this.pauseInterval); this.pauseInterval = null; }
+      this.currentRound++;
+      if (this.currentRound >= this.tracks.length || this.tracksPlayed >= this.totalRounds) {
+        this.endGame();
+      } else {
+        this.startRound();
+      }
+    }, this.pauseDuration * 1000);
   }
 
   endRound() {
@@ -548,6 +583,7 @@ export class GameRoom {
     this.broadcast();
 
     this.pauseStartTime = Date.now();
+    this.pauseDuration = this.settings.pauseTime;
     this.pauseInterval = setInterval(() => {
       if (this.state === 'round_result') this.broadcast();
     }, 1000);
@@ -667,7 +703,7 @@ export class GameRoom {
 
     if (this.state === 'round_result') {
       const pauseElapsed = this.pauseStartTime ? (Date.now() - this.pauseStartTime) / 1000 : 0;
-      const pauseTimeLeft = Math.max(0, Math.ceil(this.settings.pauseTime - pauseElapsed));
+      const pauseTimeLeft = Math.max(0, Math.ceil((this.pauseDuration || this.settings.pauseTime) - pauseElapsed));
       return { ...base, roundResult: this.roundResult, pauseTimeLeft, trackHistory: this.trackHistory };
     }
 
