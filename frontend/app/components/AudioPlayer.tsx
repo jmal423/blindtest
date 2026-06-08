@@ -1,23 +1,27 @@
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
 import { useSettings } from '@/app/context/SettingsContext';
 
-export default function AudioPlayer({
-  previewUrl,
-  audioOffset,
-  state,
-  onPlaying,
-  onTimeUpdate,
-  onBlocked,
-}: {
+export interface AudioPlayerHandle {
+  resume: () => Promise<boolean>;
+}
+
+const AudioPlayer = forwardRef<AudioPlayerHandle, {
   previewUrl: string | null;
   audioOffset: number;
   state: string;
   onPlaying: () => void;
   onTimeUpdate: (t: number, d?: number) => void;
   onBlocked?: () => void;
-}) {
+}>(function AudioPlayer({
+  previewUrl,
+  audioOffset,
+  state,
+  onPlaying,
+  onTimeUpdate,
+  onBlocked,
+}, ref) {
   const { settings } = useSettings();
   const volRef = useRef(settings.masterVolume);
   volRef.current = settings.masterVolume;
@@ -27,14 +31,26 @@ export default function AudioPlayer({
   const onBlockedRef = useRef(onBlocked);
   const firedRef = useRef(false);
   const offsetRef = useRef(audioOffset);
-  const blockedRef = useRef(false);
   onPlayingRef.current = onPlaying;
   onBlockedRef.current = onBlocked;
   offsetRef.current = audioOffset;
 
-  useEffect(() => {
-    blockedRef.current = false;
+  useImperativeHandle(ref, () => ({
+    resume: async () => {
+      const a = audioRef.current;
+      if (!a || !readyRef.current) return false;
+      try {
+        a.currentTime = offsetRef.current;
+        a.volume = volRef.current;
+        await a.play();
+        return true;
+      } catch {
+        return false;
+      }
+    },
+  }));
 
+  useEffect(() => {
     if (state !== 'playing' || !previewUrl) {
       if (audioRef.current) {
         audioRef.current.pause();
@@ -67,7 +83,6 @@ export default function AudioPlayer({
   useEffect(() => {
     if (state !== 'playing') return;
     firedRef.current = false;
-    blockedRef.current = false;
 
     let stopped = false;
 
@@ -80,25 +95,35 @@ export default function AudioPlayer({
         a.volume = volRef.current;
         const promise = a.play();
         if (promise !== undefined) {
-          promise.then(() => {
-            blockedRef.current = false;
-          }).catch((err) => {
+          promise.catch((err) => {
             if (stopped) return;
             if (err.name === 'NotAllowedError') {
-              if (!blockedRef.current) {
-                blockedRef.current = true;
-                onBlockedRef.current?.();
-              }
+              onBlockedRef.current?.();
             }
-            setTimeout(tryStart, 1000);
           });
         }
-      } catch { setTimeout(tryStart, 1000); }
+      } catch {
+        onBlockedRef.current?.();
+      }
     };
     tryStart();
 
+    const onGesture = () => {
+      if (stopped) return;
+      const a = audioRef.current;
+      if (!a) return;
+      try {
+        a.volume = volRef.current;
+        a.play().catch(() => {});
+      } catch {}
+    };
+    document.addEventListener('click', onGesture, { once: true });
+    document.addEventListener('touchstart', onGesture, { once: true, passive: true });
+
     return () => {
       stopped = true;
+      document.removeEventListener('click', onGesture);
+      document.removeEventListener('touchstart', onGesture);
     };
   }, [state]);
 
@@ -127,4 +152,6 @@ export default function AudioPlayer({
   }, [state, tick]);
 
   return null;
-}
+});
+
+export default AudioPlayer;

@@ -278,7 +278,7 @@ app.get('/api/auth/discord/callback', async (req, res) => {
   }
 });
 
-// Users
+// Users — /me/* routes MUST come before /:id wildcard routes
 app.get('/api/users/me', authenticate, async (req, res) => {
   const user = await get('SELECT id, username, avatar_url, role, created_at FROM users WHERE id = ?', [req.user.userId]);
   if (!user) {
@@ -293,6 +293,37 @@ app.get('/api/users/me/scores', authenticate, async (req, res) => {
     [req.user.userId]
   );
   res.json(scores);
+});
+
+app.get('/api/users/me/history', authenticate, async (req, res) => {
+  const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+  try {
+    const userId = req.user.userId;
+    const games = await getGameHistory(userId, limit);
+    res.json(games);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/users/me/stats', authenticate, async (req, res) => {
+  const userId = req.user.userId;
+  try {
+    const stats = await getPlayerStats(userId);
+    res.json(stats);
+  } catch (err) {
+    // Fallback to old stats
+    const [totalPoints, avgSpeed, bestGenre] = await Promise.all([
+      get('SELECT COALESCE(SUM(points_earned), 0) as total FROM round_results WHERE user_id = ?', [userId]),
+      get('SELECT AVG(guess_time_ms) as avg FROM round_results WHERE user_id = ? AND is_correct = true', [userId]),
+      get('SELECT genre FROM round_results WHERE user_id = ? AND is_correct = true GROUP BY genre ORDER BY COUNT(*) DESC LIMIT 1', [userId]),
+    ]);
+    res.json({
+      totalPoints: totalPoints?.total || 0,
+      averageSpeedMs: avgSpeed?.avg ? Math.round(Number(avgSpeed.avg)) : null,
+      bestGenre: bestGenre?.genre || null,
+    });
+  }
 });
 
 app.get('/api/users/:id', async (req, res) => {
@@ -331,39 +362,6 @@ app.get('/api/leaderboard', async (req, res) => {
   } catch (err) {
     console.error('[DB] Leaderboard v2 failed:', err.message);
     res.json([]);
-  }
-});
-
-// Game history for a player
-app.get('/api/users/me/history', authenticate, async (req, res) => {
-  const limit = Math.min(parseInt(req.query.limit) || 20, 100);
-  try {
-const userId = req.user.userId;
-  const games = await getGameHistory(userId, limit);
-    res.json(games);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Player stats (enhanced)
-app.get('/api/users/me/stats', authenticate, async (req, res) => {
-  const userId = req.user.userId;
-  try {
-    const stats = await getPlayerStats(userId);
-    res.json(stats);
-  } catch (err) {
-    // Fallback to old stats
-    const [totalPoints, avgSpeed, bestGenre] = await Promise.all([
-      get('SELECT COALESCE(SUM(points_earned), 0) as total FROM round_results WHERE user_id = ?', [userId]),
-      get('SELECT AVG(guess_time_ms) as avg FROM round_results WHERE user_id = ? AND is_correct = true', [userId]),
-      get('SELECT genre FROM round_results WHERE user_id = ? AND is_correct = true GROUP BY genre ORDER BY COUNT(*) DESC LIMIT 1', [userId]),
-    ]);
-    res.json({
-      totalPoints: totalPoints?.total || 0,
-      averageSpeedMs: avgSpeed?.avg ? Math.round(Number(avgSpeed.avg)) : null,
-      bestGenre: bestGenre?.genre || null,
-    });
   }
 });
 

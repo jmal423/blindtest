@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import { io as socketIo, Socket } from 'socket.io-client';
 import { getToken, GameState, Player, RoomSettings, startGame, updateSettings, fetchGenres } from '@/lib/api';
-import { isDebugMode, unlockAudio } from '@/lib/debug-context';
-import AudioPlayer from '@/app/components/AudioPlayer';
+import { isDebugMode } from '@/lib/debug-context';
+import AudioPlayer, { AudioPlayerHandle } from '@/app/components/AudioPlayer';
 import { useSettings } from '@/app/context/SettingsContext';
 import { useTranslation } from '@/lib/useTranslation';
 import Chat from './Chat';
@@ -48,6 +48,7 @@ export default function GamePage({
   const [guessMarkers, setGuessMarkers] = useState<{ playerName: string; artistFound: boolean; titleFound: boolean; guessTimeMs: number }[]>([]);
   const [startLoading, setStartLoading] = useState(false);
   const [needsAudioUnlock, setNeedsAudioUnlock] = useState(false);
+  const audioPlayerRef = useRef<AudioPlayerHandle>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [hasVotedSkip, setHasVotedSkip] = useState(false);
   const prevVolumeRef = useRef(1);
@@ -490,6 +491,7 @@ encouragement={encouragement}
 
       {gameState.state !== 'game_over' && (
 <AudioPlayer
+            ref={audioPlayerRef}
             previewUrl={(gameState as any).previewUrl || null}
             audioOffset={(gameState as any).audioOffset || 0}
             state={gameState.state}
@@ -506,13 +508,13 @@ encouragement={encouragement}
       {needsAudioUnlock && gameState.state === 'playing' && (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm"
-          onClick={() => {
-            unlockAudio();
-            setNeedsAudioUnlock(false);
+          onClick={async () => {
+            const ok = await audioPlayerRef.current?.resume();
+            if (ok) setNeedsAudioUnlock(false);
           }}
-          onTouchStart={() => {
-            unlockAudio();
-            setNeedsAudioUnlock(false);
+          onTouchStart={async () => {
+            const ok = await audioPlayerRef.current?.resume();
+            if (ok) setNeedsAudioUnlock(false);
           }}
         >
           <div className="flex flex-col items-center gap-4 p-8 text-center">
