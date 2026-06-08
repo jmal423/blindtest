@@ -1,6 +1,8 @@
 import jwt from 'jsonwebtoken';
 import { generateId, get, run } from './db.js';
 
+// JWT_SECRET must remain stable across deploys so existing sessions stay valid.
+// If you change JWT_SECRET, all issued tokens become invalid and users must re-login via Discord.
 const JWT_SECRET = process.env.JWT_SECRET || 'blindtest-dev-secret-change-in-production';
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;

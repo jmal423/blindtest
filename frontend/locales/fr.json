@@ -2,7 +2,6 @@
   "title": "BlindTest",
   "subtitle": "Écoutez, devinez et rivalisez avec vos amis.",
   "login_button": "Connexion Discord",
-  "guest_button": "Continuer en tant qu'invité",
   "create_lobby": "Créer un salon",
   "join_lobby": "Rejoindre un salon",
   "join_placeholder": "Code du salon...",
@@ -100,7 +99,6 @@
   "admin_panel": "Panneau admin",
   "debug": "Débogage",
   "disconnect": "Déconnexion",
-  "guest_player": "Invité",
   "score": "Score",
   "best_genre": "Meilleur genre",
 
@@ -111,10 +109,6 @@
   "back_home": "Retour à l'accueil",
 
   "loading": "Chargement...",
-  "please_enter_name": "Entrez un nom",
-  "or_separator": "ou",
-  "your_name_placeholder": "Votre nom",
-  "logging_in": "Connexion...",
   "something_went_wrong": "Une erreur est survenue",
   "enter_room_code": "Entrez un code de salon",
   "creating": "Création...",

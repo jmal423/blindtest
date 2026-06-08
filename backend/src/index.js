@@ -1,12 +1,11 @@
 import { createServer } from 'node:http';
-import jwt from 'jsonwebtoken';
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { Server } from 'socket.io';
 import { GameRoom } from './game.js';
 import { GENRES, getGenreLabel } from './deezer.js';
-import { generateId, get, all, run, ping, getTableCounts, createGame, finishGame, addGamePlayer, addRoundResultV2, getGameHistory, getPlayerStats, getLeaderboardV2, getRecentGames, getGameDetails, ensureUser, getSongCacheCounts } from './db.js';
+import { generateId, get, all, run, ping, getTableCounts, createGame, finishGame, addGamePlayer, addRoundResultV2, getGameHistory, getPlayerStats, getLeaderboardV2, getRecentGames, getGameDetails, getSongCacheCounts } from './db.js';
 import { getAuthUrl, handleDiscordCallback, authenticate, requireAdmin, tryDecodeToken } from './auth.js';
 
 dotenv.config();
@@ -146,56 +145,33 @@ app.get('/api/genres', (req, res) => {
   res.json(GENRES.map(g => ({ id: g, label: getGenreLabel(g) })));
 });
 
-// Rooms
-app.post('/api/rooms', async (req, res) => {
-  const { genres = [], playerName, avatarUrl, role, rounds, roundTime } = req.body;
-  if (!playerName || !playerName.trim()) {
-    return res.status(400).json({ error: 'Player name is required' });
-  }
+// Rooms (auth required)
+app.post('/api/rooms', authenticate, async (req, res) => {
+  const { genres = [], rounds, roundTime } = req.body;
 
-  const authHeader = req.headers.authorization;
-  let userId = null;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    const decoded = tryDecodeToken(authHeader.slice(7));
-    if (decoded) userId = decoded.userId;
-  }
-
-  // Persist user in DB so they count in registered users
-  if (userId) {
-    ensureUser(userId, playerName.trim(), avatarUrl || null, role || 'user').catch(err => console.error('[DB] Failed to ensure user:', err.message));
-  }
+  const user = await get('SELECT id, username, avatar_url, role FROM users WHERE id = ?', [req.user.userId]);
+  if (!user) return res.status(401).json({ error: 'User not found' });
 
   const code = generateCode();
   const room = new GameRoom(code, genres, io);
   if (rounds || roundTime) room.updateSettings({ rounds, roundTime });
-  const playerId = room.addPlayer(playerName.trim(), avatarUrl || null, role || 'user', userId);
+  const playerId = room.addPlayer(user.username, user.avatar_url, user.role, user.id);
   rooms.set(code, room);
 
   res.json({ code, playerId, settings: room.getSettings(), genres: room.genres });
 });
 
-app.post('/api/rooms/join', async (req, res) => {
-  const { code, playerName, avatarUrl, role } = req.body;
-  if (!code || !playerName || !playerName.trim()) {
-    return res.status(400).json({ error: 'Code and name are required' });
-  }
+app.post('/api/rooms/join', authenticate, async (req, res) => {
+  const { code } = req.body;
+  if (!code) return res.status(400).json({ error: 'Room code is required' });
 
-  const authHeader = req.headers.authorization;
-  let userId = null;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    const decoded = tryDecodeToken(authHeader.slice(7));
-    if (decoded) userId = decoded.userId;
-  }
-
-  // Persist user in DB so they count in registered users
-  if (userId) {
-    ensureUser(userId, playerName.trim(), avatarUrl || null, role || 'user').catch(err => console.error('[DB] Failed to ensure user:', err.message));
-  }
+  const user = await get('SELECT id, username, avatar_url, role FROM users WHERE id = ?', [req.user.userId]);
+  if (!user) return res.status(401).json({ error: 'User not found' });
 
   const room = rooms.get(code.toUpperCase());
   if (!room) return res.status(404).json({ error: 'Room not found' });
 
-  const playerId = room.addPlayer(playerName.trim(), avatarUrl || null, role || 'user', userId);
+  const playerId = room.addPlayer(user.username, user.avatar_url, user.role, user.id);
   broadcastState(room.code);
   res.json({ code: room.code, playerId });
 });
@@ -302,62 +278,11 @@ app.get('/api/auth/discord/callback', async (req, res) => {
   }
 });
 
-// Guest login — bypasses Discord auth for quick access
-app.post('/api/auth/guest', async (req, res) => {
-  const name = typeof req.body?.name === 'string' ? req.body.name.trim() : 'Guest';
-  const previousUserId = req.body?.previousUserId || null;
-
-  let userId;
-
-  if (previousUserId && previousUserId.startsWith('guest_')) {
-    const existingUser = await get('SELECT id, username FROM users WHERE id = ?', [previousUserId]);
-    if (existingUser) {
-      userId = existingUser.id;
-    }
-  }
-
-  if (!userId) {
-    userId = `guest_${generateId()}`;
-  }
-
-  const isJl = name.toLowerCase() === 'jl';
-  const role = isJl ? 'admin' : 'user';
-
-  let avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`;
-  if (isJl) {
-    const adminUser = await get('SELECT avatar_url FROM users WHERE username IS NOT NULL AND role = ? LIMIT 1', ['admin']);
-    if (adminUser?.avatar_url) {
-      avatarUrl = adminUser.avatar_url;
-    }
-  }
-
-  await ensureUser(userId, name, avatarUrl, role);
-
-  const token = jwt.sign(
-    { userId, role, guest: true, username: name },
-    process.env.JWT_SECRET || 'blindtest-dev-secret-change-in-production',
-    { expiresIn: '365d' }
-  );
-
-  res.json({
-    token,
-    user: { id: userId, username: name, avatar_url: avatarUrl, role, created_at: new Date().toISOString() },
-  });
-});
-
 // Users
 app.get('/api/users/me', authenticate, async (req, res) => {
-  // Look up user from DB (works for both Discord and guest users now)
   const user = await get('SELECT id, username, avatar_url, role, created_at FROM users WHERE id = ?', [req.user.userId]);
   if (!user) {
-    // Fallback for users not yet in DB (shouldn't happen after ensureUser)
-    return res.json({
-      id: req.user.userId,
-      username: req.user.username || req.user.userId,
-      avatar_url: null,
-      role: req.user.role || 'user',
-      created_at: new Date().toISOString(),
-    });
+    return res.status(404).json({ error: 'User not found' });
   }
   res.json(user);
 });
@@ -413,8 +338,8 @@ app.get('/api/leaderboard', async (req, res) => {
 app.get('/api/users/me/history', authenticate, async (req, res) => {
   const limit = Math.min(parseInt(req.query.limit) || 20, 100);
   try {
-    const userId = req.user.guest ? req.user.userId : req.user.userId;
-    const games = await getGameHistory(userId, limit);
+const userId = req.user.userId;
+  const games = await getGameHistory(userId, limit);
     res.json(games);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -423,7 +348,7 @@ app.get('/api/users/me/history', authenticate, async (req, res) => {
 
 // Player stats (enhanced)
 app.get('/api/users/me/stats', authenticate, async (req, res) => {
-  const userId = req.user.guest ? req.user.userId : req.user.userId;
+  const userId = req.user.userId;
   try {
     const stats = await getPlayerStats(userId);
     res.json(stats);

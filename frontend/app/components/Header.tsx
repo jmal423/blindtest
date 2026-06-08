@@ -21,13 +21,9 @@ export default function Header() {
   const [debugOn, setDebugOn] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const inGame = pathname.startsWith('/game/');
-  const [guestName, setGuestName] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setGuestName(localStorage.getItem('blindtest_name'));
-    }
     setDebugOn(isDebugMode());
   }, []);
 
@@ -75,7 +71,7 @@ export default function Header() {
     setDebugMode(next);
   };
 
-  const showMenu = user || inGame;
+  const showMenu = user;
 
   return (
     <header className="flex items-center justify-between px-4 md:px-6 py-3 border-b border-white/10">
@@ -96,7 +92,7 @@ export default function Header() {
             {user?.avatar_url ? (
               <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
             ) : (
-              (user?.username || guestName)?.[0]?.toUpperCase() || '?'
+              user?.username?.[0]?.toUpperCase() || '?'
             )}
           </button>
 
@@ -122,7 +118,7 @@ export default function Header() {
                 transition={{ duration: 0.15 }}
                 className="fixed md:absolute left-4 right-4 bottom-0 md:left-auto md:right-0 md:bottom-auto md:top-12 md:w-72 bg-[var(--surface)] border border-white/10 rounded-t-2xl md:rounded-xl shadow-2xl overflow-hidden z-50 max-h-[85dvh] md:max-h-none overflow-y-auto"
               >
-                {user ? (
+                {user && (
                   <>
                     <div className="p-4 border-b border-white/10">
                       <div className="flex items-center gap-3">
@@ -168,18 +164,9 @@ export default function Header() {
                         </div>
                       </div>
                     </div>
-                  </>
-                ) : (
-                  <div className="p-4 border-b border-white/10">
-                    <p className="text-sm text-zinc-400 text-center">
-                      {guestName || t('guest_player')}
-                    </p>
-                  </div>
-                )}
 
-                <div className="p-2 space-y-0.5">
-                  {user && (
-                    <Link
+                    <div className="p-2 space-y-0.5">
+                      <Link
                       href="/profile"
                       onClick={close}
                       className="flex items-center gap-3 px-3 py-3 text-sm text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
@@ -190,7 +177,6 @@ export default function Header() {
                       </svg>
                       {t('profile')}
                     </Link>
-                  )}
 
                   <button
                     onClick={() => { close(); setShowSettings(true); }}
@@ -253,6 +239,8 @@ export default function Header() {
                     {t('disconnect')}
                   </button>
                 </div>
+                  </>
+                )}
               </motion.div>
             )}
           </AnimatePresence>

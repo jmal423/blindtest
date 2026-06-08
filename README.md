@@ -30,11 +30,11 @@
 - **Track history sidebar** — Reversed (last played on top), skipped tracks shown with ⏭ + strikethrough + dimmed
 - **Chat clears per round** — `chat_clear` socket event wipes stale messages each round
 - **Leaderboard** — Global ranking with wins, avatars, clickable player detail panels; sidebar on dashboard
-- **Persistent stats** — All players (guest + Discord) saved; games, points, perfects, best genre, avg speed
+- **Persistent stats** — Discord-authenticated players; games, points, perfects, best genre, avg speed
+- **Discord OAuth2** — Required for access; server-gated to a specific guild; sessions persist across deploys (365-day JWT)
 - **Discord server gating** — Restrict access to a specific Discord guild
 - **Multi-language** — English, Français, Português, Español (persisted in localStorage)
 - **Volume control** — Default 20%, mute + slider, `M` key shortcut
-- **Guest login** — No Discord required, play instantly; guests persisted in DB
 - **Admin panel** — Live rooms, user management, genre tester, song cache stats, database monitoring
 
 ---
@@ -94,9 +94,9 @@ npm run dev
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `DISCORD_CLIENT_ID` | No | Discord OAuth2 application ID |
-| `DISCORD_CLIENT_SECRET` | No | Discord OAuth2 secret |
-| `DISCORD_ALLOWED_GUILD_ID` | No | Restrict to a specific Discord server |
+| `DISCORD_CLIENT_ID` | Yes | Discord OAuth2 application ID |
+| `DISCORD_CLIENT_SECRET` | Yes | Discord OAuth2 secret |
+| `DISCORD_ALLOWED_GUILD_ID` | Yes | Discord server ID to gate access |
 | `ADMIN_DISCORD_IDS` | No | Comma-separated Discord IDs for admin role |
 | `JWT_SECRET` | Yes | Token signing secret (generate a random string) |
 | `DATABASE_URL` | Yes | PostgreSQL connection string |
@@ -144,7 +144,7 @@ Add the PostgreSQL plugin to your Railway project. `DATABASE_URL` is auto-set. T
 
 | Table | Purpose |
 |-------|---------|
-| `users` | All users — Discord OAuth + guests (id, discord_id, username, avatar, role, guest flag) |
+| `users` | Discord OAuth users (id, discord_id, username, avatar, role) |
 | `games` | Game sessions (id, code, genres, rounds, status, timestamps) |
 | `game_players` | Players per game (player_id, player_name, score, position) |
 | `round_results_v2` | Detailed per-guess data (track, artist, genre, guess, found_artist/title/both, time_ms) |
@@ -181,8 +181,8 @@ See `DEPLOY.md` for full deployment guide.
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | `GET` | `/api/genres` | No | List available genres |
-| `POST` | `/api/rooms` | No | Create room |
-| `POST` | `/api/rooms/join` | No | Join room (works mid-game) |
+| `POST` | `/api/rooms` | JWT | Create room |
+| `POST` | `/api/rooms/join` | JWT | Join room (works mid-game) |
 | `GET` | `/api/rooms/:code` | No | Room status |
 | `POST` | `/api/game/:code/settings` | No | Update settings (host only) |
 | `POST` | `/api/game/:code/start` | No | Start game (host only) |
@@ -208,7 +208,6 @@ See `DEPLOY.md` for full deployment guide.
 |--------|------|------|-------------|
 | `GET` | `/api/auth/discord` | No | Discord OAuth redirect |
 | `GET` | `/api/auth/discord/callback` | No | OAuth callback |
-| `POST` | `/api/auth/guest` | No | Guest login (name only) |
 | `GET` | `/api/users/me` | JWT | Current user profile |
 | `GET` | `/api/users/me/scores` | JWT | User's game scores (legacy) |
 | `GET` | `/api/users/me/stats` | JWT | Enhanced stats (games, points, perfects, avg speed, best genre) |
@@ -261,7 +260,7 @@ Switch from main menu, header dropdown, or settings modal. Language is persisted
 | Frontend | Next.js 16, React 19, Tailwind CSS 4, motion (Framer Motion), Socket.io |
 | Backend | Express 5, Socket.io, pg (PostgreSQL) |
 | Audio | Deezer API (free, no auth), song cache with recency weighting |
-| Auth | Discord OAuth2 + JWT (with guild gating), Guest tokens |
+| Auth | Discord OAuth2 + JWT (guild-gated, 365-day sessions) |
 | i18n | Custom JSON-based (en, fr, pt, es), persisted in localStorage |
 | Database | PostgreSQL (Docker local, Railway production), migration system |
 | Deployment | Vercel (frontend) + Railway (backend + PostgreSQL) |
@@ -298,7 +297,7 @@ blindtest/
 │   │   │   ├── Podium.tsx     # Endgame rankings
 │   │   │   └── TrackHistory.tsx # Reversed history, skipped tracks (⏭ + strikethrough)
 │   │   ├── admin/page.tsx     # Admin (stats, users, rooms, leaderboard, genre tester)
-│   │   ├── login/page.tsx     # Discord + guest login
+│   │   ├── login/page.tsx     # Discord login
 │   │   ├── profile/page.tsx   # Profile with 8 stat cards
 │   │   └── components/
 │   │       ├── AudioPlayer.tsx        # HTML5 <audio> only (Deezer previews)

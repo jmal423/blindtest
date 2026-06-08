@@ -28,36 +28,35 @@ export async function fetchGenres(): Promise<{ id: string; label: string }[]> {
 }
 
 export async function createRoom(
-  playerName: string,
   genres?: string[],
-  avatarUrl?: string | null,
-  role?: string
 ): Promise<{ code: string; playerId: string; settings: RoomSettings; genres: string[] }> {
   const token = getToken();
+  if (!token) throw new Error('Authentication required');
   const res = await fetch(`${API_URL}/api/rooms`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ genres, playerName: playerName.trim(), avatarUrl, role }),
+    body: JSON.stringify({ genres }),
   });
   if (!res.ok) {
     const data = await res.json();
-    throw new Error(`Create room failed: ${data.error || res.status}`);
+      throw new Error(`Create room failed: ${data.error || res.status}`);
   }
   return res.json();
 }
 
-export async function joinRoom(code: string, playerName: string, avatarUrl?: string | null, role?: string): Promise<{ code: string; playerId: string }> {
+export async function joinRoom(code: string): Promise<{ code: string; playerId: string }> {
   const token = getToken();
+  if (!token) throw new Error('Authentication required');
   const res = await fetch(`${API_URL}/api/rooms/join`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ code: code.toUpperCase(), playerName: playerName.trim(), avatarUrl, role }),
+    body: JSON.stringify({ code: code.toUpperCase() }),
   });
   if (!res.ok) {
     const data = await res.json();
@@ -218,19 +217,6 @@ export async function saveGameScore(code: string, playerId: string): Promise<voi
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ playerId }),
   });
-}
-
-export async function guestLogin(name: string, previousUserId?: string | null): Promise<{ token: string; user: any }> {
-  const res = await fetch(`${API_URL}/api/auth/guest`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, previousUserId: previousUserId || undefined }),
-  });
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error(data.error || 'Guest login failed');
-  }
-  return res.json();
 }
 
 export async function getAdminStats(): Promise<{ totalUsers: number; totalRounds: number; totalGames: number; activeRooms: number }> {

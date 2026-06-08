@@ -2,7 +2,6 @@
   "title": "BlindTest",
   "subtitle": "Listen, guess, and compete with your friends.",
   "login_button": "Login with Discord",
-  "guest_button": "Continue as Guest",
   "create_lobby": "Create Lobby",
   "join_lobby": "Join Lobby",
   "join_placeholder": "Enter lobby code...",
@@ -100,7 +99,6 @@
   "admin_panel": "Admin Panel",
   "debug": "Debug",
   "disconnect": "Disconnect",
-  "guest_player": "Guest Player",
   "score": "Score",
   "best_genre": "Best Genre",
 
@@ -111,10 +109,6 @@
   "back_home": "Back Home",
 
   "loading": "Loading...",
-  "please_enter_name": "Please enter a name",
-  "or_separator": "or",
-  "your_name_placeholder": "Your name",
-  "logging_in": "Logging in...",
   "something_went_wrong": "Something went wrong",
   "enter_room_code": "Enter a room code",
   "creating": "Creating...",

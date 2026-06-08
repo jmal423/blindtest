@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import { useAuth } from '@/app/context/AuthContext';
-import { getDiscordAuthUrl, createRoom, joinRoom, guestLogin, getLeaderboard } from '@/lib/api';
+import { getDiscordAuthUrl, createRoom, joinRoom, getLeaderboard } from '@/lib/api';
 import { useTranslation } from '@/lib/useTranslation';
 import LanguageSwitcher from '@/app/components/LanguageSwitcher';
 
@@ -20,10 +20,6 @@ export default function Home() {
 
     if (token) {
       localStorage.setItem('blindtest_token', token);
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        if (payload.userId) localStorage.setItem('blindtest_user_id', payload.userId);
-      } catch {}
       window.history.replaceState({}, document.title, window.location.pathname);
       refresh().finally(() => setProcessing(false));
       return;
@@ -47,39 +43,14 @@ export default function Home() {
   }
 
   if (!user) {
-    return <Gatekeeper />;
+    return <LoginScreen />;
   }
 
-  return <Dashboard user={user} />;
+  return <Dashboard />;
 }
 
-function Gatekeeper() {
+function LoginScreen() {
   const { t } = useTranslation();
-  const [guestName, setGuestName] = useState('');
-  const [guestError, setGuestError] = useState('');
-  const [guestLoading, setGuestLoading] = useState(false);
-  const { refresh } = useAuth();
-
-  const handleGuest = async () => {
-    const trimmedName = guestName.trim();
-    if (!trimmedName) {
-      setGuestError(t('please_enter_name'));
-      return;
-    }
-    setGuestLoading(true);
-    setGuestError('');
-    try {
-      const previousUserId = localStorage.getItem('blindtest_user_id');
-      const { token, user } = await guestLogin(trimmedName, previousUserId);
-      localStorage.setItem('blindtest_token', token);
-      localStorage.setItem('blindtest_user_id', user.id);
-      window.history.replaceState({}, document.title, window.location.pathname);
-      await refresh();
-    } catch (e: any) {
-      setGuestError(e.message);
-    }
-    setGuestLoading(false);
-  };
 
   const discordUrl = typeof window !== 'undefined'
     ? getDiscordAuthUrl(window.location.origin)
@@ -107,40 +78,13 @@ function Gatekeeper() {
           {t('login_button')}
         </motion.a>
 
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-white/10" />
-          </div>
-          <div className="relative flex justify-center">
-            <span className="bg-[var(--bg)] px-4 text-sm text-zinc-500">{t('or_separator')}</span>
-          </div>
-        </div>
-
-        <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6 space-y-3">
-          <input
-            value={guestName}
-            onChange={e => setGuestName(e.target.value)}
-            placeholder={t('your_name_placeholder')}
-            maxLength={20}
-            className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl text-white placeholder-zinc-500 text-center focus:outline-none focus:border-[var(--primary)] transition-colors"
-          />
-          <button
-            onClick={handleGuest}
-            disabled={guestLoading || !guestName.trim()}
-            className="w-full px-6 py-3 bg-zinc-600/30 hover:bg-zinc-600/50 disabled:opacity-50 text-white font-semibold rounded-xl border border-white/10 transition-colors"
-          >
-            {guestLoading ? t('logging_in') : t('guest_button')}
-          </button>
-          {guestError && <p className="text-red-400 text-xs text-center">{guestError}</p>}
-        </div>
-
         <LanguageSwitcher className="justify-center" />
       </div>
     </div>
   );
 }
 
-function Dashboard({ user }: { user: any }) {
+function Dashboard() {
   const { t } = useTranslation();
   const router = useRouter();
   const [joinCode, setJoinCode] = useState('');
@@ -157,9 +101,8 @@ function Dashboard({ user }: { user: any }) {
     setLoading(true);
     setError('');
     try {
-      const { code, playerId } = await createRoom(user.username, [], user.avatar_url, user.role);
+      const { code, playerId } = await createRoom([]);
       localStorage.setItem(`blindtest_player_${code}`, playerId);
-      localStorage.setItem('blindtest_name', user.username);
       router.push(`/game/${code}`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t('something_went_wrong'));
@@ -172,9 +115,8 @@ function Dashboard({ user }: { user: any }) {
     setLoading(true);
     setError('');
     try {
-      const { code: roomCode, playerId } = await joinRoom(joinCode, user.username, user.avatar_url, user.role);
+      const { code: roomCode, playerId } = await joinRoom(joinCode);
       localStorage.setItem(`blindtest_player_${roomCode}`, playerId);
-      localStorage.setItem('blindtest_name', user.username);
       router.push(`/game/${roomCode}`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t('something_went_wrong'));
