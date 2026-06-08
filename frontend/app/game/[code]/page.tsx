@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import { io as socketIo, Socket } from 'socket.io-client';
 import { getToken, GameState, Player, RoomSettings, startGame, updateSettings, fetchGenres } from '@/lib/api';
-import { isDebugMode } from '@/lib/debug-context';
+import { isDebugMode, isAudioUnlocked, unlockAudio } from '@/lib/debug-context';
 import AudioPlayer from '@/app/components/AudioPlayer';
 import { useSettings } from '@/app/context/SettingsContext';
 import { useTranslation } from '@/lib/useTranslation';
@@ -47,6 +47,7 @@ export default function GamePage({
   const [encouragement, setEncouragement] = useState<string | null>(null);
   const [guessMarkers, setGuessMarkers] = useState<{ playerName: string; artistFound: boolean; titleFound: boolean; guessTimeMs: number }[]>([]);
   const [startLoading, setStartLoading] = useState(false);
+  const [needsAudioUnlock, setNeedsAudioUnlock] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [hasVotedSkip, setHasVotedSkip] = useState(false);
   const prevVolumeRef = useRef(1);
@@ -60,6 +61,10 @@ export default function GamePage({
   const handleAudioPlaying = useCallback(() => {
     socketRef.current?.emit('playback_started');
     guessInputRef.current?.focus();
+  }, []);
+
+  const handleAudioBlocked = useCallback(() => {
+    setNeedsAudioUnlock(true);
   }, []);
 
   const handleAudioTimeUpdate = useCallback((t: number, d?: number) => {
@@ -485,16 +490,43 @@ encouragement={encouragement}
 
       {gameState.state !== 'game_over' && (
 <AudioPlayer
-           previewUrl={(gameState as any).previewUrl || null}
-           audioOffset={(gameState as any).audioOffset || 0}
-           state={gameState.state}
-           onPlaying={handleAudioPlaying}
-           onTimeUpdate={handleAudioTimeUpdate}
-         />
+            previewUrl={(gameState as any).previewUrl || null}
+            audioOffset={(gameState as any).audioOffset || 0}
+            state={gameState.state}
+            onPlaying={handleAudioPlaying}
+            onTimeUpdate={handleAudioTimeUpdate}
+            onBlocked={handleAudioBlocked}
+          />
       )}
 
       {isDebugMode() && (
         <DebugOverlay gameState={gameState} socketConnected={socketConnected} />
+      )}
+
+      {(needsAudioUnlock || (!isAudioUnlocked() && (gameState.state === 'round_preparing' || gameState.state === 'playing'))) && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          onClick={() => {
+            unlockAudio();
+            setNeedsAudioUnlock(false);
+          }}
+          onTouchStart={() => {
+            unlockAudio();
+            setNeedsAudioUnlock(false);
+          }}
+        >
+          <div className="flex flex-col items-center gap-4 p-8 text-center">
+            <div className="w-20 h-20 rounded-full bg-[var(--primary)]/20 flex items-center justify-center">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+              </svg>
+            </div>
+            <p className="text-xl font-bold text-white">Tap to enable audio</p>
+            <p className="text-sm text-zinc-400">Your browser needs a tap to play sound</p>
+          </div>
+        </div>
       )}
     </div>
   );

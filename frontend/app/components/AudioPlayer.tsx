@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useCallback } from 'react';
 import { useSettings } from '@/app/context/SettingsContext';
+import { isAudioUnlocked } from '@/lib/debug-context';
 
 export default function AudioPlayer({
   previewUrl,
@@ -9,12 +10,14 @@ export default function AudioPlayer({
   state,
   onPlaying,
   onTimeUpdate,
+  onBlocked,
 }: {
   previewUrl: string | null;
   audioOffset: number;
   state: string;
   onPlaying: () => void;
   onTimeUpdate: (t: number, d?: number) => void;
+  onBlocked?: () => void;
 }) {
   const { settings } = useSettings();
   const volRef = useRef(settings.masterVolume);
@@ -22,9 +25,11 @@ export default function AudioPlayer({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const readyRef = useRef(false);
   const onPlayingRef = useRef(onPlaying);
+  const onBlockedRef = useRef(onBlocked);
   const firedRef = useRef(false);
   const offsetRef = useRef(audioOffset);
   onPlayingRef.current = onPlaying;
+  onBlockedRef.current = onBlocked;
   offsetRef.current = audioOffset;
 
   useEffect(() => {
@@ -70,22 +75,24 @@ export default function AudioPlayer({
       try {
         a.currentTime = offsetRef.current;
         a.volume = volRef.current;
-        a.play();
+        const promise = a.play();
+        if (promise !== undefined) {
+          promise.catch((err) => {
+            if (stopped) return;
+            if (err.name === 'NotAllowedError') {
+              onBlockedRef.current?.();
+            }
+            if (!isAudioUnlocked()) {
+              setTimeout(tryStart, 500);
+            }
+          });
+        }
       } catch { setTimeout(tryStart, 100); }
     };
     tryStart();
 
-    const onGesture = () => {
-      if (stopped || firedRef.current) return;
-      try { const a = audioRef.current; if (a) a.play(); } catch {}
-    };
-    document.addEventListener('click', onGesture, { once: true });
-    document.addEventListener('touchstart', onGesture, { once: true });
-
     return () => {
       stopped = true;
-      document.removeEventListener('click', onGesture);
-      document.removeEventListener('touchstart', onGesture);
     };
   }, [state]);
 
