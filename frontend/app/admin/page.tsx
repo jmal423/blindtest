@@ -388,7 +388,7 @@ const GENRE_LABELS: Record<string, string> = {
 };
 
 function MusicTab() {
-  const [data, setData] = useState<{ total: number; genres: number; plays: number; genres: { genre: string; count: number; last_fetched: string }[] } | null>(null);
+  const [data, setData] = useState<{ total: number; genreCount: number; plays: number; genres: { genre: string; count: number; last_fetched: string }[] } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -400,7 +400,7 @@ function MusicTab() {
   const total = data?.total ?? 0;
   const totalPlays = data?.plays ?? 0;
   const genreList = data?.genres ?? [];
-  const genreCount = data?.genres ?? 0;
+  const genreCount = data?.genreCount ?? 0;
 
   return (
     <div className="space-y-6">
