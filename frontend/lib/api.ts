@@ -271,6 +271,6 @@ export async function deleteUser(userId: string): Promise<void> {
   await fetchWithAuth(`${API_URL}/api/admin/users/${userId}`, { method: 'DELETE' });
 }
 
-export async function getSongCache(): Promise<{ total: number; genres: number; plays: number; genres: { genre: string; count: number; last_fetched: string }[] }> {
+export async function getSongCache(): Promise<{ total: number; genreCount: number; plays: number; genres: { genre: string; count: number; last_fetched: string }[]; played: { id: string; name: string; artist: string; genre: string; rank: number; play_count: number; last_played: string }[] }> {
   return fetchWithAuth(`${API_URL}/api/admin/song-cache`);
 }
