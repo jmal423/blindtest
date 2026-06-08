@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useCallback } from 'react';
 import { useSettings } from '@/app/context/SettingsContext';
-import { isAudioUnlocked } from '@/lib/debug-context';
 
 export default function AudioPlayer({
   previewUrl,
@@ -28,11 +27,14 @@ export default function AudioPlayer({
   const onBlockedRef = useRef(onBlocked);
   const firedRef = useRef(false);
   const offsetRef = useRef(audioOffset);
+  const blockedRef = useRef(false);
   onPlayingRef.current = onPlaying;
   onBlockedRef.current = onBlocked;
   offsetRef.current = audioOffset;
 
   useEffect(() => {
+    blockedRef.current = false;
+
     if (state !== 'playing' || !previewUrl) {
       if (audioRef.current) {
         audioRef.current.pause();
@@ -65,6 +67,7 @@ export default function AudioPlayer({
   useEffect(() => {
     if (state !== 'playing') return;
     firedRef.current = false;
+    blockedRef.current = false;
 
     let stopped = false;
 
@@ -77,17 +80,20 @@ export default function AudioPlayer({
         a.volume = volRef.current;
         const promise = a.play();
         if (promise !== undefined) {
-          promise.catch((err) => {
+          promise.then(() => {
+            blockedRef.current = false;
+          }).catch((err) => {
             if (stopped) return;
             if (err.name === 'NotAllowedError') {
-              onBlockedRef.current?.();
+              if (!blockedRef.current) {
+                blockedRef.current = true;
+                onBlockedRef.current?.();
+              }
             }
-            if (!isAudioUnlocked()) {
-              setTimeout(tryStart, 500);
-            }
+            setTimeout(tryStart, 1000);
           });
         }
-      } catch { setTimeout(tryStart, 100); }
+      } catch { setTimeout(tryStart, 1000); }
     };
     tryStart();
 

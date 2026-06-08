@@ -103,7 +103,7 @@ export default function Header() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.15 }}
-                className="fixed inset-0 z-40 md:hidden"
+                className="fixed inset-0 z-40 bg-black/50 md:bg-transparent"
                 onClick={close}
               />
             )}
@@ -116,7 +116,7 @@ export default function Header() {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
                 transition={{ duration: 0.15 }}
-                className="fixed md:absolute left-4 right-4 bottom-0 md:left-auto md:right-0 md:bottom-auto md:top-12 md:w-72 bg-[var(--surface)] border border-white/10 rounded-t-2xl md:rounded-xl shadow-2xl overflow-hidden z-50 max-h-[85dvh] md:max-h-none overflow-y-auto"
+                className="fixed left-0 right-0 bottom-0 md:left-auto md:right-0 md:bottom-auto md:top-12 md:w-72 bg-[var(--surface)] border border-white/10 rounded-t-2xl md:rounded-xl shadow-2xl overflow-hidden z-50 max-h-[80dvh] md:max-h-[70vh] overflow-y-auto pb-[env(safe-area-inset-bottom)]"
               >
                 {user && (
                   <>

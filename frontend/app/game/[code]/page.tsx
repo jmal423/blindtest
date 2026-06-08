@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import { io as socketIo, Socket } from 'socket.io-client';
 import { getToken, GameState, Player, RoomSettings, startGame, updateSettings, fetchGenres } from '@/lib/api';
-import { isDebugMode, isAudioUnlocked, unlockAudio } from '@/lib/debug-context';
+import { isDebugMode, unlockAudio } from '@/lib/debug-context';
 import AudioPlayer from '@/app/components/AudioPlayer';
 import { useSettings } from '@/app/context/SettingsContext';
 import { useTranslation } from '@/lib/useTranslation';
@@ -503,7 +503,7 @@ encouragement={encouragement}
         <DebugOverlay gameState={gameState} socketConnected={socketConnected} />
       )}
 
-      {(needsAudioUnlock || (!isAudioUnlocked() && (gameState.state === 'round_preparing' || gameState.state === 'playing'))) && (
+      {needsAudioUnlock && gameState.state === 'playing' && (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm"
           onClick={() => {
