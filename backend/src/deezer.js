@@ -16,7 +16,10 @@ const GENRE_ID_MAP = {
   reggae: 144,
   latin: 197,
   dance: 113,
-  'top-100': 0,
+};
+
+const CHART_SOURCES = {
+  0: 'top-100',
 };
 
 function shuffle(arr) {
@@ -44,16 +47,36 @@ async function deezerFetch(endpoint) {
   }
 }
 
-function mapTrack(t, genre) {
+const albumGenreCache = new Map();
+
+async function fetchAlbumGenres(albumId) {
+  if (!albumId) return [];
+  if (albumGenreCache.has(albumId)) return albumGenreCache.get(albumId);
+
+  const data = await deezerFetch(`/album/${albumId}`);
+  let genres = [];
+  if (data?.genres?.data) {
+    genres = data.genres.data.map(g => {
+      const name = g.name.toLowerCase().replace(/\s*&\s*/g, '-').replace(/\s+/g, '-');
+      return GENRE_ID_MAP[name] ? name : g.name.toLowerCase().replace(/\s+/g, '-');
+    });
+  }
+  albumGenreCache.set(albumId, genres);
+  return genres;
+}
+
+function mapTrack(t, chartSource) {
   return {
     id: `deezer:${t.id}`,
     name: t.title,
     artist: t.artist?.name || 'Unknown',
     albumImage: t.album?.cover_big || null,
+    albumId: t.album?.id || null,
     previewUrl: t.preview,
     durationMs: (parseInt(t.duration, 10) || 30) * 1000,
     rank: t.rank || 0,
-    genre,
+    genres: [],
+    chartSource: chartSource || null,
   };
 }
 
@@ -66,13 +89,15 @@ async function getTracksByGenre(genre, count = 10) {
     return [];
   }
 
+  const chartSource = CHART_SOURCES[genreId] || genre;
+
   function addTracks(data, label) {
     if (!data?.data) return 0;
     let added = 0;
     for (const t of data.data) {
       if (!t.preview || seen.has(t.id)) continue;
       seen.add(t.id);
-      tracks.push(mapTrack(t, genre));
+      tracks.push(mapTrack(t, chartSource));
       added++;
     }
     if (added > 0) console.log(`[Deezer] ${label} +${added} tracks for "${genre}"`);
@@ -93,6 +118,22 @@ async function getTracksByGenre(genre, count = 10) {
     }
   }
 
+  const batchSize = 5;
+  for (let i = 0; i < tracks.length; i += batchSize) {
+    const batch = tracks.slice(i, i + batchSize);
+    await Promise.all(batch.map(async (track) => {
+      if (track.albumId) {
+        try {
+          track.genres = await fetchAlbumGenres(track.albumId);
+        } catch {
+          track.genres = [genre];
+        }
+      } else {
+        track.genres = [genre];
+      }
+    }));
+  }
+
   console.log(`[Deezer] Total ${tracks.length} tracks for "${genre}" (${tracks.filter(t => t.previewUrl).length} with preview)`);
   tracks.sort((a, b) => (b.rank || 0) - (a.rank || 0));
   return tracks.slice(0, count);
@@ -101,13 +142,12 @@ async function getTracksByGenre(genre, count = 10) {
 const GENRES = [
   'pop', 'rock', 'hip-hop', 'r-n-b', 'electronic', 'jazz', 'classical',
   'country', 'metal', 'indie', 'soul', 'blues', 'reggae', 'latin',
-  'dance', 'top-100',
+  'dance',
 ];
 
 const GENRE_LABELS = {
   'r-n-b': 'R&B',
   'hip-hop': 'Hip Hop',
-  'top-100': 'Top 100',
 };
 
 function getGenreLabel(genre) {

@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
-import { getMe, getAdminUsers, getAdminStats, getAdminRooms, getLeaderboard, updateUserRole, deleteUser, wipeUserScores, testDeezer, testDeezerGenre, getDbStatus, testGenre, getSongCache } from '@/lib/api';
+import { getMe, getAdminUsers, getAdminStats, getAdminRooms, getLeaderboard, updateUserRole, deleteUser, wipeUserScores, testDeezer, testDeezerGenre, getDbStatus, testGenre, getSongCache, fetchGenres } from '@/lib/api';
 
 type Tab = 'system' | 'users' | 'rooms' | 'leaderboard' | 'music' | 'api';
 
@@ -381,14 +381,8 @@ function LeaderboardTab() {
   );
 }
 
-const GENRE_LABELS: Record<string, string> = {
-  'r-n-b': 'R&B',
-  'hip-hop': 'Hip Hop',
-  'top-100': 'Top 100',
-};
-
 function MusicTab() {
-  const [data, setData] = useState<{ total: number; genreCount: number; plays: number; genres: { genre: string; count: number; last_fetched: string }[]; played: { id: string; name: string; artist: string; genre: string; rank: number; play_count: number; last_played: string }[] } | null>(null);
+  const [data, setData] = useState<{ total: number; genreCount: number; plays: number; genres: { genre: string; count: number; last_fetched: string }[]; played: { id: string; name: string; artist: string; genre: string; genres: string[]; chartSource: string | null; rank: number; play_count: number; last_played: string }[] } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -445,7 +439,7 @@ function MusicTab() {
                     <p className="text-[10px] text-zinc-600 truncate max-w-[200px]">{s.artist}</p>
                   </td>
                   <td className="py-2.5 px-2 hidden md:table-cell">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] bg-white/5 text-zinc-400">{GENRE_LABELS[s.genre] || s.genre}</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] bg-white/5 text-zinc-400">{(s.genres && s.genres.length > 0) ? s.genres.join(', ') : (s.genre || '-')}</span>
                   </td>
                   <td className="py-2.5 px-2 text-center font-bold text-[var(--primary)] tabular-nums">{s.play_count}</td>
                   <td className="py-2.5 px-6 text-right text-xs text-zinc-500">
@@ -466,7 +460,7 @@ function MusicTab() {
             const pct = total > 0 ? (g.count / total) * 100 : 0;
             return (
               <div key={g.genre} className="flex items-center gap-3">
-                <span className="text-xs text-zinc-400 w-24 truncate">{GENRE_LABELS[g.genre] || g.genre.charAt(0).toUpperCase() + g.genre.slice(1)}</span>
+                <span className="text-xs text-zinc-400 w-24 truncate">{g.genre.charAt(0).toUpperCase() + g.genre.slice(1).replace(/-/g, ' ')}</span>
                 <div className="flex-1 h-3 bg-white/5 rounded-full overflow-hidden">
                   <div className="h-full bg-[var(--primary)] rounded-full" style={{ width: `${pct}%` }} />
                 </div>
@@ -480,12 +474,6 @@ function MusicTab() {
   );
 }
 
-const GENRES = [
-  'pop', 'rock', 'hip-hop', 'r-n-b', 'electronic', 'jazz', 'classical',
-  'country', 'metal', 'indie', 'soul', 'blues', 'reggae', 'latin',
-  'dance', 'top-100',
-];
-
 const SOURCES = [
   { id: 'deezer', label: 'Deezer', desc: 'Free, has rank data' },
 ];
@@ -495,12 +483,15 @@ function ApiTab() {
   const [deezerLoading, setDeezerLoading] = useState(false);
   const [dbStatus, setDbStatus] = useState<any>(null);
 
+  const [genreList, setGenreList] = useState<{ id: string; label: string }[]>([]);
   const [genre, setGenre] = useState('pop');
   const [count, setCount] = useState(50);
   const [source, setSource] = useState('deezer');
   const [results, setResults] = useState<any>(null);
   const [testerLoading, setTesterLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => { fetchGenres().then(setGenreList).catch(() => {}); }, []);
 
   const runConnectivity = () => {
     setDeezerLoading(true);
@@ -617,8 +608,8 @@ function ApiTab() {
               onChange={e => { setGenre(e.target.value); setResults(null); }}
               className="bg-[var(--surface)] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white"
             >
-              {GENRES.map(g => (
-                <option key={g} value={g}>{g}</option>
+              {genreList.map(g => (
+                <option key={g.id} value={g.id}>{g.label}</option>
               ))}
             </select>
           </div>

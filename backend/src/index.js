@@ -463,7 +463,7 @@ app.post('/api/admin/test/genre', requireAdmin, async (req, res) => {
   try {
     const { getTracksByGenre } = await import('./deezer.js');
     const tracks = await getTracksByGenre(genre, count || 5);
-    res.json({ ok: true, count: tracks.length, tracks: tracks.map(t => ({ name: t.name, artist: t.artist, previewUrl: !!t.previewUrl, genre: t.genre })) });
+    res.json({ ok: true, count: tracks.length, tracks: tracks.map(t => ({ name: t.name, artist: t.artist, previewUrl: !!t.previewUrl, genre: t.genre, genres: t.genres, chartSource: t.chartSource })) });
   } catch (err) {
     res.json({ ok: false, count: 0, tracks: [], error: err.message });
   }
@@ -477,11 +477,11 @@ app.post('/api/admin/test/seed-game/:code', requireAdmin, async (req, res) => {
 
   const rounds = parseInt(req.body.rounds) || 3;
   const mockTracks = [
-    { id: 'deezer:1', name: 'Bohemian Rhapsody', artist: 'Queen', albumImage: null, previewUrl: 'https://cdns-preview.dz.example.mp3', durationMs: 355000, genre: 'rock' },
-    { id: 'deezer:2', name: 'Billie Jean', artist: 'Michael Jackson', albumImage: null, previewUrl: 'https://cdns-preview.dz.example.mp3', durationMs: 294000, genre: 'pop' },
-    { id: 'deezer:3', name: 'Smells Like Teen Spirit', artist: 'Nirvana', albumImage: null, previewUrl: 'https://cdns-preview.dz.example.mp3', durationMs: 301000, genre: 'rock' },
-    { id: 'deezer:4', name: 'Like a Prayer', artist: 'Madonna', albumImage: null, previewUrl: 'https://cdns-preview.dz.example.mp3', durationMs: 280000, genre: 'pop' },
-    { id: 'deezer:5', name: 'Stairway to Heaven', artist: 'Led Zeppelin', albumImage: null, previewUrl: 'https://cdns-preview.dz.example.mp3', durationMs: 482000, genre: 'rock' },
+    { id: 'deezer:1', name: 'Bohemian Rhapsody', artist: 'Queen', albumImage: null, previewUrl: 'https://cdns-preview.dz.example.mp3', durationMs: 355000, genre: 'rock', genres: ['rock'], chartSource: 'rock' },
+    { id: 'deezer:2', name: 'Billie Jean', artist: 'Michael Jackson', albumImage: null, previewUrl: 'https://cdns-preview.dz.example.mp3', durationMs: 294000, genre: 'pop', genres: ['pop'], chartSource: 'pop' },
+    { id: 'deezer:3', name: 'Smells Like Teen Spirit', artist: 'Nirvana', albumImage: null, previewUrl: 'https://cdns-preview.dz.example.mp3', durationMs: 301000, genre: 'rock', genres: ['rock'], chartSource: 'rock' },
+    { id: 'deezer:4', name: 'Like a Prayer', artist: 'Madonna', albumImage: null, previewUrl: 'https://cdns-preview.dz.example.mp3', durationMs: 280000, genre: 'pop', genres: ['pop'], chartSource: 'pop' },
+    { id: 'deezer:5', name: 'Stairway to Heaven', artist: 'Led Zeppelin', albumImage: null, previewUrl: 'https://cdns-preview.dz.example.mp3', durationMs: 482000, genre: 'rock', genres: ['rock'], chartSource: 'rock' },
   ];
 
   room.tracks = mockTracks.slice(0, Math.max(rounds, mockTracks.length));

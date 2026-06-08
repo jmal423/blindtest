@@ -212,6 +212,11 @@ export class GameRoom {
           const tracks = await getTracksByGenre(genre, 50);
           for (const t of tracks) {
             if (!seenIds.has(t.id) && t.previewUrl) {
+              if (!t.genre && t.genres && t.genres.length > 0) {
+                t.genre = t.genres[0];
+              } else if (!t.genre) {
+                t.genre = t.chartSource || genre;
+              }
               allTracks.push(t);
               seenIds.add(t.id);
             }

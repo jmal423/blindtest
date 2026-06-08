@@ -245,17 +245,22 @@ async function getTableCounts() {
 async function cacheSongs(tracks) {
   for (const t of tracks) {
     if (!t.id || !t.name || !t.artist) continue;
+    const genres = Array.isArray(t.genres) && t.genres.length > 0
+      ? JSON.stringify(t.genres)
+      : JSON.stringify(t.genre ? [t.genre] : []);
     await run(
-      `INSERT INTO songs_cache (id, name, artist, album_image, duration_ms, genre, rank, source)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `INSERT INTO songs_cache (id, name, artist, album_image, duration_ms, genre, genres, rank, source, chart_source)
+       VALUES (?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?, ?)
        ON CONFLICT (id) DO UPDATE SET
          name = EXCLUDED.name,
          artist = EXCLUDED.artist,
          album_image = EXCLUDED.album_image,
          duration_ms = EXCLUDED.duration_ms,
+         genres = EXCLUDED.genres,
          rank = EXCLUDED.rank,
+         chart_source = EXCLUDED.chart_source,
          fetched_at = NOW()`,
-      [t.id, t.name, t.artist, t.albumImage || null, t.durationMs || 0, t.genre || null, t.rank || 0, 'deezer']
+      [t.id, t.name, t.artist, t.albumImage || null, t.durationMs || 0, t.genre || null, genres, t.rank || 0, 'deezer', t.chartSource || null]
     );
   }
 }
@@ -271,21 +276,21 @@ async function getCachedTracksByGenre(genre, count) {
   const rows = await all(
     `SELECT sc.*,
        COALESCE(
-         CASE
-           WHEN sp.last_played IS NULL THEN 1.0
-           WHEN sp.last_played > NOW() - INTERVAL '1 hour' THEN 0.05
-           WHEN sp.last_played > NOW() - INTERVAL '1 day' THEN 0.2
-           WHEN sp.last_played > NOW() - INTERVAL '7 days' THEN 0.5
-           ELSE 0.85
-         END, 1.0
-       ) as recency_weight
+          CASE
+            WHEN sp.last_played IS NULL THEN 1.0
+            WHEN sp.last_played > NOW() - INTERVAL '1 hour' THEN 0.05
+            WHEN sp.last_played > NOW() - INTERVAL '1 day' THEN 0.2
+            WHEN sp.last_played > NOW() - INTERVAL '7 days' THEN 0.5
+            ELSE 0.85
+          END, 1.0
+        ) as recency_weight
      FROM songs_cache sc
      LEFT JOIN (
        SELECT song_id, MAX(played_at) as last_played
        FROM songs_played
        GROUP BY song_id
      ) sp ON sp.song_id = sc.id
-     WHERE sc.genre = ?
+     WHERE sc.genres @> ?::jsonb OR sc.genre = ?
      ORDER BY (sc.rank + 1000) * COALESCE(
        CASE
          WHEN sp.last_played IS NULL THEN 1.0
@@ -296,7 +301,7 @@ async function getCachedTracksByGenre(genre, count) {
        END, 1.0
      ) * random() DESC
      LIMIT ?`,
-    [genre, count * 3]
+    [JSON.stringify([genre]), genre, count * 3]
   );
   return rows.map(r => ({
     id: r.id,
@@ -306,6 +311,8 @@ async function getCachedTracksByGenre(genre, count) {
     previewUrl: null,
     durationMs: r.duration_ms,
     genre: r.genre,
+    genres: typeof r.genres === 'string' ? JSON.parse(r.genres) : (r.genres || []),
+    chartSource: r.chart_source || null,
     rank: r.rank,
   }));
 }
@@ -323,7 +330,12 @@ async function getSongCacheCounts() {
 async function getSongCacheByGenre() {
   const { rows } = await pool.query(`
     SELECT genre, COUNT(*) as count, MAX(fetched_at) as last_fetched
-    FROM songs_cache
+    FROM (
+      SELECT jsonb_array_elements_text(genres) AS genre, fetched_at FROM songs_cache
+      WHERE genres != '[]'::jsonb
+      UNION ALL
+      SELECT genre, fetched_at FROM songs_cache WHERE genre IS NOT NULL AND genres = '[]'::jsonb AND genre != ''
+    ) sub
     GROUP BY genre
     ORDER BY count DESC
   `);
@@ -332,11 +344,11 @@ async function getSongCacheByGenre() {
 
 async function getPlayedSongs(limit = 200) {
   const { rows } = await pool.query(`
-    SELECT sc.id, sc.name, sc.artist, sc.genre, sc.rank,
+    SELECT sc.id, sc.name, sc.artist, sc.genre, sc.genres, sc.chart_source, sc.rank,
       COUNT(sp.id) as play_count, MAX(sp.played_at) as last_played
     FROM songs_played sp
     JOIN songs_cache sc ON sp.song_id = sc.id
-    GROUP BY sc.id, sc.name, sc.artist, sc.genre, sc.rank
+    GROUP BY sc.id, sc.name, sc.artist, sc.genre, sc.genres, sc.chart_source, sc.rank
     ORDER BY play_count DESC, last_played DESC
     LIMIT $1
   `, [limit]);
