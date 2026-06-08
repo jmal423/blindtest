@@ -48,6 +48,13 @@ export default function GamePage({
   const [guessMarkers, setGuessMarkers] = useState<{ playerName: string; artistFound: boolean; titleFound: boolean; guessTimeMs: number }[]>([]);
   const [startLoading, setStartLoading] = useState(false);
   const [needsAudioUnlock, setNeedsAudioUnlock] = useState(false);
+  const [debugOn, setDebugOn] = useState(false);
+  useEffect(() => {
+    setDebugOn(isDebugMode());
+    const handler = () => setDebugOn(isDebugMode());
+    window.addEventListener('debug-toggle', handler);
+    return () => window.removeEventListener('debug-toggle', handler);
+  }, []);
   const audioPlayerRef = useRef<AudioPlayerHandle>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [hasVotedSkip, setHasVotedSkip] = useState(false);
@@ -396,7 +403,7 @@ export default function GamePage({
         {gameState.state !== 'waiting' && gameState.state !== 'game_over' && ((gameState as any)?.trackHistory?.length > 0) && (
           <div className="hidden md:flex flex-col w-48 shrink-0">
             <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">{t('history_label')}</p>
-            <div className="flex-1 overflow-y-auto space-y-1">
+            <div className="flex-1 overflow-y-auto space-y-1 max-h-[calc(100vh-16rem)]">
 {[...((gameState as any)?.trackHistory || [])].reverse().map((t: any) => (
                  <div
                    key={t.round}
@@ -501,7 +508,7 @@ encouragement={encouragement}
           />
       )}
 
-      {isDebugMode() && (
+      {debugOn && (
         <DebugOverlay gameState={gameState} socketConnected={socketConnected} />
       )}
 

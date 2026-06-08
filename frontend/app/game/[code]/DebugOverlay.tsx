@@ -72,7 +72,7 @@ export default function DebugOverlay({ gameState, socketConnected }: DebugOverla
         <Section title="Track" defaultOpen>
           <Row label="Title" value={info.title} />
           <Row label="Artist" value={info.artist} />
-          <Row label="Source" value={info.provenance === 'deezer' ? 'Deezer' : (info.provenance || 'Unknown')} color="text-emerald-400" />
+          <Row label="Source" value={info.source === 'Deezer' ? 'Deezer' : 'Unknown'} color="text-emerald-400" />
           <Row label="Track ID" value={info.id || '-'} />
           <Row label="Genre" value={info.genre || '-'} />
           <Row label="Rank" value={trackRank > 0 ? `#${formatNum(trackRank)}` : '-'} color={trackRank > 0 ? 'text-purple-400' : 'text-zinc-600'} />

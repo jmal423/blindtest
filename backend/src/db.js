@@ -256,7 +256,7 @@ async function cacheSongs(tracks) {
          duration_ms = EXCLUDED.duration_ms,
          rank = EXCLUDED.rank,
          fetched_at = NOW()`,
-      [t.id, t.name, t.artist, t.albumImage || null, t.previewUrl || null, t.durationMs || 0, t.genre || null, t.rank || 0, t.id.startsWith('deezer:') ? 'deezer' : 'spotify']
+      [t.id, t.name, t.artist, t.albumImage || null, t.previewUrl || null, t.durationMs || 0, t.genre || null, t.rank || 0, 'deezer']
     );
   }
 }
@@ -270,7 +270,7 @@ async function recordPlay(songId, gameId) {
 
 async function getCachedTracksByGenre(genre, count) {
   const rows = await all(
-    `SELECT sc.*,
+    `SELECT sc.*, sc.fetched_at,
        COALESCE(
          CASE
            WHEN sp.last_played IS NULL THEN 1.0
@@ -299,16 +299,21 @@ async function getCachedTracksByGenre(genre, count) {
      LIMIT ?`,
     [genre, count * 3]
   );
-  return rows.map(r => ({
-    id: r.id,
-    name: r.name,
-    artist: r.artist,
-    albumImage: r.album_image,
-    previewUrl: r.preview_url,
-    durationMs: r.duration_ms,
-    genre: r.genre,
-    rank: r.rank,
-  }));
+  const TEN_MIN_MS = 10 * 60 * 1000;
+  const now = Date.now();
+  return rows.map(r => {
+    const age = now - new Date(r.fetched_at).getTime();
+    return {
+      id: r.id,
+      name: r.name,
+      artist: r.artist,
+      albumImage: r.album_image,
+      previewUrl: age < TEN_MIN_MS ? r.preview_url : null,
+      durationMs: r.duration_ms,
+      genre: r.genre,
+      rank: r.rank,
+    };
+  });
 }
 
 async function getSongCacheCounts() {
