@@ -1,0 +1,40 @@
+#cloud-config
+autoinstall:
+  version: 1
+
+  locale: en_US.UTF-8
+  keyboard:
+    layout: us
+    variant: ''
+
+  network:
+    network:
+      version: 2
+      ethernets:
+        id0:
+          match:
+            name: "en*"
+          dhcp4: true
+
+  storage:
+    layout:
+      name: lvm
+
+  identity:
+    hostname: blindtest
+    username: deploy
+    password: "$6$rounds=4096$blindtest$YQ7b3vKJh8L2mF9XnE4dCwR5sT1uV6yA0gB3hK7jNpZqMiDoFxEaScGHWbtRxLvYuAVnQCK2fRsPd4Jm8eSWg/"
+
+  ssh:
+    install-server: true
+    allow-pw: true
+
+  packages:
+    - openssh-server
+    - curl
+    - git
+    - ufw
+
+  late-commands:
+    - systemctl enable ufw
+    - ufw allow OpenSSH
