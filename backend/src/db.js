@@ -330,4 +330,17 @@ async function getSongCacheByGenre() {
   return rows;
 }
 
-export { generateId, query, get, all, run, insertRoundResult, createGame, finishGame, addGamePlayer, addRoundResultV2, getGameHistory, getPlayerStats, getLeaderboardV2, getRecentGames, getGameDetails, ping, getTableCounts, cacheSongs, recordPlay, getCachedTracksByGenre, getSongCacheCounts, getSongCacheByGenre, pool };
+async function getPlayedSongs(limit = 200) {
+  const { rows } = await pool.query(`
+    SELECT sc.id, sc.name, sc.artist, sc.genre, sc.rank,
+      COUNT(sp.id) as play_count, MAX(sp.played_at) as last_played
+    FROM songs_played sp
+    JOIN songs_cache sc ON sp.song_id = sc.id
+    GROUP BY sc.id, sc.name, sc.artist, sc.genre, sc.rank
+    ORDER BY play_count DESC, last_played DESC
+    LIMIT $1
+  `, [limit]);
+  return rows;
+}
+
+export { generateId, query, get, all, run, insertRoundResult, createGame, finishGame, addGamePlayer, addRoundResultV2, getGameHistory, getPlayerStats, getLeaderboardV2, getRecentGames, getGameDetails, ping, getTableCounts, cacheSongs, recordPlay, getCachedTracksByGenre, getSongCacheCounts, getSongCacheByGenre, getPlayedSongs, pool };

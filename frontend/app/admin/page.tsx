@@ -388,7 +388,7 @@ const GENRE_LABELS: Record<string, string> = {
 };
 
 function MusicTab() {
-  const [data, setData] = useState<{ total: number; genreCount: number; plays: number; genres: { genre: string; count: number; last_fetched: string }[] } | null>(null);
+  const [data, setData] = useState<{ total: number; genreCount: number; plays: number; genres: { genre: string; count: number; last_fetched: string }[]; played: { id: string; name: string; artist: string; genre: string; rank: number; play_count: number; last_played: string }[] } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -401,40 +401,79 @@ function MusicTab() {
   const totalPlays = data?.plays ?? 0;
   const genreList = data?.genres ?? [];
   const genreCount = data?.genreCount ?? 0;
+  const played = data?.played ?? [];
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6 text-center">
           <p className="text-3xl font-bold text-[var(--primary)]">{total.toLocaleString()}</p>
-          <p className="text-zinc-500 text-xs uppercase tracking-wider mt-1">Cached Songs</p>
+          <p className="text-zinc-500 text-xs uppercase tracking-wider mt-1">Songs</p>
         </div>
         <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6 text-center">
-          <p className="text-3xl font-bold text-[var(--accent)]">{genreCount}</p>
+          <p className="text-3xl font-bold text-[var(--accent)]">{totalPlays.toLocaleString()}</p>
+          <p className="text-zinc-500 text-xs uppercase tracking-wider mt-1">Plays</p>
+        </div>
+        <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6 text-center">
+          <p className="text-3xl font-bold text-purple-400">{genreCount}</p>
           <p className="text-zinc-500 text-xs uppercase tracking-wider mt-1">Genres</p>
         </div>
-        <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6 text-center">
-          <p className="text-3xl font-bold text-purple-400">{totalPlays.toLocaleString()}</p>
-          <p className="text-zinc-500 text-xs uppercase tracking-wider mt-1">Total Plays</p>
+      </div>
+
+      <div className="bg-[var(--surface)] rounded-2xl border border-white/10 overflow-hidden">
+        <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between">
+          <h2 className="text-sm font-semibold">Most Played</h2>
+          <span className="text-[10px] text-zinc-500">{played.length} songs</span>
+        </div>
+        <div className="overflow-y-auto max-h-[50vh]">
+          <table className="w-full text-sm">
+            <thead className="sticky top-0 bg-[var(--surface)]">
+              <tr className="text-zinc-500 border-b border-white/10">
+                <th className="text-left py-3 px-6">#</th>
+                <th className="text-left py-3 px-2">Track</th>
+                <th className="text-left py-3 px-2 hidden md:table-cell">Genre</th>
+                <th className="text-center py-3 px-2">Plays</th>
+                <th className="text-right py-3 px-6">Last Played</th>
+              </tr>
+            </thead>
+            <tbody>
+              {played.map((s: any, i: number) => (
+                <tr key={s.id} className="border-b border-white/5 hover:bg-white/[0.02]">
+                  <td className="py-2.5 px-6 text-zinc-600 tabular-nums">{i + 1}</td>
+                  <td className="py-2.5 px-2">
+                    <p className="font-medium text-zinc-200 truncate max-w-[200px]">{s.name}</p>
+                    <p className="text-[10px] text-zinc-600 truncate max-w-[200px]">{s.artist}</p>
+                  </td>
+                  <td className="py-2.5 px-2 hidden md:table-cell">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] bg-white/5 text-zinc-400">{GENRE_LABELS[s.genre] || s.genre}</span>
+                  </td>
+                  <td className="py-2.5 px-2 text-center font-bold text-[var(--primary)] tabular-nums">{s.play_count}</td>
+                  <td className="py-2.5 px-6 text-right text-xs text-zinc-500">
+                    {s.last_played ? new Date(s.last_played).toLocaleDateString() : '-'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {played.length === 0 && <p className="text-zinc-600 text-center py-8">No songs played yet</p>}
         </div>
       </div>
 
       <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6">
-        <h2 className="text-sm font-semibold mb-4">Songs by Genre</h2>
+        <h2 className="text-sm font-semibold mb-4">By Genre</h2>
         <div className="space-y-2">
           {genreList.map((g: any) => {
             const pct = total > 0 ? (g.count / total) * 100 : 0;
             return (
               <div key={g.genre} className="flex items-center gap-3">
                 <span className="text-xs text-zinc-400 w-24 truncate">{GENRE_LABELS[g.genre] || g.genre.charAt(0).toUpperCase() + g.genre.slice(1)}</span>
-                <div className="flex-1 h-4 bg-white/5 rounded-full overflow-hidden">
+                <div className="flex-1 h-3 bg-white/5 rounded-full overflow-hidden">
                   <div className="h-full bg-[var(--primary)] rounded-full" style={{ width: `${pct}%` }} />
                 </div>
-                <span className="text-xs text-zinc-400 w-12 text-right tabular-nums">{g.count}</span>
+                <span className="text-xs text-zinc-400 w-10 text-right tabular-nums">{g.count}</span>
               </div>
             );
           })}
-          {genreList.length === 0 && <p className="text-zinc-600 text-xs text-center py-4">No songs cached yet</p>}
         </div>
       </div>
     </div>
