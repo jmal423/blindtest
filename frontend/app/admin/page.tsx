@@ -3,15 +3,16 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
-import { getMe, getAdminUsers, getAdminStats, getAdminRooms, getLeaderboard, updateUserRole, deleteUser, wipeUserScores, testDeezer, testDeezerGenre, getDbStatus, testGenre } from '@/lib/api';
+import { getMe, getAdminUsers, getAdminStats, getAdminRooms, getLeaderboard, updateUserRole, deleteUser, wipeUserScores, testDeezer, testDeezerGenre, getDbStatus, testGenre, getSongCache } from '@/lib/api';
 
-type Tab = 'system' | 'users' | 'rooms' | 'leaderboard' | 'api';
+type Tab = 'system' | 'users' | 'rooms' | 'leaderboard' | 'music' | 'api';
 
 const tabs: { id: Tab; label: string }[] = [
   { id: 'system', label: 'System' },
   { id: 'users', label: 'Users' },
   { id: 'rooms', label: 'Rooms' },
   { id: 'leaderboard', label: 'Leaderboard' },
+  { id: 'music', label: 'Music' },
   { id: 'api', label: 'API' },
 ];
 
@@ -72,6 +73,7 @@ export default function AdminPage() {
         {activeTab === 'users' && <UsersTab />}
         {activeTab === 'rooms' && <RoomsTab />}
         {activeTab === 'leaderboard' && <LeaderboardTab />}
+        {activeTab === 'music' && <MusicTab />}
         {activeTab === 'api' && <ApiTab />}
       </motion.div>
     </div>
@@ -375,6 +377,66 @@ function LeaderboardTab() {
       ))}
       {loading && <p className="text-zinc-500 text-center py-8">Loading...</p>}
       {!loading && leaderboard.length === 0 && <p className="text-zinc-500 text-center py-8">No scores yet.</p>}
+    </div>
+  );
+}
+
+const GENRE_LABELS: Record<string, string> = {
+  'r-n-b': 'R&B',
+  'hip-hop': 'Hip Hop',
+  'top-100': 'Top 100',
+};
+
+function MusicTab() {
+  const [data, setData] = useState<{ total: number; genres: number; plays: number; genres: { genre: string; count: number; last_fetched: string }[] } | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getSongCache().then(setData).catch(() => {}).finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <p className="text-zinc-500 text-center py-8">Loading...</p>;
+
+  const total = data?.total ?? 0;
+  const totalPlays = data?.plays ?? 0;
+  const genreList = data?.genres ?? [];
+  const genreCount = data?.genres ?? 0;
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-3 gap-4">
+        <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6 text-center">
+          <p className="text-3xl font-bold text-[var(--primary)]">{total.toLocaleString()}</p>
+          <p className="text-zinc-500 text-xs uppercase tracking-wider mt-1">Cached Songs</p>
+        </div>
+        <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6 text-center">
+          <p className="text-3xl font-bold text-[var(--accent)]">{genreCount}</p>
+          <p className="text-zinc-500 text-xs uppercase tracking-wider mt-1">Genres</p>
+        </div>
+        <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6 text-center">
+          <p className="text-3xl font-bold text-purple-400">{totalPlays.toLocaleString()}</p>
+          <p className="text-zinc-500 text-xs uppercase tracking-wider mt-1">Total Plays</p>
+        </div>
+      </div>
+
+      <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6">
+        <h2 className="text-sm font-semibold mb-4">Songs by Genre</h2>
+        <div className="space-y-2">
+          {genreList.map((g: any) => {
+            const pct = total > 0 ? (g.count / total) * 100 : 0;
+            return (
+              <div key={g.genre} className="flex items-center gap-3">
+                <span className="text-xs text-zinc-400 w-24 truncate">{GENRE_LABELS[g.genre] || g.genre.charAt(0).toUpperCase() + g.genre.slice(1)}</span>
+                <div className="flex-1 h-4 bg-white/5 rounded-full overflow-hidden">
+                  <div className="h-full bg-[var(--primary)] rounded-full" style={{ width: `${pct}%` }} />
+                </div>
+                <span className="text-xs text-zinc-400 w-12 text-right tabular-nums">{g.count}</span>
+              </div>
+            );
+          })}
+          {genreList.length === 0 && <p className="text-zinc-600 text-xs text-center py-4">No songs cached yet</p>}
+        </div>
+      </div>
     </div>
   );
 }

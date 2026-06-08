@@ -270,3 +270,7 @@ export async function getDbStatus(): Promise<{ ok: boolean; isPostgres: boolean;
 export async function deleteUser(userId: string): Promise<void> {
   await fetchWithAuth(`${API_URL}/api/admin/users/${userId}`, { method: 'DELETE' });
 }
+
+export async function getSongCache(): Promise<{ total: number; genres: number; plays: number; genres: { genre: string; count: number; last_fetched: string }[] }> {
+  return fetchWithAuth(`${API_URL}/api/admin/song-cache`);
+}

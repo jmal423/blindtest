@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import { Server } from 'socket.io';
 import { GameRoom } from './game.js';
 import { GENRES, getGenreLabel } from './deezer.js';
-import { generateId, get, all, run, ping, getTableCounts, createGame, finishGame, addGamePlayer, addRoundResultV2, getGameHistory, getPlayerStats, getLeaderboardV2, getRecentGames, getGameDetails, getSongCacheCounts } from './db.js';
+import { generateId, get, all, run, ping, getTableCounts, createGame, finishGame, addGamePlayer, addRoundResultV2, getGameHistory, getPlayerStats, getLeaderboardV2, getRecentGames, getGameDetails, getSongCacheCounts, getSongCacheByGenre } from './db.js';
 import { getAuthUrl, handleDiscordCallback, authenticate, requireAdmin, tryDecodeToken } from './auth.js';
 
 dotenv.config();
@@ -590,6 +590,14 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
     songCacheGenres: Number(songCache.genres || 0),
     songCachePlays: Number(songCache.plays || 0),
   });
+});
+
+app.get('/api/admin/song-cache', requireAdmin, async (req, res) => {
+  const [counts, genres] = await Promise.all([
+    getSongCacheCounts().catch(() => ({ total: 0, genres: 0, plays: 0 })),
+    getSongCacheByGenre().catch(() => []),
+  ]);
+  res.json({ ...counts, genres });
 });
 
 app.get('/api/admin/rooms', requireAdmin, (req, res) => {

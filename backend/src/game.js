@@ -203,45 +203,24 @@ export class GameRoom {
       let lastError = '';
       const totalNeeded = Math.max(this.settings.rounds * 2, 20);
       const shuffledGenres = shuffle([...this.genres]).slice(0, 5);
+      const seenIds = new Set();
 
-      // Try song cache first for recency-weighted selection
-      try {
-        const { getCachedTracksByGenre, cacheSongs } = await import('./db.js');
-        for (const genre of shuffledGenres) {
-          if (allTracks.length >= totalNeeded) break;
-          try {
-            const cached = await getCachedTracksByGenre(genre, 30);
-            allTracks.push(...cached);
-          } catch (err) {
-            console.error(`[Cache] Failed for genre "${genre}":`, err.message);
-          }
-        }
-        console.log(`[Game] Room ${this.code}: ${allTracks.length} tracks from cache`);
-      } catch (err) {
-        console.error('[Cache] Song cache query failed:', err.message);
-      }
-
-      // Fill remaining from Deezer API
-      if (allTracks.length < totalNeeded) {
-        const { getTracksByGenre } = await import('./deezer.js');
-        const seenIds = new Set(allTracks.map(t => t.id));
-        for (const genre of shuffledGenres) {
-          if (allTracks.length >= totalNeeded) break;
-          try {
-            const tracks = await getTracksByGenre(genre, 50);
-            for (const t of tracks) {
-              if (!seenIds.has(t.id)) {
-                allTracks.push(t);
-                seenIds.add(t.id);
-              }
+      for (const genre of shuffledGenres) {
+        if (allTracks.length >= totalNeeded) break;
+        try {
+          const { getTracksByGenre } = await import('./deezer.js');
+          const tracks = await getTracksByGenre(genre, 50);
+          for (const t of tracks) {
+            if (!seenIds.has(t.id) && t.previewUrl) {
+              allTracks.push(t);
+              seenIds.add(t.id);
             }
-            // Cache fetched tracks for future games
-            const { cacheSongs } = await import('./db.js');
-            await cacheSongs(tracks).catch(err => console.error('[Cache] Failed to cache tracks:', err.message));
-          } catch (err) {
-            lastError = err.message;
-            console.error(`[Deezer] Failed for genre "${genre}":`, err.message);
           }
+          const { cacheSongs } = await import('./db.js');
+          await cacheSongs(tracks).catch(err => console.error('[Cache] Failed to cache tracks:', err.message));
+        } catch (err) {
+          lastError = err.message;
+          console.error(`[Deezer] Failed for genre "${genre}":`, err.message);
         }
       }
 
