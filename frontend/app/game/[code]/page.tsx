@@ -399,31 +399,50 @@ export default function GamePage({
         </div>
       </div>
 
-      <div className="flex gap-4 md:gap-6 min-h-0 flex-1">
-        {gameState.state !== 'waiting' && gameState.state !== 'game_over' && ((gameState as any)?.trackHistory?.length > 0) && (
-          <div className="hidden md:flex flex-col w-48 shrink-0">
-            <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">{t('history_label')}</p>
-            <div className="flex-1 overflow-y-auto space-y-1 max-h-[calc(100vh-16rem)]">
-{[...((gameState as any)?.trackHistory || [])].reverse().map((t: any) => (
-                 <div
-                   key={t.round}
-                   className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-[10px] ${t.skipped ? 'opacity-50' : ''} ${
-                     t.round === ((gameState as any)?.trackHistory || []).length ? 'bg-[var(--primary)]/10 border border-[var(--primary)]/20' : 'bg-white/[0.03]'
-                   }`}
-                 >
-                   {t.skipped && <span className="text-zinc-500">⏭</span>}
-                   {t.albumImage && (
-                     <img src={t.albumImage} alt="" className="w-5 h-5 rounded object-cover shrink-0" />
-                   )}
-                   <div className="min-w-0 flex-1">
-                     <p className={`font-medium truncate leading-tight ${t.skipped ? 'line-through text-zinc-500' : ''}`}>{t.name}</p>
-                     <p className="text-zinc-500 truncate leading-tight">
-                       {t.artist}{t.rank > 0 ? ` · #${t.rank.toLocaleString()}` : ''}
-                     </p>
-                   </div>
-                 </div>
-               ))}
+<div className="flex gap-4 md:gap-6 min-h-0 flex-1">
+        {gameState.state !== 'waiting' && gameState.state !== 'game_over' && (
+          <div className="hidden md:flex flex-col w-52 shrink-0 gap-3 max-h-[calc(100vh-10rem)]">
+            <div>
+              <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">{t('players_label') || 'Players'}</p>
+              <div className="space-y-1">
+                {[...gameState.players].sort((a: any, b: any) => b.score - a.score).map((p: any) => (
+                  <div key={p.id} className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-[11px] ${p.id === playerId ? 'bg-[var(--primary)]/10 border border-[var(--primary)]/20' : 'bg-white/[0.03]'}`}>
+                    <div className="w-5 h-5 rounded-full shrink-0 flex items-center justify-center text-[9px] font-bold" style={{ backgroundColor: PLAYER_COLORS[gameState.players.indexOf(p) % PLAYER_COLORS.length] }}>
+                      {p.name?.[0]?.toUpperCase() || '?'}
+                    </div>
+                    <span className="truncate flex-1 text-zinc-300">{p.name}</span>
+                    <span className="text-[var(--accent)] font-bold tabular-nums shrink-0">{p.score}</span>
+                  </div>
+                ))}
+              </div>
             </div>
+
+            {((gameState as any)?.trackHistory?.length > 0) && (
+              <div className="flex-1 min-h-0 flex flex-col">
+                <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">{t('history_label')}</p>
+                <div className="flex-1 overflow-y-auto space-y-1">
+                  {[...((gameState as any)?.trackHistory || [])].reverse().map((t: any) => (
+                    <div
+                      key={t.round}
+                      className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-[10px] ${t.skipped ? 'opacity-50' : ''} ${
+                        t.round === ((gameState as any)?.trackHistory || []).length ? 'bg-[var(--primary)]/10 border border-[var(--primary)]/20' : 'bg-white/[0.03]'
+                      }`}
+                    >
+                      {t.skipped && <span className="text-zinc-500">⏭</span>}
+                      {t.albumImage && (
+                        <img src={t.albumImage} alt="" className="w-5 h-5 rounded object-cover shrink-0" />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className={`font-medium truncate leading-tight ${t.skipped ? 'line-through text-zinc-500' : ''}`}>{t.name}</p>
+                        <p className="text-zinc-500 truncate leading-tight">
+                          {t.artist}{t.rank > 0 ? ` · #${t.rank.toLocaleString()}` : ''}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -932,25 +951,6 @@ function PlayingPhase({
           className="h-full rounded-full bg-[var(--primary)] transition-none"
           style={{ width: `${roundDuration > 0 ? ((smoothTime ?? 0) / roundDuration) * 100 : 0}%` }}
         />
-      </div>
-
-      <div className="flex gap-1">
-        {players.map(p => {
-          const s = playerStatus(p);
-          return (
-            <div
-              key={p.id}
-              className={`flex-1 text-center px-1.5 py-1 rounded text-[10px] font-medium transition-all ${
-                s === 'found' ? 'bg-yellow-500/20 text-yellow-400'
-                : s === 'partial' ? 'bg-[var(--primary)]/10 text-[var(--primary)]'
-                : 'text-zinc-600'
-              }`}
-              title={`${p.name} — ${p.score}pts`}
-            >
-              {[...p.name].slice(0, 2).join('')}
-            </div>
-          );
-        })}
       </div>
 
       <div className="flex gap-2">
