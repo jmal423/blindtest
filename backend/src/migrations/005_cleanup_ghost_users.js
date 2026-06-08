@@ -4,7 +4,7 @@ export default {
     -- Reassign game_players rows that reference ghost users (no discord_id)
     -- to the matching Discord user (same username), then delete the ghosts.
     UPDATE game_players
-    SET player_id = du.id
+    SET player_id = du.discord_id
     FROM (
       SELECT g.id AS ghost_id, d.id AS discord_id
       FROM users g
@@ -14,7 +14,7 @@ export default {
     WHERE game_players.player_id = du.ghost_id;
 
     UPDATE round_results_v2
-    SET player_id = du.id
+    SET player_id = du.discord_id
     FROM (
       SELECT g.id AS ghost_id, d.id AS discord_id
       FROM users g
@@ -24,7 +24,7 @@ export default {
     WHERE round_results_v2.player_id = du.ghost_id;
 
     UPDATE round_results
-    SET user_id = du.id
+    SET user_id = du.discord_id
     FROM (
       SELECT g.id AS ghost_id, d.id AS discord_id
       FROM users g
@@ -34,7 +34,7 @@ export default {
     WHERE round_results.user_id = du.ghost_id;
 
     UPDATE game_scores
-    SET user_id = du.id
+    SET user_id = du.discord_id
     FROM (
       SELECT g.id AS ghost_id, d.id AS discord_id
       FROM users g
