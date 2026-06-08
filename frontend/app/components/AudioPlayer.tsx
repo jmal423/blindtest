@@ -27,6 +27,7 @@ const AudioPlayer = forwardRef<AudioPlayerHandle, {
   volRef.current = settings.masterVolume;
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const readyRef = useRef(false);
+  const srcRef = useRef<string | null>(null);
   const onPlayingRef = useRef(onPlaying);
   const onBlockedRef = useRef(onBlocked);
   const firedRef = useRef(false);
@@ -38,9 +39,8 @@ const AudioPlayer = forwardRef<AudioPlayerHandle, {
   useImperativeHandle(ref, () => ({
     resume: async () => {
       const a = audioRef.current;
-      if (!a || !readyRef.current) return false;
+      if (!a) return false;
       try {
-        a.currentTime = offsetRef.current;
         a.volume = volRef.current;
         await a.play();
         return true;
@@ -51,32 +51,63 @@ const AudioPlayer = forwardRef<AudioPlayerHandle, {
   }));
 
   useEffect(() => {
-    if (state !== 'playing' || !previewUrl) {
+    const url = (state === 'playing' || state === 'round_preparing') ? previewUrl : null;
+
+    if (!url) {
       if (audioRef.current) {
         audioRef.current.pause();
-        audioRef.current.src = '';
         audioRef.current = null;
+        srcRef.current = null;
         readyRef.current = false;
       }
       firedRef.current = false;
       return;
     }
 
+    if (srcRef.current === url && audioRef.current) {
+      return;
+    }
+
     firedRef.current = false;
     readyRef.current = false;
 
-    const audio = new Audio(previewUrl);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+
+    const audio = new Audio();
     audio.preload = 'auto';
     audio.volume = volRef.current;
-    audio.addEventListener('canplaythrough', () => { readyRef.current = true; }, { once: true });
-    audio.addEventListener('loadedmetadata', () => { readyRef.current = true; }, { once: true });
+    audio.src = url;
+
+    const onReady = () => { readyRef.current = true; };
+    const onError = () => {
+      console.error('[Audio] Failed to load:', url, audio.error?.code, audio.error?.message);
+      readyRef.current = false;
+    };
+
+    audio.addEventListener('canplaythrough', onReady, { once: true });
+    audio.addEventListener('loadedmetadata', onReady, { once: true });
+    audio.addEventListener('error', onError, { once: true });
+
     audioRef.current = audio;
+    srcRef.current = url;
+
+    if (state !== 'playing') {
+      audio.pause();
+    }
 
     return () => {
+      audio.removeEventListener('canplaythrough', onReady);
+      audio.removeEventListener('loadedmetadata', onReady);
+      audio.removeEventListener('error', onError);
       audio.pause();
-      audio.src = '';
-      audioRef.current = null;
-      readyRef.current = false;
+      if (audioRef.current === audio) {
+        audioRef.current = null;
+        srcRef.current = null;
+        readyRef.current = false;
+      }
     };
   }, [previewUrl, state]);
 
@@ -85,11 +116,19 @@ const AudioPlayer = forwardRef<AudioPlayerHandle, {
     firedRef.current = false;
 
     let stopped = false;
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
 
     const tryStart = () => {
       if (stopped) return;
       const a = audioRef.current;
-      if (!a || !readyRef.current) { setTimeout(tryStart, 100); return; }
+      if (!a) {
+        retryTimer = setTimeout(tryStart, 100);
+        return;
+      }
+      if (!readyRef.current) {
+        retryTimer = setTimeout(tryStart, 150);
+        return;
+      }
       try {
         a.currentTime = offsetRef.current;
         a.volume = volRef.current;
@@ -99,31 +138,20 @@ const AudioPlayer = forwardRef<AudioPlayerHandle, {
             if (stopped) return;
             if (err.name === 'NotAllowedError') {
               onBlockedRef.current?.();
+            } else {
+              console.error('[Audio] Play error:', err.name, err.message);
             }
           });
         }
-      } catch {
+      } catch (err) {
         onBlockedRef.current?.();
       }
     };
     tryStart();
 
-    const onGesture = () => {
-      if (stopped) return;
-      const a = audioRef.current;
-      if (!a) return;
-      try {
-        a.volume = volRef.current;
-        a.play().catch(() => {});
-      } catch {}
-    };
-    document.addEventListener('click', onGesture, { once: true });
-    document.addEventListener('touchstart', onGesture, { once: true, passive: true });
-
     return () => {
       stopped = true;
-      document.removeEventListener('click', onGesture);
-      document.removeEventListener('touchstart', onGesture);
+      if (retryTimer) clearTimeout(retryTimer);
     };
   }, [state]);
 

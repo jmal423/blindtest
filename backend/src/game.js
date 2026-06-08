@@ -601,17 +601,13 @@ export class GameRoom {
 
     // Persist game results to database
     if (this.gameId) {
-      import('./db.js').then(({ finishGame, addGamePlayer, ensureUser }) => {
+      import('./db.js').then(({ finishGame, addGamePlayer }) => {
         finishGame(this.gameId).then(() => {
           console.log(`[DB] Game ${this.gameId} finished`);
         }).catch(err => console.error('[DB] Failed to finish game:', err.message));
 
         for (const p of this.players) {
-          // Ensure user exists in DB before saving game_player result
           const playerIdForDb = p.userId || p.id;
-          ensureUser(playerIdForDb, p.name, p.avatarUrl || null, p.role || 'user')
-            .catch(err => console.error(`[DB] Failed to ensure user ${p.name}:`, err.message));
-
           const pos = this.rankings.findIndex(r => r.name === p.name) + 1;
           addGamePlayer(crypto.randomUUID(), this.gameId, playerIdForDb, p.name, p.score, pos || this.players.length)
             .then(() => console.log(`[DB] Saved player ${p.name}: ${p.score}pts (position ${pos})`))
