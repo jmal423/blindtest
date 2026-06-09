@@ -25,10 +25,10 @@ const GENRE_ID_MAP = {
   indian: 81,
   soundtrack: 173,
   children: 95,
+  alternative: 100,
 };
 
 const CUSTOM_GENRE_PLAYLISTS = {
-  portugal: [13554294441, 1362519755, 15124964223, 826523261, 15286957683, 15124964063, 15053615463, 15359036843, 14948588183, 14990952383, 14838782463, 4782723304, 15066013003, 13458107163, 14008366641, 11497474684, 14310603961],
   'french-rap': [6568026624, 8619246462, 15155137203, 1836636662],
   'k-pop': [4096400722, 12244134951, 7482846624],
   funk: [14368395721, 1362769557, 8463841782, 14224748821, 15309227643],
@@ -66,7 +66,7 @@ const ALBUM_GENRE_ALIASES = {
   'jeunesse': 'children',
 };
 
-const REGIONAL_GENRES = ['french-pop', 'french-rap', 'portugal', 'brazilian', 'african', 'arabic', 'asian', 'indian', 'latin'];
+const REGIONAL_GENRES = ['french-pop', 'french-rap', 'brazilian', 'african', 'arabic', 'asian', 'indian', 'latin'];
 
 const CHART_SOURCES = {
   0: 'top-100',
@@ -260,7 +260,7 @@ async function getTracksByGenre(genre, count = 10) {
 const GENRES = [
   'pop', 'rock', 'hip-hop', 'r-n-b', 'electronic', 'jazz', 'classical',
   'country', 'metal', 'indie', 'soul', 'blues', 'reggae', 'latin',
-  'dance', 'brazilian', 'portugal', 'french-pop', 'french-rap',
+  'dance', 'brazilian', 'french-pop', 'french-rap', 'alternative',
   'folk', 'african', 'arabic', 'asian', 'indian', 'soundtrack', 'k-pop',
   'children', 'funk', 'samba', 'mpb',
 ];
@@ -269,7 +269,6 @@ const GENRE_LABELS = {
   'r-n-b': 'R&B',
   'hip-hop': 'Hip Hop',
   brazilian: 'Brazilian',
-  portugal: 'Portugal',
   'french-pop': 'French Pop',
   'french-rap': 'French Rap',
   'k-pop': 'K-Pop',
@@ -282,6 +281,7 @@ const GENRE_LABELS = {
   children: 'Children',
   funk: 'Funk',
   samba: 'Samba',
+  alternative: 'Alternative',
   mpb: 'MPB',
 };
 
