@@ -6,7 +6,7 @@
   "join_lobby": "Entrar na sala",
   "join_placeholder": "Código da sala...",
   "features_heading": "Porquê BlindTest?",
-  "feature_1_title": "27 Géneros",
+  "feature_1_title": "30 Géneros",
   "feature_1_desc": "Pop, Rock, Hip-Hop, Eletrónica e mais. Escolhe o teu estilo.",
   "feature_2_title": "Multijogador em Direto",
   "feature_2_desc": "Joga com amigos em tempo real. Pontuação atualiza ao vivo.",
@@ -189,7 +189,7 @@
   "genre_reggae": "Reggae",
   "genre_latin": "Latina",
   "genre_dance": "Dance",
-  "genre_brazilian": "Brasileira",
+  "genre_brazilian": "Brasileiro",
   "genre_portugal": "Portugal",
   "genre_french-pop": "Pop Francês",
   "genre_french-rap": "Rap Francês",
@@ -200,5 +200,8 @@
   "genre_indian": "Indiana",
   "genre_soundtrack": "Banda sonora",
   "genre_k-pop": "K-Pop",
-  "genre_children": "Infantil"
+  "genre_children": "Infantil",
+  "genre_funk": "Funk",
+  "genre_samba": "Samba",
+  "genre_mpb": "MPB"
 }

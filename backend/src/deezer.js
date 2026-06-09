@@ -28,9 +28,12 @@ const GENRE_ID_MAP = {
 };
 
 const CUSTOM_GENRE_PLAYLISTS = {
-  portugal: [13554294441, 1362519755, 15124964223, 826523261, 15286957683, 15124964063, 15053615463, 15359036843, 14948588183, 14990952383, 14838782463, 4782723304],
+  portugal: [13554294441, 1362519755, 15124964223, 826523261, 15286957683, 15124964063, 15053615463, 15359036843, 14948588183, 14990952383, 14838782463, 4782723304, 15066013003, 13458107163, 14008366641, 11497474684, 14310603961],
   'french-rap': [6568026624, 8619246462, 15155137203, 1836636662],
   'k-pop': [4096400722, 12244134951, 7482846624],
+  funk: [14368395721, 1362769557, 8463841782, 14224748821, 15309227643],
+  samba: [5449764382, 1458038495, 10765765942, 13851181761],
+  mpb: [10882924122, 2939179186, 9574604402, 945174685, 12183289911],
 };
 
 const ALBUM_GENRE_ALIASES = {
@@ -259,7 +262,7 @@ const GENRES = [
   'country', 'metal', 'indie', 'soul', 'blues', 'reggae', 'latin',
   'dance', 'brazilian', 'portugal', 'french-pop', 'french-rap',
   'folk', 'african', 'arabic', 'asian', 'indian', 'soundtrack', 'k-pop',
-  'children',
+  'children', 'funk', 'samba', 'mpb',
 ];
 
 const GENRE_LABELS = {
@@ -277,6 +280,9 @@ const GENRE_LABELS = {
   indian: 'Indian',
   soundtrack: 'Soundtrack',
   children: 'Children',
+  funk: 'Funk',
+  samba: 'Samba',
+  mpb: 'MPB',
 };
 
 function getGenreLabel(genre) {
