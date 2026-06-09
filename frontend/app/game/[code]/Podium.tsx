@@ -7,6 +7,7 @@ import { useTranslation } from '@/lib/useTranslation';
 interface PodiumEntry {
   rank: number;
   name: string;
+  avatarUrl?: string | null;
   score: number;
   xp: number;
   answers?: any[];
@@ -44,9 +45,13 @@ export default function Podium({ rankings, playerId, code, onPlayAgain }: Podium
             transition={{ duration: 0.5, delay: 0.2 }}
             className="flex flex-col items-center gap-2"
           >
-            <div className="w-14 h-14 rounded-full bg-gradient-to-b from-zinc-300 to-zinc-500 flex items-center justify-center text-2xl font-bold shadow-lg">
-              {[...top3[1].name][0]}
-            </div>
+            {top3[1].avatarUrl ? (
+              <img src={top3[1].avatarUrl} alt="" className="w-14 h-14 rounded-full object-cover shadow-lg" referrerPolicy="no-referrer" />
+            ) : (
+              <div className="w-14 h-14 rounded-full bg-gradient-to-b from-zinc-300 to-zinc-500 flex items-center justify-center text-2xl font-bold shadow-lg">
+                {[...top3[1].name][0]}
+              </div>
+            )}
             <p className="text-sm font-semibold text-zinc-300">{top3[1].name}</p>
             <p className="text-xs text-zinc-500">{top3[1].score} pts</p>
             <div className="w-20 h-24 bg-gradient-to-t from-zinc-400 to-zinc-300 rounded-t-xl flex items-center justify-center shadow-md">
@@ -69,9 +74,13 @@ export default function Podium({ rankings, playerId, code, onPlayAgain }: Podium
             >
               👑
             </motion.div>
-            <div className="w-16 h-16 rounded-full bg-gradient-to-b from-yellow-300 to-yellow-500 flex items-center justify-center text-2xl font-bold shadow-lg ring-2 ring-yellow-300/50">
-              {[...top3[0].name][0]}
-            </div>
+            {top3[0].avatarUrl ? (
+              <img src={top3[0].avatarUrl} alt="" className="w-16 h-16 rounded-full object-cover shadow-lg ring-2 ring-yellow-300/50" referrerPolicy="no-referrer" />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-gradient-to-b from-yellow-300 to-yellow-500 flex items-center justify-center text-2xl font-bold shadow-lg ring-2 ring-yellow-300/50">
+                {[...top3[0].name][0]}
+              </div>
+            )}
             <p className="text-base font-bold text-yellow-300">{top3[0].name}</p>
             <p className="text-sm text-yellow-400/80">{top3[0].score} pts</p>
             <div className="w-24 h-32 bg-gradient-to-t from-yellow-500 to-yellow-400 rounded-t-xl flex items-center justify-center shadow-xl">
@@ -87,9 +96,13 @@ export default function Podium({ rankings, playerId, code, onPlayAgain }: Podium
             transition={{ duration: 0.5, delay: 0.3 }}
             className="flex flex-col items-center gap-2"
           >
-            <div className="w-12 h-12 rounded-full bg-gradient-to-b from-amber-600 to-amber-800 flex items-center justify-center text-xl font-bold shadow-lg">
-              {[...top3[2].name][0]}
-            </div>
+            {top3[2].avatarUrl ? (
+              <img src={top3[2].avatarUrl} alt="" className="w-12 h-12 rounded-full object-cover shadow-lg" referrerPolicy="no-referrer" />
+            ) : (
+              <div className="w-12 h-12 rounded-full bg-gradient-to-b from-amber-600 to-amber-800 flex items-center justify-center text-xl font-bold shadow-lg">
+                {[...top3[2].name][0]}
+              </div>
+            )}
             <p className="text-sm font-semibold text-amber-600">{top3[2].name}</p>
             <p className="text-xs text-amber-600/70">{top3[2].score} pts</p>
             <div className="w-16 h-20 bg-gradient-to-t from-amber-700 to-amber-600 rounded-t-xl flex items-center justify-center shadow-md">

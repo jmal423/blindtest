@@ -620,6 +620,7 @@ export class GameRoom {
       return {
         rank,
         name: p.name,
+        avatarUrl: p.avatarUrl,
         score: p.score,
         xp: p.score * 10 + placementXp,
         answers: p.answers,
