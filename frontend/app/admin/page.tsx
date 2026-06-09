@@ -202,7 +202,7 @@ function UsersTab() {
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-xs font-bold overflow-hidden shrink-0">
                       {u.avatar_url ? (
-                        <img src={u.avatar_url} alt="" className="w-full h-full object-cover" />
+                        <img src={u.avatar_url} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                       ) : (
                         u.username[0].toUpperCase()
                       )}
@@ -360,7 +360,7 @@ function LeaderboardTab() {
           </span>
           <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 bg-zinc-700 flex items-center justify-center text-xs font-bold">
             {e.avatar_url ? (
-              <img src={e.avatar_url} alt="" className="w-full h-full object-cover" />
+              <img src={e.avatar_url} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
             ) : (
               (e.username || e.player_name || '?')[0].toUpperCase()
             )}

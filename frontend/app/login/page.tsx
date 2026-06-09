@@ -56,7 +56,7 @@ function LoginContent() {
         <div className="flex flex-col items-center gap-4 max-w-sm w-full">
           <div className="w-20 h-20 rounded-full bg-[var(--surface)] flex items-center justify-center text-3xl font-bold text-[var(--primary)] overflow-hidden">
             {user.avatar_url ? (
-              <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
+              <img src={user.avatar_url} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
             ) : (
               user.username[0].toUpperCase()
             )}

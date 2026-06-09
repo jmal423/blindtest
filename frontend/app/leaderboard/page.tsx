@@ -69,7 +69,7 @@ export default function LeaderboardPage() {
                 </span>
                 <div className="w-9 h-9 rounded-full bg-[var(--surface-light)] flex items-center justify-center text-sm font-bold overflow-hidden shrink-0">
                   {e.avatar_url ? (
-                    <img src={e.avatar_url} alt="" className="w-full h-full object-cover" />
+                    <img src={e.avatar_url} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                   ) : (
                     (e.username || e.player_name || '?')[0].toUpperCase()
                   )}

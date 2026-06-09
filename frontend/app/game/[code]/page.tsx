@@ -647,7 +647,7 @@ function WaitingRoom({
         {players.map((p, i) => (
           <div key={p.id} className="flex items-center gap-3 px-4 py-3 bg-[var(--surface)] rounded-xl">
             {p.avatarUrl ? (
-              <img src={p.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
+              <img src={p.avatarUrl} alt="" referrerPolicy="no-referrer" className="w-8 h-8 rounded-full object-cover" />
             ) : (
               <div className="w-8 h-8 rounded-full bg-[var(--primary)] flex items-center justify-center text-sm font-bold">
                 {p.name[0].toUpperCase()}

@@ -90,7 +90,7 @@ export default function Header() {
             aria-label="Open menu"
           >
             {user?.avatar_url ? (
-              <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
+              <img src={user.avatar_url} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
             ) : (
               user?.username?.[0]?.toUpperCase() || '?'
             )}
@@ -124,7 +124,7 @@ export default function Header() {
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full overflow-hidden shrink-0">
                           {user.avatar_url ? (
-                            <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
+                            <img src={user.avatar_url} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                           ) : (
                             <div className="w-full h-full bg-[var(--primary)] flex items-center justify-center text-sm font-bold">
                               {user.username[0].toUpperCase()}
