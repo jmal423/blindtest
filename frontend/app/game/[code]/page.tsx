@@ -40,6 +40,8 @@ export default function GamePage({
   const [smoothTime, setSmoothTime] = useState<number>(0);
   const localTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const smoothTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const roundStartRef = useRef<number>(0);
+  const roundTimeRef = useRef<number>(15);
   const guessInputRef = useRef<HTMLInputElement>(null);
   const [artistFound, setArtistFound] = useState(false);
   const [titleFound, setTitleFound] = useState(false);
@@ -135,8 +137,11 @@ export default function GamePage({
       if (state.state === 'playing' && !localTimerRef.current) {
         const roundTime = state.roundTime || 15;
         const serverTimeLeft = state.timeLeft ?? roundTime;
+        const elapsed = Math.max(0, roundTime - serverTimeLeft);
         setLocalTimeLeft(serverTimeLeft);
-        setSmoothTime(Math.max(0, roundTime - serverTimeLeft));
+        setSmoothTime(elapsed);
+        roundStartRef.current = Date.now() - elapsed * 1000;
+        roundTimeRef.current = roundTime;
 
         localTimerRef.current = setInterval(() => {
           setLocalTimeLeft(prev => {
@@ -152,17 +157,15 @@ export default function GamePage({
         }, 1000);
 
         smoothTimerRef.current = setInterval(() => {
-          setSmoothTime(t => {
-            const next = t + 0.05;
-            if (next >= roundTime) {
-              if (smoothTimerRef.current) {
-                clearInterval(smoothTimerRef.current);
-                smoothTimerRef.current = null;
-              }
-              return roundTime;
+          const elapsedMs = Date.now() - roundStartRef.current;
+          const t = Math.min(elapsedMs / 1000, roundTimeRef.current);
+          setSmoothTime(t);
+          if (t >= roundTimeRef.current) {
+            if (smoothTimerRef.current) {
+              clearInterval(smoothTimerRef.current);
+              smoothTimerRef.current = null;
             }
-            return next;
-          });
+          }
         }, 50);
       }
       return;
@@ -228,6 +231,8 @@ export default function GamePage({
     socket.on('input_result', (result: any) => {
       if (result.found_both) {
         setBothFound(true);
+        setArtistFound(true);
+        setTitleFound(true);
         playSound('complete');
         const completeKeys = ['complete_1', 'complete_2', 'complete_3', 'complete_4', 'complete_5'];
         setEncouragement(t(completeKeys[Math.floor(Math.random() * completeKeys.length)]));
@@ -429,11 +434,11 @@ export default function GamePage({
               <div className="flex-1 min-h-0 flex flex-col">
                 <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">{t('history_label')}</p>
                 <div className="flex-1 overflow-y-auto space-y-1">
-                  {[...((gameState as any)?.trackHistory || [])].reverse().map((t: any) => (
+                  {[...((gameState as any)?.trackHistory || [])].reverse().map((t: any, idx: number) => (
                     <div
                       key={t.round}
                       className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-[10px] ${t.skipped ? 'opacity-50' : ''} ${
-                        t.round === ((gameState as any)?.trackHistory || []).length ? 'bg-[var(--primary)]/10 border border-[var(--primary)]/20' : 'bg-white/[0.03]'
+                        idx === 0 ? 'bg-[var(--primary)]/10 border border-[var(--primary)]/20' : 'bg-white/[0.03]'
                       }`}
                     >
                       {t.skipped && <span className="text-zinc-500">⏭</span>}

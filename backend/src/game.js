@@ -498,13 +498,14 @@ export class GameRoom {
 
     this.tracksPlayed++;
     this.trackHistory.push({
-      round: this.tracksPlayed,
+      round: this.trackHistory.length + 1,
       name: track.name,
       artist: track.artist,
       albumImage: track.albumImage,
       rank: track.rank ?? 0,
       skipped: true,
     });
+    if (this.trackHistory.length > 100) this.trackHistory = this.trackHistory.slice(-100);
 
     if (this.gameId && track.id) {
       import('./db.js').then(({ recordPlay }) => {
@@ -561,13 +562,14 @@ export class GameRoom {
     const track = this.tracks[this.currentRound];
     this.tracksPlayed++;
     this.trackHistory.push({
-      round: this.tracksPlayed,
+      round: this.trackHistory.length + 1,
       name: track.name,
       artist: track.artist,
       albumImage: track.albumImage,
       rank: track.rank ?? 0,
       skipped: false,
     });
+    if (this.trackHistory.length > 100) this.trackHistory = this.trackHistory.slice(-100);
 
     // Record this song as played for recency weighting
     if (this.gameId && track.id) {
