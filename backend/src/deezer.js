@@ -16,6 +16,11 @@ const GENRE_ID_MAP = {
   reggae: 144,
   latin: 197,
   dance: 113,
+  brazilian: 75,
+};
+
+const CUSTOM_GENRE_PLAYLISTS = {
+  portugal: [13554294441, 1362519755],
 };
 
 const CHART_SOURCES = {
@@ -80,13 +85,57 @@ function mapTrack(t, chartSource) {
   };
 }
 
+async function getCustomGenreTracks(genre, count) {
+  const playlistIds = CUSTOM_GENRE_PLAYLISTS[genre];
+  if (!playlistIds?.length) {
+    console.log(`[Deezer] No custom source for "${genre}", skipping`);
+    return [];
+  }
+
+  const tracks = [];
+  const seen = new Set();
+
+  for (const playlistId of playlistIds) {
+    if (tracks.length >= count) break;
+    const data = await deezerFetch(`/playlist/${playlistId}/tracks?limit=${count * 2}`);
+    if (!data?.data) continue;
+    let added = 0;
+    for (const t of data.data) {
+      if (!t.preview || seen.has(t.id)) continue;
+      seen.add(t.id);
+      tracks.push(mapTrack(t, genre));
+      added++;
+    }
+    if (added > 0) console.log(`[Deezer] Playlist ${playlistId} +${added} tracks for "${genre}"`);
+  }
+
+  const batchSize = 5;
+  for (let i = 0; i < tracks.length; i += batchSize) {
+    const batch = tracks.slice(i, i + batchSize);
+    await Promise.all(batch.map(async (track) => {
+      if (track.albumId) {
+        try {
+          track.genres = await fetchAlbumGenres(track.albumId);
+        } catch {
+          track.genres = [genre];
+        }
+      } else {
+        track.genres = [genre];
+      }
+    }));
+  }
+
+  console.log(`[Deezer] Total ${tracks.length} tracks for "${genre}" (${tracks.filter(t => t.previewUrl).length} with preview)`);
+  tracks.sort((a, b) => (b.rank || 0) - (a.rank || 0));
+  return tracks.slice(0, count);
+}
+
 async function getTracksByGenre(genre, count = 10) {
   const tracks = [];
   const seen = new Set();
   const genreId = GENRE_ID_MAP[genre];
   if (genreId == null) {
-    console.log(`[Deezer] No genre ID for "${genre}", skipping`);
-    return [];
+    return getCustomGenreTracks(genre, count);
   }
 
   const chartSource = CHART_SOURCES[genreId] || genre;
@@ -142,12 +191,14 @@ async function getTracksByGenre(genre, count = 10) {
 const GENRES = [
   'pop', 'rock', 'hip-hop', 'r-n-b', 'electronic', 'jazz', 'classical',
   'country', 'metal', 'indie', 'soul', 'blues', 'reggae', 'latin',
-  'dance',
+  'dance', 'brazilian', 'portugal',
 ];
 
 const GENRE_LABELS = {
   'r-n-b': 'R&B',
   'hip-hop': 'Hip Hop',
+  brazilian: 'Brazilian',
+  portugal: 'Portugal',
 };
 
 function getGenreLabel(genre) {
