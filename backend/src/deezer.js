@@ -226,8 +226,26 @@ async function getTracksByGenre(genre, count = 10) {
     if (tracks.length < before) console.log(`[Deezer] Filtered ${before - tracks.length} tracks from "${genre}" (genre isolation)`);
   }
 
+  // Prefer less-played songs to reduce repetition
+  try {
+    const { all } = await import('./db.js');
+    const ids = tracks.map(t => t.id);
+    if (ids.length > 0) {
+      const placeholders = ids.map(() => '?').join(',');
+      const playCounts = await all(
+        `SELECT song_id, COUNT(*) as cnt FROM songs_played WHERE song_id IN (${placeholders}) GROUP BY song_id`,
+        ids
+      );
+      const countMap = {};
+      for (const row of playCounts) countMap[row.song_id] = row.cnt;
+      tracks.forEach(t => t.playCount = countMap[t.id] || 0);
+    }
+  } catch (err) {
+    console.error('[Deezer] Failed to query play counts:', err.message);
+  }
+
   console.log(`[Deezer] Total ${tracks.length} tracks for "${genre}" (${tracks.filter(t => t.previewUrl).length} with preview)`);
-  tracks.sort((a, b) => (b.rank || 0) - (a.rank || 0));
+  tracks.sort((a, b) => (a.playCount || 0) - (b.playCount || 0) || (b.rank || 0) - (a.rank || 0));
   return tracks.slice(0, count);
 }
 
