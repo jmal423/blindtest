@@ -168,7 +168,7 @@ async function getCustomGenreTracks(genre, count) {
 }
 
 async function getTracksByGenre(genre, count = 10) {
-  const tracks = [];
+  let tracks = [];
   const seen = new Set();
   const genreId = GENRE_ID_MAP[genre];
   if (genreId == null) {
