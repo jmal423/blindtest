@@ -102,6 +102,14 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
+    const info = socketPlayerMap.get(socket.id);
+    if (info) {
+      const room = rooms.get(info.roomCode);
+      if (room) {
+        room.removePlayer(info.playerId);
+        cleanupRoom(info.roomCode);
+      }
+    }
     socketPlayerMap.delete(socket.id);
   });
 });
@@ -112,6 +120,32 @@ function broadcastState(code) {
     io.to(code).emit('game_state', room.getState());
   }
 }
+
+function findRoomByUserId(userId) {
+  for (const room of rooms.values()) {
+    if (room.players.some(p => p.userId === userId)) return room;
+  }
+  return null;
+}
+
+function cleanupRoom(code) {
+  const room = rooms.get(code);
+  if (!room) return;
+  if (room.players.length === 0 && room.state !== 'playing') {
+    room.destroy();
+    rooms.delete(code);
+  }
+}
+
+// Clean up stale rooms every 30 seconds
+setInterval(() => {
+  for (const [code, room] of rooms) {
+    if (room.players.length === 0) {
+      room.destroy();
+      rooms.delete(code);
+    }
+  }
+}, 30000);
 
 function generateCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -152,6 +186,9 @@ app.post('/api/rooms', authenticate, async (req, res) => {
   const user = await get('SELECT id, username, avatar_url, role FROM users WHERE id = ?', [req.user.userId]);
   if (!user) return res.status(401).json({ error: 'User not found' });
 
+  const existing = findRoomByUserId(user.id);
+  if (existing) existing.removePlayer(existing.players.find(p => p.userId === user.id)?.id);
+
   const code = generateCode();
   const room = new GameRoom(code, genres, io);
   if (rounds || roundTime) room.updateSettings({ rounds, roundTime });
@@ -170,6 +207,11 @@ app.post('/api/rooms/join', authenticate, async (req, res) => {
 
   const room = rooms.get(code.toUpperCase());
   if (!room) return res.status(404).json({ error: 'Room not found' });
+
+  const existingOther = findRoomByUserId(user.id);
+  if (existingOther && existingOther.code !== room.code) {
+    existingOther.removePlayer(existingOther.players.find(p => p.userId === user.id)?.id);
+  }
 
   const existing = room.players.find(p => p.userId === user.id);
   if (existing) {
@@ -247,17 +289,8 @@ app.post('/api/game/:code/leave', (req, res) => {
   if (!room) return res.status(404).json({ error: 'Room not found' });
 
   const { playerId } = req.body;
-  room.players = room.players.filter(p => p.id !== playerId);
-  if (room.hostId === playerId) {
-    room.hostId = room.players[0]?.id || null;
-  }
-
-  if (room.players.length === 0) {
-    room.destroy();
-    rooms.delete(room.code);
-  } else {
-    broadcastState(room.code);
-  }
+  room.removePlayer(playerId);
+  cleanupRoom(room.code);
 
   res.json({ ok: true });
 });

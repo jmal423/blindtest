@@ -173,24 +173,30 @@ export class GameRoom {
     return p?.role === 'admin';
   }
 
-  kickPlayer(targetPlayerId) {
+  removePlayer(targetPlayerId) {
     const idx = this.players.findIndex(p => p.id === targetPlayerId);
     if (idx === -1) return null;
-    const kicked = this.players.splice(idx, 1)[0];
-    const socketId = this.playerSockets[targetPlayerId];
-    if (socketId && this.io) {
-      this.io.to(socketId).emit('kicked', { reason: 'You were removed by an admin' });
-    }
+    const removed = this.players.splice(idx, 1)[0];
     delete this.playerSockets[targetPlayerId];
     if (this.hostId === targetPlayerId) {
       this.hostId = this.players[0]?.id || null;
     }
-    if (this.players.length === 0) {
+    if (this.players.length === 0 && this.state !== 'game_over') {
       this.destroy();
-    } else {
-      this.broadcast();
+      return removed;
     }
-    return kicked;
+    this.broadcast();
+    return removed;
+  }
+
+  kickPlayer(targetPlayerId) {
+    const socketId = this.playerSockets[targetPlayerId];
+    const removed = this.removePlayer(targetPlayerId);
+    if (!removed) return null;
+    if (socketId && this.io) {
+      this.io.to(socketId).emit('kicked', { reason: 'You were removed by an admin' });
+    }
+    return removed;
   }
 
   async startGame() {
