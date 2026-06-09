@@ -5,7 +5,7 @@ import { useTranslation } from '@/lib/useTranslation';
 const FLAGS: Record<string, string> = {
   en: '🇬🇧',
   fr: '🇫🇷',
-  pt: '🇧🇷',
+  pt: '🇵🇹',
   es: '🇪🇸',
 };
 

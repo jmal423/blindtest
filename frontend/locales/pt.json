@@ -52,8 +52,8 @@
   "artist_found_placeholder": "Artista encontrado! Digita o título...",
   "title_found_placeholder": "Título encontrado! Digita o artista...",
   "guess_placeholder": "Digita o artista ou título...",
-  "skip": "Pular",
-  "vote_skip": "Votar pular",
+  "skip": "Saltar",
+  "vote_skip": "Votar saltar",
   "voted": "Votado",
 
   "main_menu": "Menu Principal",
