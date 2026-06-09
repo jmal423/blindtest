@@ -171,6 +171,12 @@ app.post('/api/rooms/join', authenticate, async (req, res) => {
   const room = rooms.get(code.toUpperCase());
   if (!room) return res.status(404).json({ error: 'Room not found' });
 
+  const existing = room.players.find(p => p.userId === user.id);
+  if (existing) {
+    broadcastState(room.code);
+    return res.json({ code: room.code, playerId: existing.id });
+  }
+
   const playerId = room.addPlayer(user.username, user.avatar_url, user.role, user.id);
   broadcastState(room.code);
   res.json({ code: room.code, playerId });

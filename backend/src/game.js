@@ -726,6 +726,7 @@ export class GameRoom {
     this.totalRounds = 0;
     this.tracksPlayed = 0;
     this.state = 'waiting';
+    this.trackHistory = [];
     this.foundOrder = [];
     this.roundResult = null;
     this.rankings = [];
