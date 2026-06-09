@@ -18,6 +18,12 @@ const GENRE_ID_MAP = {
   dance: 113,
   brazilian: 75,
   'french-pop': 52,
+  folk: 466,
+  african: 2,
+  arabic: 12,
+  asian: 16,
+  indian: 81,
+  soundtrack: 173,
 };
 
 const CUSTOM_GENRE_PLAYLISTS = {
@@ -208,6 +214,7 @@ const GENRES = [
   'pop', 'rock', 'hip-hop', 'r-n-b', 'electronic', 'jazz', 'classical',
   'country', 'metal', 'indie', 'soul', 'blues', 'reggae', 'latin',
   'dance', 'brazilian', 'portugal', 'french-pop',
+  'folk', 'african', 'arabic', 'asian', 'indian', 'soundtrack',
 ];
 
 const GENRE_LABELS = {
@@ -216,6 +223,12 @@ const GENRE_LABELS = {
   brazilian: 'Brazilian',
   portugal: 'Portugal',
   'french-pop': 'French Pop',
+  folk: 'Folk',
+  african: 'African',
+  arabic: 'Arabic',
+  asian: 'Asian',
+  indian: 'Indian',
+  soundtrack: 'Soundtrack',
 };
 
 function getGenreLabel(genre) {
