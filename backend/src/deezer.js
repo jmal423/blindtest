@@ -39,6 +39,23 @@ const ALBUM_GENRE_ALIASES = {
   'chanson-francaise': 'french-pop',
   'variete-francaise': 'french-pop',
   'nouvelle-scene': 'french-pop',
+  'musique-africaine': 'african',
+  'musique-arabe': 'arabic',
+  'musique-asiatique': 'asian',
+  'musique-brésilienne': 'brazilian',
+  'musique-bresilienne': 'brazilian',
+  'musique-indienne': 'indian',
+  'latino': 'latin',
+  'electro': 'electronic',
+  'classique': 'classical',
+  'rap/hip-hop': 'hip-hop',
+  'soul-funk': 'soul',
+  'films/jeux-vidéo': 'soundtrack',
+  'films/jeux-video': 'soundtrack',
+  'alternative': 'indie',
+  'electro': 'electronic',
+  'r-b': 'r-n-b',
+  'rnb': 'r-n-b',
 };
 
 const REGIONAL_GENRES = ['french-pop', 'french-rap', 'portugal', 'brazilian', 'african', 'arabic', 'asian', 'indian', 'latin'];
@@ -203,11 +220,10 @@ async function getTracksByGenre(genre, count = 10) {
     }));
   }
 
-  const broadGenres = ['pop', 'rock', 'electronic', 'dance', 'indie', 'soul', 'r-n-b', 'hip-hop'];
-  if (broadGenres.includes(genre)) {
+  if (!CUSTOM_GENRE_PLAYLISTS[genre]) {
     const before = tracks.length;
-    tracks = tracks.filter(t => !t.genres?.some(g => REGIONAL_GENRES.includes(g)));
-    if (tracks.length < before) console.log(`[Deezer] Filtered ${before - tracks.length} tracks with regional genres from "${genre}"`);
+    tracks = tracks.filter(t => t.genres?.includes(genre) ?? true);
+    if (tracks.length < before) console.log(`[Deezer] Filtered ${before - tracks.length} tracks from "${genre}" (genre isolation)`);
   }
 
   console.log(`[Deezer] Total ${tracks.length} tracks for "${genre}" (${tracks.filter(t => t.previewUrl).length} with preview)`);
