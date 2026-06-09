@@ -24,6 +24,7 @@ const GENRE_ID_MAP = {
   asian: 16,
   indian: 81,
   soundtrack: 173,
+  children: 95,
 };
 
 const CUSTOM_GENRE_PLAYLISTS = {
@@ -52,10 +53,14 @@ const ALBUM_GENRE_ALIASES = {
   'soul-funk': 'soul',
   'films/jeux-vidéo': 'soundtrack',
   'films/jeux-video': 'soundtrack',
+  'musiques-de-films': 'soundtrack',
   'alternative': 'indie',
-  'electro': 'electronic',
   'r-b': 'r-n-b',
   'rnb': 'r-n-b',
+  'rap-français': 'french-rap',
+  'rap-francaise': 'french-rap',
+  'rap-francais': 'french-rap',
+  'jeunesse': 'children',
 };
 
 const REGIONAL_GENRES = ['french-pop', 'french-rap', 'portugal', 'brazilian', 'african', 'arabic', 'asian', 'indian', 'latin'];
@@ -254,6 +259,7 @@ const GENRES = [
   'country', 'metal', 'indie', 'soul', 'blues', 'reggae', 'latin',
   'dance', 'brazilian', 'portugal', 'french-pop', 'french-rap',
   'folk', 'african', 'arabic', 'asian', 'indian', 'soundtrack', 'k-pop',
+  'children',
 ];
 
 const GENRE_LABELS = {
@@ -270,6 +276,7 @@ const GENRE_LABELS = {
   asian: 'Asian',
   indian: 'Indian',
   soundtrack: 'Soundtrack',
+  children: 'Children',
 };
 
 function getGenreLabel(genre) {

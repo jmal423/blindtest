@@ -731,7 +731,7 @@ function WaitingRoom({
                       : 'bg-[var(--surface-light)] text-zinc-400'
                   } ${!isHost ? 'opacity-80 cursor-default' : 'hover:brightness-110'}`}
                 >
-                  {g.label}
+                  {t('genre_' + g.id)}
                 </button>
               );
             })}
