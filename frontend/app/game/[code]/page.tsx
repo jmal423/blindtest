@@ -744,16 +744,7 @@ function WaitingRoom({
 
         {isHost && (
           <div>
-            <label className="text-xs text-zinc-500 block mb-2">{t('audio_source')}</label>
-            <div className="px-3 py-2 rounded-xl border border-[var(--primary)] bg-[var(--primary)]/10">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-[var(--primary)]" />
-                <span className="text-xs font-semibold text-white">Deezer</span>
-              </div>
-              <p className="text-[10px] text-zinc-500 mt-1 ml-[18px] leading-tight">{t('deezer_desc')}</p>
-            </div>
-
-            <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/5">
+            <div className="flex items-center justify-between pt-3">
               <div>
                 <span className="text-xs text-zinc-400">{t('auto_start')}</span>
                 <p className="text-[10px] text-zinc-600 mt-0.5">{t('auto_start_desc')}</p>
