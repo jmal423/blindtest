@@ -718,14 +718,14 @@ function WaitingRoom({
               </button>
             )}
           </div>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(80px,1fr))] gap-1.5">
             {allGenres.map(g => {
               const selected = genres.includes(g.id);
               return (
                 <button
                   key={g.id}
                   onClick={() => isHost && toggleGenre(g.id)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  className={`px-2 py-1.5 rounded-full text-[11px] font-medium transition-all truncate ${
                     selected
                       ? 'bg-[var(--primary)] text-white'
                       : 'bg-[var(--surface-light)] text-zinc-400'
