@@ -106,6 +106,15 @@ export default function GamePage({
     }
   }, [gameState?.currentRound, gameState?.state, bothFound]);
 
+  useEffect(() => {
+    if (gameState?.state !== 'waiting') return;
+    const handleBeforeUnload = () => {
+      localStorage.removeItem(`blindtest_player_${code}`);
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [code, gameState?.state]);
+
   const applyGameState = useCallback((state: GameState) => {
     setGameState(state);
 
