@@ -411,8 +411,12 @@ export default function GamePage({
               <div className="space-y-1">
                 {[...gameState.players].sort((a: any, b: any) => b.score - a.score).map((p: any) => (
                   <div key={p.id} className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-[11px] ${p.id === playerId ? 'bg-[var(--primary)]/10 border border-[var(--primary)]/20' : 'bg-white/[0.03]'}`}>
-                    <div className="w-5 h-5 rounded-full shrink-0 flex items-center justify-center text-[9px] font-bold" style={{ backgroundColor: PLAYER_COLORS[gameState.players.indexOf(p) % PLAYER_COLORS.length] }}>
-                      {p.name?.[0]?.toUpperCase() || '?'}
+                    <div className="w-5 h-5 rounded-full shrink-0 overflow-hidden flex items-center justify-center text-[9px] font-bold" style={!p.avatarUrl ? { backgroundColor: PLAYER_COLORS[gameState.players.indexOf(p) % PLAYER_COLORS.length] } : undefined}>
+                      {p.avatarUrl ? (
+                        <img src={p.avatarUrl} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                      ) : (
+                        p.name?.[0]?.toUpperCase() || '?'
+                      )}
                     </div>
                     <span className="truncate flex-1 text-zinc-300">{p.name}</span>
                     <span className="text-[var(--accent)] font-bold tabular-nums shrink-0">{p.score}</span>
