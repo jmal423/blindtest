@@ -67,6 +67,7 @@ export default function GamePage({
   const { t } = useTranslation();
   const playSoundRef = useRef(playSound);
   const activeRoundRef = useRef<string | null>(null);
+  const prevPlayerCountRef = useRef(0);
   playSoundRef.current = playSound;
 
   const handleAudioPlaying = useCallback(() => {
@@ -221,6 +222,10 @@ export default function GamePage({
     });
 
     socket.on('game_state', (state: GameState) => {
+      if (state.state === 'waiting' && state.players.length > prevPlayerCountRef.current && prevPlayerCountRef.current > 0) {
+        playSound('playerJoin');
+      }
+      prevPlayerCountRef.current = state.players.length;
       applyGameState(state);
     });
 

@@ -66,6 +66,22 @@ const SFX = {
       });
     });
   },
+  playerJoin: (vol: number) => {
+    withCtx(ac => {
+      [660, 880].forEach((f, i) => {
+        const osc = ac.createOscillator();
+        const gain = ac.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = f;
+        gain.gain.value = vol * 0.2;
+        gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.12 + i * 0.1);
+        osc.connect(gain);
+        gain.connect(ac.destination);
+        osc.start(ac.currentTime + i * 0.1);
+        osc.stop(ac.currentTime + 0.12 + i * 0.1);
+      });
+    });
+  },
 };
 
 type SfxName = keyof typeof SFX;
