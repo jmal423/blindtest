@@ -17,10 +17,20 @@ const GENRE_ID_MAP = {
   latin: 197,
   dance: 113,
   brazilian: 75,
+  'french-pop': 52,
 };
 
 const CUSTOM_GENRE_PLAYLISTS = {
   portugal: [13554294441, 1362519755],
+};
+
+const ALBUM_GENRE_ALIASES = {
+  'chanson-française': 'french-pop',
+  'variété-française': 'french-pop',
+  'nouvelle-scène': 'french-pop',
+  'chanson-francaise': 'french-pop',
+  'variete-francaise': 'french-pop',
+  'nouvelle-scene': 'french-pop',
 };
 
 const CHART_SOURCES = {
@@ -63,7 +73,7 @@ async function fetchAlbumGenres(albumId) {
   if (data?.genres?.data) {
     genres = data.genres.data.map(g => {
       const name = g.name.toLowerCase().replace(/\s*&\s*/g, '-').replace(/\s+/g, '-');
-      return GENRE_ID_MAP[name] ? name : g.name.toLowerCase().replace(/\s+/g, '-');
+      return GENRE_ID_MAP[name] ? name : (ALBUM_GENRE_ALIASES[name] || name);
     });
   }
   albumGenreCache.set(albumId, genres);
@@ -183,6 +193,12 @@ async function getTracksByGenre(genre, count = 10) {
     }));
   }
 
+  if (genre === 'pop') {
+    const before = tracks.length;
+    tracks = tracks.filter(t => !t.genres?.includes('french-pop'));
+    if (tracks.length < before) console.log(`[Deezer] Filtered ${before - tracks.length} French tracks from "${genre}"`);
+  }
+
   console.log(`[Deezer] Total ${tracks.length} tracks for "${genre}" (${tracks.filter(t => t.previewUrl).length} with preview)`);
   tracks.sort((a, b) => (b.rank || 0) - (a.rank || 0));
   return tracks.slice(0, count);
@@ -191,7 +207,7 @@ async function getTracksByGenre(genre, count = 10) {
 const GENRES = [
   'pop', 'rock', 'hip-hop', 'r-n-b', 'electronic', 'jazz', 'classical',
   'country', 'metal', 'indie', 'soul', 'blues', 'reggae', 'latin',
-  'dance', 'brazilian', 'portugal',
+  'dance', 'brazilian', 'portugal', 'french-pop',
 ];
 
 const GENRE_LABELS = {
@@ -199,6 +215,7 @@ const GENRE_LABELS = {
   'hip-hop': 'Hip Hop',
   brazilian: 'Brazilian',
   portugal: 'Portugal',
+  'french-pop': 'French Pop',
 };
 
 function getGenreLabel(genre) {
