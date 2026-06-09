@@ -208,7 +208,7 @@ export class GameRoom {
       const allTracks = [];
       let lastError = '';
       const totalNeeded = Math.max(this.settings.rounds * 2, 20);
-      const shuffledGenres = shuffle([...this.genres]).slice(0, 5);
+      const shuffledGenres = shuffle([...this.genres]).slice(0, 10);
       const seenIds = new Set();
 
       for (const genre of shuffledGenres) {
