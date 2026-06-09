@@ -2,22 +2,14 @@ const API_BASE = 'https://api.deezer.com';
 
 const GENRE_ID_MAP = {
   pop: 132,
-  rock: 152,
-  'hip-hop': 116,
-  'r-n-b': 165,
   electronic: 106,
   jazz: 129,
   classical: 98,
-  country: 84,
   metal: 464,
-  indie: 85,
   soul: 169,
   blues: 153,
   reggae: 144,
-  latin: 197,
   dance: 113,
-  brazilian: 75,
-  'french-pop': 52,
   folk: 466,
   african: 2,
   arabic: 12,
@@ -25,48 +17,61 @@ const GENRE_ID_MAP = {
   indian: 81,
   soundtrack: 173,
   children: 95,
+  'r-n-b': 165,
+  'chanson-francaise': 52,
+  'country-americana': 84,
+  'hip-hop-rap': 116,
+  'rock-indie': 152,
 };
 
 const CUSTOM_GENRE_PLAYLISTS = {
-  portugal: [13554294441, 1362519755, 15124964223, 826523261, 15286957683, 15124964063, 15053615463, 15359036843, 14948588183, 14990952383, 14838782463, 4782723304, 15066013003, 13458107163, 14008366641, 11497474684, 14310603961],
-  'french-rap': [6568026624, 8619246462, 15155137203, 1836636662],
+  fado: [2734677584, 10613220962, 4782723304, 14974361323],
+  'popular-pimba': [1478605935, 6163368884, 14302375881, 15135817403, 4782723304],
+  'traditional-folclore': [13980025901, 3835511186, 13493798923],
+  'pop-rock-portugues': [3443535566, 3562194622, 5898788844, 10642447282],
+  'hip-hop-tuga': [3481848302, 15066013003, 8211186722],
+  'classica-portuguesa': [8048810122, 12356713983, 14476568723, 15102890763],
+  'french-touch-electro': [962293895, 13065304003, 7281037904, 9197791042, 6300460544, 7342240164],
+  'rap-francais': [6568026624, 8619246462, 15155137203, 1836636662],
+  flamenco: [777756285, 3582568026, 13941285401, 15148096583, 6177686164],
+  'reggaeton-urbano': [178699142, 3803398766, 1273315391, 11120289724, 925131455],
+  'musica-regional-latina': [9003957462, 10629918582, 10630090322, 10630096622, 10630104822],
   'k-pop': [4096400722, 12244134951, 7482846624],
-  funk: [14368395721, 1362769557, 8463841782, 14224748821, 15309227643],
-  samba: [5449764382, 1458038495, 10765765942, 13851181761],
-  mpb: [10882924122, 2939179186, 9574604402, 945174685, 12183289911],
+  'samba-pagode': [5449764382, 5709940122, 12968855623, 3396745906],
+  'bossa-nova': [556502217, 12607436323, 11566444484, 15172273023],
+  'funk-brasileiro': [15204407463, 15355968343, 15126778163, 9743264302],
 };
 
 const ALBUM_GENRE_ALIASES = {
-  'chanson-française': 'french-pop',
-  'variété-française': 'french-pop',
-  'nouvelle-scène': 'french-pop',
-  'chanson-francaise': 'french-pop',
-  'variete-francaise': 'french-pop',
-  'nouvelle-scene': 'french-pop',
+  'chanson-française': 'chanson-francaise',
+  'variété-française': 'chanson-francaise',
+  'nouvelle-scène': 'chanson-francaise',
+  'chanson-francaise': 'chanson-francaise',
+  'variete-francaise': 'chanson-francaise',
+  'nouvelle-scene': 'chanson-francaise',
   'musique-africaine': 'african',
   'musique-arabe': 'arabic',
   'musique-asiatique': 'asian',
-  'musique-brésilienne': 'brazilian',
-  'musique-bresilienne': 'brazilian',
+  'musique-brésilienne': 'bossa-nova',
+  'musique-bresilienne': 'bossa-nova',
   'musique-indienne': 'indian',
-  'latino': 'latin',
-  'electro': 'electronic',
-  'classique': 'classical',
-  'rap/hip-hop': 'hip-hop',
+  latino: 'reggaeton-urbano',
+  electro: 'french-touch-electro',
+  classique: 'classical',
+  'rap/hip-hop': 'hip-hop-rap',
   'soul-funk': 'soul',
   'films/jeux-vidéo': 'soundtrack',
   'films/jeux-video': 'soundtrack',
   'musiques-de-films': 'soundtrack',
-  'alternative': 'indie',
+  rnb: 'r-n-b',
   'r-b': 'r-n-b',
-  'rnb': 'r-n-b',
-  'rap-français': 'french-rap',
-  'rap-francaise': 'french-rap',
-  'rap-francais': 'french-rap',
-  'jeunesse': 'children',
+  'rap-français': 'rap-francais',
+  'rap-francaise': 'rap-francais',
+  'rap-francais': 'rap-francais',
+  jeunesse: 'children',
 };
 
-const REGIONAL_GENRES = ['french-pop', 'french-rap', 'portugal', 'brazilian', 'african', 'arabic', 'asian', 'indian', 'latin'];
+const REGIONAL_GENRES = ['chanson-francaise', 'rap-francais', 'african', 'arabic', 'asian', 'indian'];
 
 const CHART_SOURCES = {
   0: 'top-100',
@@ -234,7 +239,6 @@ async function getTracksByGenre(genre, count = 10) {
     if (tracks.length < before) console.log(`[Deezer] Filtered ${before - tracks.length} tracks from "${genre}" (genre isolation)`);
   }
 
-  // Prefer less-played songs to reduce repetition
   try {
     const { all } = await import('./db.js');
     const ids = tracks.map(t => t.id);
@@ -258,35 +262,55 @@ async function getTracksByGenre(genre, count = 10) {
 }
 
 const GENRES = [
-  'pop', 'rock', 'hip-hop', 'r-n-b', 'electronic', 'jazz', 'classical',
-  'country', 'metal', 'indie', 'soul', 'blues', 'reggae', 'latin',
-  'dance', 'brazilian', 'portugal', 'french-pop', 'french-rap',
-  'folk', 'african', 'arabic', 'asian', 'indian', 'soundtrack', 'k-pop',
-  'children', 'funk', 'samba', 'mpb',
+  'pop', 'electronic', 'jazz', 'classical', 'metal', 'soul', 'blues', 'reggae',
+  'dance', 'folk', 'r-n-b', 'soundtrack', 'children',
+  'african', 'arabic', 'asian', 'indian', 'k-pop',
+  'country-americana', 'hip-hop-rap', 'rock-indie',
+  'chanson-francaise', 'french-touch-electro', 'rap-francais',
+  'flamenco', 'reggaeton-urbano', 'musica-regional-latina',
+  'fado', 'popular-pimba', 'traditional-folclore', 'pop-rock-portugues', 'hip-hop-tuga', 'classica-portuguesa',
+  'samba-pagode', 'bossa-nova', 'funk-brasileiro',
 ];
 
-const GENRE_LABELS = {
-  'r-n-b': 'R&B',
-  'hip-hop': 'Hip Hop',
-  brazilian: 'Brazilian',
-  portugal: 'Portugal',
-  'french-pop': 'French Pop',
-  'french-rap': 'French Rap',
-  'k-pop': 'K-Pop',
-  folk: 'Folk',
-  african: 'African',
-  arabic: 'Arabic',
-  asian: 'Asian',
-  indian: 'Indian',
-  soundtrack: 'Soundtrack',
-  children: 'Children',
-  funk: 'Funk',
-  samba: 'Samba',
-  mpb: 'MPB',
-};
+const GENRE_GROUPS = [
+  { id: 'portuguese', genreIds: ['fado', 'popular-pimba', 'traditional-folclore', 'pop-rock-portugues', 'hip-hop-tuga', 'classica-portuguesa'] },
+  { id: 'english', genreIds: ['country-americana', 'hip-hop-rap', 'rock-indie', 'pop', 'soul', 'blues', 'folk'] },
+  { id: 'french', genreIds: ['chanson-francaise', 'french-touch-electro', 'rap-francais', 'electronic'] },
+  { id: 'spanish', genreIds: ['flamenco', 'reggaeton-urbano', 'musica-regional-latina', 'dance'] },
+  { id: 'brazilian', genreIds: ['samba-pagode', 'bossa-nova', 'funk-brasileiro'] },
+  { id: 'world', genreIds: ['jazz', 'classical', 'metal', 'reggae', 'r-n-b', 'soundtrack', 'children', 'african', 'arabic', 'asian', 'indian', 'k-pop'] },
+];
 
 function getGenreLabel(genre) {
-  return GENRE_LABELS[genre] || genre.charAt(0).toUpperCase() + genre.slice(1);
+  const labels = {
+    'r-n-b': 'R&B',
+    'country-americana': 'Country & Americana',
+    'hip-hop-rap': 'Hip Hop & Rap',
+    'rock-indie': 'Rock & Indie',
+    'chanson-francaise': 'Chanson Française',
+    'french-touch-electro': 'French Touch & Electro',
+    'rap-francais': 'Rap Français',
+    flamenco: 'Flamenco',
+    'reggaeton-urbano': 'Reggaeton & Urbano',
+    'musica-regional-latina': 'Regional Latina',
+    fado: 'Fado',
+    'popular-pimba': 'Popular & Pimba',
+    'traditional-folclore': 'Traditional & Folclore',
+    'pop-rock-portugues': 'Pop-Rock Português',
+    'hip-hop-tuga': 'Hip Hop Tuga',
+    'classica-portuguesa': 'Clássica Portuguesa',
+    'samba-pagode': 'Samba & Pagode',
+    'bossa-nova': 'Bossa Nova',
+    'funk-brasileiro': 'Funk Brasileiro',
+    'k-pop': 'K-Pop',
+    african: 'African',
+    arabic: 'Arabic',
+    asian: 'Asian',
+    indian: 'Indian',
+    soundtrack: 'Soundtrack',
+    children: 'Children',
+  };
+  return labels[genre] || genre.charAt(0).toUpperCase() + genre.slice(1);
 }
 
-export { getTracksByGenre, GENRES, getGenreLabel };
+export { getTracksByGenre, GENRES, getGenreLabel, GENRE_GROUPS };

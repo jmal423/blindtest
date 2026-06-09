@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, use, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import { io as socketIo, Socket } from 'socket.io-client';
-import { getToken, GameState, Player, RoomSettings, startGame, updateSettings, fetchGenres } from '@/lib/api';
+import { getToken, GameState, Player, RoomSettings, startGame, updateSettings, fetchGenres, fetchGenreGroups } from '@/lib/api';
 import { isDebugMode } from '@/lib/debug-context';
 import AudioPlayer, { AudioPlayerHandle } from '@/app/components/AudioPlayer';
 import { useSettings } from '@/app/context/SettingsContext';
@@ -651,10 +651,17 @@ function WaitingRoom({
 }) {
   const { t } = useTranslation();
   const isHost = playerId === hostId;
-  const [allGenres, setAllGenres] = useState<{ id: string; label: string }[]>([]);
+  const [allGenres, setAllGenres] = useState<{ id: string; label: string; group?: string }[]>([]);
+  const [genreGroups, setGenreGroups] = useState<{ id: string; genreIds: string[] }[]>([]);
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    fetchGenres().then(setAllGenres).catch(() => {});
+    fetchGenreGroups().then(data => {
+      setGenreGroups(data.groups);
+      setAllGenres(data.genres);
+    }).catch(() => {
+      fetchGenres().then(setAllGenres).catch(() => {});
+    });
   }, []);
 
   const toggleGenre = (id: string) => {
@@ -663,6 +670,28 @@ function WaitingRoom({
     else set.add(id);
     onGenresChange(Array.from(set));
   };
+
+  const toggleGroup = (groupId: string) => {
+    setCollapsedGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(groupId)) next.delete(groupId);
+      else next.add(groupId);
+      return next;
+    });
+  };
+
+  const toggleGroupGenres = (groupGenreIds: string[], select: boolean) => {
+    const set = new Set(genres);
+    for (const id of groupGenreIds) {
+      if (select) set.add(id);
+      else set.delete(id);
+    }
+    onGenresChange(Array.from(set));
+  };
+
+  const allGenreIds = allGenres.map(g => g.id);
+
+  const genreMap = new Map(allGenres.map(g => [g.id, g]));
 
   return (
     <div className="flex-1 flex flex-col items-center gap-6 overflow-y-auto pb-24 md:pb-8">
@@ -712,39 +741,105 @@ function WaitingRoom({
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <label className="text-xs text-zinc-500">{t('genres')}</label>
-            {isHost && (
+            {isHost && genreGroups.length > 0 && (
               <button
                 onClick={() => {
-                  if (genres.length === allGenres.length && allGenres.length > 0) {
+                  if (genres.length === allGenreIds.length && allGenreIds.length > 0) {
                     onGenresChange([]);
                   } else {
-                    onGenresChange(allGenres.map(g => g.id));
+                    onGenresChange([...allGenreIds]);
                   }
                 }}
                 className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-zinc-400 hover:bg-white/10 transition-colors"
               >
-                {genres.length === allGenres.length && allGenres.length > 0 ? t('clear_btn') : t('all_btn')}
+                {genres.length === allGenreIds.length && allGenreIds.length > 0 ? t('clear_btn') : t('all_btn')}
               </button>
             )}
           </div>
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(80px,1fr))] gap-1.5">
-            {allGenres.map(g => {
-              const selected = genres.includes(g.id);
-              return (
-                <button
-                  key={g.id}
-                  onClick={() => isHost && toggleGenre(g.id)}
-                  className={`px-2 py-1.5 rounded-full text-[11px] font-medium transition-all truncate ${
-                    selected
-                      ? 'bg-[var(--primary)] text-white'
-                      : 'bg-[var(--surface-light)] text-zinc-400'
-                  } ${!isHost ? 'opacity-80 cursor-default' : 'hover:brightness-110'}`}
-                >
-                  {t(`genre_${g.id}`)}
-                </button>
-              );
-            })}
-          </div>
+          {genreGroups.length === 0 ? (
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(80px,1fr))] gap-1.5">
+              {allGenres.map(g => {
+                const selected = genres.includes(g.id);
+                return (
+                  <button
+                    key={g.id}
+                    onClick={() => isHost && toggleGenre(g.id)}
+                    className={`px-2 py-1.5 rounded-full text-[11px] font-medium transition-all truncate ${
+                      selected
+                        ? 'bg-[var(--primary)] text-white'
+                        : 'bg-[var(--surface-light)] text-zinc-400'
+                    } ${!isHost ? 'opacity-80 cursor-default' : 'hover:brightness-110'}`}
+                  >
+                    {t(`genre_${g.id}`)}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {genreGroups.map(group => {
+                const groupGenres = group.genreIds.map(id => genreMap.get(id)).filter(Boolean) as { id: string; label: string; group?: string }[];
+                if (groupGenres.length === 0) return null;
+                const isCollapsed = collapsedGroups.has(group.id);
+                const allSelected = groupGenres.every(g => genres.includes(g.id));
+                const someSelected = groupGenres.some(g => genres.includes(g.id));
+                return (
+                  <div key={group.id} className="border border-white/5 rounded-xl overflow-hidden">
+                    <button
+                      onClick={() => toggleGroup(group.id)}
+                      className="w-full flex items-center justify-between px-3 py-2 text-xs font-medium text-zinc-300 hover:bg-white/5 transition-colors"
+                    >
+                      <span>{t(`group_${group.id}`)}</span>
+                      <div className="flex items-center gap-2">
+                        {isHost && (
+                          <span
+                            onClick={(e) => { e.stopPropagation(); toggleGroupGenres(group.genreIds, !allSelected); }}
+                            className={`text-[10px] px-1.5 py-0.5 rounded ${
+                              allSelected
+                                ? 'bg-[var(--primary)]/20 text-[var(--primary)]'
+                                : someSelected
+                                  ? 'bg-white/10 text-zinc-400'
+                                  : 'bg-white/5 text-zinc-500'
+                            }`}
+                          >
+                            {allSelected ? t('clear_btn') : t('all_btn')}
+                          </span>
+                        )}
+                        <svg
+                          className={`w-3 h-3 transition-transform ${isCollapsed ? '' : 'rotate-180'}`}
+                          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </button>
+                    {!isCollapsed && (
+                      <div className="px-3 pb-2.5 pt-1">
+                        <div className="grid grid-cols-[repeat(auto-fill,minmax(80px,1fr))] gap-1.5">
+                          {groupGenres.map(g => {
+                            const selected = genres.includes(g.id);
+                            return (
+                              <button
+                                key={g.id}
+                                onClick={() => isHost && toggleGenre(g.id)}
+                                className={`px-2 py-1.5 rounded-full text-[11px] font-medium transition-all truncate ${
+                                  selected
+                                    ? 'bg-[var(--primary)] text-white'
+                                    : 'bg-[var(--surface-light)] text-zinc-400'
+                                } ${!isHost ? 'opacity-80 cursor-default' : 'hover:brightness-110'}`}
+                              >
+                                {t(`genre_${g.id}`)}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         <SliderSetting label={t('rounds')} value={settings.rounds} min={3} max={25} isHost={isHost} onChange={v => onSettingsChange({ rounds: v })} />

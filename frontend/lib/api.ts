@@ -22,7 +22,14 @@ export interface RoundResult { round: number; correctAnswer: string; artist: str
 export interface Ranking { rank: number; name: string; score: number; xp: number; answers?: any[] }
 export interface TrackEntry { round: number; name: string; artist: string; albumImage?: string | null; rank?: number; skipped?: boolean }
 
-export async function fetchGenres(): Promise<{ id: string; label: string }[]> {
+export async function fetchGenres(): Promise<{ id: string; label: string; group?: string }[]> {
+  const res = await fetch(`${API_URL}/api/genres`);
+  const data = await res.json();
+  if (Array.isArray(data)) return data;
+  return data.genres;
+}
+
+export async function fetchGenreGroups(): Promise<{ genres: { id: string; label: string; group: string }[]; groups: { id: string; genreIds: string[] }[] }> {
   const res = await fetch(`${API_URL}/api/genres`);
   return res.json();
 }

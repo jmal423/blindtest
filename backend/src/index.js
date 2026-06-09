@@ -4,7 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { Server } from 'socket.io';
 import { GameRoom } from './game.js';
-import { GENRES, getGenreLabel } from './deezer.js';
+import { GENRES, getGenreLabel, GENRE_GROUPS } from './deezer.js';
 import { generateId, get, all, run, ping, getTableCounts, createGame, finishGame, addGamePlayer, addRoundResultV2, getGameHistory, getPlayerStats, getLeaderboardV2, getRecentGames, getGameDetails, getSongCacheCounts, getSongCacheByGenre, getPlayedSongs } from './db.js';
 import { getAuthUrl, handleDiscordCallback, authenticate, requireAdmin, tryDecodeToken } from './auth.js';
 
@@ -188,7 +188,16 @@ app.get('/api/health', async (req, res) => {
 });
 
 app.get('/api/genres', (req, res) => {
-  res.json(GENRES.map(g => ({ id: g, label: getGenreLabel(g) })));
+  const genreGroupMap = {};
+  for (const group of GENRE_GROUPS) {
+    for (const g of group.genreIds) {
+      genreGroupMap[g] = group.id;
+    }
+  }
+  res.json({
+    genres: GENRES.map(g => ({ id: g, label: getGenreLabel(g), group: genreGroupMap[g] || null })),
+    groups: GENRE_GROUPS,
+  });
 });
 
 // Rooms (auth required)
