@@ -27,7 +27,9 @@ const GENRE_ID_MAP = {
 };
 
 const CUSTOM_GENRE_PLAYLISTS = {
-  portugal: [13554294441, 1362519755],
+  portugal: [13554294441, 1362519755, 15124964223, 826523261, 15286957683, 15124964063, 15053615463],
+  'french-rap': [6568026624, 8619246462, 15155137203, 1836636662],
+  'k-pop': [4096400722, 12244134951, 7482846624],
 };
 
 const ALBUM_GENRE_ALIASES = {
@@ -38,6 +40,8 @@ const ALBUM_GENRE_ALIASES = {
   'variete-francaise': 'french-pop',
   'nouvelle-scene': 'french-pop',
 };
+
+const REGIONAL_GENRES = ['french-pop', 'french-rap', 'portugal', 'brazilian', 'african', 'arabic', 'asian', 'indian', 'latin'];
 
 const CHART_SOURCES = {
   0: 'top-100',
@@ -199,10 +203,11 @@ async function getTracksByGenre(genre, count = 10) {
     }));
   }
 
-  if (genre === 'pop') {
+  const broadGenres = ['pop', 'rock', 'electronic', 'dance', 'indie', 'soul', 'r-n-b', 'hip-hop'];
+  if (broadGenres.includes(genre)) {
     const before = tracks.length;
-    tracks = tracks.filter(t => !t.genres?.includes('french-pop'));
-    if (tracks.length < before) console.log(`[Deezer] Filtered ${before - tracks.length} French tracks from "${genre}"`);
+    tracks = tracks.filter(t => !t.genres?.some(g => REGIONAL_GENRES.includes(g)));
+    if (tracks.length < before) console.log(`[Deezer] Filtered ${before - tracks.length} tracks with regional genres from "${genre}"`);
   }
 
   console.log(`[Deezer] Total ${tracks.length} tracks for "${genre}" (${tracks.filter(t => t.previewUrl).length} with preview)`);
@@ -213,8 +218,8 @@ async function getTracksByGenre(genre, count = 10) {
 const GENRES = [
   'pop', 'rock', 'hip-hop', 'r-n-b', 'electronic', 'jazz', 'classical',
   'country', 'metal', 'indie', 'soul', 'blues', 'reggae', 'latin',
-  'dance', 'brazilian', 'portugal', 'french-pop',
-  'folk', 'african', 'arabic', 'asian', 'indian', 'soundtrack',
+  'dance', 'brazilian', 'portugal', 'french-pop', 'french-rap',
+  'folk', 'african', 'arabic', 'asian', 'indian', 'soundtrack', 'k-pop',
 ];
 
 const GENRE_LABELS = {
@@ -223,6 +228,8 @@ const GENRE_LABELS = {
   brazilian: 'Brazilian',
   portugal: 'Portugal',
   'french-pop': 'French Pop',
+  'french-rap': 'French Rap',
+  'k-pop': 'K-Pop',
   folk: 'Folk',
   african: 'African',
   arabic: 'Arabic',
