@@ -69,6 +69,18 @@ io.on('connection', (socket) => {
     room.kickPlayer(targetPlayerId);
   });
 
+  socket.on('transfer_host', (targetPlayerId) => {
+    const info = socketPlayerMap.get(socket.id);
+    if (!info) return;
+    const room = rooms.get(info.roomCode);
+    if (!room) return;
+    if (info.playerId !== room.hostId) return;
+    const target = room.getPlayer(targetPlayerId);
+    if (!target) return;
+    room.hostId = targetPlayerId;
+    room.broadcast();
+  });
+
   socket.on('submit_guess', (data) => {
     const info = socketPlayerMap.get(socket.id);
     if (!info) return;

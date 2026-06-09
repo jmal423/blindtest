@@ -471,13 +471,13 @@ export default function GamePage({
               players={gameState.players}
               settings={gameState.settings}
               genres={gameState.genres}
-              isHost={playerId === gameState.hostId}
-              isAdmin={gameState.players.find(p => p.id === playerId)?.role === 'admin'}
+              hostId={gameState.hostId}
               playerId={playerId}
               onStart={handleStart}
               onSettingsChange={handleSettingsUpdate}
               onGenresChange={handleGenresUpdate}
               onKickPlayer={(pid) => socketRef.current?.emit('kick_player', pid)}
+              onTransferHost={(pid) => socketRef.current?.emit('transfer_host', pid)}
               startLoading={startLoading}
             />
           )}
@@ -618,29 +618,30 @@ function WaitingRoom({
   players,
   settings,
   genres,
-  isHost,
-  isAdmin,
+  hostId,
   playerId,
   onStart,
   onSettingsChange,
   onGenresChange,
   onKickPlayer,
+  onTransferHost,
   startLoading,
 }: {
   gameCode: string;
   players: { id: string; name: string; avatarUrl?: string | null; role?: string }[];
   settings: RoomSettings;
   genres: string[];
-  isHost: boolean;
-  isAdmin?: boolean;
+  hostId?: string | null;
   playerId: string;
   onStart: () => void;
   onSettingsChange: (s: Partial<RoomSettings>) => void;
   onGenresChange: (g: string[]) => void;
   onKickPlayer?: (playerId: string) => void;
+  onTransferHost?: (playerId: string) => void;
   startLoading?: boolean;
 }) {
   const { t } = useTranslation();
+  const isHost = playerId === hostId;
   const [allGenres, setAllGenres] = useState<{ id: string; label: string }[]>([]);
 
   useEffect(() => {
@@ -675,8 +676,16 @@ function WaitingRoom({
                 </span>
               )}
             </span>
-            {i === 0 && <span className="text-xs text-zinc-500 ml-auto">Host</span>}
-            {isAdmin && onKickPlayer && p.id !== playerId && (
+            {p.id === hostId && <span className="text-[10px] text-zinc-500 ml-auto">Host</span>}
+            {p.id !== hostId && playerId === hostId && onTransferHost && (
+              <button
+                onClick={() => onTransferHost(p.id)}
+                className="text-[10px] px-2 py-1 rounded bg-zinc-700/50 text-zinc-400 hover:bg-zinc-700 transition-colors"
+              >
+                Make Host
+              </button>
+            )}
+            {(playerId === hostId || p.role === 'admin') && onKickPlayer && p.id !== playerId && (
               <button
                 onClick={() => onKickPlayer(p.id)}
                 className="text-[10px] px-2 py-1 rounded bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
