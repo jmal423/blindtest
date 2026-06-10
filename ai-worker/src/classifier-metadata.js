@@ -1,5 +1,5 @@
 import { config } from './config.js';
-import { GENRES, buildGenrePrompt } from './genres.js';
+import { buildGenrePrompt } from './genres.js';
 
 async function ollamaGenerate(prompt) {
   const url = `${config.ollamaUrl}/api/generate`;
@@ -36,28 +36,25 @@ function parseResponse(raw) {
     throw new Error(`Failed to parse LLM response: ${raw.slice(0, 200)}`);
   }
 
-  const validGenres = parsed.genres.filter(g => GENRES.includes(g));
-  if (validGenres.length === 0) {
-    throw new Error(`LLM returned no valid genres: ${parsed.genres.join(', ')}`);
-  }
+  const genres = parsed.genres.map(g => g.toLowerCase().trim()).filter(Boolean);
 
   const primary = Array.isArray(parsed.primary) ? parsed.primary[0] : parsed.primary;
-  const resolvedPrimary = primary && GENRES.includes(primary) ? primary : validGenres[0];
+  const resolvedPrimary = (primary || genres[0]).toLowerCase().trim();
 
   let confidence = {};
   if (parsed.confidence && typeof parsed.confidence === 'object' && !Array.isArray(parsed.confidence)) {
-    const hasValid = validGenres.some(g => typeof parsed.confidence[g] === 'number');
+    const hasValid = genres.some(g => typeof parsed.confidence[g] === 'number');
     if (hasValid) confidence = parsed.confidence;
   }
   if (Object.keys(confidence).length === 0) {
-    const perGenre = 1.0 / validGenres.length;
-    for (const g of validGenres) {
+    const perGenre = 1.0 / genres.length;
+    for (const g of genres) {
       confidence[g] = g === resolvedPrimary ? Math.min(1, perGenre + 0.2) : perGenre;
     }
   }
 
   return {
-    genres: validGenres,
+    genres,
     tags: Array.isArray(parsed.tags) ? parsed.tags.slice(0, 8) : [],
     primary: resolvedPrimary,
     confidence,

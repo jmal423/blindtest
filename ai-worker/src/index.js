@@ -17,12 +17,12 @@ async function processBatch() {
   console.log(`[AI] Processing ${tracks.length} tracks (concurrency: ${config.concurrency})...`);
   let processed = 0;
   let index = 0;
+  const startTime = Date.now();
 
   async function worker() {
     while (index < tracks.length) {
       const track = tracks[index++];
       try {
-        console.log(`[AI] Classifying: ${track.artist} - ${track.name}`);
         const result = await classifyTrack(track);
         await updateAiClassification(track.id, result);
 
@@ -30,14 +30,15 @@ async function processBatch() {
           const audioResult = await classifyAudio(track);
           if (audioResult.genres.length > 0) {
             await updateAiAudioGenres(track.id, audioResult.genres);
-            console.log(`[AI] Audio: ${track.artist} - ${track.name} → ${audioResult.genres.join(', ')}`);
           }
         }
 
-        console.log(`[AI] Done: ${track.artist} - ${track.name} → ${result.genres.join(', ')}`);
         processed++;
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        const pct = ((index / tracks.length) * 100).toFixed(0);
+        console.log(`[${pct}%] ✓ ${track.artist} - ${track.name} → ${result.genres.slice(0, 3).join(', ')}${result.genres.length > 3 ? '…' : ''}`);
       } catch (err) {
-        console.error(`[AI] Failed: ${track.artist} - ${track.name}: ${err.message}`);
+        console.error(`[ERR] ✗ ${track.artist} - ${track.name}: ${err.message}`);
         await markError(track.id, err.message);
         processed++;
       }
@@ -47,23 +48,41 @@ async function processBatch() {
   const workers = Array.from({ length: Math.min(config.concurrency, tracks.length) }, () => worker());
   await Promise.all(workers);
 
+  const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+  const perTrack = (elapsed / processed).toFixed(1);
+  console.log(`[AI] Batch done: ${processed} tracks in ${elapsed}s (${perTrack}s/track)`);
   return processed;
 }
 
 async function runBatch() {
-  console.log(`[AI] Batch mode — model: ${config.ollamaModel}, version: ${config.aiVersion}`);
+  console.log(`[AI] Model: ${config.ollamaModel}, version: ${config.aiVersion}`);
+  console.log(`[AI] Concurrency: ${config.concurrency}, batch size: ${config.batchSize}`);
+
   const total = await fetchUnprocessedCount();
+  if (total === 0) {
+    console.log('[AI] All tracks already processed ✓');
+    await closePool();
+    return;
+  }
   console.log(`[AI] ${total} tracks to process`);
 
   let done = 0;
+  let startedAt = Date.now();
+
   while (done < total) {
     const count = await processBatch();
     done += count;
     if (count === 0) break;
-    console.log(`[AI] Progress: ${done}/${total}`);
+
+    const remaining = await fetchUnprocessedCount();
+    const elapsed = ((Date.now() - startedAt) / 1000).toFixed(0);
+    const rate = (done / (Date.now() - startedAt) * 1000).toFixed(1);
+    const eta = remaining > 0 ? ((remaining / parseFloat(rate)).toFixed(0)) : '0';
+    console.log(`[AI] ${done}/${total} done — ${rate} tracks/s — ETA ${eta}s — ${remaining} remaining`);
   }
 
-  console.log(`[AI] Batch complete: ${done} tracks processed`);
+  const totalTime = ((Date.now() - startedAt) / 1000).toFixed(1);
+  console.log(`[AI] Complete: ${done} tracks in ${totalTime}s`);
   await closePool();
 }
 

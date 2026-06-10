@@ -7,7 +7,11 @@
   "scripts": {
     "start": "node src/index.js",
     "batch": "node src/index.js --mode=batch",
-    "watch": "node src/index.js --mode=watch"
+    "watch": "node src/index.js --mode=watch",
+    "setup-db": "node scripts/setup-local-db.js",
+    "sync-pull": "node scripts/sync-pull.js",
+    "sync-push": "node scripts/sync-push.js",
+    "sync-all": "node scripts/sync-pull.js && node src/index.js && node scripts/sync-push.js"
   },
   "dependencies": {
     "dotenv": "^16.4.7",

@@ -56,11 +56,27 @@ npm install
 ### 3. Run the migration on the OptiPlex backend
 The migration `007_ai_enrichment.js` will auto-apply on next backend restart (migrations run at startup in `db.js`).
 
-### 4. Test the worker
+### 4. Run the worker (recommended workflow)
+
 ```bash
-# Process 25 tracks
+# Pull latest data from OptiPlex, classify, push results back
+node scripts/sync-pull.js && node src/index.js && node scripts/sync-push.js
+```
+
+Or step by step:
+```bash
+# 1. Pull data from OptiPlex to local DB
+node scripts/sync-pull.js
+
+# 2. Classify all unprocessed tracks (uses local DB — fast)
 node src/index.js
-# Or watch mode (polls every 60s)
+
+# 3. Push AI results back to OptiPlex
+node scripts/sync-push.js
+```
+
+To watch for new tracks (polls every 60s):
+```bash
 node src/index.js --mode=watch
 ```
 
