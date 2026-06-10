@@ -59,7 +59,7 @@
 ┌──────────────┐             ┌──────────────────────┐
 │  Next.js 16  │  HTTP/JSON  │   Express 5           │
 │  Frontend    │ ◄────────► │   Backend              │
-│              │  Socket.io  │                        │
+│  (Port 3000) │  Socket.io  │   (Port 3005)          │
 └──────────────┘ ─────────── └───────┬───────────────┘
                                 ┌─────┴─────┐
                                 ▼           ▼
@@ -70,22 +70,29 @@
 
 Self-hosted on OptiPlex 790 (i5, Ubuntu 26.04 LTS) behind a Cloudflare Tunnel on `blindtest.jl423.xyz`.
 
+### Ports & Routing Architecture
+
+* **Next.js Frontend**: Port `3000` (managed by the systemd service `blindtest-frontend`)
+* **Express Backend**: Port `3005` (managed by the systemd service `blindtest-backend`, changed from `3001` to resolve local development conflicts)
+* **Nginx Reverse Proxy**: Port `3002` (routes public traffic from Cloudflare Tunnel to port `3000`, and proxies `/api/` + `/socket.io/` directly to backend port `3005`)
+* **PostgreSQL Database**: Port `5432` on the remote host (exposed on local port `5433` via SSH Tunnel for the AI worker)
+
 ---
 
 ## Quick Start
 
 ```bash
-# Start PostgreSQL
+# Start PostgreSQL (local development only)
 docker compose up -d
 
 # Backend
 cd backend && npm install
-cp .env.example .env  # Fill in your variables
+cp .env.example .env  # Fill in your variables (Default PORT=3005)
 npm run dev
 
 # Frontend
 cd frontend && npm install
-echo "NEXT_PUBLIC_API_URL=http://localhost:3001" > .env.local
+echo "NEXT_PUBLIC_API_URL=http://localhost:3005" > .env.local
 npm run dev
 ```
 
@@ -109,13 +116,13 @@ For admin users, a real-time developer overlay is available in the game lobby.
 | `JWT_SECRET` | Yes | Token signing secret |
 | `DATABASE_URL` | Yes | PostgreSQL connection string |
 | `FRONTEND_URL` | No | CORS origin + OAuth redirect base |
-| `PORT` | No | `3001` |
+| `PORT` | No | `3005` (Defaults to `3005`) |
 
 **Frontend (`.env.local`):**
 
 | Variable | Description |
 |----------|-------------|
-| `NEXT_PUBLIC_API_URL` | Backend URL (`http://localhost:3001`) |
+| `NEXT_PUBLIC_API_URL` | Backend URL (`http://localhost:3005`) |
 
 ---
 
@@ -125,9 +132,50 @@ For admin users, a real-time developer overlay is available in the game lobby.
 |--------|------|---------|-------|
 | **Deezer** | None (free) | 30s preview | Genre charts by popularity rank; album genres enriched via `/album/{id}` |
 
-### Genre Pipeline
+### Genre Pipeline & AI Enrichment
 
-Tracks are discovered via Deezer genre charts (`/chart/{genreId}/tracks`). The search context (e.g., `pop`, `rock`) is stored as `chart_source`, separate from the track's actual musical genres. After fetching, each track's `album.id` is used to call `/album/{id}` and retrieve the real genre tags from `genres.data`, which are stored as a JSON array. This means a track found via the "rock" chart might have genres `["rock", "alternative"]` if its album tags it as both.
+Our intelligent classification cache upgrades a standard "dumb" track database into a curated, high-accuracy genre library.
+
+1. **Discovery & Caching (Dumb DB)**: Uncached tracks requested in a game are fetched from Deezer charts (`/chart/{genreId}/tracks`). Their album metadata is queried via `/album/{id}` to capture album-level genres, and cached into the `songs_cache` table.
+2. **Local AI Enrichment (Smart DB)**:
+   An offline `ai-worker` running on a powerful local machine pulls unprocessed songs from the remote database, evaluates them using Ollama (`llama3.2`), and adds:
+   - `ai_genres`: Standardized list of subgenres and genres.
+   - `ai_tags`: Free-form contextual descriptors (mood, instruments, style, era).
+   - `ai_confidence`: Probability/weight parameters for classifications.
+3. **Automated Loop (Watch Mode)**:
+   Running the worker in watch mode (`npm run watch`) periodically polls the database for newly added/unprocessed cache items (`ai_processed_at IS NULL`), processes them via LLM, and pushes the enriched results back.
+4. **Database-First Playback**:
+   When starting a lobby, the backend queries the database cache first using both traditional genres and `ai_genres` JSONB arrays. To prevent expired/broken URLs, the backend resolves fresh, non-expired preview URLs from Deezer on-demand in parallel. Only when the cache holds insufficient tracks does the system fetch raw tracks from the Deezer API, queuing them for background AI processing.
+
+---
+
+## AI Worker Scripts & Automation
+
+The `ai-worker` contains several pipeline management scripts inside `ai-worker/scripts/`:
+
+### 1. Synchronization Pipelines
+To run the AI pipeline remotely without running Ollama on the production OptiPlex server:
+* `npm run sync-pull`: Pulls newly cached, unprocessed songs from the remote database to your local PostgreSQL database.
+* `npm run classify` (or `npm run batch`): Performs LLM classification on the local database.
+* `npm run sync-push`: Pushes the local AI-enrichment columns (`ai_genres`, `ai_tags`, `ai_confidence`, etc.) back to the remote OptiPlex database.
+* `npm run run`: Chans all three commands together (`sync-pull` && `classify` && `sync-push`) for a single-command sync loop.
+
+### 2. Genre Cleaning & Standardization
+Over time, raw LLM classifications might produce redundant, overlapping, or minor subgenres (e.g. "hiphop-tuga", "rap-tuga", "tuga-rap").
+* **Command**: `npm run clean-genres`
+* **Process**:
+  1. Pulls all distinct raw genres from `songs_cache.ai_genres`.
+  2. Queries Ollama (`llama3.2`) to clean, map, and consolidate them into a standardized taxonomy (e.g., merging spelling, mapping subgenres into clean kebab-case names, grouping them into lists like `portuguese`, `french`, `world`).
+  3. Updates the `ai_genres` JSONB column for all tracks in `songs_cache` with their standardized names.
+  4. Generates a frontend-compatible and backend-compatible configuration file (`ai-worker/scripts/output/genres-config.js`) containing `GENRES` and `GENRE_GROUPS` definitions.
+
+### 3. Semantic Deduplication
+To prevent users from hearing the same song multiple times in different forms (e.g., remasters, live recordings, radio edits, deluxe versions):
+* **Command**: `npm run deduplicate`
+* **Process**:
+  1. Groups tracks by artist and normalized title (heuristically stripping parenthetical tags like `(Remastered)`, `[Live]`, or `- Radio Edit`).
+  2. For each group with multiple tracks, queries Ollama to evaluate which version is the high-quality studio/original cut.
+  3. Keeps the chosen version and deletes all other duplicate track entries from `songs_cache` in the database, ensuring a clean, unique song list.
 
 ---
 
@@ -153,9 +201,10 @@ PostgreSQL with auto-migrations on startup. Schema:
 | `games` | Game sessions (id, code, genres JSON, rounds, status, timestamps) |
 | `game_players` | Players per game (player_id, player_name, score, position) |
 | `round_results_v2` | Detailed per-guess data (track, artist, genre, guess, found_artist/title/both, time_ms) |
-| `songs_cache` | Cached tracks (id, name, artist, genres JSONB, chart_source, rank, source) |
+| `songs_cache` | Cached tracks (id, name, artist, genres JSONB, chart_source, rank, source, plus AI columns: `ai_genres`, `ai_tags`, `ai_confidence`, `ai_processed_at`, `ai_version`) |
 | `songs_played` | Play history for recency weighting (song_id, played_at) |
 | `friendships` | Friend requests and accepted friendships |
+| `ai_classification_queue` | Queue for tracking AI processing status and errors per track |
 
 ### Migrations
 
@@ -169,6 +218,7 @@ Run automatically on startup from `backend/src/migrations/`:
 | `004_song_cache.js` | songs_cache and songs_played with genre + recency indexes |
 | `005_cleanup_ghost_users.js` | Merge ghost users, fix discord_id references |
 | `006_genres_array.js` | Add genres JSONB + chart_source columns, migrate genre → genres |
+| `007_ai_enrichment.js` | Add AI metadata columns to `songs_cache` and create the `ai_classification_queue` table |
 
 ---
 
@@ -259,12 +309,22 @@ Run automatically on startup from `backend/src/migrations/`:
 
 ```
 blindtest/
+├── ai-worker/             # AI processing pipeline
+│   ├── src/
+│   │   ├── index.js       # Orchestrator (batch and watch modes)
+│   │   ├── db.js          # Queries for fetching and saving classifications
+│   │   └── classifier-metadata.js  # Ollama LLM connection
+│   └── scripts/
+│       ├── sync-pull.js   # Pulls uncached songs from server to local DB
+│       ├── sync-push.js   # Pushes classified songs back to server
+│       ├── clean-genres.js # Standardizes raw predicted genres via Ollama
+│       └── deduplicate.js  # Removes semantic duplicates (remasters, live edits) via Ollama
 ├── backend/
 │   ├── .env.example
 │   └── src/
 │       ├── index.js           # Express server, routes, admin endpoints
 │       ├── game.js            # GameRoom class, scoring, skip votes
-│       ├── deezer.js          # Genre charts, album enrichment, GENRES
+│       ├── deezer.js          # Genre charts, DB-first caching, GENRES
 │       ├── db.js              # PostgreSQL pool, queries, song cache, recency
 │       ├── auth.js            # Discord OAuth + JWT + guild gating
 │       └── migrations/
@@ -273,7 +333,8 @@ blindtest/
 │           ├── 003_games_and_rounds.js
 │           ├── 004_song_cache.js
 │           ├── 005_cleanup_ghost_users.js
-│           └── 006_genres_array.js
+│           ├── 006_genres_array.js
+│           └── 007_ai_enrichment.js
 ├── frontend/
 │   ├── app/
 │   │   ├── page.tsx           # Dashboard (create/join + leaderboard)
