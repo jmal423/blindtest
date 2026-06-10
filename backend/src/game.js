@@ -236,7 +236,25 @@ export class GameRoom {
       }
 
       if (allTracks.length === 0) {
-        return lastError || 'No tracks found. Try different genres.';
+        console.log(`[Game] No tracks from selected genres, fetching global top chart as fallback`);
+        try {
+          const { getTracksByGenre } = await import('./deezer.js');
+          const fallback = await getTracksByGenre('pop', 50);
+          for (const t of fallback) {
+            if (!seenIds.has(t.id) && t.previewUrl) {
+              if (!t.genre && t.genres?.length) t.genre = t.genres[0];
+              else if (!t.genre) t.genre = t.chartSource || 'pop';
+              allTracks.push(t);
+              seenIds.add(t.id);
+            }
+          }
+        } catch (err) {
+          console.error('[Game] Fallback search also failed:', err.message);
+        }
+      }
+
+      if (allTracks.length === 0) {
+        return (lastError || 'No tracks found. Try different genres.');
       }
 
       this.tracks = shuffle(allTracks.filter(t => !!t.previewUrl));
