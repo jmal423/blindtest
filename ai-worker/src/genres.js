@@ -58,8 +58,10 @@ You must map the track to exactly ONE "region" and ONE matching "genre_id" from 
     - If the artist is British/UK (like Coldplay, Queen, Oasis, Ed Sheeran, Dua Lipa, Adele, Elton John, Dave, Stormzy, Tom Odell, Raye, Harry Styles, Gorillaz, PinkPantheress), the region MUST be "united_kingdom".
     - Do not map a song to "portuguese", "brazilian", "french", or "spanish" based ONLY on a proper noun or name in the title (like "Gabriela", "Catalina", "Miss Kitoko", "Zou Bisou") if the artist is US/UK/global (e.g., KATSEYE is a US/global pop group, so "Gabriela" by KATSEYE must map to "united_states" -> "pop_us", NOT "portuguese" or "brazilian"; Theodora is a French artist, so "Miss Kitoko" by Theodora must map to "french" -> "rap_francais", NOT "portuguese").
 2. STEP 2: Select the genre_id ONLY from the subgenres belonging to that region.
-   - E.g., if the region is "french", the genre_id MUST be one of: "chanson_francaise", "pop_francaise", "rap_francais", "french_touch_electro". It is a critical error to choose "hip_hop_trap_us" or "pop_urbano_nova_pop" for a French artist.
-   - E.g., if the region is "united_states", the genre_id MUST be one of: "pop_us", "hip_hop_trap_us", "country_americana_us", "rock_alternative_us".
+    - E.g., if the region is "french", the genre_id MUST be one of: "chanson_francaise", "pop_francaise", "rap_francais", "french_touch_electro". It is a critical error to choose "hip_hop_trap_us" or "pop_urbano_nova_pop" for a French artist.
+    - E.g., if the region is "united_states", the genre_id MUST be one of: "pop_us", "hip_hop_trap_us", "country_americana_us", "rock_alternative_us".
+    - E.g., if the region is "united_kingdom", the genre_id MUST be one of: "pop_uk", "uk_drill_grime", "britpop_rock_uk", "uk_garage_dnb". Do NOT select "rock_alternative_us" for British/UK rock bands (like Coldplay, Queen, Oasis); use "britpop_rock_uk" instead.
+    - E.g., if the region is "brazilian", the genre_id MUST be one of: "samba_pagode", "bossa_nova", "funk_brasileiro". Do NOT select "reggaeton_urbano" for Brazilian artists; use "funk_brasileiro" or "samba_pagode" instead.
 3. Input Context: Raw genres currently known for this track: ${JSON.stringify(rawGenres)}.
 
 ### OUTPUT FORMAT

@@ -36,6 +36,17 @@ const VALID_REGIONS = new Set([
   "portuguese", "brazilian", "united_states", "united_kingdom", "french", "spanish", "global_other"
 ]);
 
+const GENRE_TO_REGION = {
+  "fado": "portuguese", "tradicional_folklore_pimba": "portuguese", "pop_tuga": "portuguese", "pop_rock_tuga": "portuguese",
+  "hip_hop_tuga": "portuguese", "classica_tuga": "portuguese", "kizomba_palop": "portuguese", "pop_urbano_nova_pop": "portuguese",
+  "samba_pagode": "brazilian", "bossa_nova": "brazilian", "funk_brasileiro": "brazilian",
+  "pop_us": "united_states", "hip_hop_trap_us": "united_states", "country_americana_us": "united_states", "rock_alternative_us": "united_states",
+  "pop_uk": "united_kingdom", "uk_drill_grime": "united_kingdom", "britpop_rock_uk": "united_kingdom", "uk_garage_dnb": "united_kingdom",
+  "chanson_francaise": "french", "pop_francaise": "french", "rap_francais": "french", "french_touch_electro": "french",
+  "flamenco": "spanish", "reggaeton_urbano": "spanish", "musica_regional_latina": "spanish",
+  "other": "global_other"
+};
+
 function parseResponse(raw) {
   let parsed;
   try {
@@ -50,7 +61,6 @@ function parseResponse(raw) {
   }
 
   let genreId = parsed.mapped_genre_id.toLowerCase().trim();
-  let region = (parsed.mapped_region || 'global_other').toLowerCase().trim();
 
   // Validate genre
   if (!VALID_GENRES.has(genreId)) {
@@ -58,10 +68,8 @@ function parseResponse(raw) {
     genreId = 'other';
   }
 
-  // Validate region
-  if (!VALID_REGIONS.has(region)) {
-    region = 'global_other';
-  }
+  // Enforce region matches genre (bulletproof alignment guard)
+  const region = GENRE_TO_REGION[genreId] || 'global_other';
 
   return {
     genres: [genreId],
