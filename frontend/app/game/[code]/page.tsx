@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, use, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import { io as socketIo, Socket } from 'socket.io-client';
-import { getToken, GameState, Player, RoomSettings, startGame, updateSettings, fetchGenres, fetchGenreGroups } from '@/lib/api';
+import { getToken, GameState, Player, RoomSettings, startGame, updateSettings, fetchGenres, fetchGenreGroups, joinRoom } from '@/lib/api';
 import { isDebugMode } from '@/lib/debug-context';
 import AudioPlayer, { AudioPlayerHandle } from '@/app/components/AudioPlayer';
 import { useSettings } from '@/app/context/SettingsContext';
@@ -231,6 +231,19 @@ export default function GamePage({
     });
 
     socket.on('game_state', (state: GameState) => {
+      const isStillInRoom = state.players.some(p => p.id === playerId);
+      if (!isStillInRoom) {
+        joinRoom(code)
+          .then(({ playerId: newPid }) => {
+            localStorage.setItem(`blindtest_player_${code}`, newPid);
+            setPlayerId(newPid);
+          })
+          .catch(() => {
+            router.push('/');
+          });
+        return;
+      }
+
       if (state.state === 'waiting' && state.players.length > prevPlayerCountRef.current && prevPlayerCountRef.current > 0) {
         playSound('playerJoin');
       }

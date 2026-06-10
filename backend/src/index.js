@@ -118,8 +118,17 @@ io.on('connection', (socket) => {
     if (info) {
       const room = rooms.get(info.roomCode);
       if (room) {
-        room.removePlayer(info.playerId);
-        cleanupRoom(info.roomCode);
+        room.setPlayerSocket(info.playerId, null);
+        
+        // Wait 10 seconds before deciding to remove the player
+        setTimeout(() => {
+          if (room.playerSockets[info.playerId] === null) {
+            if (room.state === 'waiting' || room.state === 'game_over') {
+              room.removePlayer(info.playerId);
+              cleanupRoom(info.roomCode);
+            }
+          }
+        }, 10000);
       }
     }
     socketPlayerMap.delete(socket.id);
@@ -152,7 +161,8 @@ function cleanupRoom(code) {
 // Clean up stale rooms every 30 seconds
 setInterval(() => {
   for (const [code, room] of rooms) {
-    if (room.players.length === 0) {
+    const hasActivePlayers = room.players.some(p => room.playerSockets[p.id] !== undefined && room.playerSockets[p.id] !== null);
+    if (!hasActivePlayers) {
       room.destroy();
       rooms.delete(code);
     }
