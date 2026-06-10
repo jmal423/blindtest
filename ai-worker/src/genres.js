@@ -1,3 +1,5 @@
+export const GENRES = [];
+
 export function buildGenrePrompt(trackName, artist) {
   return `You are a music classifier. Given a song title and artist, respond with ONLY a JSON object.
 Do NOT include any other text, explanation, or markdown formatting.
