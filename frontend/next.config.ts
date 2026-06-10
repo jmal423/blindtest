@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ['blindtest.jl423.xyz'],
+  devIndicators: false,
   images: {
     remotePatterns: [
       {
