@@ -8,15 +8,26 @@ const pool = new pg.Pool({
 });
 
 export async function fetchUnprocessedTracks(limit = config.batchSize) {
-  const { rows } = await pool.query(`
-    SELECT id, name, artist, album_image, genre, genres, chart_source, rank
-    FROM songs_cache
-    WHERE ai_processed_at IS NULL
-       OR ai_version IS DISTINCT FROM $1
-    ORDER BY rank DESC
-    LIMIT $2
-  `, [config.aiVersion, limit]);
-  return rows;
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows } = await client.query(`
+      SELECT id, name, artist, album_image, genre, genres, chart_source, rank
+      FROM songs_cache
+      WHERE ai_processed_at IS NULL
+         OR ai_version IS DISTINCT FROM $1
+      ORDER BY rank DESC
+      LIMIT $2
+      FOR UPDATE SKIP LOCKED
+    `, [config.aiVersion, limit]);
+    await client.query('COMMIT');
+    return rows;
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 export async function fetchUnprocessedCount() {

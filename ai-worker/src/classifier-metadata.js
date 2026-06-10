@@ -22,27 +22,37 @@ async function ollamaGenerate(prompt) {
   return data.response;
 }
 
-function parseResponse(raw) {
-  let parsed;
+function extractJson(raw) {
+  const stripped = raw.replace(/^```(?:json)?\s*|```\s*$/g, '').trim();
   try {
-    parsed = JSON.parse(raw);
-  } catch {
-    const match = raw.match(/\{[\s\S]*\}/);
-    if (match) {
-      try { parsed = JSON.parse(match[0]); } catch { parsed = null; }
-    } else {
-      parsed = null;
-    }
+    return JSON.parse(stripped);
+  } catch {}
+  const match = stripped.match(/\{[\s\S]*\}/);
+  if (match) {
+    try { return JSON.parse(match[0]); } catch {}
   }
+  return null;
+}
+
+function parseResponse(raw) {
+  const parsed = extractJson(raw);
 
   if (!parsed || !Array.isArray(parsed.genres) || parsed.genres.length === 0) {
     throw new Error(`Failed to parse LLM response: ${raw.slice(0, 200)}`);
   }
 
-  const confidence = {};
-  const confPerGenre = 1.0 / parsed.genres.length;
-  for (const g of parsed.genres) {
-    confidence[g] = g === parsed.primary ? Math.min(1, confPerGenre + 0.2) : confPerGenre;
+  let confidence = {};
+  if (parsed.confidence && typeof parsed.confidence === 'object' && !Array.isArray(parsed.confidence)) {
+    const hasValid = parsed.genres.some(g => typeof parsed.confidence[g] === 'number');
+    if (hasValid) {
+      confidence = parsed.confidence;
+    }
+  }
+  if (Object.keys(confidence).length === 0) {
+    const perGenre = 1.0 / parsed.genres.length;
+    for (const g of parsed.genres) {
+      confidence[g] = g === parsed.primary ? Math.min(1, perGenre + 0.2) : perGenre;
+    }
   }
 
   return {

@@ -16,11 +16,11 @@ async function processBatch() {
 
   console.log(`[AI] Processing ${tracks.length} tracks (concurrency: ${config.concurrency})...`);
   let processed = 0;
+  let index = 0;
 
-  const queue = [...tracks];
   async function worker() {
-    while (queue.length > 0) {
-      const track = queue.shift();
+    while (index < tracks.length) {
+      const track = tracks[index++];
       try {
         console.log(`[AI] Classifying: ${track.artist} - ${track.name}`);
         const result = await classifyTrack(track);
@@ -71,7 +71,7 @@ async function runWatch() {
   console.log(`[AI] Watch mode — polling every ${config.pollIntervalMs}ms`);
   console.log(`[AI] Model: ${config.ollamaModel}, version: ${config.aiVersion}`);
 
-  const run = async () => {
+  async function cycle() {
     try {
       const count = await processBatch();
       if (count > 0) {
@@ -81,10 +81,10 @@ async function runWatch() {
     } catch (err) {
       console.error('[AI] Watch cycle error:', err.message);
     }
-  };
+    setTimeout(cycle, config.pollIntervalMs);
+  }
 
-  await run();
-  setInterval(run, config.pollIntervalMs);
+  cycle();
 }
 
 console.log(`[AI] BlindTest AI Worker starting...`);
