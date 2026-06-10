@@ -1,14 +1,8 @@
 import type { NextConfig } from "next";
-import os from "os";
-
-const isLocalhost = os.hostname() === 'jalfaiatpc';
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ['blindtest.jl423.xyz'],
-  devIndicators: {
-    appIsrStatus: isLocalhost,
-    buildActivity: isLocalhost,
-  } as any,
+  devIndicators: false as any,
   images: {
     remotePatterns: [
       {

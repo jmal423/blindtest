@@ -276,18 +276,19 @@ async function cacheSongs(tracks) {
       : JSON.stringify(t.genre ? [t.genre] : []);
     
     await targetPool.query(
-      `INSERT INTO songs_cache (id, name, artist, album_image, duration_ms, genre, genres, rank, source, chart_source)
-       VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9, $10)
+      `INSERT INTO songs_cache (id, name, artist, album_image, preview_url, duration_ms, genre, genres, rank, source, chart_source)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9, $10, $11)
        ON CONFLICT (id) DO UPDATE SET
          name = EXCLUDED.name,
          artist = EXCLUDED.artist,
          album_image = EXCLUDED.album_image,
+         preview_url = COALESCE(EXCLUDED.preview_url, songs_cache.preview_url),
          duration_ms = EXCLUDED.duration_ms,
          genres = EXCLUDED.genres,
          rank = EXCLUDED.rank,
          chart_source = EXCLUDED.chart_source,
          fetched_at = NOW()`,
-      [t.id, t.name, t.artist, t.albumImage || null, t.durationMs || 0, t.genre || null, genres, t.rank || 0, 'deezer', t.chartSource || null]
+      [t.id, t.name, t.artist, t.albumImage || null, t.previewUrl || null, t.durationMs || 0, t.genre || null, genres, t.rank || 0, 'deezer', t.chartSource || null]
     );
   }
 }
@@ -335,7 +336,7 @@ async function getCachedTracksByGenre(genre, count) {
     name: r.name,
     artist: r.artist,
     albumImage: r.album_image,
-    previewUrl: null,
+    previewUrl: r.preview_url || null,
     durationMs: r.duration_ms,
     genre: r.genre,
     genres: typeof r.genres === 'string' ? JSON.parse(r.genres) : (r.genres || []),

@@ -25,24 +25,44 @@ const GENRE_ID_MAP = {
 };
 
 const CUSTOM_GENRE_PLAYLISTS = {
+  // Portuguese
   fado: [2734677584, 10613220962, 4782723304, 14974361323],
   tradicional_folklore_pimba: [
     1478605935, 6163368884, 14302375881, 15135817403, 4782723304,
     13980025901, 3835511186, 13493798923
   ],
-  pop_rock_tuga: [3443535566, 3562194622, 5898788844, 10642447282],
+  pop_tuga: [3562194622, 5898788844],
+  pop_rock_tuga: [3562194622, 5898788844, 10642447282],
   hip_hop_tuga: [3481848302, 15066013003, 8211186722],
   classica_tuga: [8048810122, 12356713983, 14476568723, 15102890763],
-  french_touch_electro: [962293895, 13065304003, 7281037904, 9197791042, 6300460544, 7342240164],
-  rap_francais: [6568026624, 8619246462, 15155137203, 1836636662],
-  flamenco: [777756285, 3582568026, 13941285401, 15148096583, 6177686164],
-  reggaeton_urbano: [178699142, 3803398766, 1273315391, 11120289724, 925131455],
-  musica_regional_latina: [9003957462, 10629918582, 10630090322, 10630096622, 10630104822],
-  kpop: [4096400722, 12244134951, 7482846624],
+  kizomba_palop: [4427293502, 1205831211, 3311387182, 1839099582],
+  pop_urbano_nova_pop: [14341944421, 11555475044, 15060016783],
+  // Brazilian
   samba_pagode: [5449764382, 5709940122, 12968855623, 3396745906],
   bossa_nova: [556502217, 12607436323, 11566444484, 15172273023],
   funk_brasileiro: [15204407463, 15355968343, 15126778163, 9743264302],
-  kizomba_palop: [4427293502, 1205831211, 3311387182, 1839099582],
+  // US
+  pop_us: [1282483245],
+  hip_hop_trap_us: [12547421383],
+  country_americana_us: [11336583364, 14013464681, 9195238842, 7688601282],
+  rock_alternative_us: [1318451857, 8074584322, 8716319082, 8929584182, 1402845615],
+  // UK
+  pop_uk: [14645078321, 15199165723, 8603778582, 7386651364],
+  uk_drill_grime: [10361171462, 8322893622, 11336030544, 8672240222, 14701050621],
+  britpop_rock_uk: [8715045762, 9066452562, 855150871],
+  uk_garage_dnb: [14596222441, 14268860961, 13809941261, 11374785584, 3274357942],
+  // French
+  chanson_francaise: [700895155, 1884320402, 957995855, 1420459465],
+  pop_francaise: [1235433511, 1021647001, 1067140111, 1280262301],
+  french_touch_electro: [962293895, 13065304003, 7281037904, 9197791042, 6300460544, 7342240164],
+  rap_francais: [6568026624, 8619246462, 15155137203, 1836636662],
+  // Spanish
+  flamenco: [777756285, 3582568026, 13941285401, 15148096583, 6177686164],
+  reggaeton_urbano: [178699142, 3803398766, 1273315391, 11120289724, 925131455],
+  musica_regional_latina: [9003957462, 10629918582, 10630090322, 10630096622, 10630104822],
+  // Global
+  kpop: [4096400722, 12244134951, 7482846624],
+  reggae: [2448918882, 1295485847, 1503415633, 2042023484],
 };
 
 const SEARCH_QUERY_MAP = {
@@ -120,20 +140,46 @@ function shuffle(arr) {
   return a;
 }
 
-async function deezerFetch(endpoint) {
+let lastDeezerCall = 0;
+const DEEZER_MIN_INTERVAL = 100; // ms between calls
+
+async function deezerFetch(endpoint, retries = 2) {
   const url = `${API_BASE}${endpoint}`;
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 5000);
-  try {
-    const res = await fetch(url, { signal: controller.signal });
-    clearTimeout(timer);
-    if (!res.ok) return null;
-    return res.json();
-  } catch {
-    return null;
-  } finally {
-    clearTimeout(timer);
+  
+  // Throttle: ensure minimum interval between calls
+  const now = Date.now();
+  const wait = DEEZER_MIN_INTERVAL - (now - lastDeezerCall);
+  if (wait > 0) await new Promise(r => setTimeout(r, wait));
+  lastDeezerCall = Date.now();
+  
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 8000);
+    try {
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timer);
+      
+      // Rate limited — wait and retry
+      if (res.status === 429 || (res.status >= 400 && res.status < 500 && attempt < retries)) {
+        const backoff = (attempt + 1) * 1000;
+        console.warn(`[Deezer] Rate limited (${res.status}), retrying in ${backoff}ms... (${endpoint})`);
+        await new Promise(r => setTimeout(r, backoff));
+        continue;
+      }
+      
+      if (!res.ok) return null;
+      return res.json();
+    } catch (err) {
+      clearTimeout(timer);
+      if (attempt < retries) {
+        const backoff = (attempt + 1) * 500;
+        await new Promise(r => setTimeout(r, backoff));
+        continue;
+      }
+      return null;
+    }
   }
+  return null;
 }
 
 const albumGenreCache = new Map();
@@ -272,15 +318,44 @@ async function getCustomGenreTracks(genre, count) {
 }
 
 async function getTracksByGenre(genre, count = 10) {
+  // 1. Try the local AI-classified songs cache first (no Deezer calls needed)
+
   // 1. Try to fetch from the local intelligent songs cache first
   try {
     const { getCachedTracksByGenre } = await import('./db.js');
-    const cached = await getCachedTracksByGenre(genre, count * 2);
+    const cached = await getCachedTracksByGenre(genre, count * 3);
     
     if (cached && cached.length > 0) {
       console.log(`[DB] Fetched ${cached.length} candidate tracks from local intelligent cache for "${genre}"`);
       
-      // Fetch fresh preview URLs from Deezer API in parallel for these tracks
+      // Filter tracks that already have preview URLs from the DB
+      const tracksWithStoredPreviews = cached.filter(t => !!t.previewUrl);
+      console.log(`[DB] ${tracksWithStoredPreviews.length}/${cached.length} tracks have stored preview URLs`);
+      
+      // If we have enough tracks with stored previews, use them directly
+      if (tracksWithStoredPreviews.length >= count) {
+        console.log(`[DB] Using ${tracksWithStoredPreviews.length} tracks with stored preview URLs for "${genre}"`);
+        try {
+          const { all } = await import('./db.js');
+          const ids = tracksWithStoredPreviews.map(t => t.id);
+          if (ids.length > 0) {
+            const placeholders = ids.map(() => '?').join(',');
+            const playCounts = await all(
+              `SELECT song_id, COUNT(*) as cnt FROM songs_played WHERE song_id IN (${placeholders}) GROUP BY song_id`,
+              ids
+            );
+            const countMap = {};
+            for (const row of playCounts) countMap[row.song_id] = row.cnt;
+            tracksWithStoredPreviews.forEach(t => t.playCount = countMap[t.id] || 0);
+          }
+        } catch (err) {
+          console.error('[Deezer] Failed to query play counts:', err.message);
+        }
+        tracksWithStoredPreviews.sort((a, b) => (a.playCount || 0) - (b.playCount || 0) || (b.rank || 0) - (a.rank || 0));
+        return tracksWithStoredPreviews.slice(0, count);
+      }
+      
+      // Not enough stored previews — try refreshing from Deezer API
       const tracksWithPreviews = [];
       const batchSize = 10;
       for (let i = 0; i < cached.length; i += batchSize) {
@@ -292,20 +367,21 @@ async function getTracksByGenre(genre, count = 10) {
             if (data?.preview) {
               track.previewUrl = data.preview;
               tracksWithPreviews.push(track);
+            } else if (track.previewUrl) {
+              // Keep the stored preview URL if Deezer didn't return one
+              tracksWithPreviews.push(track);
             }
           } catch (err) {
-            console.error(`[Deezer] Failed to get fresh preview for track ${track.id}:`, err.message);
+            // Fall back to stored preview URL
+            if (track.previewUrl) tracksWithPreviews.push(track);
           }
         }));
         
-        // Stop early if we have enough tracks with valid previews
-        if (tracksWithPreviews.length >= count) {
-          break;
-        }
+        if (tracksWithPreviews.length >= count) break;
       }
       
-      if (tracksWithPreviews.length >= Math.min(count, 12)) {
-        console.log(`[DB] Successfully resolved ${tracksWithPreviews.length} tracks with fresh previews from cache`);
+      if (tracksWithPreviews.length >= Math.min(count, 5)) {
+        console.log(`[DB] Successfully resolved ${tracksWithPreviews.length} tracks with previews from cache`);
         try {
           const { all } = await import('./db.js');
           const ids = tracksWithPreviews.map(t => t.id);
@@ -330,8 +406,15 @@ async function getTracksByGenre(genre, count = 10) {
     console.error('[DB] Failed to query local intelligent cache:', err.message);
   }
 
-  console.log(`[Deezer] Cache miss or insufficient tracks for "${genre}". Falling back to Deezer API.`);
+  console.log(`[Deezer] DB cache miss or insufficient tracks for "${genre}". Falling back to Deezer.`);
 
+  // 2. Try curated playlists (hand-picked Deezer playlists per genre)
+  if (CUSTOM_GENRE_PLAYLISTS[genre]) {
+    console.log(`[Deezer] Using curated playlists for "${genre}"`);
+    return getCustomGenreTracks(genre, count);
+  }
+
+  // 3. Try Deezer chart/editorial API for standard Deezer genre IDs
   let tracks = [];
   const seen = new Set();
   const genreId = GENRE_ID_MAP[genre];
