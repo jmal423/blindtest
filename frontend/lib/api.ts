@@ -306,3 +306,11 @@ export async function searchAiTracks(q: string, limit = 20): Promise<{
 }> {
   return fetchWithAuth(`${API_URL}/api/admin/ai/search?q=${encodeURIComponent(q)}&limit=${limit}`);
 }
+
+export async function getAiRecent(limit = 50): Promise<{
+  ok: boolean;
+  tracks: { id: string; name: string; artist: string; genre: string; ai_genres: string[]; ai_tags: string[]; ai_processed_at: string }[];
+  error?: string;
+}> {
+  return fetchWithAuth(`${API_URL}/api/admin/ai/recent?limit=${limit}`);
+}

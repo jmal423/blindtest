@@ -667,6 +667,22 @@ app.get('/api/admin/ai/search', requireAdmin, async (req, res) => {
   }
 });
 
+app.get('/api/admin/ai/recent', requireAdmin, async (req, res) => {
+  const limit = Math.min(parseInt(req.query.limit) || 50, 200);
+  try {
+    const { rows } = await pool.query(`
+      SELECT id, name, artist, genre, ai_genres, ai_tags, ai_processed_at
+      FROM songs_cache
+      WHERE ai_processed_at IS NOT NULL AND ai_version NOT LIKE 'error:%'
+      ORDER BY ai_processed_at DESC
+      LIMIT $1
+    `, [limit]);
+    res.json({ ok: true, tracks: rows });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message, tracks: [] });
+  }
+});
+
 app.get('/api/admin/db-status', requireAdmin, async (req, res) => {
   try {
     const tables = await getTableCounts();

@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
-import { getMe, getAdminUsers, getAdminStats, getAdminRooms, getLeaderboard, updateUserRole, deleteUser, wipeUserScores, testDeezer, testDeezerGenre, getDbStatus, testGenre, getSongCache, fetchGenres, getAiStats, searchAiTracks } from '@/lib/api';
+import { getMe, getAdminUsers, getAdminStats, getAdminRooms, getLeaderboard, updateUserRole, deleteUser, wipeUserScores, testDeezer, testDeezerGenre, getDbStatus, testGenre, getSongCache, fetchGenres, getAiStats, searchAiTracks, getAiRecent } from '@/lib/api';
 
 type Tab = 'system' | 'users' | 'rooms' | 'leaderboard' | 'music' | 'ai' | 'api';
 
@@ -484,9 +484,16 @@ function AiTab() {
   const [searchResults, setSearchResults] = useState<any>(null);
   const [searching, setSearching] = useState(false);
   const searchTimer = useRef<any>(null);
+  const [recentTracks, setRecentTracks] = useState<any[]>([]);
 
   useEffect(() => {
-    getAiStats().then(setStats).catch(() => {}).finally(() => setLoading(false));
+    Promise.all([
+      getAiStats(),
+      getAiRecent(50),
+    ]).then(([s, r]) => {
+      setStats(s);
+      setRecentTracks(r?.tracks ?? []);
+    }).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
   const doSearch = useCallback(async (q: string) => {
@@ -621,6 +628,53 @@ function AiTab() {
         {searchResults?.error && (
           <p className="text-red-400 text-sm mt-2">{searchResults.error}</p>
         )}
+      </div>
+
+      <div className="bg-[var(--surface)] rounded-2xl border border-white/10 overflow-hidden">
+        <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between">
+          <h2 className="text-sm font-semibold">Recently Processed</h2>
+          <span className="text-[10px] text-zinc-500">{recentTracks.length} tracks</span>
+        </div>
+        <div className="overflow-y-auto max-h-[50vh]">
+          <table className="w-full text-xs">
+            <thead className="sticky top-0 bg-[var(--surface)]">
+              <tr className="text-zinc-500 border-b border-white/10">
+                <th className="text-left py-2 px-6">Track</th>
+                <th className="text-left py-2 px-2 hidden sm:table-cell">Artist</th>
+                <th className="text-left py-2 px-2 hidden md:table-cell">AI Genres</th>
+                <th className="text-left py-2 px-2 hidden lg:table-cell">AI Tags</th>
+                <th className="text-right py-2 px-6">Processed</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recentTracks.map((t: any) => (
+                <tr key={t.id} className="border-b border-white/5 hover:bg-white/[0.02]">
+                  <td className="py-2 px-6 truncate max-w-[200px] font-medium text-zinc-200">{t.name}</td>
+                  <td className="py-2 px-2 truncate max-w-[150px] hidden sm:table-cell text-zinc-400">{t.artist}</td>
+                  <td className="py-2 px-2 hidden md:table-cell">
+                    <span className="flex gap-1 flex-wrap">
+                      {(t.ai_genres || []).map((g: string) => (
+                        <span key={g} className="px-1.5 py-0.5 rounded text-[10px] bg-[var(--accent)]/20 text-[var(--accent)]">{g}</span>
+                      ))}
+                    </span>
+                  </td>
+                  <td className="py-2 px-2 hidden lg:table-cell">
+                    <span className="flex gap-1 flex-wrap">
+                      {(t.ai_tags || []).slice(0, 4).map((tag: string) => (
+                        <span key={tag} className="px-1.5 py-0.5 rounded text-[10px] bg-white/5 text-zinc-400">{tag}</span>
+                      ))}
+                      {(t.ai_tags || []).length > 4 && <span className="text-[10px] text-zinc-600">+{t.ai_tags.length - 4}</span>}
+                    </span>
+                  </td>
+                  <td className="py-2 px-6 text-right text-zinc-500 whitespace-nowrap">
+                    {t.ai_processed_at ? new Date(t.ai_processed_at).toLocaleDateString() : '-'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {recentTracks.length === 0 && <p className="text-zinc-600 text-center py-8">No processed tracks yet.</p>}
+        </div>
       </div>
 
       <div className="text-xs text-zinc-600">
