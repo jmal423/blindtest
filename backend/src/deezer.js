@@ -414,6 +414,8 @@ function getGenreLabel(genre) {
     samba_pagode: 'Samba & Pagode',
     bossa_nova: 'Bossa Nova / MPB',
     funk_brasileiro: 'Funk Brasileiro',
+    reggae: 'Reggae',
+    kpop: 'K-Pop',
     // Fallback
     other: 'Outros',
   };

@@ -24,26 +24,26 @@ You must map the track to exactly ONE "region" and ONE matching "genre_id" from 
    - genre_id: "kizomba_palop" (Kizomba, Kuduro, Semba, PALOP music)
    - genre_id: "pop_urbano_nova_pop" (Modern streaming pop, R&B, Afro-swing from Portugal, e.g., Slow J, Ivandro, T-Rex, Bárbara Bandeira)
 
-2. region: "brazilian" (Strictly for Brazilian artists, NO MATTER what language they sing or what raw tags say)
+2. region: "brazilian" (Strictly for Brazilian artists, NO MATTER what language they sing)
    - genre_id: "samba_pagode" (Samba, Pagode)
-   - genre_id: "bossa_nova" (Bossa Nova, MPB)
-   - genre_id: "funk_brasileiro" (Funk Carioca, Baile Funk, Funk Ostentação, ALL tracks by Mc Livinho, MC Kevinho, Anitta's Funk/Pop tracks)
+   - genre_id: "bossa_nova" (Bossa Nova, MPB, classic acoustic melodies)
+   - genre_id: "funk_brasileiro" (Funk Carioca, Baile Funk, Funk Ostentação, tracks by Mc Livinho, MC Kevinho, DJ Bruninho 17)
 
-3. region: "united_states" (Only for US-based artists or American bands)
-   - genre_id: "pop_us" (Mainstream US Pop)
-   - genre_id: "hip_hop_trap_us" (US Rap, Southern Trap, Boom-Bap)
+3. region: "united_states" (Only for US-based artists, historical legends or American bands)
+   - genre_id: "pop_us" (Mainstream US Pop, including both legacy icons like Michael Jackson and modern artists like Taylor Swift)
+   - genre_id: "hip_hop_trap_us" (US Rap, Southern Trap, Boom-Bap, Eminem)
    - genre_id: "country_americana_us" (Country, Bluegrass, Americana)
-   - genre_id: "rock_alternative_us" (US Rock, Grunge, Metalcore, Indie US)
+   - genre_id: "rock_alternative_us" (US Rock, Classic Rock, Grunge, Metalcore, Indie US)
 
-4. region: "united_kingdom" (Strictly for UK-based/British artists, e.g., Coldplay, Oasis, Queen, Adele, Ed Sheeran, Dua Lipa)
-   - genre_id: "pop_uk" (Mainstream UK Pop, Euro-dance, Adele)
+4. region: "united_kingdom" (Strictly for UK-based/British artists, bands, and legacy rock legends)
+   - genre_id: "pop_uk" (Mainstream UK Pop, Euro-dance, Adele, Ed Sheeran, Dua Lipa)
    - genre_id: "uk_drill_grime" (UK Drill, Grime, UK Rap)
-   - genre_id: "britpop_rock_uk" (Britpop, UK Indie, Rock UK, Oasis, Coldplay, Queen)
+   - genre_id: "britpop_rock_uk" (Britpop, UK Indie, Classic/Stadium Rock UK, Oasis, Coldplay, Queen)
    - genre_id: "uk_garage_dnb" (Drum & Bass, UK Garage, Breakbeat)
 
-5. region: "french" (Only for French, Belgian, or Francophone European artists singing in French)
+5. region: "french" (Only for French, Belgian, or Francophone European artists singing in French, or French soundtrack tracks)
    - genre_id: "chanson_francaise" (Traditional Chanson, Variété)
-   - genre_id: "pop_francaise" (Modern French Pop, Aya Nakamura pop tracks)
+   - genre_id: "pop_francaise" (Modern French Pop, Aya Nakamura pop tracks, French soundtrack pop)
    - genre_id: "rap_francais" (French/Belgian Rap, Trap, and Urban, GIMS, PLK, Vacra)
    - genre_id: "french_touch_electro" (French Electronic/House)
 
@@ -57,13 +57,24 @@ You must map the track to exactly ONE "region" and ONE matching "genre_id" from 
    - genre_id: "kpop" (Korean Pop, strictly for artists like BTS, BLACKPINK, Jennie, NewJeans, Stray Kids)
    - genre_id: "other" (Fallback for other unlisted regions)
 
-### CLASSIFICATION RULES (Strict Enforcement)
-1. ARTIST OVERRIDE DIRECTIVES (Mandatory):
-   - If the artist is "Anitta", the region MUST be "brazilian". If the track name is "Funk Rave" or "Downtown" or raw tags indicate urban/pop beats, map to genre_id: "funk_brasileiro". Never map Anitta to "portuguese" or "spanish" regions.
-   - If the artist is "Mc Livinho", the region MUST be "brazilian" and genre_id MUST be "funk_brasileiro". Ignore any raw tags saying "bossa-nova".
-   - If the artist is "BLACKPINK", "BTS", or "JENNIE", the region MUST be "global_other" and genre_id MUST be "kpop". Never fallback to "other" or "reggae" for these artists.
-2. TEXTUAL PRIORITY: Ignore corrupted raw genres if they contradict the known musical identity of the global artist provided.
-3. Input Context: Raw genres currently known for this track: ${JSON.stringify(rawGenres)}.
+### CLASSIFICATION DECISION TREE (Follow step-by-step from top to bottom)
+
+#### STEP 1: METADATA RULE-BASED ENFORCEMENT (Highest Priority)
+- If the array of raw genres ${JSON.stringify(rawGenres)} contains "funk-brasileiro", you MUST immediately classify the track as region: "brazilian" and genre_id: "funk_brasileiro".
+- If the array of raw genres ${JSON.stringify(rawGenres)} contains "musique-asiatique" or "kpop", you MUST immediately classify the track as region: "global_other" and genre_id: "kpop".
+- If the array of raw genres ${JSON.stringify(rawGenres)} contains "fado" or "fado-portuguese", you MUST immediately classify the track as region: "portuguese" and genre_id: "fado".
+- If the array of raw genres ${JSON.stringify(rawGenres)} contains "chanson-française" or "chanson-francaise", you MUST immediately classify the track as region: "french" and genre_id: "chanson_francaise".
+
+#### STEP 2: LEGENDARY ARTIST OVERRIDE DIRECTIVES (Second Priority - Forces BOTH Region and Genre)
+- If the artist is "Michael Jackson", you MUST map to region: "united_states" and genre_id: "pop_us".
+- If the artist is "Oasis" or "Coldplay" or "Queen", you MUST map to region: "united_kingdom" and genre_id: "britpop_rock_uk".
+- If the artist is "Adele", you MUST map to region: "united_kingdom" and genre_id: "pop_uk".
+- If the artist is "Mc Livinho" or "DJ BRUNINHO 17", you MUST map to region: "brazilian" and genre_id: "funk_brasileiro".
+- If the artist is "BLACKPINK" or "BTS" or "JENNIE", you MUST map to region: "global_other" and genre_id: "kpop".
+- If the artist is "Anitta": region MUST be "brazilian". If track is "Funk Rave" or tags contain funk, genre_id is "funk_brasileiro". If track is "Downtown" or "Choka Choka", map to genre_id: "reggaeton_urbano" (exception for her global urban collabs).
+
+#### STEP 3: LINGUISTIC TITLE ANALYSIS (Third Priority)
+- If the song title contains French words (e.g., "Seuls au monde", "L'assasymphonie", "J'ai vu", "Tu dors ?"), you MUST classify the region as "french". If the artist is a franchise (like "Miraculous"), map to genre_id: "pop_francaise".
 
 ### OUTPUT FORMAT
 You must respond with ONLY a JSON object. Do not include markdown code blocks, conversational text, intro, or outro.
