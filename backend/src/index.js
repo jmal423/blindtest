@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import { Server } from 'socket.io';
 import { GameRoom } from './game.js';
 import { GENRES, getGenreLabel, GENRE_GROUPS } from './deezer.js';
-import { generateId, get, all, run, ping, getTableCounts, createGame, finishGame, addGamePlayer, addRoundResultV2, getGameHistory, getPlayerStats, getLeaderboardV2, getRecentGames, getGameDetails, getSongCacheCounts, getSongCacheByGenre, getPlayedSongs, getAiEnrichmentStats, getAiGenreDistribution, getUnprocessedTracks } from './db.js';
+import { generateId, get, all, run, ping, getTableCounts, createGame, finishGame, addGamePlayer, addRoundResultV2, getGameHistory, getPlayerStats, getLeaderboardV2, getRecentGames, getGameDetails, getSongCacheCounts, getSongCacheByGenre, getPlayedSongs, getAiEnrichmentStats, getAiGenreDistribution, getUnprocessedTracks, pool } from './db.js';
 import { getAuthUrl, handleDiscordCallback, authenticate, requireAdmin, tryDecodeToken } from './auth.js';
 
 dotenv.config();
@@ -633,10 +633,37 @@ app.get('/api/admin/ai/stats', requireAdmin, async (req, res) => {
   try {
     const stats = await getAiEnrichmentStats();
     const distribution = await getAiGenreDistribution();
-    const unprocessed = await getUnprocessedTracks(20);
-    res.json({ ok: true, ...stats, distribution, unprocessed });
+    const unprocessedTracks = await getUnprocessedTracks(20);
+    res.json({ ok: true, ...stats, distribution, unprocessedTracks });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.get('/api/admin/ai/search', requireAdmin, async (req, res) => {
+  const q = (req.query.q || '').trim();
+  const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+  if (!q) return res.json({ ok: true, tracks: [] });
+
+  const pattern = `%${q}%`;
+  try {
+    const { rows } = await pool.query(`
+      SELECT id, name, artist, genre, ai_genres, ai_tags, ai_confidence, ai_processed_at
+      FROM songs_cache
+      WHERE ai_processed_at IS NOT NULL
+        AND ai_version NOT LIKE 'error:%'
+        AND (
+          EXISTS (SELECT 1 FROM jsonb_array_elements_text(ai_tags) tag WHERE tag ILIKE $1)
+          OR EXISTS (SELECT 1 FROM jsonb_array_elements_text(ai_genres) g WHERE g ILIKE $1)
+          OR name ILIKE $1
+          OR artist ILIKE $1
+        )
+      ORDER BY ai_processed_at DESC
+      LIMIT $2
+    `, [pattern, limit]);
+    res.json({ ok: true, tracks: rows });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message, tracks: [] });
   }
 });
 

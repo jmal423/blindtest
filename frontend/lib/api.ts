@@ -285,3 +285,24 @@ export async function deleteUser(userId: string): Promise<void> {
 export async function getSongCache(): Promise<{ total: number; genreCount: number; plays: number; genres: { genre: string; count: number; last_fetched: string }[]; played: { id: string; name: string; artist: string; genre: string; genres: string[]; chartSource: string | null; rank: number; play_count: number; last_played: string }[] }> {
   return fetchWithAuth(`${API_URL}/api/admin/song-cache`);
 }
+
+export async function getAiStats(): Promise<{
+  ok: boolean;
+  total: number;
+  unprocessed: number;
+  errors: number;
+  processed: number;
+  last_processed: string | null;
+  distribution: { genre: string; count: number }[];
+  unprocessedTracks: { id: string; name: string; artist: string; genre: string; genres: string[]; chart_source: string; rank: number }[];
+}> {
+  return fetchWithAuth(`${API_URL}/api/admin/ai/stats`);
+}
+
+export async function searchAiTracks(q: string, limit = 20): Promise<{
+  ok: boolean;
+  tracks: { id: string; name: string; artist: string; genre: string; ai_genres: string[]; ai_tags: string[]; ai_confidence: Record<string, number>; ai_processed_at: string }[];
+  error?: string;
+}> {
+  return fetchWithAuth(`${API_URL}/api/admin/ai/search?q=${encodeURIComponent(q)}&limit=${limit}`);
+}

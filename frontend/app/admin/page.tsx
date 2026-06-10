@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
-import { getMe, getAdminUsers, getAdminStats, getAdminRooms, getLeaderboard, updateUserRole, deleteUser, wipeUserScores, testDeezer, testDeezerGenre, getDbStatus, testGenre, getSongCache, fetchGenres } from '@/lib/api';
+import { getMe, getAdminUsers, getAdminStats, getAdminRooms, getLeaderboard, updateUserRole, deleteUser, wipeUserScores, testDeezer, testDeezerGenre, getDbStatus, testGenre, getSongCache, fetchGenres, getAiStats, searchAiTracks } from '@/lib/api';
 
-type Tab = 'system' | 'users' | 'rooms' | 'leaderboard' | 'music' | 'api';
+type Tab = 'system' | 'users' | 'rooms' | 'leaderboard' | 'music' | 'ai' | 'api';
 
 const tabs: { id: Tab; label: string }[] = [
   { id: 'system', label: 'System' },
@@ -13,6 +13,7 @@ const tabs: { id: Tab; label: string }[] = [
   { id: 'rooms', label: 'Rooms' },
   { id: 'leaderboard', label: 'Leaderboard' },
   { id: 'music', label: 'Music' },
+  { id: 'ai', label: 'AI' },
   { id: 'api', label: 'API' },
 ];
 
@@ -74,6 +75,7 @@ export default function AdminPage() {
         {activeTab === 'rooms' && <RoomsTab />}
         {activeTab === 'leaderboard' && <LeaderboardTab />}
         {activeTab === 'music' && <MusicTab />}
+        {activeTab === 'ai' && <AiTab />}
         {activeTab === 'api' && <ApiTab />}
       </motion.div>
     </div>
@@ -469,6 +471,160 @@ function MusicTab() {
             );
           })}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function AiTab() {
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  const [searchQ, setSearchQ] = useState('');
+  const [searchResults, setSearchResults] = useState<any>(null);
+  const [searching, setSearching] = useState(false);
+  const searchTimer = useRef<any>(null);
+
+  useEffect(() => {
+    getAiStats().then(setStats).catch(() => {}).finally(() => setLoading(false));
+  }, []);
+
+  const doSearch = useCallback(async (q: string) => {
+    if (!q.trim()) { setSearchResults(null); return; }
+    setSearching(true);
+    try {
+      const res = await searchAiTracks(q);
+      setSearchResults(res);
+    } catch { setSearchResults(null) }
+    setSearching(false);
+  }, []);
+
+  const handleSearchInput = (val: string) => {
+    setSearchQ(val);
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+    searchTimer.current = setTimeout(() => doSearch(val), 300);
+  };
+
+  if (loading) return <p className="text-zinc-500 text-center py-8">Loading...</p>;
+
+  const pct = (n: number) => stats?.total ? ((n / stats.total) * 100).toFixed(1) : '0';
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <StatCard value={stats?.total ?? '-'} label="Total Songs" color="var(--primary)" />
+        <StatCard value={stats?.processed ?? '-'} label="Processed" color="#10b981" />
+        <StatCard value={stats?.unprocessed ?? '-'} label="Unprocessed" color="#f59e0b" />
+        <StatCard value={stats?.errors ?? '-'} label="Errors" color="#ef4444" />
+      </div>
+
+      <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6">
+        <h2 className="text-sm font-semibold mb-4">AI Genre Distribution</h2>
+        {stats?.distribution?.length > 0 ? (
+          <div className="space-y-2">
+            {stats.distribution.map((g: any) => (
+              <div key={g.genre} className="flex items-center gap-3">
+                <span className="text-xs text-zinc-400 w-28 truncate">{g.genre}</span>
+                <div className="flex-1 h-3 bg-white/5 rounded-full overflow-hidden">
+                  <div className="h-full bg-[var(--accent)] rounded-full" style={{ width: `${(g.count / stats.total) * 100}%` }} />
+                </div>
+                <span className="text-xs text-zinc-400 w-10 text-right tabular-nums">{g.count}</span>
+                <span className="text-[10px] text-zinc-600 w-12 text-right">{pct(g.count)}%</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-zinc-600 text-sm">No AI enriched tracks yet.</p>
+        )}
+      </div>
+
+      <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6">
+        <h2 className="text-sm font-semibold mb-4">Unprocessed Queue</h2>
+        {stats?.unprocessedTracks?.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="text-zinc-500 border-b border-white/10">
+                  <th className="text-left py-2 pr-2">#</th>
+                  <th className="text-left py-2 px-2">Track</th>
+                  <th className="text-left py-2 px-2 hidden sm:table-cell">Artist</th>
+                  <th className="text-right py-2 pl-2">Rank</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats.unprocessedTracks.map((t: any, i: number) => (
+                  <tr key={t.id} className="border-b border-white/5">
+                    <td className="py-1.5 pr-2 text-zinc-600 tabular-nums">{i + 1}</td>
+                    <td className="py-1.5 px-2 truncate max-w-[180px]">{t.name}</td>
+                    <td className="py-1.5 px-2 truncate max-w-[180px] hidden sm:table-cell text-zinc-400">{t.artist}</td>
+                    <td className="py-1.5 pl-2 text-right tabular-nums text-zinc-500">{t.rank > 0 ? `#${t.rank.toLocaleString()}` : '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="text-zinc-600 text-sm">All tracks processed.</p>
+        )}
+      </div>
+
+      <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6">
+        <h2 className="text-sm font-semibold mb-4">Search AI Tags</h2>
+        <p className="text-xs text-zinc-500 mb-4">Search tracks by AI-generated tags, genres, name, or artist.</p>
+        <input
+          value={searchQ}
+          onChange={e => handleSearchInput(e.target.value)}
+          placeholder="e.g. sad piano, upbeat rock, chill..."
+          className="w-full px-4 py-2 bg-black/20 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-[var(--accent)] transition-colors text-sm"
+        />
+        {searching && <p className="text-zinc-500 text-xs mt-2">Searching...</p>}
+        {searchResults?.tracks?.length > 0 && (
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="text-zinc-500 border-b border-white/10">
+                  <th className="text-left py-2 pr-2">Track</th>
+                  <th className="text-left py-2 px-2">Artist</th>
+                  <th className="text-left py-2 px-2">AI Genres</th>
+                  <th className="text-left py-2 pl-2">AI Tags</th>
+                </tr>
+              </thead>
+              <tbody>
+                {searchResults.tracks.map((t: any) => (
+                  <tr key={t.id} className="border-b border-white/5">
+                    <td className="py-1.5 pr-2 font-medium">{t.name}</td>
+                    <td className="py-1.5 px-2 text-zinc-400">{t.artist}</td>
+                    <td className="py-1.5 px-2">
+                      <span className="flex gap-1 flex-wrap">
+                        {(t.ai_genres || []).map((g: string) => (
+                          <span key={g} className="px-1.5 py-0.5 rounded text-[10px] bg-[var(--accent)]/20 text-[var(--accent)]">{g}</span>
+                        ))}
+                      </span>
+                    </td>
+                    <td className="py-1.5 pl-2">
+                      <span className="flex gap-1 flex-wrap">
+                        {(t.ai_tags || []).slice(0, 6).map((tag: string) => (
+                          <span key={tag} className="px-1.5 py-0.5 rounded text-[10px] bg-white/5 text-zinc-400">{tag}</span>
+                        ))}
+                        {(t.ai_tags || []).length > 6 && <span className="text-[10px] text-zinc-600">+{t.ai_tags.length - 6}</span>}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {searchQ && !searching && searchResults?.tracks?.length === 0 && (
+          <p className="text-zinc-600 text-sm mt-4">No tracks match "{searchQ}"</p>
+        )}
+        {searchResults?.error && (
+          <p className="text-red-400 text-sm mt-2">{searchResults.error}</p>
+        )}
+      </div>
+
+      <div className="text-xs text-zinc-600">
+        Last processed: {stats?.last_processed ? new Date(stats.last_processed).toLocaleString() : 'Never'}
       </div>
     </div>
   );
