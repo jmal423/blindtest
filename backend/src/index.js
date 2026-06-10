@@ -630,14 +630,13 @@ app.post('/api/admin/test/deezer/genre', requireAdmin, async (req, res) => {
 });
 
 app.get('/api/admin/ai/stats', requireAdmin, async (req, res) => {
-  try {
-    const stats = await getAiEnrichmentStats();
-    const distribution = await getAiGenreDistribution();
-    const unprocessedTracks = await getUnprocessedTracks(20);
-    res.json({ ok: true, ...stats, distribution, unprocessedTracks });
-  } catch (err) {
-    res.status(500).json({ ok: false, error: err.message });
-  }
+  let stats = { total: 0, processed: 0, unprocessed: 0, errors: 0, last_processed: null };
+  let distribution = [];
+  let unprocessedTracks = [];
+  try { stats = await getAiEnrichmentStats(); } catch (err) { console.error('ai stats query failed:', err.message); }
+  try { distribution = await getAiGenreDistribution(); } catch (err) { console.error('ai distribution query failed:', err.message); }
+  try { unprocessedTracks = await getUnprocessedTracks(20); } catch (err) { console.error('ai unprocessed query failed:', err.message); }
+  res.json({ ok: true, ...stats, distribution, unprocessedTracks });
 });
 
 app.get('/api/admin/ai/search', requireAdmin, async (req, res) => {

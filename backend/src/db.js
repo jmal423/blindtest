@@ -370,11 +370,11 @@ async function getAiEnrichmentStats() {
 
 async function getAiGenreDistribution() {
   const { rows } = await pool.query(`
-    SELECT jsonb_array_elements_text(ai_genres) AS genre,
-           COUNT(*) as count
+    SELECT g.genre, COUNT(*) as count
     FROM songs_cache
+    CROSS JOIN LATERAL jsonb_array_elements_text(ai_genres) AS g(genre)
     WHERE ai_genres != '[]'::jsonb
-    GROUP BY genre
+    GROUP BY g.genre
     ORDER BY count DESC
   `);
   return rows;
