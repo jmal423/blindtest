@@ -168,22 +168,8 @@ async function getCustomGenreTracks(genre, count) {
       if (added > 0) console.log(`[Deezer] Playlist ${playlistId} +${added} tracks for "${genre}"`);
     }
   } else {
-    console.log(`[Deezer] No custom playlist source for "${genre}", querying search API`);
-    let searchTracks = await searchDeezerTracks(`genre:"${genre}"`, genre, count);
-    if (searchTracks.length < Math.min(count, 10)) {
-      console.log(`[Deezer] Insufficient tracks for query 'genre:"${genre}"' (${searchTracks.length}). Falling back to general query '${genre}'.`);
-      const generalTracks = await searchDeezerTracks(genre, genre, count);
-      const merged = [...searchTracks];
-      const mergedIds = new Set(searchTracks.map(t => t.id));
-      for (const t of generalTracks) {
-        if (!mergedIds.has(t.id)) {
-          merged.push(t);
-          mergedIds.add(t.id);
-        }
-      }
-      searchTracks = merged;
-    }
-    tracks = searchTracks;
+    console.log(`[Deezer] No custom playlist source for "${genre}", searching Deezer`);
+    tracks = await searchDeezerTracks(genre, genre, count);
   }
 
   const batchSize = 5;
