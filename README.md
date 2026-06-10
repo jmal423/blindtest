@@ -138,10 +138,9 @@ Our intelligent classification cache upgrades a standard "dumb" track database i
 
 1. **Discovery & Caching (Dumb DB)**: Uncached tracks requested in a game are fetched from Deezer charts (`/chart/{genreId}/tracks`). Their album metadata is queried via `/album/{id}` to capture album-level genres, and cached into the `songs_cache` table.
 2. **Local AI Enrichment (Smart DB)**:
-   An offline `ai-worker` running on a powerful local machine pulls unprocessed songs from the remote database, evaluates them using Ollama (`llama3.2`), and adds:
-   - `ai_genres`: Standardized list of subgenres and genres.
-   - `ai_tags`: Free-form contextual descriptors (mood, instruments, style, era).
-   - `ai_confidence`: Probability/weight parameters for classifications.
+   An offline `ai-worker` running on a powerful local machine pulls unprocessed songs from the remote database and classifies them using Ollama (`llama3:8b`) based on a **strict, two-step region-to-genre decision process**:
+   * **Step 1 (Linguistic/Regional Origin)**: The AI identifies the artist's country of origin and language cadence first (e.g., if the artist is French/Belgian like PLK, GIMS, or Stromae, the region is locked to `french`; if the artist is Portuguese like Slow J, the region is locked to `portuguese`).
+   * **Step 2 (Target Subgenre)**: The AI selects the final genre ID *only* from the subgenres allowed for that specific region. This prevents cross-region leaks (e.g., preventing French rap from leaking into US trap `hip_hop_trap_us` or Portuguese pop `pop_urbano_nova_pop`).
 3. **Automated Loop (Watch Mode)**:
    Running the worker in watch mode (`npm run watch`) periodically polls the database for newly added/unprocessed cache items (`ai_processed_at IS NULL`), processes them via LLM, and pushes the enriched results back.
 4. **Database-First Playback**:
@@ -158,16 +157,12 @@ To run the AI pipeline remotely without running Ollama on the production OptiPle
 * `npm run sync-pull`: Pulls newly cached, unprocessed songs from the remote database to your local PostgreSQL database.
 * `npm run classify` (or `npm run batch`): Performs LLM classification on the local database.
 * `npm run sync-push`: Pushes the local AI-enrichment columns (`ai_genres`, `ai_tags`, `ai_confidence`, etc.) back to the remote OptiPlex database.
-* `npm run run`: Chans all three commands together (`sync-pull` && `classify` && `sync-push`) for a single-command sync loop.
+* `npm run run`: Chains all three commands together (`sync-pull` && `classify` && `sync-push`) for a single-command sync loop.
 
-### 2. Genre Cleaning & Standardization
-Over time, raw LLM classifications might produce redundant, overlapping, or minor subgenres (e.g. "hiphop-tuga", "rap-tuga", "tuga-rap").
+### 2. Genre Config Generator
+Generates the frontend-compatible and backend-compatible configuration files containing `GENRES` and `GENRE_GROUPS` definitions based on our target music taxonomy.
 * **Command**: `npm run clean-genres`
-* **Process**:
-  1. Pulls all distinct raw genres from `songs_cache.ai_genres`.
-  2. Queries Ollama (`llama3.2`) to clean, map, and consolidate them into a standardized taxonomy (e.g., merging spelling, mapping subgenres into clean kebab-case names, grouping them into lists like `portuguese`, `french`, `world`).
-  3. Updates the `ai_genres` JSONB column for all tracks in `songs_cache` with their standardized names.
-  4. Generates a frontend-compatible and backend-compatible configuration file (`ai-worker/scripts/output/genres-config.js`) containing `GENRES` and `GENRE_GROUPS` definitions.
+* **Process**: Writes the standardized target taxonomy list and regional group mappings directly to `genres-config.js` for both the worker and backend.
 
 ### 3. Semantic Deduplication
 To prevent users from hearing the same song multiple times in different forms (e.g., remasters, live recordings, radio edits, deluxe versions):

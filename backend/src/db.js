@@ -25,12 +25,31 @@ pool.on('error', (err) => {
   console.error('[DB] Unexpected pool error:', err.message);
 });
 
+let rawPool = null;
+if (process.env.RAW_DATABASE_URL) {
+  rawPool = new pg.Pool({
+    connectionString: process.env.RAW_DATABASE_URL,
+    max: 10,
+    idleTimeoutMillis: 30000,
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  });
+  rawPool.on('error', (err) => {
+    console.error('[DB] Unexpected raw pool error:', err.message);
+  });
+}
+
 async function connectWithRetry(retries = 5, delayMs = 2000) {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       const client = await pool.connect();
       client.release();
-      console.log(`[DB] PostgreSQL connected: ${process.env.DATABASE_URL.replace(/\/\/.*@/, '//***@')}`);
+      console.log(`[DB] PostgreSQL (Main) connected: ${process.env.DATABASE_URL.replace(/\/\/.*@/, '//***@')}`);
+
+      if (rawPool) {
+        const rawClient = await rawPool.connect();
+        rawClient.release();
+        console.log(`[DB] PostgreSQL (Raw) connected: ${process.env.RAW_DATABASE_URL.replace(/\/\/.*@/, '//***@')}`);
+      }
       return;
     } catch (err) {
       if (attempt === retries) {
@@ -48,40 +67,46 @@ await connectWithRetry();
 async function runMigrations() {
   const migrationsDir = path.join(__dirname, 'migrations');
 
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS _migrations (
-      name TEXT PRIMARY KEY,
-      applied_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-    )
-  `);
+  async function migratePool(targetPool, label) {
+    await targetPool.query(`
+      CREATE TABLE IF NOT EXISTS _migrations (
+        name TEXT PRIMARY KEY,
+        applied_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      )
+    `);
 
-  const { rows: appliedRows } = await pool.query('SELECT name FROM _migrations ORDER BY name');
-  const applied = new Set(appliedRows.map(r => r.name));
+    const { rows: appliedRows } = await targetPool.query('SELECT name FROM _migrations ORDER BY name');
+    const applied = new Set(appliedRows.map(r => r.name));
 
-  if (!fs.existsSync(migrationsDir)) return;
+    if (!fs.existsSync(migrationsDir)) return;
 
-  const files = fs.readdirSync(migrationsDir)
-    .filter(f => f.endsWith('.js'))
-    .sort();
+    const files = fs.readdirSync(migrationsDir)
+      .filter(f => f.endsWith('.js'))
+      .sort();
 
-  for (const file of files) {
-    const mod = await import(`./migrations/${file}`);
-    const migration = mod.default;
+    for (const file of files) {
+      const mod = await import(`./migrations/${file}`);
+      const migration = mod.default;
 
-    if (applied.has(migration.name)) {
-      console.log(`[DB] Migration ${migration.name} already applied`);
-      continue;
+      if (applied.has(migration.name)) {
+        continue;
+      }
+
+      console.log(`[DB] [${label}] Running migration: ${migration.name}`);
+
+      const stmts = migration.up.split(';').map(s => s.trim()).filter(Boolean);
+      for (const stmt of stmts) {
+        await targetPool.query(stmt);
+      }
+
+      await targetPool.query('INSERT INTO _migrations (name) VALUES ($1)', [migration.name]);
+      console.log(`[DB] [${label}] Migration ${migration.name} applied`);
     }
+  }
 
-    console.log(`[DB] Running migration: ${migration.name}`);
-
-    const stmts = migration.up.split(';').map(s => s.trim()).filter(Boolean);
-    for (const stmt of stmts) {
-      await pool.query(stmt);
-    }
-
-    await pool.query('INSERT INTO _migrations (name) VALUES ($1)', [migration.name]);
-    console.log(`[DB] Migration ${migration.name} applied`);
+  await migratePool(pool, 'Main');
+  if (rawPool) {
+    await migratePool(rawPool, 'Raw');
   }
 }
 
@@ -243,14 +268,16 @@ async function getTableCounts() {
 }
 
 async function cacheSongs(tracks) {
+  const targetPool = rawPool || pool;
   for (const t of tracks) {
     if (!t.id || !t.name || !t.artist) continue;
     const genres = Array.isArray(t.genres) && t.genres.length > 0
       ? JSON.stringify(t.genres)
       : JSON.stringify(t.genre ? [t.genre] : []);
-    await run(
+    
+    await targetPool.query(
       `INSERT INTO songs_cache (id, name, artist, album_image, duration_ms, genre, genres, rank, source, chart_source)
-       VALUES (?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?, ?)
+       VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9, $10)
        ON CONFLICT (id) DO UPDATE SET
          name = EXCLUDED.name,
          artist = EXCLUDED.artist,

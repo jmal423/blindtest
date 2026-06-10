@@ -1,18 +1,72 @@
 export const GENRES = [];
 
-export function buildGenrePrompt(trackName, artist) {
-  return `You are a music classifier. Given a song title and artist, respond with ONLY a JSON object.
-Do NOT include any other text, explanation, or markdown formatting.
+export function buildGenrePrompt(trackName, artist, rawGenres = []) {
+  return `You are a strict, deterministic music taxonomy classifier. Your sole purpose is to sanitize, normalize, and categorize a music track into a refined, high-level global music taxonomy.
 
-Rules:
-- "genres": an array of 1-4 genre labels describing the music (be specific: "french-rap", "k-pop", "synthwave", "trap", "drill", etc).
-- "tags": an array of 3-8 free-form descriptive tags (mood, era, style, instrumentation, tempo). Examples: "upbeat", "melancholic", "electronic", "acoustic", "90s", "female-vocals", "dancefloor", "chill", "heavy", "minimal".
-- "primary": the single best matching genre label (as a string, not array).
-- "confidence": an object mapping each genre to your confidence score (0.0 to 1.0). Be honest — use low scores for uncertain matches.
+### TARGET TAXONOMY (Strict region-to-genre relationships)
+You must map the track to exactly ONE "region" and ONE matching "genre_id" from the options listed below:
 
-Respond with:
-{"genres":[...], "tags":[...], "primary":"...", "confidence":{...}}
+1. region: "portuguese" (Only for Portuguese artists, or artists singing primarily in Portuguese from Portugal)
+   - genre_id: "fado" (Fado)
+   - genre_id: "tradicional_folklore_pimba" (Pimba, Folklore, Vira, Corridinho, Cante)
+   - genre_id: "pop_tuga" (Traditional mainstream Portuguese Pop)
+   - genre_id: "pop_rock_tuga" (Portuguese Rock/Pop-Rock)
+   - genre_id: "hip_hop_tuga" (Rap Tuga, Boom-Bap, Hip-Hop local)
+   - genre_id: "classica_tuga" (Portuguese classical/orchestral)
+   - genre_id: "kizomba_palop" (Kizomba, Kuduro, Semba, PALOP music)
+   - genre_id: "pop_urbano_nova_pop" (Modern streaming pop, R&B, Afro-swing from Portugal, e.g., Slow J, Ivandro, T-Rex, Bárbara Bandeira)
 
-Track: "${trackName}"
-Artist: "${artist}"`;
+2. region: "brazilian" (Only for Brazilian artists, or artists singing in Brazilian Portuguese)
+   - genre_id: "samba_pagode" (Samba, Pagode)
+   - genre_id: "bossa_nova" (Bossa Nova, MPB)
+   - genre_id: "funk_brasileiro" (Funk Carioca/Baile)
+
+3. region: "united_states" (Only for US-based artists or American bands/music)
+   - genre_id: "pop_us" (Mainstream US Pop)
+   - genre_id: "hip_hop_trap_us" (US Rap, Southern Trap, Boom-Bap)
+   - genre_id: "country_americana_us" (Country, Bluegrass, Americana)
+   - genre_id: "rock_alternative_us" (US Rock, Grunge, Metalcore, Indie US)
+
+4. region: "united_kingdom" (Only for UK-based/British artists or UK music)
+   - genre_id: "pop_uk" (Mainstream UK Pop, Euro-dance)
+   - genre_id: "uk_drill_grime" (UK Drill, Grime, UK Rap)
+   - genre_id: "britpop_rock_uk" (Britpop, UK Indie, Rock UK)
+   - genre_id: "uk_garage_dnb" (Drum & Bass, UK Garage, Breakbeat)
+
+5. region: "french" (Only for French, Belgian, or Francophone European artists singing in French)
+   - genre_id: "chanson_francaise" (Traditional Chanson, Variété)
+   - genre_id: "pop_francaise" (Modern French Pop)
+   - genre_id: "rap_francais" (French/Belgian Rap, Trap, and Urban)
+   - genre_id: "french_touch_electro" (French Electronic/House)
+
+6. region: "spanish" (Only for Spanish or Spanish-speaking Latin American artists)
+   - genre_id: "flamenco" (Flamenco)
+   - genre_id: "reggaeton_urbano" (Reggaeton, Latin Trap, Latin Pop)
+   - genre_id: "musica_regional_latina" (Bachata, Salsa, Corridos, Mariachi, Cumbia)
+
+7. region: "global_other" (For any other countries/regions, e.g., J-Pop, K-Pop, German electro, or global instrumental soundtracks)
+   - genre_id: "other" (Fallback for other regions/genres)
+
+### CLASSIFICATION RULES (Strict Two-Step Decision Process)
+1. STEP 1: Determine the artist's origin and linguistic/cultural region FIRST.
+   - E.g., if the artist is French or Belgian (like PLK, GIMS, Niska, La Fouine, Leto, Ninho, Werenoi, Angèle, Stromae, Alonzo, Jul), the region MUST be "french".
+   - E.g., if the artist is Portuguese (like Slow J, Bárbara Bandeira, Ivandro, T-Rex), the region MUST be "portuguese".
+2. STEP 2: Select the genre_id ONLY from the subgenres belonging to that region.
+   - E.g., if the region is "french", the genre_id MUST be one of: "chanson_francaise", "pop_francaise", "rap_francais", "french_touch_electro". It is a critical error to choose "hip_hop_trap_us" or "pop_urbano_nova_pop" for a French artist.
+   - E.g., if the region is "united_states", the genre_id MUST be one of: "pop_us", "hip_hop_trap_us", "country_americana_us", "rock_alternative_us".
+3. Input Context: Raw genres currently known for this track: ${JSON.stringify(rawGenres)}.
+
+### OUTPUT FORMAT
+You must respond with ONLY a JSON object. Do not include markdown code blocks (like \`\`\`json), do not include conversational text, intro, or outro. Just the raw JSON.
+
+Output Schema:
+{
+  "title": "${trackName.replace(/"/g, '\\"')}",
+  "artist": "${artist.replace(/"/g, '\\"')}",
+  "mapped_region": "region_id_here",
+  "mapped_genre_id": "genre_id_here"
+}
+
+Track Title: "${trackName}"
+Artist Name: "${artist}"`;
 }

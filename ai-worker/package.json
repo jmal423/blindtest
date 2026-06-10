@@ -12,7 +12,7 @@
     "sync-pull": "node scripts/sync-pull.js",
     "sync-push": "node scripts/sync-push.js",
     "classify": "node src/index.js",
-    "run": "node scripts/sync-pull.js && node src/index.js && node scripts/sync-push.js",
+    "run": "node scripts/sync-pull.js && node src/index.js && node scripts/clean-genres.js && node scripts/deduplicate.js && node scripts/sync-push.js",
     "clean-genres": "node scripts/clean-genres.js",
     "deduplicate": "node scripts/deduplicate.js"
   },

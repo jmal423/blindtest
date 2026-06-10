@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Configuration
+OPTIPLEX_IP="192.168.1.49"
+PORT="5433"
+REMOTE_PORT="5432"
+
+echo "=== Opening SSH Tunnel to OptiPlex (${OPTIPLEX_IP}) ==="
+echo "Forwarding local port ${PORT} -> remote port ${REMOTE_PORT}"
+echo "Press Ctrl+C to close the tunnel."
+echo ""
+
+ssh -L ${PORT}:localhost:${REMOTE_PORT} jalfaiat@${OPTIPLEX_IP}

@@ -1,13 +1,16 @@
 import pg from 'pg';
+import dotenv from 'dotenv';
 
-const REMOTE_URL = process.env.REMOTE_DATABASE_URL || 'postgresql://blindtest_user:blindtest_pass@localhost:5433/blindtest';
-const LOCAL_URL = process.env.LOCAL_DATABASE_URL || 'postgresql://blindtest_user:blindtest_pass@localhost:5432/blindtest';
+dotenv.config();
+
+const REMOTE_URL = process.env.REMOTE_RAW_DATABASE_URL || 'postgresql://blindtest_user:blindtest_pass@localhost:5433/blindtest_old';
+const LOCAL_URL = process.env.LOCAL_DATABASE_URL || process.env.DATABASE_URL || 'postgresql://blindtest_user:blindtest_pass@localhost:5432/blindtest';
 
 const remote = new pg.Pool({ connectionString: REMOTE_URL, max: 3 });
 const local = new pg.Pool({ connectionString: LOCAL_URL, max: 5 });
 
 const BATCH_SIZE = parseInt(process.env.BATCH_SIZE || '500', 10);
-const COLS = ['id', 'name', 'artist', 'album_image', 'preview_url', 'duration_ms', 'genre', 'rank', 'source', 'fetched_at', 'genres', 'chart_source', 'ai_genres', 'ai_tags', 'ai_audio_genres', 'ai_confidence', 'ai_processed_at', 'ai_version'];
+const COLS = ['id', 'name', 'artist', 'album_image', 'preview_url', 'duration_ms', 'genre', 'rank', 'source', 'fetched_at', 'genres', 'chart_source', 'ai_genres', 'ai_tags', 'ai_audio_genres', 'ai_confidence', 'ai_processed_at', 'ai_version', 'already_verified'];
 
 async function getSyncWatermarks() {
   const { rows } = await local.query(`

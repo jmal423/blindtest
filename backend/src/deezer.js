@@ -378,57 +378,46 @@ async function getTracksByGenre(genre, count = 10) {
   return tracks.slice(0, count);
 }
 
-const GENRES = [
-  'pop', 'electronic', 'jazz', 'classical', 'metal', 'soul', 'blues', 'reggae',
-  'dance', 'folk', 'r-n-b', 'soundtrack', 'children',
-  'african', 'arabic', 'asian', 'indian', 'k-pop',
-  'country-americana', 'hip-hop-rap', 'rock-indie',
-  'chanson-francaise', 'french-touch-electro', 'rap-francais',
-  'flamenco', 'reggaeton-urbano', 'musica-regional-latina',
-  'fado', 'popular-pimba', 'traditional-folclore', 'pop-rock-portugues', 'hip-hop-tuga', 'classica-portuguesa',
-  'samba-pagode', 'bossa-nova', 'funk-brasileiro', 'kizomba',
-];
-
-const GENRE_GROUPS = [
-  { id: 'portuguese', genreIds: ['fado', 'popular-pimba', 'traditional-folclore', 'pop-rock-portugues', 'hip-hop-tuga', 'classica-portuguesa', 'kizomba'] },
-  { id: 'english', genreIds: ['country-americana', 'hip-hop-rap', 'rock-indie', 'pop', 'soul', 'blues', 'folk'] },
-  { id: 'french', genreIds: ['chanson-francaise', 'french-touch-electro', 'rap-francais', 'electronic'] },
-  { id: 'spanish', genreIds: ['flamenco', 'reggaeton-urbano', 'musica-regional-latina', 'dance'] },
-  { id: 'brazilian', genreIds: ['samba-pagode', 'bossa-nova', 'funk-brasileiro'] },
-  { id: 'world', genreIds: ['jazz', 'classical', 'metal', 'reggae', 'r-n-b', 'soundtrack', 'children', 'african', 'arabic', 'asian', 'indian', 'k-pop'] },
-];
+import { GENRES, GENRE_GROUPS } from './genres-config.js';
 
 function getGenreLabel(genre) {
   const labels = {
-    'r-n-b': 'R&B',
-    'country-americana': 'Country & Americana',
-    'hip-hop-rap': 'Hip Hop & Rap',
-    'rock-indie': 'Rock & Indie',
-    'chanson-francaise': 'Chanson Française',
-    'french-touch-electro': 'French Touch & Electro',
-    'rap-francais': 'Rap Français',
-    flamenco: 'Flamenco',
-    'reggaeton-urbano': 'Reggaeton & Urbano',
-    'musica-regional-latina': 'Regional Latina',
+    // Portuguese
     fado: 'Fado',
-    'popular-pimba': 'Popular & Pimba',
-    'traditional-folclore': 'Traditional & Folclore',
-    'pop-rock-portugues': 'Pop-Rock Português',
-    'hip-hop-tuga': 'Hip Hop Tuga',
-    'classica-portuguesa': 'Clássica Portuguesa',
-    'samba-pagode': 'Samba & Pagode',
-    'bossa-nova': 'Bossa Nova',
-    'funk-brasileiro': 'Funk Brasileiro',
-    kizomba: 'Kizomba',
-    'k-pop': 'K-Pop',
-    african: 'African',
-    arabic: 'Arabic',
-    asian: 'Asian',
-    indian: 'Indian',
-    soundtrack: 'Soundtrack',
-    children: 'Children',
+    tradicional_folklore_pimba: 'Popular & Pimba / Folclore',
+    pop_tuga: 'Pop Português',
+    pop_rock_tuga: 'Pop-Rock Português',
+    hip_hop_tuga: 'Hip Hop Tuga',
+    classica_tuga: 'Clássica Portuguesa',
+    kizomba_palop: 'Kizomba & PALOP',
+    pop_urbano_nova_pop: 'Nova Pop / Pop Urbano',
+    // US
+    pop_us: 'Pop US',
+    hip_hop_trap_us: 'Hip Hop & Trap US',
+    country_americana_us: 'Country & Americana',
+    rock_alternative_us: 'Rock & Alternative US',
+    // UK
+    pop_uk: 'Pop UK',
+    uk_drill_grime: 'UK Drill & Grime',
+    britpop_rock_uk: 'Britpop & Rock UK',
+    uk_garage_dnb: 'UK Garage & DnB',
+    // French
+    chanson_francaise: 'Chanson Française',
+    pop_francaise: 'Pop Française',
+    rap_francais: 'Rap Français',
+    french_touch_electro: 'French Touch & Electro',
+    // Spanish
+    flamenco: 'Flamenco',
+    reggaeton_urbano: 'Reggaeton & Urbano',
+    musica_regional_latina: 'Música Regional Latina',
+    // Brazilian
+    samba_pagode: 'Samba & Pagode',
+    bossa_nova: 'Bossa Nova / MPB',
+    funk_brasileiro: 'Funk Brasileiro',
+    // Fallback
+    other: 'Outros',
   };
-  return labels[genre] || genre.charAt(0).toUpperCase() + genre.slice(1);
+  return labels[genre] || genre.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }
 
 export { getTracksByGenre, GENRES, getGenreLabel, GENRE_GROUPS };
