@@ -123,7 +123,7 @@ export default function Header() {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
                 transition={{ type: 'spring', stiffness: 350, damping: 28 }}
-                className="fixed left-4 right-4 bottom-4 md:left-auto md:right-0 md:bottom-auto md:top-11 md:w-72 bg-zinc-950/90 backdrop-blur-2xl border border-white/10 rounded-3xl md:rounded-2xl shadow-2xl overflow-hidden z-50 max-h-[85dvh] md:max-h-[70vh] overflow-y-auto pb-[env(safe-area-inset-bottom)] md:pb-0"
+                className="fixed left-4 right-4 bottom-4 md:absolute md:left-auto md:right-0 md:bottom-auto md:top-12 md:w-72 bg-zinc-950/90 backdrop-blur-2xl border border-white/10 rounded-3xl md:rounded-2xl shadow-2xl overflow-hidden z-50 max-h-[85dvh] md:max-h-[70vh] overflow-y-auto pb-[env(safe-area-inset-bottom)] md:pb-0"
               >
                 {user && (
                   <>
@@ -179,7 +179,7 @@ export default function Header() {
                       <Link
                         href="/profile"
                         onClick={close}
-                        className="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold text-zinc-300 hover:text-white hover:bg-white/5 rounded-xl transition-all cursor-pointer"
+                        className="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold text-zinc-300 hover:text-white hover:bg-white/5 rounded-xl transition-all w-full cursor-pointer"
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -208,7 +208,7 @@ export default function Header() {
                           <Link
                             href="/admin"
                             onClick={close}
-                            className="flex items-center gap-3 px-3.5 py-2.5 text-xs font-black text-[#00cec9] hover:bg-[#00cec9]/10 rounded-xl transition-all cursor-pointer"
+                            className="flex items-center gap-3 px-3.5 py-2.5 text-xs font-black text-[#00cec9] hover:bg-[#00cec9]/10 rounded-xl transition-all w-full cursor-pointer"
                           >
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
