@@ -26,7 +26,7 @@
 - **Song cache with recency weighting** — Fetched tracks persist in DB; recently played songs are exponentially less likely to reappear
 - **Real-time multiplayer** — Socket.io for live game state, no polling
 - **Smart scoring** — Artist 3pts, title 3pts, both 4pts combo + speed + streak bonuses
-- **15 genres** — Pop, Rock, Hip-Hop, R&B, Electronic, Jazz, Classical, Country, Metal, Indie, Soul, Blues, Reggae, Latin, Dance
+- **37 genres** — Pop, Rock, Hip-Hop, R&B, Electronic, Jazz, Classical, Country, Metal, Indie, Soul, Blues, Reggae, Latin, Dance
 - **Skip vote system** — Host/admin skips instantly, players vote (majority wins)
 - **Track history sidebar** — Reversed (last played on top), skipped tracks shown with ⏭ + strikethrough + dimmed
 - **Chat clears per round** — `chat_clear` socket event wipes stale messages each round

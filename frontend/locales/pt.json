@@ -6,7 +6,7 @@
   "join_lobby": "Entrar na sala",
   "join_placeholder": "Código da sala...",
   "features_heading": "Porquê BlindTest?",
-  "feature_1_title": "36 Géneros",
+  "feature_1_title": "37 Géneros",
   "feature_1_desc": "Pop, Rock, Hip-Hop, Eletrónica e mais. Escolhe o teu estilo.",
   "feature_2_title": "Multijogador em Direto",
   "feature_2_desc": "Joga com amigos em tempo real. Pontuação atualiza ao vivo.",
@@ -169,6 +169,7 @@
   "genre_samba-pagode": "Samba & Pagode",
   "genre_bossa-nova": "Bossa Nova",
   "genre_funk-brasileiro": "Funk Brasileiro",
+  "genre_kizomba": "Kizomba",
 
   "close_btn": "Fechar",
   "host_label": "Anfitrião",

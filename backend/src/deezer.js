@@ -40,6 +40,7 @@ const CUSTOM_GENRE_PLAYLISTS = {
   'samba-pagode': [5449764382, 5709940122, 12968855623, 3396745906],
   'bossa-nova': [556502217, 12607436323, 11566444484, 15172273023],
   'funk-brasileiro': [15204407463, 15355968343, 15126778163, 9743264302],
+  kizomba: [4427293502, 1205831211, 3311387182, 1839099582],
 };
 
 const ALBUM_GENRE_ALIASES = {
@@ -325,11 +326,11 @@ const GENRES = [
   'chanson-francaise', 'french-touch-electro', 'rap-francais',
   'flamenco', 'reggaeton-urbano', 'musica-regional-latina',
   'fado', 'popular-pimba', 'traditional-folclore', 'pop-rock-portugues', 'hip-hop-tuga', 'classica-portuguesa',
-  'samba-pagode', 'bossa-nova', 'funk-brasileiro',
+  'samba-pagode', 'bossa-nova', 'funk-brasileiro', 'kizomba',
 ];
 
 const GENRE_GROUPS = [
-  { id: 'portuguese', genreIds: ['fado', 'popular-pimba', 'traditional-folclore', 'pop-rock-portugues', 'hip-hop-tuga', 'classica-portuguesa'] },
+  { id: 'portuguese', genreIds: ['fado', 'popular-pimba', 'traditional-folclore', 'pop-rock-portugues', 'hip-hop-tuga', 'classica-portuguesa', 'kizomba'] },
   { id: 'english', genreIds: ['country-americana', 'hip-hop-rap', 'rock-indie', 'pop', 'soul', 'blues', 'folk'] },
   { id: 'french', genreIds: ['chanson-francaise', 'french-touch-electro', 'rap-francais', 'electronic'] },
   { id: 'spanish', genreIds: ['flamenco', 'reggaeton-urbano', 'musica-regional-latina', 'dance'] },
@@ -358,6 +359,7 @@ function getGenreLabel(genre) {
     'samba-pagode': 'Samba & Pagode',
     'bossa-nova': 'Bossa Nova',
     'funk-brasileiro': 'Funk Brasileiro',
+    kizomba: 'Kizomba',
     'k-pop': 'K-Pop',
     african: 'African',
     arabic: 'Arabic',
