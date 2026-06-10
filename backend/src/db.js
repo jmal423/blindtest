@@ -290,7 +290,7 @@ async function getCachedTracksByGenre(genre, count) {
        FROM songs_played
        GROUP BY song_id
      ) sp ON sp.song_id = sc.id
-     WHERE sc.genres @> ?::jsonb OR sc.genre = ?
+     WHERE (sc.genres @> ?::jsonb OR sc.genre = ? OR sc.ai_genres @> ?::jsonb)
      ORDER BY (sc.rank + 1000) * COALESCE(
        CASE
          WHEN sp.last_played IS NULL THEN 1.0
@@ -301,7 +301,7 @@ async function getCachedTracksByGenre(genre, count) {
        END, 1.0
      ) * random() DESC
      LIMIT ?`,
-    [JSON.stringify([genre]), genre, count * 3]
+    [JSON.stringify([genre]), genre, JSON.stringify([genre]), count * 3]
   );
   return rows.map(r => ({
     id: r.id,
@@ -355,4 +355,40 @@ async function getPlayedSongs(limit = 200) {
   return rows;
 }
 
-export { generateId, query, get, all, run, insertRoundResult, createGame, finishGame, addGamePlayer, addRoundResultV2, getGameHistory, getPlayerStats, getLeaderboardV2, getRecentGames, getGameDetails, ping, getTableCounts, cacheSongs, recordPlay, getCachedTracksByGenre, getSongCacheCounts, getSongCacheByGenre, getPlayedSongs, pool };
+async function getAiEnrichmentStats() {
+  const { rows } = await pool.query(`
+    SELECT
+      COUNT(*) as total,
+      COUNT(*) FILTER (WHERE ai_processed_at IS NULL) as unprocessed,
+      COUNT(*) FILTER (WHERE ai_processed_at IS NOT NULL AND ai_version LIKE 'error:%') as errors,
+      COUNT(*) FILTER (WHERE ai_processed_at IS NOT NULL AND ai_version NOT LIKE 'error:%') as processed,
+      MAX(ai_processed_at) as last_processed
+    FROM songs_cache
+  `);
+  return rows[0];
+}
+
+async function getAiGenreDistribution() {
+  const { rows } = await pool.query(`
+    SELECT jsonb_array_elements_text(ai_genres) AS genre,
+           COUNT(*) as count
+    FROM songs_cache
+    WHERE ai_genres != '[]'::jsonb
+    GROUP BY genre
+    ORDER BY count DESC
+  `);
+  return rows;
+}
+
+async function getUnprocessedTracks(limit = 50) {
+  return all(
+    `SELECT id, name, artist, genre, genres, chart_source, rank
+     FROM songs_cache
+     WHERE ai_processed_at IS NULL
+     ORDER BY rank DESC
+     LIMIT ?`,
+    [limit]
+  );
+}
+
+export { generateId, query, get, all, run, insertRoundResult, createGame, finishGame, addGamePlayer, addRoundResultV2, getGameHistory, getPlayerStats, getLeaderboardV2, getRecentGames, getGameDetails, ping, getTableCounts, cacheSongs, recordPlay, getCachedTracksByGenre, getSongCacheCounts, getSongCacheByGenre, getPlayedSongs, getAiEnrichmentStats, getAiGenreDistribution, getUnprocessedTracks, pool };

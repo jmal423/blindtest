@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import { Server } from 'socket.io';
 import { GameRoom } from './game.js';
 import { GENRES, getGenreLabel, GENRE_GROUPS } from './deezer.js';
-import { generateId, get, all, run, ping, getTableCounts, createGame, finishGame, addGamePlayer, addRoundResultV2, getGameHistory, getPlayerStats, getLeaderboardV2, getRecentGames, getGameDetails, getSongCacheCounts, getSongCacheByGenre, getPlayedSongs } from './db.js';
+import { generateId, get, all, run, ping, getTableCounts, createGame, finishGame, addGamePlayer, addRoundResultV2, getGameHistory, getPlayerStats, getLeaderboardV2, getRecentGames, getGameDetails, getSongCacheCounts, getSongCacheByGenre, getPlayedSongs, getAiEnrichmentStats, getAiGenreDistribution, getUnprocessedTracks } from './db.js';
 import { getAuthUrl, handleDiscordCallback, authenticate, requireAdmin, tryDecodeToken } from './auth.js';
 
 dotenv.config();
@@ -626,6 +626,17 @@ app.post('/api/admin/test/deezer/genre', requireAdmin, async (req, res) => {
     });
   } catch (err) {
     res.json({ ok: false, count: 0, tracks: [], error: err.message });
+  }
+});
+
+app.get('/api/admin/ai/stats', requireAdmin, async (req, res) => {
+  try {
+    const stats = await getAiEnrichmentStats();
+    const distribution = await getAiGenreDistribution();
+    const unprocessed = await getUnprocessedTracks(20);
+    res.json({ ok: true, ...stats, distribution, unprocessed });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
   }
 });
 
