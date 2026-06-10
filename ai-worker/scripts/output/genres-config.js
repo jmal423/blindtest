@@ -1,5 +1,6 @@
 // Standardised Genres aligned with the strict AI Taxonomy
 export const GENRES = [
+  // Português
   "fado",
   "tradicional_folklore_pimba",
   "pop_tuga",
@@ -8,24 +9,36 @@ export const GENRES = [
   "classica_tuga",
   "kizomba_palop",
   "pop_urbano_nova_pop",
+
+  // Brasileiro
   "samba_pagode",
   "bossa_nova",
   "funk_brasileiro",
+
+  // Inglês US
   "pop_us",
   "hip_hop_trap_us",
   "country_americana_us",
   "rock_alternative_us",
+
+  // Inglês UK
   "pop_uk",
   "uk_drill_grime",
   "britpop_rock_uk",
   "uk_garage_dnb",
+
+  // Francês
   "chanson_francaise",
   "pop_francaise",
   "rap_francais",
   "french_touch_electro",
+
+  // Espanhol
   "flamenco",
   "reggaeton_urbano",
   "musica_regional_latina",
+
+  // Mundo & Outros
   "other"
 ];
 
