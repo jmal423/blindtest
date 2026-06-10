@@ -26,21 +26,54 @@ const GENRE_ID_MAP = {
 
 const CUSTOM_GENRE_PLAYLISTS = {
   fado: [2734677584, 10613220962, 4782723304, 14974361323],
-  'popular-pimba': [1478605935, 6163368884, 14302375881, 15135817403, 4782723304],
-  'traditional-folclore': [13980025901, 3835511186, 13493798923],
-  'pop-rock-portugues': [3443535566, 3562194622, 5898788844, 10642447282],
-  'hip-hop-tuga': [3481848302, 15066013003, 8211186722],
-  'classica-portuguesa': [8048810122, 12356713983, 14476568723, 15102890763],
-  'french-touch-electro': [962293895, 13065304003, 7281037904, 9197791042, 6300460544, 7342240164],
-  'rap-francais': [6568026624, 8619246462, 15155137203, 1836636662],
+  tradicional_folklore_pimba: [
+    1478605935, 6163368884, 14302375881, 15135817403, 4782723304,
+    13980025901, 3835511186, 13493798923
+  ],
+  pop_rock_tuga: [3443535566, 3562194622, 5898788844, 10642447282],
+  hip_hop_tuga: [3481848302, 15066013003, 8211186722],
+  classica_tuga: [8048810122, 12356713983, 14476568723, 15102890763],
+  french_touch_electro: [962293895, 13065304003, 7281037904, 9197791042, 6300460544, 7342240164],
+  rap_francais: [6568026624, 8619246462, 15155137203, 1836636662],
   flamenco: [777756285, 3582568026, 13941285401, 15148096583, 6177686164],
-  'reggaeton-urbano': [178699142, 3803398766, 1273315391, 11120289724, 925131455],
-  'musica-regional-latina': [9003957462, 10629918582, 10630090322, 10630096622, 10630104822],
-  'k-pop': [4096400722, 12244134951, 7482846624],
-  'samba-pagode': [5449764382, 5709940122, 12968855623, 3396745906],
-  'bossa-nova': [556502217, 12607436323, 11566444484, 15172273023],
-  'funk-brasileiro': [15204407463, 15355968343, 15126778163, 9743264302],
-  kizomba: [4427293502, 1205831211, 3311387182, 1839099582],
+  reggaeton_urbano: [178699142, 3803398766, 1273315391, 11120289724, 925131455],
+  musica_regional_latina: [9003957462, 10629918582, 10630090322, 10630096622, 10630104822],
+  kpop: [4096400722, 12244134951, 7482846624],
+  samba_pagode: [5449764382, 5709940122, 12968855623, 3396745906],
+  bossa_nova: [556502217, 12607436323, 11566444484, 15172273023],
+  funk_brasileiro: [15204407463, 15355968343, 15126778163, 9743264302],
+  kizomba_palop: [4427293502, 1205831211, 3311387182, 1839099582],
+};
+
+const SEARCH_QUERY_MAP = {
+  fado: 'Fado',
+  tradicional_folklore_pimba: 'Pimba Folclore Portugal',
+  pop_tuga: 'Pop Português',
+  pop_rock_tuga: 'Pop Rock Português',
+  hip_hop_tuga: 'Hip Hop Tuga',
+  classica_tuga: 'Música Clássica Portuguesa',
+  kizomba_palop: 'Kizomba Kuduro',
+  pop_urbano_nova_pop: 'Nova Pop Portuguesa Bárbara Bandeira Ivandro',
+  samba_pagode: 'Samba Pagode',
+  bossa_nova: 'Bossa Nova MPB',
+  funk_brasileiro: 'Funk Brasileiro',
+  pop_us: 'Pop US',
+  hip_hop_trap_us: 'Hip Hop US Trap',
+  country_americana_us: 'Country Americana',
+  rock_alternative_us: 'Rock Alternative US',
+  pop_uk: 'Pop UK Dua Lipa',
+  uk_drill_grime: 'UK Drill Grime',
+  britpop_rock_uk: 'Britpop UK Rock',
+  uk_garage_dnb: 'UK Garage Drum and Bass',
+  pop_francaise: 'Pop Française Louane Gims',
+  french_touch_electro: 'French Touch Electro',
+  rap_francais: 'Rap Français',
+  flamenco: 'Flamenco',
+  reggaeton_urbano: 'Reggaeton Urbano',
+  musica_regional_latina: 'Música Regional Latina',
+  reggae: 'Reggae',
+  kpop: 'K-Pop',
+  other: 'Pop',
 };
 
 const ALBUM_GENRE_ALIASES = {
@@ -150,7 +183,8 @@ async function searchDeezerTracks(queryStr, genre, count) {
 }
 
 async function smartCustomSearch(genre, count) {
-  console.log(`[Deezer] Smart search for "${genre}"`);
+  const searchQuery = SEARCH_QUERY_MAP[genre] || genre;
+  console.log(`[Deezer] Smart search for "${genre}" using query "${searchQuery}"`);
   const tracks = [];
   const seen = new Set();
 
@@ -161,7 +195,7 @@ async function smartCustomSearch(genre, count) {
   };
 
   // Strategy 1: Playlist search — highest quality, curated content
-  const playlistData = await deezerFetch(`/search/playlist?q=${encodeURIComponent(genre)}&limit=3`);
+  const playlistData = await deezerFetch(`/search/playlist?q=${encodeURIComponent(searchQuery)}&limit=3`);
   if (playlistData?.data) {
     for (const pl of playlistData.data) {
       if (tracks.length >= count) break;
@@ -173,13 +207,13 @@ async function smartCustomSearch(genre, count) {
 
   // Strategy 2: Text search — broad coverage
   if (tracks.length < count) {
-    const textTracks = await searchDeezerTracks(genre, genre, count * 2);
+    const textTracks = await searchDeezerTracks(searchQuery, genre, count * 2);
     for (const t of textTracks) addTrack(t);
   }
 
   // Strategy 3: Artist top tracks — good for region/style names
   if (tracks.length < count) {
-    const artistData = await deezerFetch(`/search/artist?q=${encodeURIComponent(genre)}&limit=5`);
+    const artistData = await deezerFetch(`/search/artist?q=${encodeURIComponent(searchQuery)}&limit=5`);
     if (artistData?.data) {
       for (const artist of artistData.data) {
         if (tracks.length >= count) break;
