@@ -73,7 +73,8 @@ export default function Header() {
   const showMenu = user;
 
   return (
-    <header className="sticky top-0 z-40 bg-[#08080f]/60 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-4 md:px-6 py-3.5 shadow-sm">
+    <>
+      <header className="sticky top-0 z-40 bg-[#08080f]/60 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-4 md:px-6 py-3.5 shadow-sm">
       {/* Brand logo */}
       <Link href="/" className="flex items-center gap-2 hover:opacity-95 transition-opacity group">
         <h1 className="text-lg md:text-xl font-black tracking-tight uppercase flex items-center gap-0.5">
@@ -261,7 +262,8 @@ export default function Header() {
         </div>
       )}
 
+      </header>
       <SettingsModal open={showSettings} onClose={() => setShowSettings(false)} />
-    </header>
+    </>
   );
 }
