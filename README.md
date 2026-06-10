@@ -36,6 +36,7 @@
 - **Multi-language** — English, Français, Português, Español (persisted in localStorage)
 - **Volume control** — Default 20%, mute + slider, `M` key shortcut
 - **Admin panel** — Live rooms, user management, genre tester, song cache stats, database monitoring
+- **Developer Debug Overlay** — Collapsible client-side dev console showing active track metadata (deezer title/artist, genre, charts rank), audio offset details, clipboard exporters, and player guess status indicators
 
 ---
 
@@ -48,6 +49,7 @@
 - **Accounts Card** — Centered login page inside a glowing glass card container.
 - **Responsive Waiting Room** — Grid-based lobby adjusting to two-column panels on desktop screens with animated genre accordions.
 - **iOS-style Toggles & Custom Sliders** — Settings elements feature spring-animated knobs and custom progress tracks.
+- **Overhauled Debug Console** — Minimizable bottom-right floating badge (emerald/rose socket connection heartbeat + active round tracker) that expands into a full tabbed window (🎵 Track, 👥 Players, ⚙️ Rules) with a one-click formatted JSON game state copy tool.
 
 ---
 
@@ -86,6 +88,13 @@ cd frontend && npm install
 echo "NEXT_PUBLIC_API_URL=http://localhost:3001" > .env.local
 npm run dev
 ```
+
+### Developer Mode
+
+For admin users, a real-time developer overlay is available in the game lobby.
+1. Log in with a Discord account that has the `admin` role (configured via `ADMIN_DISCORD_IDS` in the backend `.env`).
+2. Click on your profile dropdown in the top header and toggle the **Debug** switch.
+3. The DevConsole will appear in the bottom-right corner. It is collapsible/minimizable and persists across page reloads.
 
 ### Environment Variables
 
