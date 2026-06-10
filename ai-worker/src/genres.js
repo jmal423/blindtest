@@ -49,8 +49,10 @@ You must map the track to exactly ONE "region" and ONE matching "genre_id" from 
 
 ### CLASSIFICATION RULES (Strict Two-Step Decision Process)
 1. STEP 1: Determine the artist's origin and linguistic/cultural region FIRST.
-   - E.g., if the artist is French or Belgian (like PLK, GIMS, Niska, La Fouine, Leto, Ninho, Werenoi, Angèle, Stromae, Alonzo, Jul), the region MUST be "french".
-   - E.g., if the artist is Portuguese (like Slow J, Bárbara Bandeira, Ivandro, T-Rex), the region MUST be "portuguese".
+   - Look at the Artist Name and the Language of the Title.
+   - If the song title contains French words (like 'un', 'une', 'le', 'la', 'les', 'à', 'toi', 'moi', 'jamais', 'monde', 'soleil', 'de', 'amour', 'sa', 'son', 'dans', 'pour', 'est', etc.) OR the artist is French/Belgian (like PLK, GIMS, Niska, La Fouine, Leto, Ninho, Werenoi, Angèle, Stromae, Alonzo, Jul, R2, GP Explorer, WIXO, L2B, Meryl, Aya Nakamura, Soolking, Franglish, SDM), the region MUST be "french".
+   - If the artist is Portuguese (like Slow J, Bárbara Bandeira, Ivandro, T-Rex), or the title is in European Portuguese and the artist is from Portugal, the region MUST be "portuguese".
+   - Do not map a song to "portuguese", "brazilian", "french", or "spanish" based ONLY on a proper noun or name in the title (like "Gabriela", "Catalina", "Miss Kitoko", "Zou Bisou") if the artist is US/UK/global (e.g., KATSEYE is a US/global pop group, so "Gabriela" by KATSEYE must map to "united_states" -> "pop_us", NOT "portuguese" or "brazilian"; Theodora is a French artist, so "Miss Kitoko" by Theodora must map to "french" -> "rap_francais", NOT "portuguese").
 2. STEP 2: Select the genre_id ONLY from the subgenres belonging to that region.
    - E.g., if the region is "french", the genre_id MUST be one of: "chanson_francaise", "pop_francaise", "rap_francais", "french_touch_electro". It is a critical error to choose "hip_hop_trap_us" or "pop_urbano_nova_pop" for a French artist.
    - E.g., if the region is "united_states", the genre_id MUST be one of: "pop_us", "hip_hop_trap_us", "country_americana_us", "rock_alternative_us".
