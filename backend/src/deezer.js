@@ -135,28 +135,55 @@ function mapTrack(t, chartSource) {
   };
 }
 
-async function getCustomGenreTracks(genre, count) {
-  const playlistIds = CUSTOM_GENRE_PLAYLISTS[genre];
-  if (!playlistIds?.length) {
-    console.log(`[Deezer] No custom source for "${genre}", skipping`);
-    return [];
-  }
-
+async function searchDeezerTracks(queryStr, genre, count) {
+  const data = await deezerFetch(`/search?q=${encodeURIComponent(queryStr)}&limit=${count * 2}`);
+  if (!data?.data) return [];
   const tracks = [];
   const seen = new Set();
+  for (const t of data.data) {
+    if (!t.preview || seen.has(t.id)) continue;
+    seen.add(t.id);
+    tracks.push(mapTrack(t, genre));
+  }
+  return tracks;
+}
 
-  for (const playlistId of playlistIds) {
-    if (tracks.length >= count) break;
-    const data = await deezerFetch(`/playlist/${playlistId}/tracks?limit=${count * 2}`);
-    if (!data?.data) continue;
-    let added = 0;
-    for (const t of data.data) {
-      if (!t.preview || seen.has(t.id)) continue;
-      seen.add(t.id);
-      tracks.push(mapTrack(t, genre));
-      added++;
+async function getCustomGenreTracks(genre, count) {
+  const playlistIds = CUSTOM_GENRE_PLAYLISTS[genre];
+  let tracks = [];
+  const seen = new Set();
+
+  if (playlistIds?.length) {
+    for (const playlistId of playlistIds) {
+      if (tracks.length >= count) break;
+      const data = await deezerFetch(`/playlist/${playlistId}/tracks?limit=${count * 2}`);
+      if (!data?.data) continue;
+      let added = 0;
+      for (const t of data.data) {
+        if (!t.preview || seen.has(t.id)) continue;
+        seen.add(t.id);
+        tracks.push(mapTrack(t, genre));
+        added++;
+      }
+      if (added > 0) console.log(`[Deezer] Playlist ${playlistId} +${added} tracks for "${genre}"`);
     }
-    if (added > 0) console.log(`[Deezer] Playlist ${playlistId} +${added} tracks for "${genre}"`);
+  } else {
+    console.log(`[Deezer] No custom playlist source for "${genre}", querying search API`);
+    let searchTracks = await searchDeezerTracks(`genre:"${genre}"`, genre, count);
+    if (searchTracks.length < Math.min(count, 10)) {
+      console.log(`[Deezer] Insufficient tracks for query 'genre:"${genre}"' (${searchTracks.length}). Falling back to general query '${genre}'.`);
+      const generalTracks = await searchDeezerTracks(genre, genre, count);
+      const merged = [...searchTracks];
+      const mergedIds = new Set(searchTracks.map(t => t.id));
+      for (const t of generalTracks) {
+        if (!mergedIds.has(t.id)) {
+          merged.push(t);
+          mergedIds.add(t.id);
+        }
+      }
+      searchTracks = merged;
+    }
+    tracks = searchTracks;
   }
 
   const batchSize = 5;
