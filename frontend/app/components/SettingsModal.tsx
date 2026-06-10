@@ -19,7 +19,7 @@ export default function SettingsModal({ open, onClose }: { open: boolean; onClos
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -144,20 +144,27 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
         {/* Appearance */}
         <section className="space-y-3">
           <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{t('appearance_section')}</h3>
-          <div className="flex gap-2">
-            {(['dark', 'light'] as const).map(theme => {
+          <div className="grid grid-cols-2 gap-2">
+            {(['dark', 'light', 'synthwave', 'terminal'] as const).map(theme => {
               const active = settings.theme === theme;
+              
+              let label = '';
+              if (theme === 'dark') label = `🌙 ${t('dark_theme')}`;
+              else if (theme === 'light') label = `☀️ ${t('light_theme')}`;
+              else if (theme === 'synthwave') label = '🌴 Retro';
+              else if (theme === 'terminal') label = '💻 Terminal';
+
               return (
                 <button
                   key={theme}
                   onClick={() => updateSettings({ theme })}
-                  className={`flex-1 py-3 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                  className={`py-3 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
                     active
                       ? 'bg-gradient-to-r from-primary to-accent text-white border-transparent shadow-lg shadow-primary/15 scale-[1.02]'
                       : 'bg-white/[0.02] border-white/5 text-zinc-400 hover:bg-white/[0.05] hover:text-zinc-200'
                   }`}
                 >
-                  {theme === 'dark' ? `🌙 ${t('dark_theme')}` : `☀️ ${t('light_theme')}`}
+                  {label}
                 </button>
               );
             })}
@@ -185,7 +192,7 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
 
   if (settings.reducedMotion) {
     return (
-      <div className="relative w-full max-w-md mx-4 sm:mx-0 bg-zinc-950 border border-white/10 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden">
+      <div className="relative w-full max-w-md bg-zinc-950 border border-white/10 rounded-3xl shadow-2xl overflow-hidden">
         {inner}
       </div>
     );
@@ -197,7 +204,7 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 50, scale: 0.95 }}
       transition={{ type: 'spring', stiffness: 260, damping: 25 }}
-      className="relative w-full max-w-md mx-4 sm:mx-0 bg-zinc-950/80 backdrop-blur-2xl border border-white/10 rounded-t-3xl sm:rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.6)] overflow-hidden"
+      className="relative w-full max-w-md bg-zinc-950/80 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.6)] overflow-hidden"
     >
       {inner}
     </motion.div>

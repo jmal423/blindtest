@@ -8,7 +8,7 @@ export interface Settings {
   autoFocusInput: boolean;
   reducedMotion: boolean;
   colorblindMode: boolean;
-  theme: 'dark' | 'light';
+  theme: 'dark' | 'light' | 'synthwave' | 'terminal';
   language: 'en' | 'fr' | 'pt' | 'es';
 }
 
