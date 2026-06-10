@@ -148,6 +148,50 @@ async function searchDeezerTracks(queryStr, genre, count) {
   return tracks;
 }
 
+async function smartCustomSearch(genre, count) {
+  console.log(`[Deezer] Smart search for "${genre}"`);
+  const tracks = [];
+  const seen = new Set();
+
+  const addTrack = (t) => {
+    if (!t.preview || seen.has(t.id)) return;
+    seen.add(t.id);
+    tracks.push(t);
+  };
+
+  // Strategy 1: Playlist search — highest quality, curated content
+  const playlistData = await deezerFetch(`/search/playlist?q=${encodeURIComponent(genre)}&limit=3`);
+  if (playlistData?.data) {
+    for (const pl of playlistData.data) {
+      if (tracks.length >= count) break;
+      const plTracks = await deezerFetch(`/playlist/${pl.id}/tracks?limit=20`);
+      if (!plTracks?.data) continue;
+      for (const t of plTracks.data) addTrack(mapTrack(t, genre));
+    }
+  }
+
+  // Strategy 2: Text search — broad coverage
+  if (tracks.length < count) {
+    const textTracks = await searchDeezerTracks(genre, genre, count * 2);
+    for (const t of textTracks) addTrack(t);
+  }
+
+  // Strategy 3: Artist top tracks — good for region/style names
+  if (tracks.length < count) {
+    const artistData = await deezerFetch(`/search/artist?q=${encodeURIComponent(genre)}&limit=5`);
+    if (artistData?.data) {
+      for (const artist of artistData.data) {
+        if (tracks.length >= count) break;
+        const top = await deezerFetch(`/artist/${artist.id}/top?limit=10`);
+        if (!top?.data) continue;
+        for (const t of top.data) addTrack(mapTrack(t, genre));
+      }
+    }
+  }
+
+  return tracks.slice(0, count);
+}
+
 async function getCustomGenreTracks(genre, count) {
   const playlistIds = CUSTOM_GENRE_PLAYLISTS[genre];
   let tracks = [];
@@ -168,8 +212,7 @@ async function getCustomGenreTracks(genre, count) {
       if (added > 0) console.log(`[Deezer] Playlist ${playlistId} +${added} tracks for "${genre}"`);
     }
   } else {
-    console.log(`[Deezer] No custom playlist source for "${genre}", searching Deezer`);
-    tracks = await searchDeezerTracks(genre, genre, count);
+    tracks = await smartCustomSearch(genre, count);
   }
 
   const batchSize = 5;
