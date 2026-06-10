@@ -10,7 +10,7 @@ async function ollamaGenerate(prompt) {
       model: config.ollamaModel,
       prompt,
       stream: false,
-      options: { temperature: 0.1, num_predict: 256 },
+      options: { temperature: 0.1 },
     }),
   });
 
