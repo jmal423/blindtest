@@ -61,13 +61,13 @@ function LoginScreen() {
       <div className="text-center space-y-3">
         <h1 className="text-5xl font-extrabold tracking-tight">
           <span className="text-primary">Blind</span>
-          <span className="text-white">Test</span>
+          <span className="text-foreground">Test</span>
         </h1>
-        <p className="text-zinc-500 text-sm font-medium leading-relaxed">{t('subtitle')}</p>
+        <p className="text-foreground/50 text-sm font-medium leading-relaxed">{t('subtitle')}</p>
       </div>
 
-      <div className="w-full bg-white/[0.01] backdrop-blur-md rounded-2xl border border-white/5 p-6 space-y-5 shadow-2xl text-center">
-        <p className="text-xs text-zinc-400 font-medium">Connect your account to play and track stats</p>
+      <div className="w-full bg-surface/20 backdrop-blur-md rounded-2xl border border-surface-light/30 p-6 space-y-5 shadow-2xl text-center">
+        <p className="text-xs text-foreground/60 font-medium">Connect your account to play and track stats</p>
         <motion.a
           href={discordUrl}
           animate={{ scale: [1, 1.02, 1] }}
@@ -138,34 +138,34 @@ function Dashboard() {
             className="text-5xl md:text-6xl font-extrabold tracking-tight"
           >
             <span className="text-primary">Blind</span>
-            <span className="text-white">Test</span>
+            <span className="text-foreground">Test</span>
           </motion.h1>
-          <p className="text-zinc-400 text-sm font-medium">{t('subtitle')}</p>
+          <p className="text-foreground/70 text-sm font-medium">{t('subtitle')}</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 w-full max-w-2xl">
-          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white/[0.01] backdrop-blur-md rounded-2xl border border-white/5 hover:border-white/10 hover:bg-white/[0.02] p-5 text-center transition-all duration-300 shadow-md">
+          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-surface/20 backdrop-blur-md rounded-2xl border border-surface-light/30 hover:border-surface-light/50 hover:bg-surface/30 p-5 text-center transition-all duration-300 shadow-md">
             <div className="w-10 h-10 rounded-full bg-[var(--primary)]/10 flex items-center justify-center mx-auto mb-3 text-[var(--primary)] border border-[var(--primary)]/10">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
             </div>
-            <p className="text-xs font-bold text-zinc-200">{t('feature_1_title')}</p>
-            <p className="text-[10px] text-zinc-500 mt-1 leading-relaxed">{t('feature_1_desc')}</p>
+            <p className="text-xs font-bold text-foreground">{t('feature_1_title')}</p>
+            <p className="text-[10px] text-foreground/50 mt-1 leading-relaxed">{t('feature_1_desc')}</p>
           </motion.div>
           
-          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="bg-white/[0.01] backdrop-blur-md rounded-2xl border border-white/5 hover:border-white/10 hover:bg-white/[0.02] p-5 text-center transition-all duration-300 shadow-md">
+          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="bg-surface/20 backdrop-blur-md rounded-2xl border border-surface-light/30 hover:border-surface-light/50 hover:bg-surface/30 p-5 text-center transition-all duration-300 shadow-md">
             <div className="w-10 h-10 rounded-full bg-[var(--primary)]/10 flex items-center justify-center mx-auto mb-3 text-[var(--primary)] border border-[var(--primary)]/10">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
             </div>
-            <p className="text-xs font-bold text-zinc-200">{t('feature_2_title')}</p>
-            <p className="text-[10px] text-zinc-500 mt-1 leading-relaxed">{t('feature_2_desc')}</p>
+            <p className="text-xs font-bold text-foreground">{t('feature_2_title')}</p>
+            <p className="text-[10px] text-foreground/50 mt-1 leading-relaxed">{t('feature_2_desc')}</p>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-white/[0.01] backdrop-blur-md rounded-2xl border border-white/5 hover:border-white/10 hover:bg-white/[0.02] p-5 text-center transition-all duration-300 shadow-md">
-            <div className="w-10 h-10 rounded-full bg-[var(--primary)]/10 flex items-center justify-center mx-auto mb-3 text-[var(--primary)] border border-var(--primary)/10">
+          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-surface/20 backdrop-blur-md rounded-2xl border border-surface-light/30 hover:border-surface-light/50 hover:bg-surface/30 p-5 text-center transition-all duration-300 shadow-md">
+            <div className="w-10 h-10 rounded-full bg-[var(--primary)]/10 flex items-center justify-center mx-auto mb-3 text-[var(--primary)] border border-[var(--primary)]/10">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 6 9 6 9Z"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5C17 4 18 9 18 9Z"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
             </div>
-            <p className="text-xs font-bold text-zinc-200">{t('feature_3_title')}</p>
-            <p className="text-[10px] text-zinc-500 mt-1 leading-relaxed">{t('feature_3_desc')}</p>
+            <p className="text-xs font-bold text-foreground">{t('feature_3_title')}</p>
+            <p className="text-[10px] text-foreground/50 mt-1 leading-relaxed">{t('feature_3_desc')}</p>
           </motion.div>
         </div>
 
@@ -180,23 +180,23 @@ function Dashboard() {
           </button>
 
           <div className="relative py-2">
-            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/5" /></div>
-            <div className="relative flex justify-center"><span className="bg-gradient-to-r from-transparent via-[#0a0a14] to-transparent px-4 text-xs font-semibold uppercase tracking-wider text-zinc-600">{t('or_join')}</span></div>
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-foreground/5" /></div>
+            <div className="relative flex justify-center"><span className="bg-gradient-to-r from-transparent via-background to-transparent px-4 text-xs font-semibold uppercase tracking-wider text-foreground/50">{t('or_join')}</span></div>
           </div>
 
-          <div className="bg-white/[0.01] backdrop-blur-md rounded-2xl border border-white/5 p-5 space-y-3 shadow-lg">
+          <div className="bg-surface/20 backdrop-blur-md rounded-2xl border border-surface-light/30 p-5 space-y-3 shadow-lg">
             <input
               type="text"
               value={joinCode}
               onChange={e => setJoinCode(e.target.value.toUpperCase())}
               placeholder={t('room_code_placeholder')}
               maxLength={4}
-              className="w-full px-4 py-3.5 bg-black/20 border border-white/5 rounded-xl text-white placeholder-zinc-600 text-center text-xl font-bold tracking-[0.3em] focus:outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]/30 transition-colors uppercase"
+              className="w-full px-4 py-3.5 bg-background/25 border border-foreground/5 rounded-xl text-foreground placeholder-foreground/30 text-center text-xl font-bold tracking-[0.3em] focus:outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]/30 transition-colors uppercase"
             />
             <button
               onClick={handleJoin}
               disabled={loading || !joinCode.trim()}
-              className="w-full px-6 py-3.5 bg-white/5 hover:bg-white/10 disabled:opacity-50 text-white font-semibold rounded-xl border border-white/5 transition-all text-sm cursor-pointer active:scale-[0.99]"
+              className="w-full px-6 py-3.5 bg-foreground/5 hover:bg-foreground/10 disabled:opacity-50 text-foreground font-semibold rounded-xl border border-foreground/5 transition-all text-sm cursor-pointer active:scale-[0.99]"
             >
               {loading ? t('joining') : t('join_lobby')}
             </button>
@@ -207,31 +207,31 @@ function Dashboard() {
       </div>
 
       {/* Leaderboard sidebar */}
-      <div className="hidden md:flex w-72 shrink-0 flex-col bg-white/[0.01] backdrop-blur-md rounded-2xl border border-white/5 p-4 max-h-[80vh] overflow-y-auto shadow-xl">
-        <div className="flex items-center justify-between mb-4 pb-2 border-b border-white/5">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
+      <div className="hidden md:flex w-72 shrink-0 flex-col bg-surface/20 backdrop-blur-md rounded-2xl border border-surface-light/30 p-4 max-h-[80vh] overflow-y-auto shadow-xl">
+        <div className="flex items-center justify-between mb-4 pb-2 border-b border-foreground/5">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-foreground/50 flex items-center gap-1.5">
             🏆 Leaderboard
           </h2>
           <a href="/leaderboard" className="text-[10px] font-semibold text-[var(--primary)] hover:text-[var(--accent)] transition-colors">View all</a>
         </div>
         
         {lbLoading ? (
-          <div className="flex-1 flex items-center justify-center py-12"><p className="text-xs text-zinc-600 animate-pulse">Loading...</p></div>
+          <div className="flex-1 flex items-center justify-center py-12"><p className="text-xs text-foreground/30 animate-pulse">Loading...</p></div>
         ) : leaderboard.length === 0 ? (
-          <p className="text-xs text-zinc-600 text-center py-8">No scores yet</p>
+          <p className="text-xs text-foreground/30 text-center py-8">No scores yet</p>
         ) : (
           <div className="space-y-2 flex-1 overflow-y-auto pr-1">
             {leaderboard.slice(0, 10).map((e, i) => (
               <a
                 key={e.id || e.player_id}
                 href="/leaderboard"
-                className="flex items-center gap-2.5 px-3 py-2 bg-white/[0.01] hover:bg-white/[0.04] rounded-xl border border-white/[0.02] hover:border-white/5 transition-all duration-300"
+                className="flex items-center gap-2.5 px-3 py-2 bg-foreground/[0.01] hover:bg-foreground/[0.03] rounded-xl border border-foreground/[0.02] hover:border-foreground/5 transition-all duration-300"
               >
                 <span className={`w-5 text-center text-xs font-bold ${i === 0 ? 'text-yellow-400' : i === 1 ? 'text-zinc-300' : i === 2 ? 'text-amber-600' : 'text-zinc-500'}`}>
                   {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}`}
                 </span>
-                <div className={`w-7 h-7 rounded-full bg-zinc-800 flex items-center justify-center text-[10px] font-bold overflow-hidden shrink-0 border ${
-                  i === 0 ? 'border-yellow-500/30' : 'border-white/10'
+                <div className={`w-7 h-7 rounded-full bg-surface-light flex items-center justify-center text-[10px] font-bold overflow-hidden shrink-0 border ${
+                  i === 0 ? 'border-yellow-500/30' : 'border-foreground/10'
                 }`}>
                   {e.avatar_url ? (
                     <img src={e.avatar_url} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
@@ -240,8 +240,8 @@ function Dashboard() {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-zinc-300 truncate">{e.username || e.player_name || 'Unknown'}</p>
-                  <p className="text-[9px] text-zinc-500">{e.games_played} games</p>
+                  <p className="text-xs font-semibold text-foreground/80 truncate">{e.username || e.player_name || 'Unknown'}</p>
+                  <p className="text-[9px] text-foreground/40">{e.games_played} games</p>
                 </div>
                 <span className="text-xs font-bold text-[var(--accent)] tabular-nums">{e.total_score}</span>
               </a>
