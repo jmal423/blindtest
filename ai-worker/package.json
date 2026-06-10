@@ -11,7 +11,8 @@
     "setup-db": "node scripts/setup-local-db.js",
     "sync-pull": "node scripts/sync-pull.js",
     "sync-push": "node scripts/sync-push.js",
-    "sync-all": "node scripts/sync-pull.js && node src/index.js && node scripts/sync-push.js"
+    "classify": "node src/index.js",
+    "run": "node scripts/sync-pull.js && node src/index.js && node scripts/sync-push.js"
   },
   "dependencies": {
     "dotenv": "^16.4.7",

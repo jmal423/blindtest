@@ -56,29 +56,28 @@ npm install
 ### 3. Run the migration on the OptiPlex backend
 The migration `007_ai_enrichment.js` will auto-apply on next backend restart (migrations run at startup in `db.js`).
 
-### 4. Run the worker (recommended workflow)
+### 4. Run the worker (recommended)
 
+Make sure SSH tunnel to OptiPlex is open first:
 ```bash
-# Pull latest data from OptiPlex, classify, push results back
-node scripts/sync-pull.js && node src/index.js && node scripts/sync-push.js
+ssh -L 5433:localhost:5432 jalfaiat@192.168.1.49
 ```
+
+Then run everything with one command:
+```bash
+cd ~/blindtest/ai-worker && npm run run
+```
+
+This does: pull new tracks from OptiPlex → classify locally → push results back.
 
 Or step by step:
 ```bash
-# 1. Pull data from OptiPlex to local DB
-node scripts/sync-pull.js
-
-# 2. Classify all unprocessed tracks (uses local DB — fast)
-node src/index.js
-
-# 3. Push AI results back to OptiPlex
-node scripts/sync-push.js
+npm run sync-pull   # pull new/changed tracks from OptiPlex (incremental)
+npm run classify    # classify all unprocessed tracks (local DB — fast)
+npm run sync-push   # push AI results back to OptiPlex
 ```
 
-To watch for new tracks (polls every 60s):
-```bash
-node src/index.js --mode=watch
-```
+The sync-pull is **incremental** — first run pulls everything, subsequent runs only pull tracks that changed or are new (by `fetched_at` / `ai_processed_at` timestamps, plus any missing IDs).
 
 ### 5. Optional: Audio analysis setup
 ```bash
