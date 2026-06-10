@@ -351,7 +351,7 @@ export default function GamePage({
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 gap-4">
         <p className="text-red-400 text-lg">{error}</p>
-        <p className="text-zinc-500 text-sm">Server: {process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}</p>
+        <p className="text-zinc-500 text-sm">Server: {process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005'}</p>
         <button onClick={() => router.push('/')} className="px-6 py-3 bg-[var(--primary)] text-white rounded-xl">
           {t('back_home')}
         </button>
