@@ -30,9 +30,13 @@ for PORT in $BACKEND_PORT $FRONTEND_PORT; do
   fi
 done
 
-# 3. Check for PM2 processes
+# 3. Build the frontend (Next.js production build)
+echo "[3/5] Building frontend Next.js application..."
+npm run build
+
+# 4. Check for PM2 processes
 if command -v pm2 &> /dev/null; then
-  echo "[3/4] PM2 detected. Checking running apps..."
+  echo "[4/5] PM2 detected. Checking running apps..."
   PM2_STATUS=$(pm2 list --mini 2>/dev/null)
   if [[ "$PM2_STATUS" == *"online"* ]]; then
     echo "  -> Active PM2 processes detected. Restarting all PM2 services..."
@@ -44,6 +48,6 @@ if command -v pm2 &> /dev/null; then
   fi
 fi
 
-# 4. Standard startup
-echo "[4/4] Starting dev servers concurrently..."
+# 5. Standard startup
+echo "[5/5] Starting dev servers concurrently..."
 npm run dev
