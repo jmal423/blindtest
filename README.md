@@ -39,6 +39,18 @@
 
 ---
 
+## UI/UX Redesign
+
+- **Theme-Sensitive Radial Background** — Tailored gradients for both Dark Mode (dark violet mesh) and Light Mode (bright white/grey mesh).
+- **Glassmorphism Styling** — Semi-transparent cards, neon accents, and backdrop blurs applied site-wide.
+- **Visual Top-3 Podium** — Leaderboard includes 1st (Gold, crown badge), 2nd (Silver), and 3rd (Bronze) columns, a scrollable runners-up list, and an inspector side drawer.
+- **Sticky Glass Navigation** — Sticky header navigation bar with profile and stats dropdown popovers.
+- **Accounts Card** — Centered login page inside a glowing glass card container.
+- **Responsive Waiting Room** — Grid-based lobby adjusting to two-column panels on desktop screens with animated genre accordions.
+- **iOS-style Toggles & Custom Sliders** — Settings elements feature spring-animated knobs and custom progress tracks.
+
+---
+
 ## Architecture
 
 ```

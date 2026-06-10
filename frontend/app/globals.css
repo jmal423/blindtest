@@ -23,7 +23,7 @@
 }
 
 body {
-  background: var(--background);
+  background: radial-gradient(circle at 50% 0%, #171633 0%, #08080f 50%, #030305 100%) no-repeat fixed;
   color: var(--foreground);
 }
 
@@ -35,6 +35,10 @@ body {
   --accent: #00b8b3;
   --surface: #ffffff;
   --surface-light: #e4e4f0;
+}
+
+[data-theme="light"] body {
+  background: radial-gradient(circle at 50% 0%, #ffffff 0%, #f0f0f5 70%, #e4e4f0 100%) no-repeat fixed;
 }
 
 @keyframes pulse-glow {

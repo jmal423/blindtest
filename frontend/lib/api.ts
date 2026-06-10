@@ -29,9 +29,13 @@ export async function fetchGenres(): Promise<{ id: string; label: string; group?
   return data.genres;
 }
 
-export async function fetchGenreGroups(): Promise<{ genres: { id: string; label: string; group: string }[]; groups: { id: string; genreIds: string[] }[] }> {
+export async function fetchGenreGroups(): Promise<{ genres: { id: string; label: string; group?: string }[]; groups: { id: string; genreIds: string[] }[] }> {
   const res = await fetch(`${API_URL}/api/genres`);
-  return res.json();
+  const data = await res.json();
+  if (Array.isArray(data)) {
+    return { genres: data, groups: [] };
+  }
+  return data;
 }
 
 export async function createRoom(

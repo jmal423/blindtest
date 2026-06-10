@@ -598,22 +598,22 @@ function SliderSetting({ label, value, min, max, suffix = '', isHost, onChange }
   onChange: (v: number) => void;
 }) {
   return (
-    <div>
-      <div className="flex items-center justify-between mb-1">
-        <span className="text-xs text-zinc-500">{label}</span>
-        <span className="text-xs text-zinc-300 tabular-nums">{value}{suffix}</span>
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-medium text-zinc-400">{label}</span>
+        <span className="text-xs font-semibold text-[var(--primary)] tabular-nums bg-[var(--primary)]/5 px-2 py-0.5 rounded border border-[var(--primary)]/15">{value}{suffix}</span>
       </div>
       {isHost ? (
         <input
           type="range" min={min} max={max} step="1"
           value={value}
           onChange={e => onChange(Number(e.target.value))}
-          className="w-full accent-[var(--primary)] h-1.5"
+          className="w-full h-1.5 bg-white/5 rounded-lg appearance-none cursor-pointer accent-[var(--primary)] hover:bg-white/10 transition-colors"
         />
       ) : (
-        <div className="w-full h-1.5 rounded-full bg-[var(--surface-light)]">
+        <div className="w-full h-1.5 rounded-full bg-white/5 overflow-hidden">
           <div
-            className="h-full rounded-full bg-[var(--primary)]/40 transition-all"
+            className="h-full rounded-full bg-gradient-to-r from-primary to-accent transition-all duration-300"
             style={{ width: `${((value - min) / (max - min)) * 100}%` }}
           />
         </div>
@@ -653,14 +653,14 @@ function WaitingRoom({
   const isHost = playerId === hostId;
   const [allGenres, setAllGenres] = useState<{ id: string; label: string; group?: string }[]>([]);
   const [genreGroups, setGenreGroups] = useState<{ id: string; genreIds: string[] }[]>([]);
-  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchGenreGroups().then(data => {
-      setGenreGroups(data.groups);
-      setAllGenres(data.genres);
+      setGenreGroups(data?.groups || []);
+      setAllGenres(data?.genres || []);
     }).catch(() => {
-      fetchGenres().then(setAllGenres).catch(() => {});
+      fetchGenres().then(genres => setAllGenres(genres || [])).catch(() => {});
     });
   }, []);
 
@@ -672,7 +672,7 @@ function WaitingRoom({
   };
 
   const toggleGroup = (groupId: string) => {
-    setCollapsedGroups(prev => {
+    setExpandedGroups(prev => {
       const next = new Set(prev);
       if (next.has(groupId)) next.delete(groupId);
       else next.add(groupId);
@@ -690,201 +690,285 @@ function WaitingRoom({
   };
 
   const allGenreIds = allGenres.map(g => g.id);
-
   const genreMap = new Map(allGenres.map(g => [g.id, g]));
 
   return (
-    <div className="flex-1 flex flex-col items-center gap-6 overflow-y-auto pb-24 md:pb-8">
-      <div className="w-full max-w-sm space-y-2">
-        <p className="text-sm text-zinc-400 font-medium">{t('players')} ({players.length})</p>
-        {players.map((p, i) => (
-          <div key={p.id} className="flex items-center gap-3 px-4 py-3 bg-[var(--surface)] rounded-xl">
-            {p.avatarUrl ? (
-              <img src={p.avatarUrl} alt="" referrerPolicy="no-referrer" className="w-8 h-8 rounded-full object-cover" />
-            ) : (
-              <div className="w-8 h-8 rounded-full bg-[var(--primary)] flex items-center justify-center text-sm font-bold">
-                {p.name[0].toUpperCase()}
-              </div>
-            )}
-            <span className="font-medium">
-              {p.name}
-              {p.role === 'admin' && (
-                <span className="ml-2 rounded bg-[#00cec9]/20 px-2 py-0.5 text-[10px] font-bold tracking-wider text-[#00cec9] ring-1 ring-[#00cec9]/50">
-                  ADMIN
-                </span>
-              )}
-            </span>
-            {p.id === hostId && <span className="text-[10px] text-zinc-500 ml-auto">Host</span>}
-            {p.id !== hostId && playerId === hostId && onTransferHost && (
-              <button
-                onClick={() => onTransferHost(p.id)}
-                className="text-[10px] px-2 py-1 rounded bg-zinc-700/50 text-zinc-400 hover:bg-zinc-700 transition-colors"
-              >
-                Make Host
-              </button>
-            )}
-            {(playerId === hostId || p.role === 'admin') && onKickPlayer && p.id !== playerId && (
-              <button
-                onClick={() => onKickPlayer(p.id)}
-                className="text-[10px] px-2 py-1 rounded bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
-              >
-                Kick
-              </button>
-            )}
-          </div>
-        ))}
+    <div className="flex-1 flex flex-col items-center gap-6 overflow-y-auto pb-24 md:pb-8 w-full max-w-4xl mx-auto px-4">
+      {/* Title Header */}
+      <div className="text-center space-y-1.5 mt-2 mb-1">
+        <h2 className="text-2xl font-bold tracking-tight text-zinc-100">
+          Game Lobby
+        </h2>
+        <p className="text-xs text-zinc-500 font-medium">
+          Invite friends by sharing the lobby code above
+        </p>
       </div>
 
-      <div className="w-full max-w-sm space-y-4 bg-[var(--surface)] rounded-2xl p-5 border border-white/5">
-        <p className="text-sm text-zinc-400 font-medium">{t('settings')}</p>
-
-        <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <label className="text-xs text-zinc-500">{t('genres')}</label>
-            {isHost && genreGroups.length > 0 && (
-              <button
-                onClick={() => {
-                  if (genres.length === allGenreIds.length && allGenreIds.length > 0) {
-                    onGenresChange([]);
-                  } else {
-                    onGenresChange([...allGenreIds]);
-                  }
-                }}
-                className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-zinc-400 hover:bg-white/10 transition-colors"
-              >
-                {genres.length === allGenreIds.length && allGenreIds.length > 0 ? t('clear_btn') : t('all_btn')}
-              </button>
-            )}
+      <div className="w-full grid grid-cols-1 md:grid-cols-[1fr_1.3fr] gap-6 md:gap-8 items-start">
+        {/* Left Column: Players List */}
+        <div className="w-full bg-[var(--surface)] border border-white/5 rounded-2xl p-5 space-y-4 shadow-xl backdrop-blur-md">
+          <div className="flex items-center justify-between pb-2 border-b border-white/5">
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span className="text-sm font-semibold text-zinc-200">{t('players')}</span>
+            </div>
+            <span className="text-xs text-zinc-500 font-medium bg-white/5 px-2.5 py-1 rounded-full tabular-nums">
+              {players.length} {players.length === 1 ? 'player' : 'players'}
+            </span>
           </div>
-          {genreGroups.length === 0 ? (
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(80px,1fr))] gap-1.5">
-              {allGenres.map(g => {
-                const selected = genres.includes(g.id);
-                return (
-                  <button
-                    key={g.id}
-                    onClick={() => isHost && toggleGenre(g.id)}
-                    className={`px-2 py-1.5 rounded-full text-[11px] font-medium transition-all truncate ${
-                      selected
-                        ? 'bg-[var(--primary)] text-white'
-                        : 'bg-[var(--surface-light)] text-zinc-400'
-                    } ${!isHost ? 'opacity-80 cursor-default' : 'hover:brightness-110'}`}
-                  >
-                    {t(`genre_${g.id}`)}
-                  </button>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {genreGroups.map(group => {
-                const groupGenres = group.genreIds.map(id => genreMap.get(id)).filter(Boolean) as { id: string; label: string; group?: string }[];
-                if (groupGenres.length === 0) return null;
-                const isCollapsed = collapsedGroups.has(group.id);
-                const allSelected = groupGenres.every(g => genres.includes(g.id));
-                const someSelected = groupGenres.some(g => genres.includes(g.id));
-                return (
-                  <div key={group.id} className="border border-white/5 rounded-xl overflow-hidden">
-                    <button
-                      onClick={() => toggleGroup(group.id)}
-                      className="w-full flex items-center justify-between px-3 py-2 text-xs font-medium text-zinc-300 hover:bg-white/5 transition-colors"
+
+          <div className="space-y-2.5">
+            {players.map((p, i) => (
+              <div
+                key={p.id}
+                className="group relative flex items-center gap-3 px-4 py-3 bg-white/[0.02] border border-white/[0.03] rounded-xl transition-all duration-300 hover:scale-[1.01] hover:bg-white/[0.04] hover:border-white/10 shadow-sm"
+              >
+                {/* Avatar with Ring */}
+                <div className="relative">
+                  {p.avatarUrl ? (
+                    <img
+                      src={p.avatarUrl}
+                      alt=""
+                      referrerPolicy="no-referrer"
+                      className={`w-9 h-9 rounded-full object-cover shadow-md transition-all ${
+                        p.id === hostId ? 'ring-2 ring-[var(--primary)] ring-offset-2 ring-offset-[var(--surface)]' : 'ring-1 ring-white/10'
+                      }`}
+                    />
+                  ) : (
+                    <div
+                      className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-md transition-all ${
+                        p.id === hostId ? 'ring-2 ring-primary ring-offset-2 ring-offset-[var(--surface)] bg-gradient-to-br from-primary to-accent' : 'bg-zinc-800 border border-white/10'
+                      }`}
                     >
-                      <span>{t(`group_${group.id}`)}</span>
-                      <div className="flex items-center gap-2">
-                        {isHost && (
-                          <span
-                            onClick={(e) => { e.stopPropagation(); toggleGroupGenres(group.genreIds, !allSelected); }}
-                            className={`text-[10px] px-1.5 py-0.5 rounded ${
-                              allSelected
-                                ? 'bg-[var(--primary)]/20 text-[var(--primary)]'
-                                : someSelected
-                                  ? 'bg-white/10 text-zinc-400'
-                                  : 'bg-white/5 text-zinc-500'
-                            }`}
-                          >
-                            {allSelected ? t('clear_btn') : t('all_btn')}
-                          </span>
-                        )}
-                        <svg
-                          className={`w-3 h-3 transition-transform ${isCollapsed ? '' : 'rotate-180'}`}
-                          fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </div>
-                    </button>
-                    {!isCollapsed && (
-                      <div className="px-3 pb-2.5 pt-1">
-                        <div className="grid grid-cols-[repeat(auto-fill,minmax(80px,1fr))] gap-1.5">
-                          {groupGenres.map(g => {
-                            const selected = genres.includes(g.id);
-                            return (
-                              <button
-                                key={g.id}
-                                onClick={() => isHost && toggleGenre(g.id)}
-                                className={`px-2 py-1.5 rounded-full text-[11px] font-medium transition-all truncate ${
-                                  selected
-                                    ? 'bg-[var(--primary)] text-white'
-                                    : 'bg-[var(--surface-light)] text-zinc-400'
-                                } ${!isHost ? 'opacity-80 cursor-default' : 'hover:brightness-110'}`}
-                              >
-                                {t(`genre_${g.id}`)}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
+                      {p.name[0].toUpperCase()}
+                    </div>
+                  )}
+                  {p.id === hostId && (
+                    <span className="absolute -top-1 -left-1 text-[10px] bg-[var(--primary)] text-white rounded-full p-0.5 shadow-md">
+                      👑
+                    </span>
+                  )}
+                </div>
+
+                {/* Info */}
+                <div className="flex flex-col min-w-0">
+                  <span className="font-semibold text-zinc-200 text-sm truncate flex items-center gap-1.5">
+                    {p.name}
+                    {p.role === 'admin' && (
+                      <span className="rounded-full bg-[#00cec9]/15 px-2 py-0.5 text-[9px] font-bold tracking-wider text-[#00cec9] border border-[#00cec9]/30">
+                        ADMIN
+                      </span>
                     )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                  </span>
+                  <span className="text-[10px] text-zinc-500 font-medium">
+                    {p.id === playerId ? 'You' : p.id === hostId ? 'Host' : 'Ready'}
+                  </span>
+                </div>
+
+                {/* Actions */}
+                <div className="ml-auto flex items-center gap-1.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300">
+                  {p.id !== hostId && playerId === hostId && onTransferHost && (
+                    <button
+                      onClick={() => onTransferHost(p.id)}
+                      className="text-[10px] px-2.5 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-medium border border-white/5 transition-all cursor-pointer"
+                    >
+                      Make Host
+                    </button>
+                  )}
+                  {(playerId === hostId || p.role === 'admin') && onKickPlayer && p.id !== playerId && (
+                    <button
+                      onClick={() => onKickPlayer(p.id)}
+                      className="text-[10px] px-2.5 py-1 rounded bg-red-500/10 hover:bg-red-500/20 text-red-400 font-medium border border-red-500/20 transition-all cursor-pointer"
+                    >
+                      Kick
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <SliderSetting label={t('rounds')} value={settings.rounds} min={3} max={25} isHost={isHost} onChange={v => onSettingsChange({ rounds: v })} />
-        <SliderSetting label={t('time_per_round')} value={settings.roundTime} min={8} max={30} suffix="s" isHost={isHost} onChange={v => onSettingsChange({ roundTime: v })} />
-        <SliderSetting label={t('pause_between')} value={settings.pauseTime} min={2} max={15} suffix="s" isHost={isHost} onChange={v => onSettingsChange({ pauseTime: v })} />
+        {/* Right Column: Settings & Genres */}
+        <div className="w-full bg-[var(--surface)] rounded-2xl p-5 border border-white/5 space-y-5 shadow-xl backdrop-blur-md">
+          <div className="pb-2 border-b border-white/5">
+            <h3 className="text-sm font-semibold text-zinc-200">{t('settings')}</h3>
+          </div>
 
-        {isHost && (
-          <div>
-            <div className="flex items-center justify-between pt-3">
-              <div>
-                <span className="text-xs text-zinc-400">{t('auto_start')}</span>
-                <p className="text-[10px] text-zinc-600 mt-0.5">{t('auto_start_desc')}</p>
+          <div className="space-y-4">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-medium text-zinc-400">{t('genres')}</label>
+                {isHost && genreGroups.length > 0 && (
+                  <button
+                    onClick={() => {
+                      if (genres.length === allGenreIds.length && allGenreIds.length > 0) {
+                        onGenresChange([]);
+                      } else {
+                        onGenresChange([...allGenreIds]);
+                      }
+                    }}
+                    className="text-[10px] px-2.5 py-1 rounded bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white transition-colors border border-white/5 cursor-pointer font-medium"
+                  >
+                    {genres.length === allGenreIds.length && allGenreIds.length > 0 ? t('clear_btn') : t('all_btn')}
+                  </button>
+                )}
               </div>
-              <button
-                onClick={() => onSettingsChange({ autoStart: !settings.autoStart })}
-                className={`relative w-10 h-5 rounded-full flex-shrink-0 transition-colors ${
-                  settings.autoStart ? 'bg-[var(--primary)]' : 'bg-zinc-600'
-                }`}
-              >
-                <span
-                  className={`absolute top-[2px] w-4 h-4 rounded-full bg-white shadow transition-all duration-200 ${
-                    settings.autoStart ? 'left-[22px]' : 'left-[2px]'
-                  }`}
-                />
-              </button>
+
+              {genreGroups.length === 0 ? (
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-1.5">
+                  {allGenres.map(g => {
+                    const selected = genres.includes(g.id);
+                    return (
+                      <button
+                        key={g.id}
+                        onClick={() => isHost && toggleGenre(g.id)}
+                        className={`px-2 py-1.5 rounded-full text-[11px] font-semibold transition-all border ${
+                          selected
+                            ? 'bg-gradient-to-r from-primary to-accent text-white border-transparent shadow-md shadow-primary/10 scale-100 hover:brightness-110 active:scale-95'
+                            : 'bg-white/[0.02] text-zinc-400 border-white/5 hover:bg-white/[0.06] hover:text-zinc-200 hover:border-white/10 active:scale-95'
+                        } ${!isHost ? 'opacity-80 cursor-default pointer-events-none' : 'cursor-pointer'}`}
+                      >
+                        {t(`genre_${g.id}`)}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-[350px] overflow-y-auto pr-1">
+                  {genreGroups.map(group => {
+                    const groupGenres = group.genreIds.map(id => genreMap.get(id)).filter(Boolean) as { id: string; label: string; group?: string }[];
+                    if (groupGenres.length === 0) return null;
+                    const isCollapsed = !expandedGroups.has(group.id);
+                    const allSelected = groupGenres.every(g => genres.includes(g.id));
+                    const someSelected = groupGenres.some(g => genres.includes(g.id));
+                    return (
+                      <div key={group.id} className="border border-white/5 rounded-xl bg-white/[0.01] overflow-hidden transition-all duration-300 hover:border-white/10 hover:bg-white/[0.02]">
+                        <button
+                          onClick={() => toggleGroup(group.id)}
+                          className="w-full flex items-center justify-between px-3.5 py-2.5 text-xs font-semibold text-zinc-300 hover:text-white transition-colors cursor-pointer"
+                        >
+                          <span className="flex items-center gap-2">
+                            <span className={`w-1.5 h-1.5 rounded-full ${someSelected ? 'bg-[var(--primary)]' : 'bg-zinc-600'} transition-all`} />
+                            {t(`group_${group.id}`)}
+                          </span>
+                          <div className="flex items-center gap-2.5">
+                            {isHost && (
+                              <span
+                                onClick={(e) => { e.stopPropagation(); toggleGroupGenres(group.genreIds, !allSelected); }}
+                                className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded transition-all cursor-pointer ${
+                                  allSelected
+                                    ? 'bg-[var(--primary)]/20 text-[var(--primary)] border border-[var(--primary)]/30 hover:bg-[var(--primary)]/35'
+                                    : someSelected
+                                      ? 'bg-white/10 text-zinc-400 border border-white/10 hover:bg-white/20'
+                                      : 'bg-white/5 text-zinc-500 border border-transparent hover:bg-white/10'
+                                }`}
+                              >
+                                {allSelected ? t('clear_btn') : t('all_btn')}
+                              </span>
+                            )}
+                            <svg
+                              className={`w-3.5 h-3.5 text-zinc-500 transition-transform duration-300 ${isCollapsed ? '' : 'rotate-180'}`}
+                              fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </div>
+                        </button>
+
+                        <motion.div
+                          initial={false}
+                          animate={{ height: isCollapsed ? 0 : 'auto', opacity: isCollapsed ? 0 : 1 }}
+                          transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+                          className="overflow-hidden"
+                        >
+                          <div className="px-3.5 pb-3.5 pt-1 border-t border-white/[0.03]">
+                            <div className="grid grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-1.5">
+                              {groupGenres.map(g => {
+                                const selected = genres.includes(g.id);
+                                return (
+                                  <button
+                                    key={g.id}
+                                    onClick={() => isHost && toggleGenre(g.id)}
+                                    className={`px-2 py-1.5 rounded-full text-[11px] font-semibold transition-all border ${
+                                      selected
+                                        ? 'bg-gradient-to-r from-primary to-accent text-white border-transparent shadow-md shadow-primary/10 scale-100 hover:brightness-110 active:scale-95'
+                                        : 'bg-white/[0.02] text-zinc-400 border-white/5 hover:bg-white/[0.06] hover:text-zinc-200 hover:border-white/10 active:scale-95'
+                                    } ${!isHost ? 'opacity-80 cursor-default pointer-events-none' : 'cursor-pointer'}`}
+                                  >
+                                    {t(`genre_${g.id}`)}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </motion.div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
+
+            <SliderSetting label={t('rounds')} value={settings.rounds} min={3} max={25} isHost={isHost} onChange={v => onSettingsChange({ rounds: v })} />
+            <SliderSetting label={t('time_per_round')} value={settings.roundTime} min={8} max={30} suffix="s" isHost={isHost} onChange={v => onSettingsChange({ roundTime: v })} />
+            <SliderSetting label={t('pause_between')} value={settings.pauseTime} min={2} max={15} suffix="s" isHost={isHost} onChange={v => onSettingsChange({ pauseTime: v })} />
+
+            {isHost && (
+              <div className="pt-2 border-t border-white/5">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-semibold text-zinc-300">{t('auto_start')}</span>
+                    <p className="text-[10px] text-zinc-500 max-w-[200px] leading-relaxed">{t('auto_start_desc')}</p>
+                  </div>
+                  <button
+                    onClick={() => onSettingsChange({ autoStart: !settings.autoStart })}
+                    className={`relative w-11 h-6 rounded-full flex-shrink-0 transition-all duration-300 ease-out focus:outline-none cursor-pointer ${
+                      settings.autoStart
+                        ? 'bg-gradient-to-r from-primary to-accent shadow-md shadow-primary/10'
+                        : 'bg-zinc-800 border border-white/5'
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-[3px] w-4 h-4 rounded-full bg-white shadow transition-all duration-300 ease-out ${
+                        settings.autoStart ? 'left-[23px] scale-110' : 'left-[3px] scale-100 bg-zinc-400'
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Lobby CTA Area */}
+      <div className="w-full flex flex-col items-center gap-3 pt-4 pb-8 max-w-xl">
+        {isHost ? (
+          <button
+            onClick={onStart}
+            disabled={startLoading || !genres || genres.length === 0}
+            className={`px-12 py-4 text-white font-bold rounded-xl transition-all duration-300 shadow-lg cursor-pointer ${
+              genres && genres.length > 0 && !startLoading
+                ? 'bg-gradient-to-r from-primary to-accent hover:brightness-110 hover:shadow-primary/25 hover:scale-[1.03] active:scale-[0.98]'
+                : 'bg-zinc-800 text-zinc-500 border border-white/5 opacity-50 cursor-not-allowed'
+            }`}
+          >
+            {startLoading ? 'Starting...' : genres && genres.length > 0 ? t('start_game') : t('select_genre_to_start')}
+          </button>
+        ) : (
+          <div className="flex items-center gap-2 text-zinc-400 text-sm font-medium bg-white/[0.02] border border-white/5 px-4 py-2.5 rounded-full shadow-inner animate-pulse">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--primary)] opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--primary)]"></span>
+            </span>
+            Waiting for the host to start...
           </div>
         )}
       </div>
-
-      {isHost && (
-        <button
-          onClick={onStart}
-          disabled={startLoading || !genres || genres.length === 0}
-          className={`px-8 py-4 text-white font-semibold rounded-xl transition-colors ${
-            genres && genres.length > 0 && !startLoading
-              ? 'bg-[var(--primary)] hover:bg-[var(--primary-hover)] animate-pulse-glow'
-              : 'bg-gray-600 opacity-50 cursor-not-allowed'
-          }`}
-        >
-          {startLoading ? 'Starting...' : genres && genres.length > 0 ? t('start_game') : t('select_genre_to_start')}
-        </button>
-      )}
-
-      {!isHost && <p className="text-zinc-500 text-sm">Waiting for the host to start...</p>}
     </div>
   );
 }
