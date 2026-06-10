@@ -304,7 +304,7 @@ async function getTracksByGenre(genre, count = 10) {
         }
       }
       
-      if (tracksWithPreviews.length >= count) {
+      if (tracksWithPreviews.length >= Math.min(count, 12)) {
         console.log(`[DB] Successfully resolved ${tracksWithPreviews.length} tracks with fresh previews from cache`);
         try {
           const { all } = await import('./db.js');
