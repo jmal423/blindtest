@@ -924,76 +924,76 @@ function WaitingRoom({
                   })}
                 </div>
               )}
-            </div>
 
-            {/* Custom Genres Display & Input */}
-            {(() => {
-              const customSelectedGenres = genres.filter(g => !allGenreIds.includes(g));
-              return (
-                <div className="space-y-3 pt-1">
-                  {customSelectedGenres.length > 0 && (
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-semibold tracking-wider uppercase text-zinc-500">Custom Selected Genres</label>
-                      <div className="flex flex-wrap gap-1.5">
-                        {customSelectedGenres.map(g => (
-                          <div
-                            key={g}
-                            className="flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-primary/10 to-accent/10 text-accent border border-accent/20 rounded-full text-[11px] font-semibold animate-slide-up"
-                          >
-                            <span className="truncate max-w-[150px]">{g}</span>
-                            {isHost && (
-                              <button
-                                onClick={() => toggleGenre(g)}
-                                className="hover:text-rose-400 p-0.5 rounded-full transition-colors cursor-pointer flex items-center justify-center"
-                                title="Remove custom genre"
-                              >
-                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                              </button>
-                            )}
-                          </div>
-                        ))}
+              {/* Custom Genres Display & Input */}
+              {(() => {
+                const customSelectedGenres = genres.filter(g => !allGenreIds.includes(g));
+                return (
+                  <div className="space-y-3 pt-3.5 mt-3.5 border-t border-white/5">
+                    {customSelectedGenres.length > 0 && (
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-semibold tracking-wider uppercase text-zinc-500">Custom Selected Genres</label>
+                        <div className="flex flex-wrap gap-1.5">
+                          {customSelectedGenres.map(g => (
+                            <div
+                              key={g}
+                              className="flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-primary/10 to-accent/10 text-accent border border-accent/20 rounded-full text-[11px] font-semibold animate-slide-up"
+                            >
+                              <span className="truncate max-w-[150px]">{g}</span>
+                              {isHost && (
+                                <button
+                                  onClick={() => toggleGenre(g)}
+                                  className="hover:text-rose-400 p-0.5 rounded-full transition-colors cursor-pointer flex items-center justify-center"
+                                  title="Remove custom genre"
+                                >
+                                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {isHost && (
-                    <div className="space-y-1.5">
-                      <label htmlFor="custom-genre-input" className="text-[10px] font-semibold tracking-wider uppercase text-zinc-500">Add Custom Genre</label>
-                      <form
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                          const form = e.currentTarget;
-                          const input = form.elements.namedItem('customGenre') as HTMLInputElement;
-                          const value = input?.value?.trim().toLowerCase();
-                          if (value && !genres.includes(value)) {
-                            onGenresChange([...genres, value]);
-                            input.value = '';
-                          }
-                        }}
-                        className="flex gap-2"
-                      >
-                        <input
-                          id="custom-genre-input"
-                          name="customGenre"
-                          type="text"
-                          placeholder="e.g. synthwave, lofi, anime..."
-                          maxLength={30}
-                          className="flex-1 px-3 py-2 bg-white/[0.02] border border-white/5 rounded-xl text-xs text-foreground placeholder-zinc-600 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors"
-                        />
-                        <button
-                          type="submit"
-                          className="px-3.5 py-2 bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white font-semibold rounded-xl border border-white/5 transition-all text-xs cursor-pointer active:scale-95 flex items-center justify-center shrink-0"
+                    {isHost && (
+                      <div className="space-y-1.5">
+                        <label htmlFor="custom-genre-input" className="text-[10px] font-semibold tracking-wider uppercase text-zinc-500">Add Custom Genre</label>
+                        <form
+                          onSubmit={(e) => {
+                            e.preventDefault();
+                            const form = e.currentTarget;
+                            const input = form.elements.namedItem('customGenre') as HTMLInputElement;
+                            const value = input?.value?.trim().toLowerCase();
+                            if (value && !genres.includes(value)) {
+                              onGenresChange([...genres, value]);
+                              input.value = '';
+                            }
+                          }}
+                          className="flex gap-2"
                         >
-                          Add
-                        </button>
-                      </form>
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
+                          <input
+                            id="custom-genre-input"
+                            name="customGenre"
+                            type="text"
+                            placeholder="e.g. synthwave, lofi, anime..."
+                            maxLength={30}
+                            className="flex-1 px-3 py-2 bg-white/[0.02] border border-white/5 rounded-xl text-xs text-foreground placeholder-zinc-600 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors"
+                          />
+                          <button
+                            type="submit"
+                            className="px-3.5 py-2 bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white font-semibold rounded-xl border border-white/5 transition-all text-xs cursor-pointer active:scale-95 flex items-center justify-center shrink-0"
+                          >
+                            Add
+                          </button>
+                        </form>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
 
             <SliderSetting label={t('rounds')} value={settings.rounds} min={3} max={25} isHost={isHost} onChange={v => onSettingsChange({ rounds: v })} />
             <SliderSetting label={t('time_per_round')} value={settings.roundTime} min={8} max={30} suffix="s" isHost={isHost} onChange={v => onSettingsChange({ roundTime: v })} />
