@@ -217,7 +217,10 @@ export default function GamePage({
   useEffect(() => {
     if (!playerId) return;
 
-    const socket = socketIo(API_URL);
+    const connectionUrl = typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'
+      ? window.location.origin
+      : API_URL;
+    const socket = socketIo(connectionUrl);
     socketRef.current = socket;
     setSocket(socket);
 
