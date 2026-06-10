@@ -1,5 +1,3 @@
-export const GENRES = [];
-
 export const GENRES = [
   'pop', 'rock', 'hip-hop', 'r-n-b', 'electronic', 'jazz', 'classical',
   'country', 'metal', 'indie', 'soul', 'blues', 'reggae', 'latin',
