@@ -11,7 +11,7 @@ async function ollamaGenerate(prompt) {
       prompt,
       stream: false,
       format: 'json',
-      options: { temperature: 0.1 },
+      options: { temperature: 0.0 }, // <- CORRIGIDO: Forçar 0.0 para determinismo absoluto
     }),
   });
 
@@ -29,7 +29,7 @@ const VALID_GENRES = new Set([
   "country_americana_us", "rock_alternative_us", "pop_uk", "uk_drill_grime", "britpop_rock_uk",
   "uk_garage_dnb", "chanson_francaise", "pop_francaise", "rap_francais", "french_touch_electro",
   "flamenco", "reggaeton_urbano", "musica_regional_latina", "samba_pagode", "bossa_nova",
-  "funk_brasileiro", "other"
+  "funk_brasileiro", "reggae", "kpop", "other"
 ]);
 
 const VALID_REGIONS = new Set([
@@ -44,7 +44,7 @@ const GENRE_TO_REGION = {
   "pop_uk": "united_kingdom", "uk_drill_grime": "united_kingdom", "britpop_rock_uk": "united_kingdom", "uk_garage_dnb": "united_kingdom",
   "chanson_francaise": "french", "pop_francaise": "french", "rap_francais": "french", "french_touch_electro": "french",
   "flamenco": "spanish", "reggaeton_urbano": "spanish", "musica_regional_latina": "spanish",
-  "other": "global_other"
+  "reggae": "global_other", "kpop": "global_other", "other": "global_other"
 };
 
 function parseResponse(raw) {

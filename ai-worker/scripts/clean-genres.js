@@ -44,6 +44,8 @@ const GENRES = [
   "musica_regional_latina",
 
   // Mundo & Outros
+  "reggae",
+  "kpop",
   "other"
 ];
 
@@ -107,6 +109,8 @@ const GENRE_GROUPS = [
   {
     "id": "global_other",
     "genreIds": [
+      "reggae",
+      "kpop",
       "other"
     ]
   }
@@ -154,6 +158,8 @@ export const GENRES = [
   "musica_regional_latina",
 
   // Mundo & Outros
+  "reggae",
+  "kpop",
   "other"
 ];
 
@@ -217,6 +223,8 @@ export const GENRE_GROUPS = [
   {
     "id": "global_other",
     "genreIds": [
+      "reggae",
+      "kpop",
       "other"
     ]
   }
