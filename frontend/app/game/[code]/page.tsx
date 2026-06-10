@@ -14,7 +14,7 @@ import Podium from './Podium';
 import DebugOverlay from './DebugOverlay';
 import { useSound } from '@/lib/useSound';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005';
 
 const PLAYER_COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#06b6d4', '#8b5cf6', '#84cc16'];
 
