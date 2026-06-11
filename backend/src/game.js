@@ -211,11 +211,16 @@ export class GameRoom {
       const shuffledGenres = shuffle([...this.genres]).slice(0, 10);
       const seenIds = new Set();
 
+      // Calculate how many tracks we target to get from each genre to be fair and balanced
+      const targetPerGenre = Math.ceil(totalNeeded / shuffledGenres.length);
+      // Fetch slightly more than needed per genre to account for duplicates/missing previews
+      const fetchLimitPerGenre = Math.max(targetPerGenre * 2, 10);
+
       for (const genre of shuffledGenres) {
-        if (allTracks.length >= totalNeeded) break;
         try {
           const { getTracksByGenre } = await import('./deezer.js');
-          const tracks = await getTracksByGenre(genre, 50);
+          const tracks = await getTracksByGenre(genre, fetchLimitPerGenre);
+          let addedForThisGenre = 0;
           for (const t of tracks) {
             if (!seenIds.has(t.id) && t.previewUrl) {
               if (!t.genre && t.genres && t.genres.length > 0) {
@@ -225,6 +230,8 @@ export class GameRoom {
               }
               allTracks.push(t);
               seenIds.add(t.id);
+              addedForThisGenre++;
+              if (addedForThisGenre >= fetchLimitPerGenre) break;
             }
           }
           const { cacheSongs } = await import('./db.js');
