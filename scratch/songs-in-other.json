@@ -1,0 +1,4607 @@
+{
+  "curated_songs_in_other": [
+    {
+      "id": "deezer:3471224101",
+      "name": "12 to 12",
+      "artist": "sombr",
+      "genre": "other",
+      "album_genres": [
+        "alternative",
+        "rock-indé"
+      ]
+    },
+    {
+      "id": "deezer:3809346722",
+      "name": "B.M.S (by my side)",
+      "artist": "Rambo Goyard",
+      "genre": "other",
+      "album_genres": [
+        "rap/hip-hop"
+      ]
+    },
+    {
+      "id": "deezer:3015707071",
+      "name": "CARTIER SANTOS",
+      "artist": "SDM",
+      "genre": "other",
+      "album_genres": [
+        "hip-hop"
+      ]
+    },
+    {
+      "id": "deezer:3606166592",
+      "name": "CHANEL",
+      "artist": "Tyla",
+      "genre": "other",
+      "album_genres": [
+        "pop"
+      ]
+    },
+    {
+      "id": "deezer:3396278771",
+      "name": "Catalina",
+      "artist": "Cheu-B",
+      "genre": "other",
+      "album_genres": [
+        "rap/hip-hop"
+      ]
+    },
+    {
+      "id": "deezer:1899060227",
+      "name": "End of Beginning",
+      "artist": "Djo",
+      "genre": "other",
+      "album_genres": [
+        "alternative",
+        "rock"
+      ]
+    },
+    {
+      "id": "deezer:3684409902",
+      "name": "FOCUS",
+      "artist": "Ashvma",
+      "genre": "other",
+      "album_genres": [
+        "hip-hop"
+      ]
+    },
+    {
+      "id": "deezer:3412611901",
+      "name": "Gabriela",
+      "artist": "KATSEYE",
+      "genre": "other",
+      "album_genres": [
+        "pop"
+      ]
+    },
+    {
+      "id": "deezer:3784998222",
+      "name": "Ghosts",
+      "artist": "Mosimann",
+      "genre": "other",
+      "album_genres": [
+        "dance"
+      ]
+    },
+    {
+      "id": "deezer:3412534581",
+      "name": "Golden",
+      "artist": "HUNTR/X",
+      "genre": "other",
+      "album_genres": [
+        "musique-asiatique"
+      ]
+    },
+    {
+      "id": "deezer:3580188661",
+      "name": "Gone Gone Gone",
+      "artist": "David Guetta",
+      "genre": "other",
+      "album_genres": [
+        "pop"
+      ]
+    },
+    {
+      "id": "deezer:3794985752",
+      "name": "Homewrecker",
+      "artist": "sombr",
+      "genre": "other",
+      "album_genres": [
+        "pop"
+      ]
+    },
+    {
+      "id": "deezer:3898999851",
+      "name": "LET ME BE",
+      "artist": "The Second Voice",
+      "genre": "other",
+      "album_genres": [
+        "dance"
+      ]
+    },
+    {
+      "id": "deezer:3921053291",
+      "name": "P&P",
+      "artist": "aupinard",
+      "genre": "other",
+      "album_genres": [
+        "pop"
+      ]
+    },
+    {
+      "id": "deezer:3340153351",
+      "name": "Piano",
+      "artist": "Werenoi",
+      "genre": "other",
+      "album_genres": [
+        "rap/hip-hop"
+      ]
+    },
+    {
+      "id": "deezer:3940103361",
+      "name": "Pineapple",
+      "artist": "Leto",
+      "genre": "other",
+      "album_genres": [
+        "rap/hip-hop",
+        "rap-français"
+      ]
+    },
+    {
+      "id": "deezer:3401257811",
+      "name": "RUINART",
+      "artist": "R2",
+      "genre": "other",
+      "album_genres": [
+        "rap/hip-hop"
+      ]
+    },
+    {
+      "id": "deezer:3784724892",
+      "name": "Talk To You (ft. 54 Ultra)",
+      "artist": "ANOTR",
+      "genre": "other",
+      "album_genres": [
+        "electro",
+        "techno/house",
+        "dance"
+      ]
+    },
+    {
+      "id": "deezer:3434402411",
+      "name": "Together",
+      "artist": "David Guetta",
+      "genre": "other",
+      "album_genres": [
+        "dance"
+      ]
+    },
+    {
+      "id": "deezer:3635951612",
+      "name": "Turn The Lights Off",
+      "artist": "Justė",
+      "genre": "other",
+      "album_genres": [
+        "dance"
+      ]
+    },
+    {
+      "id": "deezer:3677123262",
+      "name": "Unfaithful",
+      "artist": "BlasterJaxx",
+      "genre": "other",
+      "album_genres": [
+        "dance"
+      ]
+    },
+    {
+      "id": "deezer:4043072601",
+      "name": "YAKUZA",
+      "artist": "RK",
+      "genre": "other",
+      "album_genres": [
+        "rap/hip-hop",
+        "rap-français"
+      ]
+    },
+    {
+      "id": "deezer:3589389921",
+      "name": "Zoo (De \"Zootopie 2\")",
+      "artist": "Disney",
+      "genre": "other",
+      "album_genres": [
+        "soundtrack",
+        "musiques-de-films"
+      ]
+    },
+    {
+      "id": "deezer:3151351511",
+      "name": "back to friends",
+      "artist": "sombr",
+      "genre": "other",
+      "album_genres": [
+        "alternative",
+        "rock-indé"
+      ]
+    }
+  ],
+  "cached_songs_in_other": [
+    {
+      "id": "deezer:3340153351",
+      "name": "Piano",
+      "artist": "Werenoi",
+      "genre": "rap/hip-hop",
+      "genres": [
+        "rap/hip-hop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 999849
+    },
+    {
+      "id": "deezer:1899060227",
+      "name": "End of Beginning",
+      "artist": "Djo",
+      "genre": "rock",
+      "genres": [
+        "alternative",
+        "rock"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 999711
+    },
+    {
+      "id": "deezer:3396278771",
+      "name": "Catalina",
+      "artist": "Cheu-B",
+      "genre": "rap/hip-hop",
+      "genres": [
+        "rap/hip-hop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 999104
+    },
+    {
+      "id": "deezer:3809346722",
+      "name": "B.M.S (by my side)",
+      "artist": "Rambo Goyard",
+      "genre": "rap/hip-hop",
+      "genres": [
+        "rap/hip-hop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 998709
+    },
+    {
+      "id": "deezer:3015707071",
+      "name": "CARTIER SANTOS",
+      "artist": "SDM",
+      "genre": "hip-hop",
+      "genres": [
+        "hip-hop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 997948
+    },
+    {
+      "id": "deezer:3940103361",
+      "name": "Pineapple",
+      "artist": "Leto",
+      "genre": "rap/hip-hop",
+      "genres": [
+        "rap/hip-hop",
+        "rap-français"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 997123
+    },
+    {
+      "id": "deezer:4043072601",
+      "name": "YAKUZA",
+      "artist": "RK",
+      "genre": "rap/hip-hop",
+      "genres": [
+        "rap/hip-hop",
+        "rap-français"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 996099
+    },
+    {
+      "id": "deezer:3589389921",
+      "name": "Zoo (De \"Zootopie 2\")",
+      "artist": "Disney",
+      "genre": "soundtrack",
+      "genres": [
+        "soundtrack",
+        "musiques-de-films"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 993959
+    },
+    {
+      "id": "deezer:3401257811",
+      "name": "RUINART",
+      "artist": "R2",
+      "genre": "rap/hip-hop",
+      "genres": [
+        "rap/hip-hop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 992151
+    },
+    {
+      "id": "deezer:3471224101",
+      "name": "12 to 12",
+      "artist": "sombr",
+      "genre": "alternative",
+      "genres": [
+        "alternative",
+        "rock-indé"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 991896
+    },
+    {
+      "id": "deezer:3727841322",
+      "name": "GMK",
+      "artist": "WIXO & LA2S",
+      "genre": "rap/hip-hop",
+      "genres": [
+        "rap/hip-hop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 991767
+    },
+    {
+      "id": "deezer:3678134142",
+      "name": "Coco Chanel",
+      "artist": "Meryl",
+      "genre": "hip-hop",
+      "genres": [
+        "hip-hop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 991642
+    },
+    {
+      "id": "deezer:3412611901",
+      "name": "Gabriela",
+      "artist": "KATSEYE",
+      "genre": "pop",
+      "genres": [
+        "pop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 991587
+    },
+    {
+      "id": "deezer:3301821051",
+      "name": "Melrose Place",
+      "artist": "KeBlack",
+      "genre": "rap/hip-hop",
+      "genres": [
+        "rap/hip-hop",
+        "rap-français"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 988770
+    },
+    {
+      "id": "deezer:3898999851",
+      "name": "LET ME BE",
+      "artist": "The Second Voice",
+      "genre": "dance",
+      "genres": [
+        "dance"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 986187
+    },
+    {
+      "id": "deezer:3684409902",
+      "name": "FOCUS",
+      "artist": "Ashvma",
+      "genre": "hip-hop",
+      "genres": [
+        "hip-hop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 985887
+    },
+    {
+      "id": "deezer:3151351511",
+      "name": "back to friends",
+      "artist": "sombr",
+      "genre": "alternative",
+      "genres": [
+        "alternative",
+        "rock-indé"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 980345
+    },
+    {
+      "id": "deezer:3412534581",
+      "name": "Golden",
+      "artist": "HUNTR/X",
+      "genre": "musique-asiatique",
+      "genres": [
+        "musique-asiatique"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 979012
+    },
+    {
+      "id": "deezer:3784998222",
+      "name": "Ghosts",
+      "artist": "Mosimann",
+      "genre": "dance",
+      "genres": [
+        "dance"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 974971
+    },
+    {
+      "id": "deezer:3921053291",
+      "name": "P&P",
+      "artist": "aupinard",
+      "genre": "pop",
+      "genres": [
+        "pop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 973138
+    },
+    {
+      "id": "deezer:3635951612",
+      "name": "Turn The Lights Off",
+      "artist": "Justė",
+      "genre": "dance",
+      "genres": [
+        "dance"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 970362
+    },
+    {
+      "id": "deezer:3606166592",
+      "name": "CHANEL",
+      "artist": "Tyla",
+      "genre": "pop",
+      "genres": [
+        "pop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 969548
+    },
+    {
+      "id": "deezer:3677123262",
+      "name": "Unfaithful",
+      "artist": "BlasterJaxx",
+      "genre": "dance",
+      "genres": [
+        "dance"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 969486
+    },
+    {
+      "id": "deezer:3580188661",
+      "name": "Gone Gone Gone",
+      "artist": "David Guetta",
+      "genre": "pop",
+      "genres": [
+        "pop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 968456
+    },
+    {
+      "id": "deezer:3784724892",
+      "name": "Talk To You (ft. 54 Ultra)",
+      "artist": "ANOTR",
+      "genre": "electro",
+      "genres": [
+        "electro",
+        "techno/house",
+        "dance"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 968286
+    },
+    {
+      "id": "deezer:3857549521",
+      "name": "Madan",
+      "artist": "Trinix",
+      "genre": "dance",
+      "genres": [
+        "dance"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 957435
+    },
+    {
+      "id": "deezer:1645426722",
+      "name": "Stolen Dance",
+      "artist": "Milky Chance",
+      "genre": "alternative",
+      "genres": [
+        "alternative"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 955536
+    },
+    {
+      "id": "deezer:673165762",
+      "name": "Sexy Bitch (feat. Akon)",
+      "artist": "David Guetta",
+      "genre": "dance",
+      "genres": [
+        "dance"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 954716
+    },
+    {
+      "id": "deezer:129632340",
+      "name": "Let Me Love You",
+      "artist": "DJ Snake",
+      "genre": "dance",
+      "genres": [
+        "dance"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 950091
+    },
+    {
+      "id": "deezer:3794985752",
+      "name": "Homewrecker",
+      "artist": "sombr",
+      "genre": "pop",
+      "genres": [
+        "pop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 946199
+    },
+    {
+      "id": "deezer:3434402411",
+      "name": "Together",
+      "artist": "David Guetta",
+      "genre": "dance",
+      "genres": [
+        "dance"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 945587
+    },
+    {
+      "id": "deezer:3843457421",
+      "name": "Magnetic",
+      "artist": "The Bausa",
+      "genre": "dance",
+      "genres": [
+        "dance"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 940974
+    },
+    {
+      "id": "deezer:3187953971",
+      "name": "Show Me Love",
+      "artist": "WizTheMc",
+      "genre": "pop",
+      "genres": [
+        "pop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 939681
+    },
+    {
+      "id": "deezer:5119642",
+      "name": "Turn The Lights Off (Radio Edit)",
+      "artist": "Kato",
+      "genre": "dance",
+      "genres": [
+        "dance"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 935915
+    },
+    {
+      "id": "deezer:2887264442",
+      "name": "I Adore You",
+      "artist": "HUGEL",
+      "genre": "dance",
+      "genres": [
+        "dance"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 934047
+    },
+    {
+      "id": "deezer:4026050591",
+      "name": "Skyline",
+      "artist": "3robi",
+      "genre": "musique-africaine",
+      "genres": [
+        "musique-africaine"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 929975
+    },
+    {
+      "id": "deezer:3216532281",
+      "name": "Ma Tnsani (Yalla Habibi)",
+      "artist": "Vanco",
+      "genre": "musique-africaine",
+      "genres": [
+        "musique-africaine"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 929162
+    },
+    {
+      "id": "deezer:3412534621",
+      "name": "Free",
+      "artist": "Rumi",
+      "genre": "musique-asiatique",
+      "genres": [
+        "musique-asiatique"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 923902
+    },
+    {
+      "id": "deezer:1713175757",
+      "name": "Moth To A Flame",
+      "artist": "Swedish House Mafia",
+      "genre": "dance",
+      "genres": [
+        "dance"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 923662
+    },
+    {
+      "id": "deezer:3346909081",
+      "name": "Vaitimbora",
+      "artist": "Trinix",
+      "genre": "reggaeton-urbano",
+      "genres": [
+        "reggaeton-urbano"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 921398
+    },
+    {
+      "id": "deezer:70266756",
+      "name": "Wake Me Up",
+      "artist": "Avicii",
+      "genre": "dance",
+      "genres": [
+        "dance"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 921155
+    },
+    {
+      "id": "deezer:3989395981",
+      "name": "Repeat It",
+      "artist": "Martin Garrix",
+      "genre": "dance",
+      "genres": [
+        "dance",
+        "pop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 919296
+    },
+    {
+      "id": "deezer:798382542",
+      "name": "Baianá",
+      "artist": "Bakermat",
+      "genre": "dance",
+      "genres": [
+        "dance"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 916259
+    },
+    {
+      "id": "deezer:3964491871",
+      "name": "REDRED",
+      "artist": "CORTIS",
+      "genre": "musique-asiatique",
+      "genres": [
+        "musique-asiatique"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 916023
+    },
+    {
+      "id": "deezer:4048535451",
+      "name": "Sexy Nana",
+      "artist": "Aya Nakamura",
+      "genre": "musique-africaine",
+      "genres": [
+        "musique-africaine"
+      ],
+      "ai_genres": [
+        "other",
+        "other",
+        "other"
+      ],
+      "ai_tags": [
+        "global_other",
+        "global_other",
+        "global_other",
+        "global_other"
+      ],
+      "rank": 913155
+    },
+    {
+      "id": "deezer:1874467717",
+      "name": "I'm Good (Blue)",
+      "artist": "David Guetta",
+      "genre": "dance",
+      "genres": [
+        "dance"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 911318
+    },
+    {
+      "id": "deezer:1015793062",
+      "name": "Jerusalema (feat. Nomcebo Zikode)",
+      "artist": "Master KG",
+      "genre": "dance",
+      "genres": [
+        "dance"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 906346
+    },
+    {
+      "id": "deezer:81661460",
+      "name": "Amazing",
+      "artist": "Inna",
+      "genre": "electro",
+      "genres": [
+        "electro",
+        "dance",
+        "disco"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 903588
+    },
+    {
+      "id": "deezer:3412534561",
+      "name": "Soda Pop",
+      "artist": "Saja Boys",
+      "genre": "musique-asiatique",
+      "genres": [
+        "musique-asiatique"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 891745
+    },
+    {
+      "id": "deezer:3986645071",
+      "name": "CHOOM",
+      "artist": "BABYMONSTER",
+      "genre": "musique-asiatique",
+      "genres": [
+        "musique-asiatique"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 889575
+    },
+    {
+      "id": "deezer:3126148051",
+      "name": "Bouwéy",
+      "artist": "1t1",
+      "genre": "reggae",
+      "genres": [
+        "reggae"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 887397
+    },
+    {
+      "id": "deezer:2758387541",
+      "name": "Wayeh",
+      "artist": "THEODORT",
+      "genre": "musique-africaine",
+      "genres": [
+        "musique-africaine"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 886876
+    },
+    {
+      "id": "deezer:3989506131",
+      "name": "It's Me",
+      "artist": "ILLIT ",
+      "genre": "musique-asiatique",
+      "genres": [
+        "musique-asiatique"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 886129
+    },
+    {
+      "id": "deezer:4056495431",
+      "name": "SUGAR HONEY ICE TEA",
+      "artist": "BABYMONSTER",
+      "genre": "musique-asiatique",
+      "genres": [
+        "musique-asiatique"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 883696
+    },
+    {
+      "id": "deezer:2238153377",
+      "name": "From The Start",
+      "artist": "Laufey",
+      "genre": "jazz",
+      "genres": [
+        "jazz"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 881648
+    },
+    {
+      "id": "deezer:2843869922",
+      "name": "Alibi (with Pabllo Vittar & Yseult)",
+      "artist": "Sevdaliza",
+      "genre": "latino",
+      "genres": [
+        "latino"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 880579
+    },
+    {
+      "id": "deezer:14381638",
+      "name": "Sonne",
+      "artist": "Rammstein",
+      "genre": "metal",
+      "genres": [
+        "metal"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 869567
+    },
+    {
+      "id": "deezer:3451944451",
+      "name": "Si Ai (Marshmello & Ukay Remix)",
+      "artist": "Tayna",
+      "genre": "musique-africaine",
+      "genres": [
+        "musique-africaine"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 859324
+    },
+    {
+      "id": "deezer:3930062061",
+      "name": "Doucement",
+      "artist": "Fally Ipupa",
+      "genre": "musique-africaine",
+      "genres": [
+        "musique-africaine"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 858217
+    },
+    {
+      "id": "deezer:76575944",
+      "name": "We Are One (Ole Ola) [The Official 2014 FIFA World Cup Song] (feat. Jennifer Lopez & Claudia Leitte)",
+      "artist": "Pitbull",
+      "genre": "latin",
+      "genres": [
+        "dance",
+        "pop",
+        "latino"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 854072
+    },
+    {
+      "id": "deezer:1137370842",
+      "name": "Cornfield Chase",
+      "artist": "Hans Zimmer",
+      "genre": "soundtrack",
+      "genres": [
+        "soundtrack",
+        "musiques-de-films"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 850478
+    },
+    {
+      "id": "deezer:2464861625",
+      "name": "MAYA",
+      "artist": "P.L.L",
+      "genre": "reggae",
+      "genres": [
+        "reggae",
+        "dancehall/ragga"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 846270
+    },
+    {
+      "id": "deezer:3412534611",
+      "name": "Your Idol",
+      "artist": "Saja Boys",
+      "genre": "musique-asiatique",
+      "genres": [
+        "musique-asiatique"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 846243
+    },
+    {
+      "id": "deezer:2725148591",
+      "name": "Santa",
+      "artist": "Rvssian",
+      "genre": "musique-africaine",
+      "genres": [
+        "african",
+        "hip-hop-rap",
+        "pop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 841227
+    },
+    {
+      "id": "deezer:3055975",
+      "name": "Now We Are Free",
+      "artist": "Lisa Gerrard",
+      "genre": "soundtrack",
+      "genres": [
+        "soundtrack",
+        "musiques-de-films"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 834781
+    },
+    {
+      "id": "deezer:482681822",
+      "name": "Premier Gaou (Original Radio Edit)",
+      "artist": "Magic System",
+      "genre": "musique-africaine",
+      "genres": [
+        "musique-africaine",
+        "pop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 827503
+    },
+    {
+      "id": "deezer:752155092",
+      "name": "love nwantiti (ah ah ah)",
+      "artist": "CKay",
+      "genre": "musique-africaine",
+      "genres": [
+        "musique-africaine"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 826803
+    },
+    {
+      "id": "deezer:3495737481",
+      "name": "wgft (feat. Burna Boy)",
+      "artist": "Gunna",
+      "genre": "hip-hop",
+      "genres": [
+        "hip-hop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 824134
+    },
+    {
+      "id": "deezer:6524423",
+      "name": "Time",
+      "artist": "Hans Zimmer",
+      "genre": "soundtrack",
+      "genres": [
+        "soundtrack",
+        "musiques-de-films"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 820275
+    },
+    {
+      "id": "deezer:630595142",
+      "name": "Du hast",
+      "artist": "Rammstein",
+      "genre": "metal",
+      "genres": [
+        "metal"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 818879
+    },
+    {
+      "id": "deezer:4016483671",
+      "name": "Greenland",
+      "artist": "Jernblod",
+      "genre": "metal",
+      "genres": [
+        "metal"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 815262
+    },
+    {
+      "id": "deezer:3949006001",
+      "name": "Pépélé",
+      "artist": "Fally Ipupa",
+      "genre": "musique-africaine",
+      "genres": [
+        "musique-africaine"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 814410
+    },
+    {
+      "id": "deezer:1084243822",
+      "name": "Party With A Jagaban",
+      "artist": "Midas the Jagaban",
+      "genre": "musique-africaine",
+      "genres": [
+        "musique-africaine"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 812913
+    },
+    {
+      "id": "deezer:2285438237",
+      "name": "The Rapture Pt.III",
+      "artist": "&ME",
+      "genre": "french-touch-electro",
+      "genres": [
+        "french-touch-electro"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 808796
+    },
+    {
+      "id": "deezer:3613707422",
+      "name": "LA VILLA",
+      "artist": "Ryan Castro",
+      "genre": "hip-hop-rap",
+      "genres": [
+        "hip-hop-rap"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 799108
+    },
+    {
+      "id": "deezer:3827375541",
+      "name": "RUDE!",
+      "artist": "Hearts2Hearts",
+      "genre": "musique-asiatique",
+      "genres": [
+        "musique-asiatique",
+        "pop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 794339
+    },
+    {
+      "id": "deezer:3354289351",
+      "name": "Playground Love (with Gordon Tracks)",
+      "artist": "Air",
+      "genre": "soundtrack",
+      "genres": [
+        "soundtrack",
+        "musiques-de-films"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 792896
+    },
+    {
+      "id": "deezer:136338504",
+      "name": "For Whom The Bell Tolls (Remastered)",
+      "artist": "Metallica",
+      "genre": "metal",
+      "genres": [
+        "metal"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 790879
+    },
+    {
+      "id": "deezer:15738365",
+      "name": "Só Os Loucos Sabem",
+      "artist": "Charlie Brown Jr.",
+      "genre": "pop",
+      "genres": [
+        "pop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 787322
+    },
+    {
+      "id": "deezer:9997935",
+      "name": "Chérie Coco (feat. Soprano)",
+      "artist": "Magic System",
+      "genre": "reggae",
+      "genres": [
+        "reggae"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 786666
+    },
+    {
+      "id": "deezer:90379179",
+      "name": "The Hanging Tree (From \"The Hunger Games: Mockingjay\" Soundtrack)",
+      "artist": "James Newton Howard",
+      "genre": "soundtrack",
+      "genres": [
+        "soundtrack",
+        "musiques-de-films"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 782813
+    },
+    {
+      "id": "deezer:3879862701",
+      "name": "PONGO",
+      "artist": "Rvssian",
+      "genre": "african",
+      "genres": [
+        "african",
+        "pop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 781487
+    },
+    {
+      "id": "deezer:424562692",
+      "name": "Master Of Puppets (Remastered)",
+      "artist": "Metallica",
+      "genre": "metal",
+      "genres": [
+        "metal"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 781207
+    },
+    {
+      "id": "deezer:435175452",
+      "name": "The Greatest Show",
+      "artist": "Hugh Jackman",
+      "genre": "soundtrack",
+      "genres": [
+        "soundtrack",
+        "musiques-de-films"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 781185
+    },
+    {
+      "id": "deezer:70046742",
+      "name": "Anjos (Pra quem tem fé)",
+      "artist": "O Rappa",
+      "genre": "bossa-nova",
+      "genres": [
+        "bossa-nova",
+        "rock"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 776299
+    },
+    {
+      "id": "deezer:14381640",
+      "name": "Feuer frei!",
+      "artist": "Rammstein",
+      "genre": "metal",
+      "genres": [
+        "metal"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 775149
+    },
+    {
+      "id": "deezer:3063891981",
+      "name": "DRIP",
+      "artist": "BABYMONSTER",
+      "genre": "musique-asiatique",
+      "genres": [
+        "musique-asiatique"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 770731
+    },
+    {
+      "id": "deezer:4197811",
+      "name": "Wait and Bleed",
+      "artist": "Slipknot",
+      "genre": "metal",
+      "genres": [
+        "metal"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 769311
+    },
+    {
+      "id": "deezer:3085246",
+      "name": "Just the Two of Us (feat. Bill Withers)",
+      "artist": "Grover Washington, Jr.",
+      "genre": "jazz",
+      "genres": [
+        "jazz"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 768803
+    },
+    {
+      "id": "deezer:3994187911",
+      "name": "TNT",
+      "artist": "CORTIS",
+      "genre": "musique-asiatique",
+      "genres": [
+        "musique-asiatique"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 766120
+    },
+    {
+      "id": "deezer:136338506",
+      "name": "Fade To Black (Remastered)",
+      "artist": "Metallica",
+      "genre": "metal",
+      "genres": [
+        "metal"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 766049
+    },
+    {
+      "id": "deezer:646715112",
+      "name": "Mayonaka no Door / Stay With Me",
+      "artist": "Miki Matsubara",
+      "genre": "musique-asiatique",
+      "genres": [
+        "musique-asiatique"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 765849
+    },
+    {
+      "id": "deezer:3232341591",
+      "name": "TAGADA",
+      "artist": "DJ Ken",
+      "genre": "reggae",
+      "genres": [
+        "reggae",
+        "dancehall/ragga"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 763816
+    },
+    {
+      "id": "deezer:3994187931",
+      "name": "ACAI",
+      "artist": "CORTIS",
+      "genre": "musique-asiatique",
+      "genres": [
+        "musique-asiatique"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 761133
+    },
+    {
+      "id": "deezer:2432265755",
+      "name": "Jerusalem (2010 Remastered Edition)",
+      "artist": "Alpha Blondy",
+      "genre": "reggae",
+      "genres": [
+        "reggae"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 761023
+    },
+    {
+      "id": "deezer:4022517401",
+      "name": "GEL GEL GEL",
+      "artist": "Lvbel C5",
+      "genre": "hip-hop",
+      "genres": [
+        "hip-hop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 758619
+    },
+    {
+      "id": "deezer:13305147",
+      "name": "Anna Júlia",
+      "artist": "Los Hermanos",
+      "genre": "pop",
+      "genres": [
+        "pop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 757975
+    },
+    {
+      "id": "deezer:630595112",
+      "name": "Engel",
+      "artist": "Rammstein",
+      "genre": "metal",
+      "genres": [
+        "metal"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 754945
+    },
+    {
+      "id": "deezer:95987682",
+      "name": "Na Sua Estante",
+      "artist": "Pitty",
+      "genre": "pop-rock-portugues",
+      "genres": [
+        "pop-rock-portugues"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 754071
+    },
+    {
+      "id": "deezer:95987830",
+      "name": "Equalize",
+      "artist": "Pitty",
+      "genre": "pop-rock-portugues",
+      "genres": [
+        "pop-rock-portugues"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 753050
+    },
+    {
+      "id": "deezer:3393136571",
+      "name": "Shiny",
+      "artist": "Easykid",
+      "genre": "french-touch-electro",
+      "genres": [
+        "french-touch-electro"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 752761
+    },
+    {
+      "id": "deezer:2990269451",
+      "name": "Money Pull Up",
+      "artist": "Blaiz Fayah",
+      "genre": "reggae",
+      "genres": [
+        "reggae",
+        "dancehall/ragga"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 752493
+    },
+    {
+      "id": "deezer:3819915",
+      "name": "Vermilion, Pt. 2",
+      "artist": "Slipknot",
+      "genre": "metal",
+      "genres": [
+        "metal"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 751473
+    },
+    {
+      "id": "deezer:14381636",
+      "name": "Mein Herz brennt",
+      "artist": "Rammstein",
+      "genre": "metal",
+      "genres": [
+        "metal"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 751046
+    },
+    {
+      "id": "deezer:3408789721",
+      "name": "Van Cleef",
+      "artist": "Orochi",
+      "genre": "hip-hop-rap",
+      "genres": [
+        "hip-hop-rap"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 746773
+    },
+    {
+      "id": "deezer:2724377392",
+      "name": "SHEESH",
+      "artist": "BABYMONSTER",
+      "genre": "asian",
+      "genres": [
+        "asian"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 746256
+    },
+    {
+      "id": "deezer:13263710",
+      "name": "Resposta",
+      "artist": "Skank",
+      "genre": "pop",
+      "genres": [
+        "pop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 744031
+    },
+    {
+      "id": "deezer:3540344821",
+      "name": "FaSHioN",
+      "artist": "CORTIS",
+      "genre": "musique-asiatique",
+      "genres": [
+        "musique-asiatique"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 743012
+    },
+    {
+      "id": "deezer:136332702",
+      "name": "Seek & Destroy (Remastered)",
+      "artist": "Metallica",
+      "genre": "metal",
+      "genres": [
+        "metal"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 742459
+    },
+    {
+      "id": "deezer:4045972091",
+      "name": "Shieldmaiden",
+      "artist": "Jernblod",
+      "genre": "metal",
+      "genres": [
+        "metal"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 742211
+    },
+    {
+      "id": "deezer:3756022342",
+      "name": "Moonwalkin'",
+      "artist": "LNGSHOT",
+      "genre": "musique-asiatique",
+      "genres": [
+        "musique-asiatique"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 742105
+    },
+    {
+      "id": "deezer:3540344801",
+      "name": "GO!",
+      "artist": "CORTIS",
+      "genre": "musique-asiatique",
+      "genres": [
+        "musique-asiatique"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 741738
+    },
+    {
+      "id": "deezer:3948297981",
+      "name": "Not Broken",
+      "artist": "Cortexus",
+      "genre": "metal",
+      "genres": [
+        "metal"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 740224
+    },
+    {
+      "id": "deezer:3530207",
+      "name": "Será",
+      "artist": "Legião Urbana",
+      "genre": "rock",
+      "genres": [
+        "rock",
+        "reggaeton-urbano"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 739262
+    },
+    {
+      "id": "deezer:630594512",
+      "name": "Amerika",
+      "artist": "Rammstein",
+      "genre": "metal",
+      "genres": [
+        "metal"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 739130
+    },
+    {
+      "id": "deezer:13305103",
+      "name": "Epitáfio",
+      "artist": "Titãs",
+      "genre": "pop-rock-portugues",
+      "genres": [
+        "pop-rock-portugues"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 730196
+    },
+    {
+      "id": "deezer:15738364",
+      "name": "Me Encontra",
+      "artist": "Charlie Brown Jr.",
+      "genre": "pop",
+      "genres": [
+        "pop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 725621
+    },
+    {
+      "id": "deezer:137199464",
+      "name": "Primeiros Erros (Chove) (feat. Kiko Zambianchi)",
+      "artist": "Capital Inicial",
+      "genre": "pop",
+      "genres": [
+        "pop",
+        "reggaeton-urbano"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 724023
+    },
+    {
+      "id": "deezer:3316914",
+      "name": "Aonde Quer Que Eu Vá",
+      "artist": "Os Paralamas do Sucesso",
+      "genre": "reggaeton-urbano",
+      "genres": [
+        "reggaeton-urbano"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 722811
+    },
+    {
+      "id": "deezer:3679455042",
+      "name": "HEAVENLY JUMPSTYLE",
+      "artist": "TWXNY",
+      "genre": "musique-brésilienne",
+      "genres": [
+        "musique-brésilienne",
+        "soul-funk"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 716224
+    },
+    {
+      "id": "deezer:6347394",
+      "name": "Fácil",
+      "artist": "Jota Quest",
+      "genre": "pop",
+      "genres": [
+        "pop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 715464
+    },
+    {
+      "id": "deezer:3595159272",
+      "name": "Fendi 2",
+      "artist": "Rakhim",
+      "genre": "musique-brésilienne",
+      "genres": [
+        "musique-brésilienne",
+        "soul-funk"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 713291
+    },
+    {
+      "id": "deezer:13357318",
+      "name": "Sutilmente",
+      "artist": "Skank",
+      "genre": "pop",
+      "genres": [
+        "pop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 711026
+    },
+    {
+      "id": "deezer:63135949",
+      "name": "Vamos Fugir",
+      "artist": "Skank",
+      "genre": "pop",
+      "genres": [
+        "pop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 709605
+    },
+    {
+      "id": "deezer:13310165",
+      "name": "Infinita Highway",
+      "artist": "Engenheiros do Hawaii",
+      "genre": "pop-rock-portugues",
+      "genres": [
+        "pop-rock-portugues"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 704533
+    },
+    {
+      "id": "deezer:13252212",
+      "name": "Era um Garoto, Que Como Eu, Amava os Beatles e os Rolling Stones",
+      "artist": "Engenheiros do Hawaii",
+      "genre": "pop",
+      "genres": [
+        "pop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 703903
+    },
+    {
+      "id": "deezer:95987728",
+      "name": "Me Adora",
+      "artist": "Pitty",
+      "genre": "pop-rock-portugues",
+      "genres": [
+        "pop-rock-portugues"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 697268
+    },
+    {
+      "id": "deezer:3611334602",
+      "name": "ACIDO III (Slowed)",
+      "artist": "UdieNnx",
+      "genre": "musique-brésilienne",
+      "genres": [
+        "musique-brésilienne",
+        "soul-funk"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 693935
+    },
+    {
+      "id": "deezer:14896725",
+      "name": "Vou Deixar",
+      "artist": "Skank",
+      "genre": "pop",
+      "genres": [
+        "pop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 691604
+    },
+    {
+      "id": "deezer:95987826",
+      "name": "Admirável Chip Novo",
+      "artist": "Pitty",
+      "genre": "pop-rock-portugues",
+      "genres": [
+        "pop-rock-portugues"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 683292
+    },
+    {
+      "id": "deezer:11085356",
+      "name": "Bete Balanço",
+      "artist": "Barão Vermelho",
+      "genre": "bossa-nova",
+      "genres": [
+        "bossa-nova",
+        "reggaeton-urbano"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 681882
+    },
+    {
+      "id": "deezer:14897306",
+      "name": "Garota Nacional",
+      "artist": "Skank",
+      "genre": "pop",
+      "genres": [
+        "pop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 681872
+    },
+    {
+      "id": "deezer:3904617131",
+      "name": "Te Amei",
+      "artist": "CountryBeat",
+      "genre": "bossa-nova",
+      "genres": [
+        "bossa-nova"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 674966
+    },
+    {
+      "id": "deezer:3530211",
+      "name": "Tempo Perdido",
+      "artist": "Legião Urbana",
+      "genre": "rock",
+      "genres": [
+        "rock",
+        "reggaeton-urbano"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 662523
+    },
+    {
+      "id": "deezer:3642444522",
+      "name": "Brilho (Golden)",
+      "artist": "HUNTR/X",
+      "genre": "asian",
+      "genres": [
+        "asian"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 660043
+    },
+    {
+      "id": "deezer:137199456",
+      "name": "Tudo Que Vai",
+      "artist": "Capital Inicial",
+      "genre": "pop",
+      "genres": [
+        "pop",
+        "reggaeton-urbano"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 657015
+    },
+    {
+      "id": "deezer:3885076851",
+      "name": "Meow Meow (Super Slowed)",
+      "artist": "heapper",
+      "genre": "musique-brésilienne",
+      "genres": [
+        "musique-brésilienne",
+        "soul-funk"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 654070
+    },
+    {
+      "id": "deezer:137199470",
+      "name": "Fogo",
+      "artist": "Capital Inicial",
+      "genre": "pop",
+      "genres": [
+        "pop",
+        "reggaeton-urbano"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 652970
+    },
+    {
+      "id": "deezer:13264642",
+      "name": "Dois Rios",
+      "artist": "Skank",
+      "genre": "pop",
+      "genres": [
+        "pop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 646245
+    },
+    {
+      "id": "deezer:71193456",
+      "name": "Hoje Sou Eu Que Não Mais Te Quero",
+      "artist": "Charlie Brown Jr.",
+      "genre": "pop",
+      "genres": [
+        "pop",
+        "rock"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 644469
+    },
+    {
+      "id": "deezer:13359373",
+      "name": "Você me faz tão bem",
+      "artist": "Detonautas",
+      "genre": "rock",
+      "genres": [
+        "rock"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 644304
+    },
+    {
+      "id": "deezer:13359362",
+      "name": "O dia que não terminou",
+      "artist": "Detonautas",
+      "genre": "rock",
+      "genres": [
+        "rock"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 643225
+    },
+    {
+      "id": "deezer:7246254",
+      "name": "Acima do Sol",
+      "artist": "Skank",
+      "genre": "pop",
+      "genres": [
+        "pop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 639908
+    },
+    {
+      "id": "deezer:71193455",
+      "name": "Vem Ser Minha",
+      "artist": "Charlie Brown Jr.",
+      "genre": "pop",
+      "genres": [
+        "pop",
+        "rock"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 638235
+    },
+    {
+      "id": "deezer:13359360",
+      "name": "O Retorno de Saturno",
+      "artist": "Detonautas",
+      "genre": "rock",
+      "genres": [
+        "rock"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 638054
+    },
+    {
+      "id": "deezer:13252215",
+      "name": "Pra Ser Sincero",
+      "artist": "Engenheiros do Hawaii",
+      "genre": "pop",
+      "genres": [
+        "pop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 635569
+    },
+    {
+      "id": "deezer:15738363",
+      "name": "Dona do Meu Pensamento",
+      "artist": "Charlie Brown Jr.",
+      "genre": "pop",
+      "genres": [
+        "pop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 633493
+    },
+    {
+      "id": "deezer:13265455",
+      "name": "Olhar 43",
+      "artist": "RPM",
+      "genre": "pop-rock-portugues",
+      "genres": [
+        "pop-rock-portugues"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 633210
+    },
+    {
+      "id": "deezer:11238033",
+      "name": "Só Hoje",
+      "artist": "Jota Quest",
+      "genre": "pop",
+      "genres": [
+        "pop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 627662
+    },
+    {
+      "id": "deezer:72318749",
+      "name": "O Girassol (Versão Acústica)",
+      "artist": "Ira!",
+      "genre": "pop-rock-portugues",
+      "genres": [
+        "pop-rock-portugues"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 626058
+    },
+    {
+      "id": "deezer:2476641051",
+      "name": "Theme from The Amazing Digital Circus",
+      "artist": "Gooseworx",
+      "genre": "soundtrack",
+      "genres": [
+        "soundtrack",
+        "soundtrack"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 622322
+    },
+    {
+      "id": "deezer:87149227",
+      "name": "Pro Dia Nascer Feliz",
+      "artist": "Barão Vermelho",
+      "genre": "bossa-nova",
+      "genres": [
+        "bossa-nova",
+        "reggaeton-urbano"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 622109
+    },
+    {
+      "id": "deezer:11238031",
+      "name": "Dias Melhores",
+      "artist": "Jota Quest",
+      "genre": "pop",
+      "genres": [
+        "pop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 618443
+    },
+    {
+      "id": "deezer:3642444572",
+      "name": "Letal (Takedown)",
+      "artist": "HUNTR/X",
+      "genre": "asian",
+      "genres": [
+        "asian"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 613042
+    },
+    {
+      "id": "deezer:1412597262",
+      "name": "Céu Azul",
+      "artist": "Charlie Brown Jr.",
+      "genre": "rock",
+      "genres": [
+        "rock"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 609558
+    },
+    {
+      "id": "deezer:72318756",
+      "name": "Eu Quero Sempre Mais (feat. Pitty) (Versão Acústica)",
+      "artist": "Ira!",
+      "genre": "pop-rock-portugues",
+      "genres": [
+        "pop-rock-portugues"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 608949
+    },
+    {
+      "id": "deezer:350038551",
+      "name": "A Mais Pedida (Ao Vivo | Acústico)",
+      "artist": "Raimundos",
+      "genre": "pop-rock-portugues",
+      "genres": [
+        "pop-rock-portugues"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 602755
+    },
+    {
+      "id": "deezer:1422461782",
+      "name": "Pontes Indestrutíveis",
+      "artist": "Charlie Brown Jr.",
+      "genre": "rock",
+      "genres": [
+        "rock"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 600211
+    },
+    {
+      "id": "deezer:11085346",
+      "name": "Maior Abandonado",
+      "artist": "Barão Vermelho",
+      "genre": "bossa-nova",
+      "genres": [
+        "bossa-nova",
+        "reggaeton-urbano"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 599654
+    },
+    {
+      "id": "deezer:549279042",
+      "name": "Everybody Loves The Sunshine",
+      "artist": "Roy Ayers",
+      "genre": "jazz",
+      "genres": [
+        "jazz"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 597770
+    },
+    {
+      "id": "deezer:1412597242",
+      "name": "Dias de Luta, Dias de Glória",
+      "artist": "Charlie Brown Jr.",
+      "genre": "rock",
+      "genres": [
+        "rock"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 596011
+    },
+    {
+      "id": "deezer:7515937",
+      "name": "Rapture (Avicii New Generation Mix)",
+      "artist": "Nadia Ali",
+      "genre": "french-touch-electro",
+      "genres": [
+        "french-touch-electro"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 592592
+    },
+    {
+      "id": "deezer:6430916",
+      "name": "Jackie Tequila",
+      "artist": "Skank",
+      "genre": "pop",
+      "genres": [
+        "pop-rock-portugues"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 591532
+    },
+    {
+      "id": "deezer:3885088391",
+      "name": "Ranjha",
+      "artist": "Diljit Dosanjh",
+      "genre": "indian",
+      "genres": [
+        "indian"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 558054
+    },
+    {
+      "id": "deezer:3573822391",
+      "name": "Elavoko",
+      "artist": "Calema",
+      "genre": "african",
+      "genres": [
+        "african"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 553833
+    },
+    {
+      "id": "deezer:956442",
+      "name": "Bole Chudiyan",
+      "artist": "Sonu Nigam",
+      "genre": "asian",
+      "genres": [
+        "asian",
+        "indian",
+        "pop",
+        "pop-internationale",
+        "variété-internationale",
+        "soundtrack",
+        "musiques-de-films",
+        "bollywood"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 536124
+    },
+    {
+      "id": "deezer:11495726",
+      "name": "Rapture (feat.Nadia Ali)",
+      "artist": "iiO",
+      "genre": "french-touch-electro",
+      "genres": [
+        "french-touch-electro",
+        "dance"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 527714
+    },
+    {
+      "id": "deezer:1786395457",
+      "name": "RAPTURE",
+      "artist": "Interworld",
+      "genre": "french-touch-electro",
+      "genres": [
+        "french-touch-electro"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 504949
+    },
+    {
+      "id": "deezer:2525830831",
+      "name": "Rapture",
+      "artist": "Sander van doorn",
+      "genre": "dance",
+      "genres": [
+        "dance"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 472432
+    },
+    {
+      "id": "deezer:2508133551",
+      "name": "Rapture",
+      "artist": "Original Koffee",
+      "genre": "reggae",
+      "genres": [
+        "reggae"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 470233
+    },
+    {
+      "id": "deezer:3170386591",
+      "name": "Mawa",
+      "artist": "Chelsea Dinorath",
+      "genre": "soul",
+      "genres": [
+        "soul"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 443685
+    },
+    {
+      "id": "deezer:3120414",
+      "name": "Rapture",
+      "artist": "Hurt",
+      "genre": "rock",
+      "genres": [
+        "rock"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 431948
+    },
+    {
+      "id": "deezer:3877841361",
+      "name": "Pavazha Malli (From \"Think Indie\")",
+      "artist": "Sai Abhyankkar",
+      "genre": "asian",
+      "genres": [
+        "asian",
+        "indian"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 427758
+    },
+    {
+      "id": "deezer:3357141011",
+      "name": "X-Rated",
+      "artist": "Cloonee",
+      "genre": "french-touch-electro",
+      "genres": [
+        "french-touch-electro"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 425743
+    },
+    {
+      "id": "deezer:4024324421",
+      "name": "Raga of Revenge (From \"DC\")",
+      "artist": "Anirudh Ravichander",
+      "genre": "asian",
+      "genres": [
+        "asian",
+        "indian"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 420313
+    },
+    {
+      "id": "deezer:3560064011",
+      "name": "Forever My Own",
+      "artist": "Nice Life",
+      "genre": "african",
+      "genres": [
+        "african"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 413431
+    },
+    {
+      "id": "deezer:3137415191",
+      "name": "Abana",
+      "artist": "Afroplug",
+      "genre": "african",
+      "genres": [
+        "african"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 411296
+    },
+    {
+      "id": "deezer:12020956",
+      "name": "Raga Jhinjhoti",
+      "artist": "Hariprasad Chaurasia",
+      "genre": "asian",
+      "genres": [
+        "asian",
+        "indian",
+        "electronic",
+        "pop",
+        "pop-internationale",
+        "variété-internationale",
+        "reggae"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 407745
+    },
+    {
+      "id": "deezer:3678601512",
+      "name": "ruptura (Slowed)",
+      "artist": "4WIZZ",
+      "genre": "french-touch-electro",
+      "genres": [
+        "french-touch-electro"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 398914
+    },
+    {
+      "id": "deezer:2807116682",
+      "name": "Zaalima",
+      "artist": "DYSTINCT",
+      "genre": "indian",
+      "genres": [
+        "indian"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 390721
+    },
+    {
+      "id": "deezer:1089233942",
+      "name": "portas do sol",
+      "artist": "Nena",
+      "genre": "pop",
+      "genres": [
+        "pop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 389152
+    },
+    {
+      "id": "deezer:3764672982",
+      "name": "Sheesha",
+      "artist": "Mitta Ror",
+      "genre": "indian",
+      "genres": [
+        "indian"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 381811
+    },
+    {
+      "id": "deezer:3265843631",
+      "name": "TXUTXUKA",
+      "artist": "Mr. Carly",
+      "genre": "african",
+      "genres": [
+        "african",
+        "pop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 379493
+    },
+    {
+      "id": "deezer:2172217427",
+      "name": "Rapture",
+      "artist": "Jalen Ngonda",
+      "genre": "r-n-b",
+      "genres": [
+        "r-n-b",
+        "soul"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 377353
+    },
+    {
+      "id": "deezer:3713388252",
+      "name": "Set DJ Boy 5.0",
+      "artist": "DJ Boy",
+      "genre": "funk-brasileiro",
+      "genres": [
+        "funk-brasileiro"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 373703
+    },
+    {
+      "id": "deezer:3464599671",
+      "name": "Essa Mboa",
+      "artist": "Adi Cudz",
+      "genre": "livres-audio",
+      "genres": [
+        "livres-audio"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 367842
+    },
+    {
+      "id": "deezer:3234643601",
+      "name": "Fale Então",
+      "artist": "Marshmello",
+      "genre": "funk-brasileiro",
+      "genres": [
+        "funk-brasileiro"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 363713
+    },
+    {
+      "id": "deezer:102453212",
+      "name": "Caillou Theme",
+      "artist": "Caillou",
+      "genre": "children",
+      "genres": [
+        "children"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 363175
+    },
+    {
+      "id": "deezer:2511052491",
+      "name": "Rapture",
+      "artist": "Klaas",
+      "genre": "dance",
+      "genres": [
+        "dance"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 356179
+    },
+    {
+      "id": "deezer:3827981771",
+      "name": "Mutta Kalakki (From \"Youth\")",
+      "artist": "G. V. Prakash Kumar",
+      "genre": "indian",
+      "genres": [
+        "indian",
+        "soundtrack",
+        "musiques-de-films"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 338050
+    },
+    {
+      "id": "deezer:662352422",
+      "name": "We Can Hide Out",
+      "artist": "Ofenbach",
+      "genre": "french-touch-electro",
+      "genres": [
+        "french-touch-electro"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 331930
+    },
+    {
+      "id": "deezer:3136497351",
+      "name": "Sahiba",
+      "artist": "Aditya Rikhari",
+      "genre": "indian",
+      "genres": [
+        "indian",
+        "pop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 331366
+    },
+    {
+      "id": "deezer:1801676117",
+      "name": "Thaai Kelavi (From \"Thiruchitrambalam\")",
+      "artist": "Dhanush ",
+      "genre": "asian",
+      "genres": [
+        "asian",
+        "indian"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 322922
+    },
+    {
+      "id": "deezer:1053217682",
+      "name": "Edho Solla (From \"Murungakkai Chips\")",
+      "artist": "Dharan Kumar",
+      "genre": "indian",
+      "genres": [
+        "indian",
+        "soundtrack",
+        "musiques-de-films"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 321856
+    },
+    {
+      "id": "deezer:15024735",
+      "name": "Thuli Thuli",
+      "artist": "Yuvan Shankar Raja",
+      "genre": "indian",
+      "genres": [
+        "indian",
+        "soundtrack",
+        "musiques-de-films"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 320967
+    },
+    {
+      "id": "deezer:3156725211",
+      "name": "Chaudhary",
+      "artist": "Jubin Nautiyal",
+      "genre": "indian",
+      "genres": [
+        "indian",
+        "pop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 317438
+    },
+    {
+      "id": "deezer:2850716262",
+      "name": "Rapture",
+      "artist": "DANZANTES (ofc)",
+      "genre": "french-touch-electro",
+      "genres": [
+        "french-touch-electro"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 316957
+    },
+    {
+      "id": "deezer:2332596975",
+      "name": "Mahiye Jinna Sohna",
+      "artist": "Darshan Raval",
+      "genre": "indian",
+      "genres": [
+        "indian"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 316406
+    },
+    {
+      "id": "deezer:3358040561",
+      "name": "Mann Mera",
+      "artist": "Gajendra Verma",
+      "genre": "indian",
+      "genres": [
+        "indian"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 315253
+    },
+    {
+      "id": "deezer:3553678431",
+      "name": "Coca Cola 2",
+      "artist": "Tony Kakkar",
+      "genre": "indian",
+      "genres": [
+        "indian"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 314879
+    },
+    {
+      "id": "deezer:961757",
+      "name": "Say \"Shava Shava\"",
+      "artist": "Sunidhi Chauhan",
+      "genre": "asian",
+      "genres": [
+        "asian",
+        "indian",
+        "pop",
+        "pop-internationale",
+        "variété-internationale",
+        "soundtrack",
+        "musiques-de-films",
+        "bollywood"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 314595
+    },
+    {
+      "id": "deezer:961758",
+      "name": "Yeh Ladka Hai Allah",
+      "artist": "Udit Narayan",
+      "genre": "asian",
+      "genres": [
+        "asian",
+        "indian",
+        "pop",
+        "pop-internationale",
+        "variété-internationale",
+        "soundtrack",
+        "musiques-de-films",
+        "bollywood"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 313611
+    },
+    {
+      "id": "deezer:104105298",
+      "name": "Kadhal Cricket",
+      "artist": "Hiphop Tamizha",
+      "genre": "indian",
+      "genres": [
+        "indian",
+        "soundtrack",
+        "musiques-de-films"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 313434
+    },
+    {
+      "id": "deezer:2183774417",
+      "name": "Rapture",
+      "artist": "Vortek's",
+      "genre": "french-touch-electro",
+      "genres": [
+        "french-touch-electro",
+        "techno/house",
+        "dance",
+        "rock",
+        "hard-rock"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 312515
+    },
+    {
+      "id": "deezer:11847261",
+      "name": "The Gist of Madhuvanti / The Thrill Is Gone",
+      "artist": "Harry Manx",
+      "genre": "indian",
+      "genres": [
+        "indian",
+        "pop",
+        "pop-internationale",
+        "variété-internationale",
+        "reggae",
+        "rock",
+        "blues",
+        "soul"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 311450
+    },
+    {
+      "id": "deezer:2738994861",
+      "name": "Bumpa",
+      "artist": "King",
+      "genre": "indian",
+      "genres": [
+        "indian",
+        "hip-hop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 310795
+    },
+    {
+      "id": "deezer:2992104161",
+      "name": "Buddha's Flute",
+      "artist": "Buddha's Lounge",
+      "genre": "indian",
+      "genres": [
+        "indian"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 310156
+    },
+    {
+      "id": "deezer:373246801",
+      "name": "The Rapture",
+      "artist": "&ME",
+      "genre": "french-touch-electro",
+      "genres": [
+        "french-touch-electro"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 308412
+    },
+    {
+      "id": "deezer:3871215591",
+      "name": "Aasa Pulla (From \"Youth\")",
+      "artist": "G. V. Prakash Kumar",
+      "genre": "indian",
+      "genres": [
+        "indian",
+        "soundtrack",
+        "musiques-de-films"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 308106
+    },
+    {
+      "id": "deezer:956437",
+      "name": "Kabhi Khushi Kabhie Gham",
+      "artist": "Lata Mangeshkar",
+      "genre": "asian",
+      "genres": [
+        "asian",
+        "indian",
+        "pop",
+        "pop-internationale",
+        "variété-internationale",
+        "soundtrack",
+        "musiques-de-films",
+        "bollywood"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 307784
+    },
+    {
+      "id": "deezer:956447",
+      "name": "Suraj Hua Maddham",
+      "artist": "Sandesh Shandilya",
+      "genre": "asian",
+      "genres": [
+        "asian",
+        "indian",
+        "pop",
+        "pop-internationale",
+        "variété-internationale",
+        "soundtrack",
+        "musiques-de-films",
+        "bollywood"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 304545
+    },
+    {
+      "id": "deezer:15565933",
+      "name": "Kannazhaga",
+      "artist": "Anirudh Ravichander",
+      "genre": "indian",
+      "genres": [
+        "indian",
+        "soundtrack",
+        "musiques-de-films"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 301800
+    },
+    {
+      "id": "deezer:545072332",
+      "name": "Othaiyadi Pathayila",
+      "artist": "Dhibu Ninan Thomas",
+      "genre": "indian",
+      "genres": [
+        "indian",
+        "soundtrack",
+        "musiques-de-films"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 300045
+    },
+    {
+      "id": "deezer:14837222",
+      "name": "Why This Kolaveri Di? (The Soup of Love)",
+      "artist": "Anirudh Ravichander",
+      "genre": "indian",
+      "genres": [
+        "indian",
+        "soundtrack",
+        "musiques-de-films"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 298222
+    },
+    {
+      "id": "deezer:599760112",
+      "name": "Ben 10 (Theme Song)",
+      "artist": "Kids Superstars",
+      "genre": "children",
+      "genres": [
+        "children"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 298188
+    },
+    {
+      "id": "deezer:956444",
+      "name": "You Are My Soniya",
+      "artist": "Sonu Nigam",
+      "genre": "asian",
+      "genres": [
+        "asian",
+        "indian",
+        "pop",
+        "pop-internationale",
+        "variété-internationale",
+        "soundtrack",
+        "musiques-de-films",
+        "bollywood"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 297484
+    },
+    {
+      "id": "deezer:2082607267",
+      "name": "Pathaka Guddi (Drill Remix)",
+      "artist": "Nooran Sisters",
+      "genre": "indian",
+      "genres": [
+        "indian"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 295293
+    },
+    {
+      "id": "deezer:661088042",
+      "name": "What's Ur Name",
+      "artist": "Waze",
+      "genre": "portugal",
+      "genres": [
+        "portugal"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 287662
+    },
+    {
+      "id": "deezer:394126712",
+      "name": "Tantra Flute (Indian Flute Meditation Music)",
+      "artist": "Meditative Mind",
+      "genre": "indian",
+      "genres": [
+        "indian"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 285839
+    },
+    {
+      "id": "deezer:1398346782",
+      "name": "Manike Mage Hithe",
+      "artist": "Chamath Sangeeth",
+      "genre": "indian",
+      "genres": [
+        "indian",
+        "pop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 283930
+    },
+    {
+      "id": "deezer:7634834",
+      "name": "Songbird",
+      "artist": "Kenny G",
+      "genre": "jazz",
+      "genres": [
+        "jazz"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 283752
+    },
+    {
+      "id": "deezer:7599953",
+      "name": "Otha Sollaala",
+      "artist": "G.V. Prakash Kumar",
+      "genre": "indian",
+      "genres": [
+        "indian",
+        "soundtrack",
+        "musiques-de-films"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 276492
+    },
+    {
+      "id": "deezer:3821991",
+      "name": "Take Me There",
+      "artist": "Grover Washington, Jr.",
+      "genre": "jazz",
+      "genres": [
+        "jazz"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 272857
+    },
+    {
+      "id": "deezer:2831976202",
+      "name": "Ora Kannala",
+      "artist": "AK Sekaren",
+      "genre": "asian",
+      "genres": [
+        "asian",
+        "indian"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 270402
+    },
+    {
+      "id": "deezer:15565932",
+      "name": "Idhazhin Oram",
+      "artist": "Anirudh Ravichander",
+      "genre": "indian",
+      "genres": [
+        "indian",
+        "soundtrack",
+        "musiques-de-films"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 268778
+    },
+    {
+      "id": "deezer:15565939",
+      "name": "Po Nee Po",
+      "artist": "Anirudh Ravichander",
+      "genre": "indian",
+      "genres": [
+        "indian",
+        "soundtrack",
+        "musiques-de-films"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 264407
+    },
+    {
+      "id": "deezer:3228941851",
+      "name": "Tik Tik",
+      "artist": "DYSTINCT",
+      "genre": "indian",
+      "genres": [
+        "indian",
+        "pop"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 263175
+    },
+    {
+      "id": "deezer:3681549042",
+      "name": "Pattuma (From \"Love Insurance Kompany\")",
+      "artist": "Anirudh Ravichander",
+      "genre": "indian",
+      "genres": [
+        "indian",
+        "soundtrack",
+        "musiques-de-films"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 262459
+    },
+    {
+      "id": "deezer:1655112242",
+      "name": "Arabic Kuthu - Halamithi Habibo (From \"Beast\")",
+      "artist": "Anirudh Ravichander",
+      "genre": "asian",
+      "genres": [
+        "asian",
+        "indian"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 258487
+    },
+    {
+      "id": "deezer:3944495051",
+      "name": "Adaavadi",
+      "artist": "Anirudh Ravichander",
+      "genre": "indian",
+      "genres": [
+        "indian",
+        "soundtrack",
+        "musiques-de-films"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 246855
+    },
+    {
+      "id": "deezer:556071122",
+      "name": "Kaantha (From \"Uriyadi\")",
+      "artist": "Masala Coffee",
+      "genre": "indian",
+      "genres": [
+        "indian",
+        "soundtrack",
+        "musiques-de-films"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 243971
+    },
+    {
+      "id": "deezer:3046707061",
+      "name": "Dheema (From \"Love Insurance Kompany\")",
+      "artist": "Anirudh Ravichander",
+      "genre": "indian",
+      "genres": [
+        "indian",
+        "soundtrack",
+        "musiques-de-films"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 243140
+    },
+    {
+      "id": "deezer:904161222",
+      "name": "Vaathi Coming",
+      "artist": "Anirudh Ravichander",
+      "genre": "indian",
+      "genres": [
+        "indian",
+        "soundtrack",
+        "musiques-de-films"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 238677
+    },
+    {
+      "id": "deezer:63010042",
+      "name": "Nijamellam Maranthupochu",
+      "artist": "Anirudh Ravichander",
+      "genre": "indian",
+      "genres": [
+        "indian",
+        "soundtrack",
+        "musiques-de-films"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 238583
+    },
+    {
+      "id": "deezer:101093902",
+      "name": "Don'u Don'u Don'u",
+      "artist": "Anirudh Ravichander",
+      "genre": "indian",
+      "genres": [
+        "indian",
+        "soundtrack",
+        "musiques-de-films"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 237778
+    },
+    {
+      "id": "deezer:1236624922",
+      "name": "I'm Waiting (Background Score)",
+      "artist": "Anirudh Ravichander",
+      "genre": "indian",
+      "genres": [
+        "indian",
+        "soundtrack",
+        "musiques-de-films"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 237685
+    },
+    {
+      "id": "deezer:104105296",
+      "name": "Kannala Kannala",
+      "artist": "Hiphop Tamizha",
+      "genre": "indian",
+      "genres": [
+        "indian",
+        "soundtrack",
+        "musiques-de-films"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 237241
+    },
+    {
+      "id": "deezer:1043303",
+      "name": "Havana",
+      "artist": "Kenny G",
+      "genre": "jazz",
+      "genres": [
+        "jazz"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 213386
+    },
+    {
+      "id": "deezer:5622108",
+      "name": "Surrender (feat. Boney James)",
+      "artist": "Jonathan Butler",
+      "genre": "jazz",
+      "genres": [
+        "jazz"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 204910
+    },
+    {
+      "id": "deezer:1586983082",
+      "name": "Freetime",
+      "artist": "Spyro Gyra",
+      "genre": "jazz",
+      "genres": [
+        "jazz"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 199841
+    },
+    {
+      "id": "deezer:2296068",
+      "name": "Morocco (Album Version)",
+      "artist": "The Rippingtons",
+      "genre": "jazz",
+      "genres": [
+        "jazz"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 189513
+    },
+    {
+      "id": "deezer:2167000",
+      "name": "Dei-Te Quase Tudo (2006)",
+      "artist": "Paulo Gonzo",
+      "genre": "pop",
+      "genres": [
+        "pop"
+      ],
+      "ai_genres": [
+        "other",
+        "fado",
+        "other"
+      ],
+      "ai_tags": [
+        "global_other",
+        "global_other",
+        "global_other",
+        "global_other",
+        "global_other"
+      ],
+      "rank": 185612
+    },
+    {
+      "id": "deezer:648981502",
+      "name": "Just One Thing",
+      "artist": "Bob James",
+      "genre": "jazz",
+      "genres": [
+        "jazz"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 165472
+    },
+    {
+      "id": "deezer:2526447",
+      "name": "Catalina Kiss",
+      "artist": "Acoustic Alchemy",
+      "genre": "jazz",
+      "genres": [
+        "jazz"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 159184
+    },
+    {
+      "id": "deezer:102453228",
+      "name": "Take a Walk in Nature",
+      "artist": "Caillou",
+      "genre": "children",
+      "genres": [
+        "children"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 154238
+    },
+    {
+      "id": "deezer:2556373862",
+      "name": "Tender Lullaby",
+      "artist": "Kenny G",
+      "genre": "jazz",
+      "genres": [
+        "jazz"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 154126
+    },
+    {
+      "id": "deezer:102453230",
+      "name": "My Body",
+      "artist": "Caillou",
+      "genre": "children",
+      "genres": [
+        "children"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 149185
+    },
+    {
+      "id": "deezer:2706944932",
+      "name": "Can't Be Said!",
+      "artist": "Caillou",
+      "genre": "r-n-b",
+      "genres": [
+        "r-n-b",
+        "soul"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 149060
+    },
+    {
+      "id": "deezer:3380322721",
+      "name": "Back to Back",
+      "artist": "Acoustic Alchemy",
+      "genre": "jazz",
+      "genres": [
+        "jazz"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 146909
+    },
+    {
+      "id": "deezer:3504939",
+      "name": "Chopsticks",
+      "artist": "Jeff Lorber",
+      "genre": "jazz",
+      "genres": [
+        "jazz"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 144480
+    },
+    {
+      "id": "deezer:102453224",
+      "name": "Caillou's Rock N' Roll Band",
+      "artist": "Caillou",
+      "genre": "children",
+      "genres": [
+        "children"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 137112
+    },
+    {
+      "id": "deezer:102453226",
+      "name": "Celebrate!",
+      "artist": "Caillou",
+      "genre": "children",
+      "genres": [
+        "children"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 136968
+    },
+    {
+      "id": "deezer:102453236",
+      "name": "Big Brothers and Sisters",
+      "artist": "Caillou",
+      "genre": "children",
+      "genres": [
+        "children"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 128569
+    },
+    {
+      "id": "deezer:102453218",
+      "name": "All in a Day",
+      "artist": "Caillou",
+      "genre": "children",
+      "genres": [
+        "children"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 128211
+    },
+    {
+      "id": "deezer:1012923522",
+      "name": "Fluid",
+      "artist": "Lin Rountree",
+      "genre": "jazz",
+      "genres": [
+        "jazz"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 120498
+    },
+    {
+      "id": "deezer:549330462",
+      "name": "The Unwritten Letter",
+      "artist": "Spyro Gyra",
+      "genre": "jazz",
+      "genres": [
+        "jazz"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 113990
+    },
+    {
+      "id": "deezer:3186556091",
+      "name": "Ethereal",
+      "artist": "Yuko Mabuchi",
+      "genre": "jazz",
+      "genres": [
+        "jazz"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 113700
+    },
+    {
+      "id": "deezer:11349879",
+      "name": "Rualigião",
+      "artist": "Royalistick",
+      "genre": "hip-hop-rap",
+      "genres": [
+        "hip-hop-rap"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 47927
+    },
+    {
+      "id": "deezer:83490116",
+      "name": "L",
+      "artist": "Blasph",
+      "genre": "hip-hop-rap",
+      "genres": [
+        "hip-hop-rap"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 32973
+    },
+    {
+      "id": "deezer:8095623",
+      "name": "Respeito",
+      "artist": "Micro",
+      "genre": "french-touch-electro",
+      "genres": [
+        "french-touch-electro",
+        "hip-hop-rap"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 31429
+    },
+    {
+      "id": "deezer:1985472",
+      "name": "Para a Semente",
+      "artist": "Feat. New Max",
+      "genre": "hip-hop-rap",
+      "genres": [
+        "hip-hop-rap"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 23579
+    },
+    {
+      "id": "deezer:1353359",
+      "name": "Ke Ki Rapasis Kré?",
+      "artist": "Nigga Poison",
+      "genre": "hip-hop-rap",
+      "genres": [
+        "hip-hop-rap"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 22547
+    },
+    {
+      "id": "deezer:1342354",
+      "name": "Sente Mo Style",
+      "artist": "Sp",
+      "genre": "hip-hop-rap",
+      "genres": [
+        "hip-hop-rap"
+      ],
+      "ai_genres": [
+        "other"
+      ],
+      "ai_tags": [
+        "global_other"
+      ],
+      "rank": 15345
+    }
+  ]
+}

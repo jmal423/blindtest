@@ -93,6 +93,12 @@ const SEARCH_QUERY_MAP = {
   musica_regional_latina: 'Música Regional Latina',
   reggae: 'Reggae',
   kpop: 'K-Pop',
+  pop_rock_brasileiro: 'Rock Brasileiro',
+  edm_dance: 'EDM Dance Hits',
+  afrobeats_african: 'Afrobeats',
+  metal: 'Metal Hard Rock',
+  soundtracks: 'Soundtrack Film Cinema Theme',
+  jazz_lounge: 'Jazz Lounge',
   other: 'Pop',
 };
 
@@ -418,8 +424,14 @@ function getGenreLabel(genre) {
     samba_pagode: 'Samba & Pagode',
     bossa_nova: 'Bossa Nova / MPB',
     funk_brasileiro: 'Funk Brasileiro',
+    pop_rock_brasileiro: 'Rock & Pop-Rock Brasileiro',
     reggae: 'Reggae',
     kpop: 'K-Pop',
+    edm_dance: 'EDM & Dance',
+    afrobeats_african: 'Afrobeats & African',
+    metal: 'Metal & Hard Rock',
+    soundtracks: 'Soundtracks & Cinema',
+    jazz_lounge: 'Jazz & Lounge',
     // Fallback
     other: 'Outros',
   };

@@ -19,6 +19,7 @@ const GENRES = [
   "samba_pagode",
   "bossa_nova",
   "funk_brasileiro",
+  "pop_rock_brasileiro",
 
   // Inglês US
   "pop_us",
@@ -46,6 +47,11 @@ const GENRES = [
   // Mundo & Outros
   "reggae",
   "kpop",
+  "edm_dance",
+  "afrobeats_african",
+  "metal",
+  "soundtracks",
+  "jazz_lounge",
   "other"
 ];
 
@@ -68,7 +74,8 @@ const GENRE_GROUPS = [
     "genreIds": [
       "samba_pagode",
       "bossa_nova",
-      "funk_brasileiro"
+      "funk_brasileiro",
+      "pop_rock_brasileiro"
     ]
   },
   {
@@ -111,6 +118,11 @@ const GENRE_GROUPS = [
     "genreIds": [
       "reggae",
       "kpop",
+      "edm_dance",
+      "afrobeats_african",
+      "metal",
+      "soundtracks",
+      "jazz_lounge",
       "other"
     ]
   }
@@ -133,6 +145,7 @@ export const GENRES = [
   "samba_pagode",
   "bossa_nova",
   "funk_brasileiro",
+  "pop_rock_brasileiro",
 
   // Inglês US
   "pop_us",
@@ -160,6 +173,11 @@ export const GENRES = [
   // Mundo & Outros
   "reggae",
   "kpop",
+  "edm_dance",
+  "afrobeats_african",
+  "metal",
+  "soundtracks",
+  "jazz_lounge",
   "other"
 ];
 
@@ -182,7 +200,8 @@ export const GENRE_GROUPS = [
     "genreIds": [
       "samba_pagode",
       "bossa_nova",
-      "funk_brasileiro"
+      "funk_brasileiro",
+      "pop_rock_brasileiro"
     ]
   },
   {
@@ -225,6 +244,11 @@ export const GENRE_GROUPS = [
     "genreIds": [
       "reggae",
       "kpop",
+      "edm_dance",
+      "afrobeats_african",
+      "metal",
+      "soundtracks",
+      "jazz_lounge",
       "other"
     ]
   }

@@ -29,7 +29,8 @@ const VALID_GENRES = new Set([
   "country_americana_us", "rock_alternative_us", "pop_uk", "uk_drill_grime", "britpop_rock_uk",
   "uk_garage_dnb", "chanson_francaise", "pop_francaise", "rap_francais", "french_touch_electro",
   "flamenco", "reggaeton_urbano", "musica_regional_latina", "samba_pagode", "bossa_nova",
-  "funk_brasileiro", "reggae", "kpop", "other"
+  "funk_brasileiro", "reggae", "kpop", "pop_rock_brasileiro", "edm_dance", "afrobeats_african",
+  "metal", "soundtracks", "jazz_lounge", "other"
 ]);
 
 const VALID_REGIONS = new Set([
@@ -39,12 +40,13 @@ const VALID_REGIONS = new Set([
 const GENRE_TO_REGION = {
   "fado": "portuguese", "tradicional_folklore_pimba": "portuguese", "pop_tuga": "portuguese", "pop_rock_tuga": "portuguese",
   "hip_hop_tuga": "portuguese", "classica_tuga": "portuguese", "kizomba_palop": "portuguese", "pop_urbano_nova_pop": "portuguese",
-  "samba_pagode": "brazilian", "bossa_nova": "brazilian", "funk_brasileiro": "brazilian",
+  "samba_pagode": "brazilian", "bossa_nova": "brazilian", "funk_brasileiro": "brazilian", "pop_rock_brasileiro": "brazilian",
   "pop_us": "united_states", "hip_hop_trap_us": "united_states", "country_americana_us": "united_states", "rock_alternative_us": "united_states",
   "pop_uk": "united_kingdom", "uk_drill_grime": "united_kingdom", "britpop_rock_uk": "united_kingdom", "uk_garage_dnb": "united_kingdom",
   "chanson_francaise": "french", "pop_francaise": "french", "rap_francais": "french", "french_touch_electro": "french",
   "flamenco": "spanish", "reggaeton_urbano": "spanish", "musica_regional_latina": "spanish",
-  "reggae": "global_other", "kpop": "global_other", "other": "global_other"
+  "reggae": "global_other", "kpop": "global_other", "edm_dance": "global_other", "afrobeats_african": "global_other",
+  "metal": "global_other", "soundtracks": "global_other", "jazz_lounge": "global_other", "other": "global_other"
 };
 
 function parseResponse(raw) {

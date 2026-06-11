@@ -17,7 +17,8 @@ const VALID_GENRES = new Set([
   "country_americana_us", "rock_alternative_us", "pop_uk", "uk_drill_grime", "britpop_rock_uk",
   "uk_garage_dnb", "chanson_francaise", "pop_francaise", "rap_francais", "french_touch_electro",
   "flamenco", "reggaeton_urbano", "musica_regional_latina", "samba_pagode", "bossa_nova",
-  "funk_brasileiro", "reggae", "kpop", "other"
+  "funk_brasileiro", "reggae", "kpop", "pop_rock_brasileiro", "edm_dance", "afrobeats_african",
+  "metal", "soundtracks", "jazz_lounge", "other"
 ]);
 
 const VALID_REGIONS = new Set([

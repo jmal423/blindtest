@@ -1,11 +1,11 @@
 export const GENRES = [
   "fado", "tradicional_folklore_pimba", "pop_tuga", "pop_rock_tuga", "hip_hop_tuga", "classica_tuga", "kizomba_palop", "pop_urbano_nova_pop",
-  "samba_pagode", "bossa_nova", "funk_brasileiro",
+  "samba_pagode", "bossa_nova", "funk_brasileiro", "pop_rock_brasileiro",
   "pop_us", "hip_hop_trap_us", "country_americana_us", "rock_alternative_us",
   "pop_uk", "uk_drill_grime", "britpop_rock_uk", "uk_garage_dnb",
   "chanson_francaise", "pop_francaise", "rap_francais", "french_touch_electro",
   "flamenco", "reggaeton_urbano", "musica_regional_latina",
-  "reggae", "kpop", "other"
+  "reggae", "kpop", "edm_dance", "afrobeats_african", "metal", "soundtracks", "jazz_lounge", "other"
 ];
 
 export function buildGenrePrompt(trackName, artist, rawGenres = []) {
@@ -28,6 +28,7 @@ You must map the track to exactly ONE "region" and ONE matching "genre_id" from 
    - genre_id: "samba_pagode" (Samba, Pagode)
    - genre_id: "bossa_nova" (Bossa Nova, MPB, classic acoustic melodies)
    - genre_id: "funk_brasileiro" (Funk Carioca, Baile Funk, Funk Ostentação, tracks by Mc Livinho, MC Kevinho, DJ Bruninho 17)
+   - genre_id: "pop_rock_brasileiro" (Brazilian Rock, Pop-Rock, alternative rock, classic or modern Brazilian rock bands)
 
 3. region: "united_states" (Only for US-based artists, historical legends or American bands)
    - genre_id: "pop_us" (Mainstream US Pop, including both legacy icons like Michael Jackson and modern artists like Taylor Swift)
@@ -55,6 +56,11 @@ You must map the track to exactly ONE "region" and ONE matching "genre_id" from 
 7. region: "global_other" (For specific global movements)
    - genre_id: "reggae" (Reggae, Jamaican artists like Bob Marley)
    - genre_id: "kpop" (Korean Pop, strictly for artists like BTS, BLACKPINK, Jennie, NewJeans, Stray Kids)
+   - genre_id: "edm_dance" (EDM, Dance, Club hits, House, Techno, Electro, David Guetta, Swedish House Mafia, Avicii, Martin Garrix)
+   - genre_id: "afrobeats_african" (Afrobeats, Afropop, traditional or modern African music, CKay, Burna Boy, Fally Ipupa)
+   - genre_id: "metal" (Heavy Metal, Hard Rock, Rammstein, Metallica, Slipknot)
+   - genre_id: "soundtracks" (Movie soundtracks, film score, cinema themes, children's themes, Disney, Hans Zimmer)
+   - genre_id: "jazz_lounge" (Jazz, Lounge, smooth instruments, Laufey)
    - genre_id: "other" (Fallback for other unlisted regions)
 
 ### CLASSIFICATION DECISION TREE (Follow step-by-step from top to bottom)
@@ -64,6 +70,11 @@ You must map the track to exactly ONE "region" and ONE matching "genre_id" from 
 - If the array of raw genres ${JSON.stringify(rawGenres)} contains "musique-asiatique" or "kpop", you MUST immediately classify the track as region: "global_other" and genre_id: "kpop".
 - If the array of raw genres ${JSON.stringify(rawGenres)} contains "fado" or "fado-portuguese", you MUST immediately classify the track as region: "portuguese" and genre_id: "fado".
 - If the array of raw genres ${JSON.stringify(rawGenres)} contains "chanson-française" or "chanson-francaise", you MUST immediately classify the track as region: "french" and genre_id: "chanson_francaise".
+- If the array of raw genres ${JSON.stringify(rawGenres)} contains "metal", you MUST immediately classify the track as region: "global_other" and genre_id: "metal".
+- If the array of raw genres ${JSON.stringify(rawGenres)} contains "soundtrack" or "musiques-de-films" or "films/jeux-vidéo", you MUST immediately classify the track as region: "global_other" and genre_id: "soundtracks".
+- If the array of raw genres ${JSON.stringify(rawGenres)} contains "dance" or "electro" or "techno/house" or "edm", and is NOT French Touch, you MUST immediately classify the track as region: "global_other" and genre_id: "edm_dance".
+- If the array of raw genres ${JSON.stringify(rawGenres)} contains "african" or "musique-africaine", you MUST immediately classify the track as region: "global_other" and genre_id: "afrobeats_african".
+- If the array of raw genres ${JSON.stringify(rawGenres)} contains "jazz", you MUST immediately classify the track as region: "global_other" and genre_id: "jazz_lounge".
 
 #### STEP 2: LEGENDARY ARTIST OVERRIDE DIRECTIVES (Second Priority - Forces BOTH Region and Genre)
 - If the artist is "Michael Jackson", you MUST map to region: "united_states" and genre_id: "pop_us".
@@ -73,7 +84,12 @@ You must map the track to exactly ONE "region" and ONE matching "genre_id" from 
 - If the artist is "BLACKPINK" or "BTS" or "JENNIE", you MUST map to region: "global_other" and genre_id: "kpop".
 - If the artist is "Anitta": region MUST be "brazilian". If track is "Funk Rave" or tags contain funk, genre_id is "funk_brasileiro". If track is "Downtown" or "Choka Choka", map to genre_id: "reggaeton_urbano" (exception for her global urban collabs).
 - If the artist is or contains "Xutos & Pontapés", "Xutos e Pontapés", "GNR", "Rui Veloso", "UHF", "Ornatos Violeta", "Quinta do Bill", "Delfins", "The Gift", "Silence 4", "Jorge Palma", "Clã", "Amor Electro", "Sétima Legião", "Tara Perdida", "Mão Morta", "Capitão Fausto", "Linda Martini", "Taxi", "Peste & Sida", "Heróis do Mar", you MUST map to region: "portuguese" and genre_id: "pop_rock_tuga".
-- If the artist is or contains "Pitty", "Skank", "Raimundos", "Ira!", "RPM", "Engenheiros do Hawaii", "Legião Urbana", "Paralamas do Sucesso", "Barão Vermelho", "Titãs", "Charlie Brown Jr.", "Capital Inicial", "O Rappa", "Detonautas", "Mamonas Assassinas", "CPM 22", "Fresno", "Nx Zero", "Sepultura", "Angra", "Jota Quest", "Los Hermanos", you MUST map to region: "global_other" and genre_id: "other" (because they are Brazilian rock/metal/alternative bands and do not fit samba, bossa nova, or funk).
+- If the artist is or contains "Pitty", "Skank", "Raimundos", "Ira!", "RPM", "Engenheiros do Hawaii", "Legião Urbana", "Paralamas do Sucesso", "Barão Vermelho", "Titãs", "Charlie Brown Jr.", "Capital Inicial", "O Rappa", "Detonautas", "Mamonas Assassinas", "CPM 22", "Fresno", "Nx Zero", "Jota Quest", "Los Hermanos", you MUST map to region: "brazilian" and genre_id: "pop_rock_brasileiro".
+- If the artist is or contains "Rammstein", "Metallica", "Sepultura", "Angra", "Slipknot", "Jernblod", you MUST map to region: "global_other" and genre_id: "metal".
+- If the artist is or contains "David Guetta", "Swedish House Mafia", "Martin Garrix", "Avicii", "Blasterjaxx", "Nadia Ali", "Cloonee", "HUGEL", "&ME", "Trinix", "Mosimann", "DJ Snake", you MUST map to region: "global_other" and genre_id: "edm_dance".
+- If the artist is or contains "Calema", "Fally Ipupa", "CKay", "Master KG", "Magic System", "Burna Boy", "Chelsea Dinorath", "1t1", "Vanco", you MUST map to region: "global_other" and genre_id: "afrobeats_african".
+- If the artist is or contains "Hans Zimmer", "Lisa Gerrard", "John Williams", "Disney", "James Newton Howard", "Gooseworx", you MUST map to region: "global_other" and genre_id: "soundtracks".
+- If the artist is or contains "Laufey", "Acoustic Alchemy", "Jeff Lorber", "Yuko Mabuchi", "Roy Ayers", you MUST map to region: "global_other" and genre_id: "jazz_lounge".
 - If the artist is or contains "Caetano Veloso", "Gilberto Gil", "Chico Buarque", "Djavan", "Elis Regina", "Gal Costa", "Maria Bethânia", "Marisa Monte", "Seu Jorge", "Rita Lee", "Cazuza", "Lulu Santos", "Kid Abelha", you MUST map to region: "brazilian" and genre_id: "bossa_nova" (as they represent classic MPB/Bossa Nova).
 - If the artist is or contains "Tony Carreira", "Toy", "Quim Barreiros", "Emanuel", "Ágata", "Ruth Marlene", "Bandanda", "José Malhoa", you MUST map to region: "portuguese" and genre_id: "tradicional_folklore_pimba".
 - If the artist is or contains "Slow J", "Ivandro", "T-Rex", "Bárbara Bandeira", "Bárbara Tinoco", "Carolina Deslandes", "D.A.M.A", "Diogo Piçarra", "Fernando Daniel", "Matias Damásio", "Syro", "Nininho Vaz Maia", you MUST map to region: "portuguese" and genre_id: "pop_urbano_nova_pop".
@@ -95,3 +111,4 @@ Output Schema:
 Track Title: "${trackName}"
 Artist Name: "${artist}"`;
 }
+
