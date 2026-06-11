@@ -234,7 +234,16 @@ export async function getAdminStats(): Promise<{ totalUsers: number; totalRounds
   return fetchWithAuth(`${API_URL}/api/admin/stats`);
 }
 
-export async function getAdminRooms(): Promise<{ code: string; state: string; players: number; playerList: { id: string; name: string; score: number; avatarUrl?: string }[]; genres: string[]; currentRound: number; totalRounds: number; settings: any }[]> {
+export async function getAdminRooms(): Promise<{
+  code: string;
+  state: string;
+  playerCount: number;
+  players: { id: string; name: string; score: number; avatarUrl?: string | null; role?: string; userId?: string | null }[];
+  genres: string[];
+  currentRound: number;
+  totalRounds: number;
+  settings: any;
+}[]> {
   return fetchWithAuth(`${API_URL}/api/admin/rooms`);
 }
 

@@ -822,39 +822,46 @@ app.get('/api/admin/rooms', requireAdmin, (req, res) => {
     list.push({
       code,
       state: room.state,
-      players: room.players.length,
-      playerList: room.players.map(p => ({ id: p.id, name: p.name, score: p.score, avatarUrl: p.avatarUrl })),
+      playerCount: room.players.length,
+      players: room.players.map(p => ({
+        id: p.id,
+        name: p.name,
+        score: p.score,
+        avatarUrl: p.avatarUrl,
+        role: p.role,
+        userId: p.userId,
+      })),
       genres: room.genres,
       currentRound: room.tracksPlayed + 1,
       totalRounds: room.totalRounds,
       settings: room.getSettings(),
     });
   }
-  list.sort((a, b) => (b.players || 0) - (a.players || 0));
+  list.sort((a, b) => (b.playerCount || 0) - (a.playerCount || 0));
   res.json(list);
 });
 
 app.post('/api/admin/rooms/:code/start', requireAdmin, async (req, res) => {
-  const room = rooms.get(req.params.code);
-  if (!room) return res.status(404).json({ ok: false, error: 'Room not found' });
-  if (room.state !== 'waiting') return res.status(400).json({ ok: false, error: `Room is ${room.state}, not waiting` });
+  const room = rooms.get(req.params.code.toUpperCase());
+  if (!room) return res.status(404).json({ error: 'Room not found' });
   const error = await room.startGame();
-  if (error) return res.status(400).json({ ok: false, error });
+  if (error) return res.status(400).json({ error });
   res.json({ ok: true });
 });
 
 app.post('/api/admin/rooms/:code/kick/:playerId', requireAdmin, (req, res) => {
-  const room = rooms.get(req.params.code);
+  const room = rooms.get(req.params.code.toUpperCase());
   if (!room) return res.status(404).json({ ok: false, error: 'Room not found' });
-  room.kickPlayer(req.params.playerId);
+  const removed = room.kickPlayer(req.params.playerId);
+  if (!removed) return res.status(404).json({ ok: false, error: 'Player not found' });
   res.json({ ok: true });
 });
 
 app.delete('/api/admin/rooms/:code', requireAdmin, (req, res) => {
-  const room = rooms.get(req.params.code);
+  const room = rooms.get(req.params.code.toUpperCase());
   if (!room) return res.status(404).json({ ok: false, error: 'Room not found' });
   room.destroy();
-  rooms.delete(req.params.code);
+  rooms.delete(room.code);
   res.json({ ok: true });
 });
 
@@ -892,6 +899,7 @@ app.delete('/api/admin/users/:id', requireAdmin, async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3001;
-server.listen(PORT, () => {
-  console.log(`BlindTest server running on port ${PORT}`);
+const HOST = process.env.HOST || '0.0.0.0';
+server.listen(PORT, HOST, () => {
+  console.log(`BlindTest server running on ${HOST}:${PORT}`);
 });
