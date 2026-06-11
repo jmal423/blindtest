@@ -1,5 +1,4 @@
-module.exports = {
-  version: 9,
+export default {
   name: 'curated_songs',
   up: `
     CREATE TABLE IF NOT EXISTS curated_songs (
