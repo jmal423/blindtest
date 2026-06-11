@@ -3,9 +3,9 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
-import { getMe, getAdminUsers, getAdminStats, getAdminRooms, getLeaderboard, updateUserRole, deleteUser, wipeUserScores, testDeezer, testDeezerGenre, getDbStatus, testGenre, getSongCache, fetchGenres, getAiStats, searchAiTracks, getAiRecent } from '@/lib/api';
+import { getMe, getAdminUsers, getAdminStats, getAdminRooms, getLeaderboard, updateUserRole, deleteUser, wipeUserScores, testDeezer, testDeezerGenre, getDbStatus, testGenre, getSongCache, fetchGenres, getAiStats, searchAiTracks, getAiRecent, getCuratedStats, getCuratedByGenre, getCuratedDiscovery, importToCurated, verifyCuratedSong } from '@/lib/api';
 
-type Tab = 'system' | 'users' | 'rooms' | 'leaderboard' | 'music' | 'ai' | 'api';
+type Tab = 'system' | 'users' | 'rooms' | 'leaderboard' | 'music' | 'curated' | 'ai' | 'api';
 
 const tabs: { id: Tab; label: string }[] = [
   { id: 'system', label: 'System' },
@@ -13,6 +13,7 @@ const tabs: { id: Tab; label: string }[] = [
   { id: 'rooms', label: 'Rooms' },
   { id: 'leaderboard', label: 'Leaderboard' },
   { id: 'music', label: 'Music' },
+  { id: 'curated', label: 'Curated' },
   { id: 'ai', label: 'AI' },
   { id: 'api', label: 'API' },
 ];
@@ -75,6 +76,7 @@ export default function AdminPage() {
         {activeTab === 'rooms' && <RoomsTab />}
         {activeTab === 'leaderboard' && <LeaderboardTab />}
         {activeTab === 'music' && <MusicTab />}
+        {activeTab === 'curated' && <CuratedTab />}
         {activeTab === 'ai' && <AiTab />}
         {activeTab === 'api' && <ApiTab />}
       </motion.div>
@@ -379,6 +381,222 @@ function LeaderboardTab() {
       ))}
       {loading && <p className="text-zinc-500 text-center py-8">Loading...</p>}
       {!loading && leaderboard.length === 0 && <p className="text-zinc-500 text-center py-8">No scores yet.</p>}
+    </div>
+  );
+}
+
+function CuratedTab() {
+  const [stats, setStats] = useState<any>(null);
+  const [byGenre, setByGenre] = useState<any[]>([]);
+  const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
+  const [genreSongs, setGenreSongs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [songsLoading, setSongsLoading] = useState(false);
+  const [showDiscovery, setShowDiscovery] = useState(false);
+  const [discoveryTracks, setDiscoveryTracks] = useState<any[]>([]);
+  const [discoveryLoading, setDiscoveryLoading] = useState(false);
+  const [importing, setImporting] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    getCuratedStats().then(s => {
+      setStats(s);
+      setByGenre(s.byGenre || []);
+    }).catch(() => {}).finally(() => setLoading(false));
+  }, []);
+
+  const loadGenreSongs = async (genre: string) => {
+    setSelectedGenre(genre);
+    setSongsLoading(true);
+    const songs = await getCuratedByGenre(genre);
+    setGenreSongs(songs);
+    setSongsLoading(false);
+  };
+
+  const toggleVerify = async (songId: string, currentlyVerified: boolean) => {
+    await verifyCuratedSong(songId, !currentlyVerified);
+    setGenreSongs(prev => prev.map(s => s.id === songId ? { ...s, verified: !currentlyVerified } : s));
+    setStats(null);
+    getCuratedStats().then(s => { setStats(s); setByGenre(s.byGenre || []); });
+  };
+
+  const loadDiscovery = async (genre?: string) => {
+    setDiscoveryLoading(true);
+    const tracks = await getCuratedDiscovery(genre);
+    setDiscoveryTracks(tracks);
+    setDiscoveryLoading(false);
+  };
+
+  const handleImport = async (songIds: string[], destGenre?: string) => {
+    setImporting(prev => new Set([...prev, ...songIds]));
+    await importToCurated(songIds, destGenre);
+    setImporting(prev => {
+      const next = new Set(prev);
+      songIds.forEach(id => next.delete(id));
+      return next;
+    });
+    loadDiscovery(selectedGenre || undefined);
+    getCuratedStats().then(s => { setStats(s); setByGenre(s.byGenre || []); });
+    if (selectedGenre) loadGenreSongs(selectedGenre);
+  };
+
+  if (loading) return <p className="text-zinc-500 text-center py-8">Loading...</p>;
+
+  const verifiedPct = stats?.total ? ((stats.verified / stats.total) * 100).toFixed(1) : '0';
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+        <StatCard value={stats?.total ?? '-'} label="Total Curated" color="var(--primary)" />
+        <StatCard value={stats?.verified ?? '-'} label={`Verified (${verifiedPct}%)`} color="#10b981" />
+        <StatCard value={stats?.unverified ?? '-'} label="Unverified" color="#f59e0b" />
+        <StatCard value={stats?.total_plays ?? '-'} label="Total Plays" color="var(--accent)" />
+        <StatCard value={stats?.genres ?? '-'} label="Genres" color="#8b5cf6" />
+      </div>
+
+      <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-semibold">Songs by Genre</h2>
+          <button
+            onClick={() => { setShowDiscovery(!showDiscovery); if (!showDiscovery) loadDiscovery(); }}
+            className="text-xs px-3 py-1.5 rounded-lg bg-[var(--accent)]/20 text-[var(--accent)] hover:bg-[var(--accent)]/30 transition-colors"
+          >
+            {showDiscovery ? 'Close Discovery' : 'Discovery (Import) →'}
+          </button>
+        </div>
+
+        {showDiscovery && (
+          <div className="mb-6 bg-white/[0.02] rounded-xl p-4 border border-white/5">
+            <h3 className="text-xs font-medium text-zinc-400 mb-3">Discovery — songs in old cache not yet curated</h3>
+            {discoveryLoading ? (
+              <p className="text-zinc-500 text-xs">Loading...</p>
+            ) : discoveryTracks.length === 0 ? (
+              <p className="text-zinc-600 text-xs">No discovery candidates found.</p>
+            ) : (
+              <div className="overflow-x-auto max-h-[300px] overflow-y-auto">
+                <table className="w-full text-xs">
+                  <thead className="sticky top-0 bg-[var(--surface)]">
+                    <tr className="text-zinc-500 border-b border-white/10">
+                      <th className="text-left py-2 pr-2 w-8">
+                        <button
+                          onClick={() => handleImport(discoveryTracks.map(t => t.id), selectedGenre || undefined)}
+                          className="text-[10px] text-[var(--accent)] hover:text-white transition-colors"
+                          title="Import all"
+                        >
+                          All
+                        </button>
+                      </th>
+                      <th className="text-left py-2 pr-2">Track</th>
+                      <th className="text-left py-2 px-2">Artist</th>
+                      <th className="text-left py-2 px-2 hidden sm:table-cell">Genre</th>
+                      <th className="text-right py-2 pl-2">Rank</th>
+                      <th className="text-right py-2 pl-2 w-16"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {discoveryTracks.map((t: any) => (
+                      <tr key={t.id} className="border-b border-white/5">
+                        <td className="py-1.5 pr-2">
+                          <button
+                            onClick={() => handleImport([t.id], selectedGenre || undefined)}
+                            disabled={importing.has(t.id)}
+                            className="text-[10px] px-2 py-0.5 rounded bg-[var(--accent)]/20 text-[var(--accent)] hover:bg-[var(--accent)]/30 transition-colors disabled:opacity-30"
+                          >
+                            {importing.has(t.id) ? '...' : 'Import'}
+                          </button>
+                        </td>
+                        <td className="py-1.5 pr-2 font-medium truncate max-w-[180px]">{t.name}</td>
+                        <td className="py-1.5 px-2 truncate max-w-[150px] text-zinc-400">{t.artist}</td>
+                        <td className="py-1.5 px-2 hidden sm:table-cell text-zinc-500">{t.genre || t.genres?.[0] || '-'}</td>
+                        <td className="py-1.5 pl-2 text-right tabular-nums text-zinc-500">{t.rank > 0 ? `#${t.rank.toLocaleString()}` : '-'}</td>
+                        <td className="py-1.5 pl-2 text-right">
+                          <span className={`text-[10px] ${t.preview_url ? 'text-green-500' : 'text-red-500'}`}>
+                            {t.preview_url ? '✓' : '✗'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {byGenre.length === 0 ? (
+          <p className="text-zinc-600 text-sm">No curated songs yet.</p>
+        ) : (
+          <div className="space-y-2">
+            {byGenre.map((g: any) => (
+              <div key={g.genre}>
+                <button
+                  onClick={() => loadGenreSongs(g.genre)}
+                  className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-white/[0.03] transition-colors text-left"
+                >
+                  <span className="text-xs text-zinc-400 font-medium w-40 truncate">{g.genre}</span>
+                  <div className="flex-1 h-3 bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full bg-[var(--accent)] rounded-full" style={{ width: `${(g.total / stats.total) * 100}%` }} />
+                  </div>
+                  <span className="text-xs text-zinc-400 tabular-nums w-16 text-right">{g.total}</span>
+                  <span className="text-[10px] text-zinc-600 w-16 text-right">
+                    {g.verified}/{g.total} verified
+                  </span>
+                  <span className="text-[10px] text-zinc-600 w-16 text-right">{g.total_plays} plays</span>
+                  <svg className={`w-3 h-3 text-zinc-600 transition-transform ${selectedGenre === g.genre ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                </button>
+                {selectedGenre === g.genre && (
+                  <div className="ml-6 pl-3 border-l border-white/10">
+                    {songsLoading ? (
+                      <p className="text-zinc-500 text-xs py-2">Loading...</p>
+                    ) : genreSongs.length === 0 ? (
+                      <p className="text-zinc-600 text-xs py-2">No songs in this genre.</p>
+                    ) : (
+                      <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
+                        <table className="w-full text-xs">
+                          <thead className="sticky top-0 bg-[var(--surface)]">
+                            <tr className="text-zinc-500 border-b border-white/10">
+                              <th className="text-left py-2 pr-2">Track</th>
+                              <th className="text-left py-2 px-2">Artist</th>
+                              <th className="text-right py-2 px-2">Plays</th>
+                              <th className="text-center py-2 px-2">Verified</th>
+                              <th className="text-right py-2 pl-2">Preview</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {genreSongs.map((s: any) => (
+                              <tr key={s.id} className="border-b border-white/5 hover:bg-white/[0.02]">
+                                <td className="py-1.5 pr-2 truncate max-w-[200px] font-medium text-zinc-200">{s.name}</td>
+                                <td className="py-1.5 px-2 truncate max-w-[150px] text-zinc-400">{s.artist}</td>
+                                <td className="py-1.5 px-2 text-right tabular-nums text-zinc-500">{s.played_count}</td>
+                                <td className="py-1.5 px-2 text-center">
+                                  <button
+                                    onClick={() => toggleVerify(s.id, s.verified)}
+                                    className={`text-[10px] px-2 py-0.5 rounded transition-colors ${
+                                      s.verified
+                                        ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
+                                        : 'bg-zinc-500/20 text-zinc-400 hover:bg-zinc-500/30'
+                                    }`}
+                                  >
+                                    {s.verified ? 'Verified' : 'Unverified'}
+                                  </button>
+                                </td>
+                                <td className="py-1.5 pl-2 text-right">
+                                  <span className={`text-[10px] ${s.has_preview ? 'text-green-500' : 'text-red-500'}`}>
+                                    {s.has_preview ? '✓' : '✗'}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -314,3 +314,40 @@ export async function getAiRecent(limit = 50): Promise<{
 }> {
   return fetchWithAuth(`${API_URL}/api/admin/ai/recent?limit=${limit}`);
 }
+
+export async function getCuratedStats(): Promise<{
+  total: number; verified: number; unverified: number; total_plays: number; genres: number;
+  byGenre: { genre: string; total: number; verified: number; total_plays: number }[];
+}> {
+  return fetchWithAuth(`${API_URL}/api/admin/curated/stats`);
+}
+
+export async function getCuratedByGenre(genre: string): Promise<{
+  id: string; name: string; artist: string; genre: string; played_count: number;
+  verified: boolean; curated_at: string; last_played_at: string | null; has_preview: boolean;
+}[]> {
+  return fetchWithAuth(`${API_URL}/api/admin/curated/by-genre?genre=${encodeURIComponent(genre)}`);
+}
+
+export async function getCuratedDiscovery(genre?: string): Promise<{
+  id: string; name: string; artist: string; genre: string; genres: string[]; chart_source: string; rank: number;
+}[]> {
+  const params = genre ? `?genre=${encodeURIComponent(genre)}` : '';
+  return fetchWithAuth(`${API_URL}/api/admin/curated/discovery${params}`);
+}
+
+export async function importToCurated(songIds: string[], genre?: string): Promise<{ ok: boolean; imported: number; error?: string }> {
+  return fetchWithAuth(`${API_URL}/api/admin/curated/import`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ songIds, genre }),
+  });
+}
+
+export async function verifyCuratedSong(songId: string, verified: boolean): Promise<{ ok: boolean }> {
+  return fetchWithAuth(`${API_URL}/api/admin/curated/verify`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ songId, verified }),
+  });
+}

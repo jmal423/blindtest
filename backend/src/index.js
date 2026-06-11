@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import { Server } from 'socket.io';
 import { GameRoom } from './game.js';
 import { GENRES, getGenreLabel, GENRE_GROUPS } from './deezer.js';
-import { generateId, get, all, run, ping, getTableCounts, createGame, finishGame, addGamePlayer, addRoundResultV2, getGameHistory, getPlayerStats, getLeaderboardV2, getRecentGames, getGameDetails, getSongCacheCounts, getSongCacheByGenre, getPlayedSongs, getAiEnrichmentStats, getAiGenreDistribution, getUnprocessedTracks, pool } from './db.js';
+import { generateId, get, all, run, ping, getTableCounts, createGame, finishGame, addGamePlayer, addRoundResultV2, getGameHistory, getPlayerStats, getLeaderboardV2, getRecentGames, getGameDetails, getSongCacheCounts, getSongCacheByGenre, getPlayedSongs, getAiEnrichmentStats, getAiGenreDistribution, getUnprocessedTracks, getCuratedSongsStats, getCuratedSongsByGenreGrouped, getDiscoveryCandidates, addCuratedSong, setCuratedVerified, pool } from './db.js';
 import { getAuthUrl, handleDiscordCallback, authenticate, requireAdmin, tryDecodeToken } from './auth.js';
 
 dotenv.config();
@@ -722,6 +722,88 @@ app.get('/api/admin/song-cache', requireAdmin, async (req, res) => {
     getPlayedSongs(200).catch(() => []),
   ]);
   res.json({ ...counts, genres, played });
+});
+
+app.get('/api/admin/curated/stats', requireAdmin, async (req, res) => {
+  try {
+    const [stats, byGenre] = await Promise.all([
+      getCuratedSongsStats().catch(() => ({ total: 0, verified: 0, unverified: 0, total_plays: 0, genres: 0 })),
+      getCuratedSongsByGenreGrouped().catch(() => []),
+    ]);
+    res.json({ ...stats, byGenre });
+  } catch (err) {
+    res.json({ total: 0, verified: 0, unverified: 0, total_plays: 0, genres: 0, byGenre: [] });
+  }
+});
+
+app.get('/api/admin/curated/by-genre', requireAdmin, async (req, res) => {
+  try {
+    const genre = req.query.genre;
+    const { rows } = await pool.query(
+      `SELECT id, name, artist, genre, played_count, verified, curated_at, last_played_at, preview_url IS NOT NULL as has_preview
+       FROM curated_songs
+       WHERE genre = $1
+       ORDER BY played_count DESC, curated_at DESC`,
+      [genre]
+    );
+    res.json(rows);
+  } catch (err) {
+    res.json([]);
+  }
+});
+
+app.get('/api/admin/curated/discovery', requireAdmin, async (req, res) => {
+  try {
+    const genre = req.query.genre || null;
+    const tracks = genre
+      ? await getDiscoveryCandidates(genre, 50)
+      : await all(
+          `SELECT sc.id, sc.name, sc.artist, sc.genre, sc.genres, sc.chart_source, sc.rank
+           FROM songs_cache sc
+           LEFT JOIN curated_songs cs ON cs.id = sc.id
+           WHERE cs.id IS NULL AND sc.preview_url IS NOT NULL
+           ORDER BY sc.rank DESC
+           LIMIT 100`,
+          []
+        );
+    res.json(tracks);
+  } catch (err) {
+    res.json([]);
+  }
+});
+
+app.post('/api/admin/curated/import', requireAdmin, async (req, res) => {
+  try {
+    const { songIds, genre } = req.body;
+    if (!songIds?.length) return res.json({ ok: false, error: 'No song IDs' });
+    let imported = 0;
+    for (const id of songIds) {
+      const { rows } = await pool.query('SELECT * FROM songs_cache WHERE id = $1', [id]);
+      if (rows.length === 0) continue;
+      const s = rows[0];
+      await addCuratedSong({
+        id: s.id, name: s.name, artist: s.artist,
+        previewUrl: s.preview_url, durationMs: s.duration_ms,
+        genre: genre || s.genre || 'other',
+        chartSource: s.chart_source,
+        verified: false,
+      });
+      imported++;
+    }
+    res.json({ ok: true, imported });
+  } catch (err) {
+    res.json({ ok: false, error: err.message });
+  }
+});
+
+app.post('/api/admin/curated/verify', requireAdmin, async (req, res) => {
+  try {
+    const { songId, verified } = req.body;
+    await setCuratedVerified(songId, verified !== false);
+    res.json({ ok: true });
+  } catch (err) {
+    res.json({ ok: false, error: err.message });
+  }
 });
 
 app.get('/api/admin/rooms', requireAdmin, (req, res) => {

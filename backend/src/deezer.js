@@ -318,181 +318,68 @@ async function getCustomGenreTracks(genre, count) {
 }
 
 async function getTracksByGenre(genre, count = 10) {
-  // 1. Try the local AI-classified songs cache first (no Deezer calls needed)
-
-  // 1. Try to fetch from the local intelligent songs cache first
+  // 1. Try curated songs first — verified, genre-tagged, played-count tracked
   try {
-    const { getCachedTracksByGenre } = await import('./db.js');
-    const cached = await getCachedTracksByGenre(genre, count * 3);
-    
-    if (cached && cached.length > 0) {
-      console.log(`[DB] Fetched ${cached.length} candidate tracks from local intelligent cache for "${genre}"`);
-      
-      // Filter tracks that already have preview URLs from the DB
-      const tracksWithStoredPreviews = cached.filter(t => !!t.previewUrl);
-      console.log(`[DB] ${tracksWithStoredPreviews.length}/${cached.length} tracks have stored preview URLs`);
-      
-      // If we have enough tracks with stored previews, use them directly
-      if (tracksWithStoredPreviews.length >= count) {
-        console.log(`[DB] Using ${tracksWithStoredPreviews.length} tracks with stored preview URLs for "${genre}"`);
-        try {
-          const { all } = await import('./db.js');
-          const ids = tracksWithStoredPreviews.map(t => t.id);
-          if (ids.length > 0) {
-            const placeholders = ids.map(() => '?').join(',');
-            const playCounts = await all(
-              `SELECT song_id, COUNT(*) as cnt FROM songs_played WHERE song_id IN (${placeholders}) GROUP BY song_id`,
-              ids
-            );
-            const countMap = {};
-            for (const row of playCounts) countMap[row.song_id] = row.cnt;
-            tracksWithStoredPreviews.forEach(t => t.playCount = countMap[t.id] || 0);
-          }
-        } catch (err) {
-          console.error('[Deezer] Failed to query play counts:', err.message);
-        }
-        tracksWithStoredPreviews.sort((a, b) => (a.playCount || 0) - (b.playCount || 0) || (b.rank || 0) - (a.rank || 0));
-        return tracksWithStoredPreviews.slice(0, count);
-      }
-      
-      // Not enough stored previews — try refreshing from Deezer API
-      const tracksWithPreviews = [];
-      const batchSize = 10;
-      for (let i = 0; i < cached.length; i += batchSize) {
-        const batch = cached.slice(i, i + batchSize);
+    const { getCuratedSongsByGenre, addCuratedSong } = await import('./db.js');
+    const curated = await getCuratedSongsByGenre(genre, count * 2);
+
+    if (curated && curated.length > 0) {
+      console.log(`[Curated] Found ${curated.length} curated tracks for "${genre}", refreshing previews`);
+
+      // Batch-refresh preview URLs (Deezer previews expire ~30min)
+      const valid = [];
+      const BATCH = 10;
+      for (let i = 0; i < curated.length; i += BATCH) {
+        const batch = curated.slice(i, i + BATCH);
         await Promise.all(batch.map(async (track) => {
           try {
-            const rawId = track.id.replace('deezer:', '');
-            const data = await deezerFetch(`/track/${rawId}`);
+            const data = await deezerFetch(`/track/${track.rawId}`);
             if (data?.preview) {
               track.previewUrl = data.preview;
-              tracksWithPreviews.push(track);
-            } else if (track.previewUrl) {
-              // Keep the stored preview URL if Deezer didn't return one
-              tracksWithPreviews.push(track);
+              valid.push(track);
             }
-          } catch (err) {
-            // Fall back to stored preview URL
-            if (track.previewUrl) tracksWithPreviews.push(track);
-          }
+          } catch { /* skip */ }
         }));
-        
-        if (tracksWithPreviews.length >= count) break;
+        if (valid.length >= count) break;
       }
-      
-      if (tracksWithPreviews.length >= Math.min(count, 5)) {
-        console.log(`[DB] Successfully resolved ${tracksWithPreviews.length} tracks with previews from cache`);
-        try {
-          const { all } = await import('./db.js');
-          const ids = tracksWithPreviews.map(t => t.id);
-          if (ids.length > 0) {
-            const placeholders = ids.map(() => '?').join(',');
-            const playCounts = await all(
-              `SELECT song_id, COUNT(*) as cnt FROM songs_played WHERE song_id IN (${placeholders}) GROUP BY song_id`,
-              ids
-            );
-            const countMap = {};
-            for (const row of playCounts) countMap[row.song_id] = row.cnt;
-            tracksWithPreviews.forEach(t => t.playCount = countMap[t.id] || 0);
-          }
-        } catch (err) {
-          console.error('[Deezer] Failed to query play counts:', err.message);
-        }
-        tracksWithPreviews.sort((a, b) => (a.playCount || 0) - (b.playCount || 0) || (b.rank || 0) - (a.rank || 0));
-        return tracksWithPreviews.slice(0, count);
+
+      if (valid.length >= Math.min(count, 5)) {
+        console.log(`[Curated] ${valid.length} curated tracks with fresh previews for "${genre}"`);
+        valid.sort((a, b) => (a.playedCount || 0) - (b.playedCount || 0));
+        return valid.slice(0, count);
       }
+      console.log(`[Curated] Only ${valid.length} with fresh previews, need more`);
     }
   } catch (err) {
-    console.error('[DB] Failed to query local intelligent cache:', err.message);
+    console.error('[Curated] Failed to query curated songs:', err.message);
   }
 
-  console.log(`[Deezer] DB cache miss or insufficient tracks for "${genre}". Falling back to Deezer.`);
+  // 2. Not enough curated — fetch from playlists/charts and add to curated
+  console.log(`[Deezer] Fetching fresh tracks for "${genre}"`);
+  const tracks = await getCustomGenreTracks(genre, count);
 
-  // 2. Try curated playlists (hand-picked Deezer playlists per genre)
-  if (CUSTOM_GENRE_PLAYLISTS[genre]) {
-    console.log(`[Deezer] Using curated playlists for "${genre}"`);
-    return getCustomGenreTracks(genre, count);
-  }
-
-  // 3. Try Deezer chart/editorial API for standard Deezer genre IDs
-  let tracks = [];
-  const seen = new Set();
-  const genreId = GENRE_ID_MAP[genre];
-  if (genreId == null) {
-    return getCustomGenreTracks(genre, count);
-  }
-
-  const chartSource = CHART_SOURCES[genreId] || genre;
-
-  function addTracks(data, label) {
-    if (!data?.data) return 0;
-    let added = 0;
-    for (const t of data.data) {
-      if (!t.preview || seen.has(t.id)) continue;
-      seen.add(t.id);
-      tracks.push(mapTrack(t, chartSource));
-      added++;
-    }
-    if (added > 0) console.log(`[Deezer] ${label} +${added} tracks for "${genre}"`);
-    return added;
-  }
-
-  const chart = await deezerFetch(`/chart/${genreId}/tracks?limit=${count * 2}`);
-  addTracks(chart, 'chart');
-
-  if (tracks.length < count && genreId !== 0) {
-    const editorial = await deezerFetch(`/editorial/0/playlists?genre_id=${genreId}&limit=5`);
-    if (editorial?.data) {
-      for (const pl of editorial.data) {
-        if (tracks.length >= count) break;
-        const plTracks = await deezerFetch(`/playlist/${pl.id}/tracks?limit=10`);
-        addTracks(plTracks, `playlist "${pl.title}"`);
-      }
-    }
-  }
-
-  const batchSize = 5;
-  for (let i = 0; i < tracks.length; i += batchSize) {
-    const batch = tracks.slice(i, i + batchSize);
-    await Promise.all(batch.map(async (track) => {
-      if (track.albumId) {
-        try {
-          track.genres = await fetchAlbumGenres(track.albumId);
-        } catch {
-          track.genres = [genre];
-        }
-      } else {
-        track.genres = [genre];
-      }
-    }));
-  }
-
-  if (!CUSTOM_GENRE_PLAYLISTS[genre]) {
-    const before = tracks.length;
-    tracks = tracks.filter(t => t.genres?.includes(genre) ?? true);
-    if (tracks.length < before) console.log(`[Deezer] Filtered ${before - tracks.length} tracks from "${genre}" (genre isolation)`);
-  }
-
+  // Add fetched tracks to curated table for future use
   try {
-    const { all } = await import('./db.js');
-    const ids = tracks.map(t => t.id);
-    if (ids.length > 0) {
-      const placeholders = ids.map(() => '?').join(',');
-      const playCounts = await all(
-        `SELECT song_id, COUNT(*) as cnt FROM songs_played WHERE song_id IN (${placeholders}) GROUP BY song_id`,
-        ids
-      );
-      const countMap = {};
-      for (const row of playCounts) countMap[row.song_id] = row.cnt;
-      tracks.forEach(t => t.playCount = countMap[t.id] || 0);
+    const { addCuratedSong } = await import('./db.js');
+    for (const t of tracks) {
+      await addCuratedSong({
+        id: t.id,
+        name: t.name,
+        artist: t.artist,
+        albumImage: t.albumImage,
+        previewUrl: t.previewUrl,
+        durationMs: t.durationMs,
+        genre,
+        albumGenres: t.genres || [],
+        chartSource: t.chartSource || genre,
+        verified: false,
+      });
     }
   } catch (err) {
-    console.error('[Deezer] Failed to query play counts:', err.message);
+    console.error('[Curated] Failed to cache fetched tracks:', err.message);
   }
 
-  console.log(`[Deezer] Total ${tracks.length} tracks for "${genre}" (${tracks.filter(t => t.previewUrl).length} with preview)`);
-  tracks.sort((a, b) => (a.playCount || 0) - (b.playCount || 0) || (b.rank || 0) - (a.rank || 0));
-  return tracks.slice(0, count);
+  return tracks;
 }
 
 import { GENRES, GENRE_GROUPS } from './genres-config.js';

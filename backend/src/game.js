@@ -526,10 +526,11 @@ export class GameRoom {
     if (this.trackHistory.length > 100) this.trackHistory = this.trackHistory.slice(-100);
 
     if (this.gameId && track.id) {
-      import('./db.js').then(({ recordPlay }) => {
+      import('./db.js').then(({ recordPlay, incrementCuratedPlayedCount }) => {
         recordPlay(track.id, this.gameId)
           .then(() => console.log(`[DB] Recorded play: ${track.name}`))
           .catch(err => console.error('[DB] Failed to record play:', err.message));
+        incrementCuratedPlayedCount(track.id).catch(() => {});
       }).catch(() => {});
     }
 
@@ -591,10 +592,11 @@ export class GameRoom {
 
     // Record this song as played for recency weighting
     if (this.gameId && track.id) {
-      import('./db.js').then(({ recordPlay }) => {
+      import('./db.js').then(({ recordPlay, incrementCuratedPlayedCount }) => {
         recordPlay(track.id, this.gameId)
           .then(() => console.log(`[DB] Recorded play: ${track.name}`))
           .catch(err => console.error('[DB] Failed to record play:', err.message));
+        incrementCuratedPlayedCount(track.id).catch(() => {});
       }).catch(() => {});
     }
 
