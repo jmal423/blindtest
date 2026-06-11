@@ -478,16 +478,19 @@ app.get('/api/friends', authenticate, async (req, res) => {
 });
 
 app.post('/api/friends/request/:userId', authenticate, async (req, res) => {
-  if (req.params.userId === req.user.userId) {
+  const target = await get(
+    'SELECT id FROM users WHERE id = ? OR LOWER(username) = LOWER(?)',
+    [req.params.userId, req.params.userId]
+  );
+  if (!target) return res.status(404).json({ error: 'User not found' });
+
+  if (target.id === req.user.userId) {
     return res.status(400).json({ error: 'Cannot friend yourself' });
   }
 
-  const target = await get('SELECT id FROM users WHERE id = ?', [req.params.userId]);
-  if (!target) return res.status(404).json({ error: 'User not found' });
-
   const existing = await get(
     'SELECT * FROM friendships WHERE (user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?)',
-    [req.user.userId, req.params.userId, req.params.userId, req.user.userId]
+    [req.user.userId, target.id, target.id, req.user.userId]
   );
 
   if (existing) {
@@ -496,7 +499,7 @@ app.post('/api/friends/request/:userId', authenticate, async (req, res) => {
 
   await run(
     'INSERT INTO friendships (user_id, friend_id, status) VALUES (?, ?, ?)',
-    [req.user.userId, req.params.userId, 'pending']
+    [req.user.userId, target.id, 'pending']
   );
 
   res.json({ ok: true });
