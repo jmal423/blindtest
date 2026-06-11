@@ -27,6 +27,7 @@ import {
   importToCurated,
   verifyCuratedSong,
   updateCuratedSongGenre,
+  deleteCuratedSong,
   adminStartRoom,
   adminKickPlayer,
   adminDestroyRoom
@@ -149,7 +150,7 @@ export default function AdminPage() {
       </aside>
 
       {/* Main Panel Wrapper */}
-      <div className={`flex-1 flex flex-col md:pl-${sidebarOpen ? '64' : '20'} transition-all duration-300 min-w-0`}>
+      <div className={`flex-1 flex flex-col ${sidebarOpen ? 'md:pl-64' : 'md:pl-20'} transition-all duration-300 min-w-0`}>
         {/* Top Header */}
         <header className="h-16 flex items-center justify-between px-6 bg-surface/10 backdrop-blur-md border-b border-white/5 sticky top-0 z-40">
           <div className="flex items-center gap-4">
@@ -1003,6 +1004,12 @@ function CuratedTab() {
   const [discoveryLoading, setDiscoveryLoading] = useState(false);
   const [importing, setImporting] = useState<Set<string>>(new Set());
   const [updatingGenre, setUpdatingGenre] = useState<string | null>(null);
+  const [songsSearch, setSongsSearch] = useState('');
+
+  // Audio preview states
+  const [playingTrackId, setPlayingTrackId] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const loadStats = useCallback(async () => {
     try {
@@ -1021,9 +1028,13 @@ function CuratedTab() {
   const loadGenreSongs = async (genre: string) => {
     if (selectedGenre === genre) {
       setSelectedGenre(null);
+      setPlayingTrackId(null);
+      setPreviewUrl(null);
+      if (audioRef.current) audioRef.current.pause();
       return;
     }
     setSelectedGenre(genre);
+    setSongsSearch('');
     setSongsLoading(true);
     const songs = await getCuratedByGenre(genre);
     setGenreSongs(songs);
@@ -1042,6 +1053,33 @@ function CuratedTab() {
     setGenreSongs(prev => prev.map(s => (s.id === songId ? { ...s, genre: newGenre } : s)));
     setUpdatingGenre(null);
     loadStats();
+  };
+
+  const handleDeleteSong = async (songId: string, name: string) => {
+    if (!confirm(`Are you sure you want to remove "${name}" from the curated list?`)) return;
+    try {
+      await deleteCuratedSong(songId);
+      setGenreSongs(prev => prev.filter(s => s.id !== songId));
+      if (playingTrackId === songId) {
+        setPlayingTrackId(null);
+        setPreviewUrl(null);
+        if (audioRef.current) audioRef.current.pause();
+      }
+      loadStats();
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete song');
+    }
+  };
+
+  const handlePlayPreview = (trackId: string, url: string) => {
+    if (playingTrackId === trackId) {
+      setPlayingTrackId(null);
+      setPreviewUrl(null);
+      if (audioRef.current) audioRef.current.pause();
+    } else {
+      setPlayingTrackId(trackId);
+      setPreviewUrl(url);
+    }
   };
 
   const loadDiscovery = async (genre?: string) => {
@@ -1067,6 +1105,15 @@ function CuratedTab() {
     }
   };
 
+  // Filter songs based on search query
+  const filteredGenreSongs = useMemo(() => {
+    if (!songsSearch.trim()) return genreSongs;
+    const q = songsSearch.toLowerCase();
+    return genreSongs.filter(
+      s => s.name.toLowerCase().includes(q) || s.artist.toLowerCase().includes(q)
+    );
+  }, [genreSongs, songsSearch]);
+
   if (loading) {
     return (
       <div className="flex flex-col items-center gap-2 py-16">
@@ -1080,6 +1127,20 @@ function CuratedTab() {
 
   return (
     <div className="space-y-6">
+      {/* Hidden audio element for preview players */}
+      {previewUrl && (
+        <audio
+          ref={audioRef}
+          src={previewUrl}
+          autoPlay
+          onEnded={() => {
+            setPlayingTrackId(null);
+            setPreviewUrl(null);
+          }}
+          className="hidden"
+        />
+      )}
+
       {/* Curated status grid */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
         <StatCard value={stats?.total ?? '-'} label="Total Curated" color="var(--primary)" glowColor="rgba(108,92,231,0.15)" icon="✨" />
@@ -1191,61 +1252,97 @@ function CuratedTab() {
                 </button>
 
                 {selectedGenre === g.genre && (
-                  <div className="p-4 bg-black/20 border-t border-white/5">
+                  <div className="p-4 bg-black/20 border-t border-white/5 space-y-4">
+                    {/* Search filter input */}
+                    <div className="relative">
+                      <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500 text-xs">🔍</span>
+                      <input
+                        value={songsSearch}
+                        onChange={e => setSongsSearch(e.target.value)}
+                        placeholder={`Search within ${g.genre.replace(/-/g, ' ')}...`}
+                        className="w-full pl-8 pr-3 py-1.5 bg-black/30 border border-white/5 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-[var(--primary)] transition-all text-xs"
+                      />
+                    </div>
+
                     {songsLoading ? (
                       <p className="text-zinc-500 text-xs py-2">Loading...</p>
-                    ) : genreSongs.length === 0 ? (
-                      <p className="text-zinc-600 text-xs py-2">No curated tracks found.</p>
+                    ) : filteredGenreSongs.length === 0 ? (
+                      <p className="text-zinc-600 text-xs py-2 italic text-center">No curated tracks found.</p>
                     ) : (
                       <div className="overflow-x-auto max-h-96 overflow-y-auto border border-white/5 rounded-lg">
                         <table className="w-full text-xs">
                           <thead className="sticky top-0 bg-surface/90 backdrop-blur-md z-10 text-zinc-500 border-b border-white/5">
                             <tr>
-                              <th className="text-left py-2 px-4">Track</th>
+                              <th className="text-left py-2 px-4 w-12 text-center">Preview</th>
+                              <th className="text-left py-2 px-2">Track</th>
                               <th className="text-left py-2 px-2">Artist</th>
                               <th className="text-left py-2 px-2">Genre Override</th>
-                              <th className="text-right py-2 px-2 w-16">Plays</th>
+                              <th className="text-right py-2 px-2 w-16 hidden sm:table-cell">Plays</th>
                               <th className="text-center py-2 px-2 w-24">Verification</th>
-                              <th className="text-right py-2 px-4 w-16">Audio</th>
+                              <th className="text-right py-2 px-4 w-16">Remove</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {genreSongs.map((s: any) => (
-                              <tr key={s.id} className="border-b border-white/[0.01] hover:bg-white/[0.01] transition-colors">
-                                <td className="py-2 px-4 font-semibold text-zinc-200 truncate max-w-[180px]">{s.name}</td>
-                                <td className="py-2 px-2 text-zinc-400 truncate max-w-[140px]">{s.artist}</td>
-                                <td className="py-2 px-2">
-                                  <select
-                                    value={s.genre}
-                                    onChange={e => changeGenre(s.id, e.target.value)}
-                                    disabled={updatingGenre === s.id}
-                                    className="text-[10px] bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-zinc-300 focus:outline-none focus:border-[var(--primary)]"
-                                  >
-                                    {allGenres.map(g => (
-                                      <option key={g.id} value={g.id}>{g.label}</option>
-                                    ))}
-                                  </select>
-                                </td>
-                                <td className="py-2 px-2 text-right font-bold tabular-nums text-zinc-400">{s.played_count}</td>
-                                <td className="py-2 px-2 text-center">
-                                  <button
-                                    onClick={() => toggleVerify(s.id, s.verified)}
-                                    className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border transition-all ${
-                                      s.verified
-                                        ? 'bg-green-500/15 text-green-400 border-green-500/20 hover:bg-green-500/35'
-                                        : 'bg-zinc-500/10 text-zinc-400 border-white/5 hover:bg-zinc-500/20'
-                                    }`}
-                                  >
-                                    {s.verified ? 'Verified' : 'Verify'}
-                                  </button>
-                                </td>
-                                <td className="py-2 px-4 text-right">
-                                  <span className={`text-xs ${s.has_preview ? 'text-green-500' : 'text-red-500'}`}>
-                                    {s.has_preview ? '✓' : '✗'}
-                                  </span>
-                                </td>
-                              </tr>
-                            ))}
+                            {filteredGenreSongs.map((s: any) => {
+                              const hasAudio = !!s.preview_url || s.has_preview;
+                              return (
+                                <tr key={s.id} className="border-b border-white/[0.01] hover:bg-white/[0.01] transition-colors">
+                                  <td className="py-2 px-4 text-center">
+                                    {hasAudio && s.preview_url ? (
+                                      <button
+                                        onClick={() => handlePlayPreview(s.id, s.preview_url)}
+                                        className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${
+                                          playingTrackId === s.id
+                                            ? 'bg-[var(--accent)] text-black shadow-lg scale-105'
+                                            : 'bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white'
+                                        }`}
+                                        title={playingTrackId === s.id ? 'Pause Preview' : 'Play Preview'}
+                                      >
+                                        {playingTrackId === s.id ? '⏸' : '▶'}
+                                      </button>
+                                    ) : (
+                                      <span className="text-zinc-600 italic text-[10px]" title="No audio preview in cache">✗</span>
+                                    )}
+                                  </td>
+                                  <td className="py-2 px-2 font-semibold text-zinc-200 truncate max-w-[180px]">{s.name}</td>
+                                  <td className="py-2 px-2 text-zinc-400 truncate max-w-[140px]">{s.artist}</td>
+                                  <td className="py-2 px-2">
+                                    <select
+                                      value={s.genre}
+                                      onChange={e => changeGenre(s.id, e.target.value)}
+                                      disabled={updatingGenre === s.id}
+                                      className="text-[10px] bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-zinc-300 focus:outline-none focus:border-[var(--primary)]"
+                                    >
+                                      {allGenres.map(g => (
+                                        <option key={g.id} value={g.id}>{g.label}</option>
+                                      ))}
+                                    </select>
+                                  </td>
+                                  <td className="py-2 px-2 text-right font-bold tabular-nums text-zinc-400 hidden sm:table-cell">{s.played_count}</td>
+                                  <td className="py-2 px-2 text-center">
+                                    <button
+                                      onClick={() => toggleVerify(s.id, s.verified)}
+                                      className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border transition-all ${
+                                        s.verified
+                                          ? 'bg-green-500/15 text-green-400 border-green-500/20 hover:bg-green-500/35'
+                                          : 'bg-zinc-500/10 text-zinc-400 border-white/5 hover:bg-zinc-500/20'
+                                      }`}
+                                    >
+                                      {s.verified ? 'Verified' : 'Verify'}
+                                    </button>
+                                  </td>
+                                  <td className="py-2 px-4 text-right">
+                                    <button
+                                      onClick={() => handleDeleteSong(s.id, s.name)}
+                                      className="w-6 h-6 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-all flex items-center justify-center mx-auto"
+                                      title="Remove from Curation"
+                                    >
+                                      🗑
+                                    </button>
+                                  </td>
+                                </tr>
+                              );
+                            })}
                           </tbody>
                         </table>
                       </div>
@@ -1257,6 +1354,29 @@ function CuratedTab() {
           </div>
         )}
       </div>
+
+      {/* Sticky Audio Control Bar overlay */}
+      {previewUrl && (
+        <div className="fixed bottom-6 right-6 p-4 bg-surface border border-white/10 backdrop-blur-md rounded-2xl flex items-center gap-4 animate-slide-up shadow-2xl z-50">
+          <div className="flex items-center gap-3">
+            <span className="text-xl animate-pulse">🔊</span>
+            <div>
+              <p className="text-xs font-bold text-white">Playing Curated Preview</p>
+              <p className="text-[10px] text-zinc-500">Listening to active curation clip.</p>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              setPlayingTrackId(null);
+              setPreviewUrl(null);
+              if (audioRef.current) audioRef.current.pause();
+            }}
+            className="px-3 py-1.5 bg-red-500/10 text-red-400 border border-red-500/20 text-xs font-bold rounded-xl hover:bg-red-500/20 transition-all"
+          >
+            Stop
+          </button>
+        </div>
+      )}
     </div>
   );
 }

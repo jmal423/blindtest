@@ -345,7 +345,7 @@ export async function getCuratedStats(): Promise<{
 
 export async function getCuratedByGenre(genre: string): Promise<{
   id: string; name: string; artist: string; genre: string; played_count: number;
-  verified: boolean; curated_at: string; last_played_at: string | null; has_preview: boolean;
+  verified: boolean; curated_at: string; last_played_at: string | null; has_preview: boolean; preview_url: string | null;
 }[]> {
   return fetchWithAuth(`${API_URL}/api/admin/curated/by-genre?genre=${encodeURIComponent(genre)}`);
 }
@@ -379,4 +379,8 @@ export async function updateCuratedSongGenre(songId: string, genre: string): Pro
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ songId, genre }),
   });
+}
+
+export async function deleteCuratedSong(songId: string): Promise<{ ok: boolean }> {
+  return fetchWithAuth(`${API_URL}/api/admin/curated/${songId}`, { method: 'DELETE' });
 }

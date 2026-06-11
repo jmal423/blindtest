@@ -740,7 +740,7 @@ app.get('/api/admin/curated/by-genre', requireAdmin, async (req, res) => {
   try {
     const genre = req.query.genre;
     const { rows } = await pool.query(
-      `SELECT id, name, artist, genre, played_count, verified, curated_at, last_played_at, preview_url IS NOT NULL as has_preview
+      `SELECT id, name, artist, genre, played_count, verified, curated_at, last_played_at, preview_url, preview_url IS NOT NULL as has_preview
        FROM curated_songs
        WHERE genre = $1
        ORDER BY played_count DESC, curated_at DESC`,
@@ -813,6 +813,15 @@ app.post('/api/admin/curated/update-genre', requireAdmin, async (req, res) => {
     res.json({ ok: true });
   } catch (err) {
     res.json({ ok: false, error: err.message });
+  }
+});
+
+app.delete('/api/admin/curated/:id', requireAdmin, async (req, res) => {
+  try {
+    await pool.query('DELETE FROM curated_songs WHERE id = $1', [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
   }
 });
 
