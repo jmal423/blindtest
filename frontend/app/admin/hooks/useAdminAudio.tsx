@@ -25,6 +25,7 @@ export function useAdminAudio() {
   useEffect(() => {
     if (!audioRef.current) return;
     if (previewUrl) {
+      audioRef.current.src = previewUrl;
       audioRef.current.load();
       audioRef.current.play().catch(err => {
         console.error('[useAdminAudio] Playback failed:', err);
@@ -36,7 +37,7 @@ export function useAdminAudio() {
 
   const AudioPlayerOverlay = (
     <>
-      <audio ref={audioRef} src={previewUrl || ''} onEnded={stopPreview} className="hidden" />
+      <audio ref={audioRef} onEnded={stopPreview} className="hidden" />
       {previewUrl && (
         <div className="fixed bottom-6 right-6 p-4 bg-surface border border-white/10 backdrop-blur-md rounded-2xl flex items-center gap-4 animate-slide-up shadow-2xl z-50">
           <div className="flex items-center gap-3">
