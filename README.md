@@ -188,7 +188,7 @@ Fuzzy matching splits multi-part titles on `-`, `,`, `feat.` and checks each par
 
 ## Database
 
-PostgreSQL with auto-migrations on startup. Schema:
+PostgreSQL database access layer organized using the Repository Pattern with automatic pool connection retries and dynamic schema migrations on startup. Database schema:
 
 | Table | Purpose |
 |-------|---------|
@@ -320,7 +320,15 @@ blindtest/
 │       ├── index.js           # Express server, routes, admin endpoints
 │       ├── game.js            # GameRoom class, scoring, skip votes
 │       ├── deezer.js          # Genre charts, DB-first caching, GENRES
-│       ├── db.js              # PostgreSQL pool, queries, song cache, recency
+│       ├── db.js              # Re-exports repositories & connection helper exports (backward compatibility)
+│       ├── db/                # Modular database module
+│       │   ├── connection.js  # Pool initialization, retry logic, and query wrappers
+│       │   ├── migrationRunner.js # Dynamic migrations executor
+│       │   └── repositories/  # Domain-specific database query files
+│       │       ├── userRepository.js # User stats and global leaderboard v2
+│       │       ├── gameRepository.js # Game creation, finish, lobby players, and round scoring
+│       │       ├── songRepository.js # Song cache, play logs, and AI enrichment checks
+│       │       └── curatedRepository.js # Curated playlist song additions, verification, and stats
 │       ├── auth.js            # Discord OAuth + JWT + guild gating
 │       └── migrations/
 │           ├── 001_initial.js
