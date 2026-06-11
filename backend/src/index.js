@@ -647,7 +647,7 @@ app.get('/api/admin/ai/search', requireAdmin, async (req, res) => {
   const pattern = `%${q}%`;
   try {
     const { rows } = await pool.query(`
-      SELECT id, name, artist, genre, ai_genres, ai_tags, ai_confidence, ai_processed_at
+      SELECT id, name, artist, genre, preview_url, ai_genres, ai_tags, ai_confidence, ai_processed_at
       FROM songs_cache
       WHERE ai_processed_at IS NOT NULL
         AND ai_version NOT LIKE 'error:%'

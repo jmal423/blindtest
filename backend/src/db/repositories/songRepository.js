@@ -112,10 +112,15 @@ export async function getSongCacheByGenre() {
   const { rows } = await pool.query(`
     SELECT genre, COUNT(*) as count, MAX(fetched_at) as last_fetched
     FROM (
-      SELECT jsonb_array_elements_text(genres) AS genre, fetched_at FROM songs_cache
-      WHERE genres != '[]'::jsonb
+      SELECT jsonb_array_elements_text(COALESCE(
+        NULLIF(ai_genres, '[]'::jsonb),
+        NULLIF(genres, '[]'::jsonb)
+      )) AS genre, fetched_at FROM songs_cache
       UNION ALL
-      SELECT genre, fetched_at FROM songs_cache WHERE genre IS NOT NULL AND genres = '[]'::jsonb AND genre != ''
+      SELECT genre, fetched_at FROM songs_cache
+      WHERE (ai_genres IS NULL OR ai_genres = '[]'::jsonb)
+        AND (genres IS NULL OR genres = '[]'::jsonb)
+        AND genre IS NOT NULL AND genre != ''
     ) sub
     GROUP BY genre
     ORDER BY count DESC

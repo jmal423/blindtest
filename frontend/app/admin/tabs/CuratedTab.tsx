@@ -14,12 +14,22 @@ import {
 import { useAdminAudio } from '../hooks/useAdminAudio';
 import { StatCard } from '../components/StatCard';
 
+const GROUP_LABELS: Record<string, string> = {
+  portuguese: 'Português',
+  brazilian: 'Brasileiro',
+  united_states: 'United States',
+  united_kingdom: 'United Kingdom',
+  french: 'Francês',
+  spanish: 'Espanhol',
+  global_other: 'Mundo & Outros',
+};
+
 export function CuratedTab() {
   const [stats, setStats] = useState<any>(null);
   const [byGenre, setByGenre] = useState<any[]>([]);
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
   const [genreSongs, setGenreSongs] = useState<any[]>([]);
-  const [allGenres, setAllGenres] = useState<{ id: string; label: string }[]>([]);
+  const [allGenres, setAllGenres] = useState<{ id: string; label: string; group?: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [songsLoading, setSongsLoading] = useState(false);
   const [showDiscovery, setShowDiscovery] = useState(false);
@@ -31,6 +41,26 @@ export function CuratedTab() {
 
   // Use the custom audio hook
   const { playingTrackId, togglePreview, AudioPlayerOverlay, stopPreview } = useAdminAudio();
+
+  const [importGenre, setImportGenre] = useState<string>('');
+
+  useEffect(() => {
+    if (selectedGenre) {
+      setImportGenre(selectedGenre);
+    }
+  }, [selectedGenre]);
+
+  const groupedGenres = useMemo(() => {
+    const groups: Record<string, typeof allGenres> = {};
+    for (const g of allGenres) {
+      const groupKey = g.group || 'global_other';
+      if (!groups[groupKey]) {
+        groups[groupKey] = [];
+      }
+      groups[groupKey].push(g);
+    }
+    return groups;
+  }, [allGenres]);
 
   const loadStats = useCallback(async () => {
     try {
@@ -108,6 +138,9 @@ export function CuratedTab() {
     if (selectedGenre) {
       const songs = await getCuratedByGenre(selectedGenre);
       setGenreSongs(songs);
+    } else if (destGenre) {
+      // If we imported to a specific genre folder, auto-expand it for review
+      loadGenreSongs(destGenre);
     }
   };
 
@@ -161,9 +194,32 @@ export function CuratedTab() {
         {/* Discovery Box */}
         {showDiscovery && (
           <div className="mb-6 bg-white/[0.01] rounded-2xl p-4 border border-white/5 animate-slide-up">
-            <div className="mb-4">
-              <h4 className="text-sm font-bold text-white">Discovery Queue</h4>
-              <p className="text-xs text-zinc-500 mt-1">Import songs fetched from Deezer editorial/charts into the curated database.</p>
+            <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
+              <div>
+                <h4 className="text-sm font-bold text-white">Discovery Queue</h4>
+                <p className="text-xs text-zinc-500 mt-1">Import songs fetched from Deezer editorial/charts into the curated database.</p>
+              </div>
+
+              {/* Grouped Genre Selector */}
+              <div className="flex items-center gap-2">
+                <label className="text-xs text-zinc-400 whitespace-nowrap font-medium">Import to Genre:</label>
+                <select
+                  value={importGenre}
+                  onChange={e => setImportGenre(e.target.value)}
+                  className="bg-surface border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-[var(--primary)]"
+                >
+                  <option value="">-- Active Folder / Auto --</option>
+                  {Object.entries(groupedGenres).map(([groupKey, genres]) => (
+                    <optgroup key={groupKey} label={GROUP_LABELS[groupKey] || groupKey}>
+                      {genres.map(g => (
+                        <option key={g.id} value={g.id}>
+                          {g.label}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {discoveryLoading ? (
@@ -177,7 +233,7 @@ export function CuratedTab() {
                     <tr>
                       <th className="text-left py-2 px-4 w-24">
                         <button
-                          onClick={() => handleImport(discoveryTracks.map(t => t.id), selectedGenre || undefined)}
+                          onClick={() => handleImport(discoveryTracks.map(t => t.id), importGenre || undefined)}
                           className="text-[10px] text-[var(--accent)] hover:text-white transition-colors"
                           title="Import all displayed"
                         >
@@ -195,7 +251,7 @@ export function CuratedTab() {
                       <tr key={t.id} className="border-b border-white/[0.01] hover:bg-white/[0.01]">
                         <td className="py-2 px-4">
                           <button
-                            onClick={() => handleImport([t.id], selectedGenre || undefined)}
+                            onClick={() => handleImport([t.id], importGenre || undefined)}
                             disabled={importing.has(t.id)}
                             className="text-[10px] px-2.5 py-1 rounded-lg bg-[var(--accent)]/15 text-[var(--accent)] border border-[var(--accent)]/20 hover:bg-[var(--accent)]/35 transition-all disabled:opacity-30"
                           >
@@ -307,8 +363,12 @@ export function CuratedTab() {
                                       disabled={updatingGenre === s.id}
                                       className="text-[10px] bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-zinc-300 focus:outline-none focus:border-[var(--primary)]"
                                     >
-                                      {allGenres.map(g => (
-                                        <option key={g.id} value={g.id}>{g.label}</option>
+                                      {Object.entries(groupedGenres).map(([groupKey, genres]) => (
+                                        <optgroup key={groupKey} label={GROUP_LABELS[groupKey] || groupKey}>
+                                          {genres.map(g => (
+                                            <option key={g.id} value={g.id}>{g.label}</option>
+                                          ))}
+                                        </optgroup>
                                       ))}
                                     </select>
                                   </td>

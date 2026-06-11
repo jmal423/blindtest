@@ -1,8 +1,19 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { getAiStats, getAiRecent, searchAiTracks } from '@/lib/api';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { getAiStats, getAiRecent, searchAiTracks, fetchGenres, importToCurated } from '@/lib/api';
 import { StatCard } from '../components/StatCard';
+import { useAdminAudio } from '../hooks/useAdminAudio';
+
+const GROUP_LABELS: Record<string, string> = {
+  portuguese: 'Português',
+  brazilian: 'Brasileiro',
+  united_states: 'United States',
+  united_kingdom: 'United Kingdom',
+  french: 'Francês',
+  spanish: 'Espanhol',
+  global_other: 'Mundo & Outros',
+};
 
 export function AiTab() {
   const [stats, setStats] = useState<any>(null);
@@ -14,12 +25,19 @@ export function AiTab() {
   const searchTimer = useRef<any>(null);
   const [recentTracks, setRecentTracks] = useState<any[]>([]);
 
+  const [allGenres, setAllGenres] = useState<{ id: string; label: string; group?: string }[]>([]);
+  const [importedIds, setImportedIds] = useState<Set<string>>(new Set());
+
+  // Use the custom audio hook
+  const { playingTrackId, togglePreview, AudioPlayerOverlay } = useAdminAudio();
+
   const loadAiData = useCallback(async () => {
     setLoading(true);
     try {
-      const [s, r] = await Promise.all([getAiStats(), getAiRecent(50)]);
+      const [s, r, gList] = await Promise.all([getAiStats(), getAiRecent(50), fetchGenres()]);
       setStats(s);
       setRecentTracks(r?.tracks ?? []);
+      setAllGenres(gList);
     } catch {}
     setLoading(false);
   }, []);
@@ -27,6 +45,18 @@ export function AiTab() {
   useEffect(() => {
     loadAiData();
   }, [loadAiData]);
+
+  const groupedGenres = useMemo(() => {
+    const groups: Record<string, typeof allGenres> = {};
+    for (const g of allGenres) {
+      const groupKey = g.group || 'global_other';
+      if (!groups[groupKey]) {
+        groups[groupKey] = [];
+      }
+      groups[groupKey].push(g);
+    }
+    return groups;
+  }, [allGenres]);
 
   const doSearch = useCallback(async (q: string) => {
     if (!q.trim()) {
@@ -49,6 +79,15 @@ export function AiTab() {
     searchTimer.current = setTimeout(() => doSearch(val), 300);
   };
 
+  const handleImportTrack = async (songId: string, destGenre: string) => {
+    try {
+      await importToCurated([songId], destGenre);
+      setImportedIds(prev => new Set([...prev, songId]));
+    } catch (err: any) {
+      alert(err.message || 'Failed to import track');
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center gap-2 py-16">
@@ -62,6 +101,9 @@ export function AiTab() {
 
   return (
     <div className="space-y-6">
+      {/* Hidden audio element and overlay player wrapper from hook */}
+      {AudioPlayerOverlay}
+
       {/* AI stats grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <StatCard value={stats?.total ?? '-'} label="Total Enriched" color="var(--primary)" glowColor="rgba(108,92,231,0.15)" icon="🧠" />
@@ -121,33 +163,80 @@ export function AiTab() {
               <table className="w-full text-xs">
                 <thead className="sticky top-0 bg-surface/90 backdrop-blur-md z-10 text-zinc-500 border-b border-white/5">
                   <tr>
-                    <th className="text-left py-2 px-4">Track</th>
+                    <th className="text-center py-2 px-4 w-12">Preview</th>
+                    <th className="text-left py-2 px-2">Track</th>
                     <th className="text-left py-2 px-2">Artist</th>
                     <th className="text-left py-2 px-2">AI Genres</th>
-                    <th className="text-left py-2 px-4">AI Descriptive Tags</th>
+                    <th className="text-left py-2 px-2">AI Descriptive Tags</th>
+                    <th className="text-right py-2 px-4 w-28">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {searchResults.tracks.map((t: any) => (
-                    <tr key={t.id} className="border-b border-white/[0.01] hover:bg-white/[0.01]">
-                      <td className="py-2.5 px-4 font-semibold text-zinc-200">{t.name}</td>
-                      <td className="py-2.5 px-2 text-zinc-400">{t.artist}</td>
-                      <td className="py-2.5 px-2">
-                        <div className="flex gap-1 flex-wrap">
-                          {(t.ai_genres || []).map((g: string) => (
-                            <span key={g} className="px-1.5 py-0.2 rounded bg-[var(--accent)]/15 text-[var(--accent)] text-[9px] font-bold uppercase">{g}</span>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="py-2.5 px-4">
-                        <div className="flex gap-1 flex-wrap">
-                          {(t.ai_tags || []).slice(0, 4).map((tag: string) => (
-                            <span key={tag} className="px-1.5 py-0.2 rounded bg-white/5 text-zinc-400 text-[9px] border border-white/[0.02]">{tag}</span>
-                          ))}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {searchResults.tracks.map((t: any) => {
+                    const isImported = importedIds.has(t.id);
+                    return (
+                      <tr key={t.id} className="border-b border-white/[0.01] hover:bg-white/[0.01] transition-colors">
+                        <td className="py-2.5 px-4 text-center">
+                          {t.preview_url ? (
+                            <button
+                              onClick={() => togglePreview(t.id, t.preview_url)}
+                              className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${
+                                playingTrackId === t.id
+                                  ? 'bg-[var(--accent)] text-black shadow-lg scale-105'
+                                  : 'bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white'
+                              }`}
+                              title={playingTrackId === t.id ? 'Pause Preview' : 'Play Preview'}
+                            >
+                              {playingTrackId === t.id ? '⏸' : '▶'}
+                            </button>
+                          ) : (
+                            <span className="text-zinc-600 italic text-[10px]" title="No audio preview in cache">✗</span>
+                          )}
+                        </td>
+                        <td className="py-2.5 px-2 font-semibold text-zinc-200 truncate max-w-[150px]">{t.name}</td>
+                        <td className="py-2.5 px-2 text-zinc-400 truncate max-w-[120px]">{t.artist}</td>
+                        <td className="py-2.5 px-2">
+                          <div className="flex gap-1 flex-wrap">
+                            {(t.ai_genres || []).map((g: string) => (
+                              <span key={g} className="px-1.5 py-0.2 rounded bg-[var(--accent)]/15 text-[var(--accent)] text-[9px] font-bold uppercase">{g}</span>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="py-2.5 px-2">
+                          <div className="flex gap-1 flex-wrap">
+                            {(t.ai_tags || []).slice(0, 4).map((tag: string) => (
+                              <span key={tag} className="px-1.5 py-0.2 rounded bg-white/5 text-zinc-400 text-[9px] border border-white/[0.02]">{tag}</span>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="py-2.5 px-4 text-right">
+                          {isImported ? (
+                            <span className="text-[10px] text-green-400 font-bold px-2 py-1">Imported ✓</span>
+                          ) : (
+                            <select
+                              defaultValue=""
+                              onChange={async (e) => {
+                                const val = e.target.value;
+                                if (!val) return;
+                                await handleImportTrack(t.id, val);
+                                e.target.value = "";
+                              }}
+                              className="text-[10px] bg-black/40 border border-white/10 rounded-lg px-2.5 py-1 text-zinc-300 focus:outline-none focus:border-[var(--primary)] cursor-pointer"
+                            >
+                              <option value="">-- Import to --</option>
+                              {Object.entries(groupedGenres).map(([groupKey, genres]) => (
+                                <optgroup key={groupKey} label={GROUP_LABELS[groupKey] || groupKey}>
+                                  {genres.map(g => (
+                                    <option key={g.id} value={g.id}>{g.label}</option>
+                                  ))}
+                                </optgroup>
+                              ))}
+                            </select>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
