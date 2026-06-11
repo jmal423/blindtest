@@ -351,3 +351,11 @@ export async function verifyCuratedSong(songId: string, verified: boolean): Prom
     body: JSON.stringify({ songId, verified }),
   });
 }
+
+export async function updateCuratedSongGenre(songId: string, genre: string): Promise<{ ok: boolean }> {
+  return fetchWithAuth(`${API_URL}/api/admin/curated/update-genre`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ songId, genre }),
+  });
+}

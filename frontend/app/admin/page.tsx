@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
-import { getMe, getAdminUsers, getAdminStats, getAdminRooms, getLeaderboard, updateUserRole, deleteUser, wipeUserScores, testDeezer, testDeezerGenre, getDbStatus, testGenre, getSongCache, fetchGenres, getAiStats, searchAiTracks, getAiRecent, getCuratedStats, getCuratedByGenre, getCuratedDiscovery, importToCurated, verifyCuratedSong } from '@/lib/api';
+import { getMe, getAdminUsers, getAdminStats, getAdminRooms, getLeaderboard, updateUserRole, deleteUser, wipeUserScores, testDeezer, testDeezerGenre, getDbStatus, testGenre, getSongCache, fetchGenres, getAiStats, searchAiTracks, getAiRecent, getCuratedStats, getCuratedByGenre, getCuratedDiscovery, importToCurated, verifyCuratedSong, updateCuratedSongGenre } from '@/lib/api';
 
 type Tab = 'system' | 'users' | 'rooms' | 'leaderboard' | 'music' | 'curated' | 'ai' | 'api';
 
@@ -390,18 +390,21 @@ function CuratedTab() {
   const [byGenre, setByGenre] = useState<any[]>([]);
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
   const [genreSongs, setGenreSongs] = useState<any[]>([]);
+  const [allGenres, setAllGenres] = useState<{ id: string; label: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [songsLoading, setSongsLoading] = useState(false);
   const [showDiscovery, setShowDiscovery] = useState(false);
   const [discoveryTracks, setDiscoveryTracks] = useState<any[]>([]);
   const [discoveryLoading, setDiscoveryLoading] = useState(false);
   const [importing, setImporting] = useState<Set<string>>(new Set());
+  const [updatingGenre, setUpdatingGenre] = useState<string | null>(null);
 
   useEffect(() => {
     getCuratedStats().then(s => {
       setStats(s);
       setByGenre(s.byGenre || []);
     }).catch(() => {}).finally(() => setLoading(false));
+    fetchGenres().then(setAllGenres).catch(() => {});
   }, []);
 
   const loadGenreSongs = async (genre: string) => {
@@ -415,6 +418,15 @@ function CuratedTab() {
   const toggleVerify = async (songId: string, currentlyVerified: boolean) => {
     await verifyCuratedSong(songId, !currentlyVerified);
     setGenreSongs(prev => prev.map(s => s.id === songId ? { ...s, verified: !currentlyVerified } : s));
+    setStats(null);
+    getCuratedStats().then(s => { setStats(s); setByGenre(s.byGenre || []); });
+  };
+
+  const changeGenre = async (songId: string, newGenre: string) => {
+    setUpdatingGenre(songId);
+    await updateCuratedSongGenre(songId, newGenre);
+    setGenreSongs(prev => prev.map(s => s.id === songId ? { ...s, genre: newGenre } : s));
+    setUpdatingGenre(null);
     setStats(null);
     getCuratedStats().then(s => { setStats(s); setByGenre(s.byGenre || []); });
   };
@@ -556,6 +568,7 @@ function CuratedTab() {
                             <tr className="text-zinc-500 border-b border-white/10">
                               <th className="text-left py-2 pr-2">Track</th>
                               <th className="text-left py-2 px-2">Artist</th>
+                              <th className="text-left py-2 px-2">Genre</th>
                               <th className="text-right py-2 px-2">Plays</th>
                               <th className="text-center py-2 px-2">Verified</th>
                               <th className="text-right py-2 pl-2">Preview</th>
@@ -564,8 +577,20 @@ function CuratedTab() {
                           <tbody>
                             {genreSongs.map((s: any) => (
                               <tr key={s.id} className="border-b border-white/5 hover:bg-white/[0.02]">
-                                <td className="py-1.5 pr-2 truncate max-w-[200px] font-medium text-zinc-200">{s.name}</td>
-                                <td className="py-1.5 px-2 truncate max-w-[150px] text-zinc-400">{s.artist}</td>
+                                <td className="py-1.5 pr-2 truncate max-w-[160px] font-medium text-zinc-200">{s.name}</td>
+                                <td className="py-1.5 px-2 truncate max-w-[120px] text-zinc-400">{s.artist}</td>
+                                <td className="py-1.5 px-2">
+                                  <select
+                                    value={s.genre}
+                                    onChange={e => changeGenre(s.id, e.target.value)}
+                                    disabled={updatingGenre === s.id}
+                                    className="text-[10px] bg-black/30 border border-white/10 rounded px-1.5 py-0.5 text-zinc-300 max-w-[120px] truncate focus:outline-none focus:border-[var(--accent)]"
+                                  >
+                                    {allGenres.map(g => (
+                                      <option key={g.id} value={g.id}>{g.label}</option>
+                                    ))}
+                                  </select>
+                                </td>
                                 <td className="py-1.5 px-2 text-right tabular-nums text-zinc-500">{s.played_count}</td>
                                 <td className="py-1.5 px-2 text-center">
                                   <button

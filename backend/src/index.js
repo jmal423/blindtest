@@ -806,6 +806,16 @@ app.post('/api/admin/curated/verify', requireAdmin, async (req, res) => {
   }
 });
 
+app.post('/api/admin/curated/update-genre', requireAdmin, async (req, res) => {
+  try {
+    const { songId, genre } = req.body;
+    await pool.query('UPDATE curated_songs SET genre = $2 WHERE id = $1', [songId, genre]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.json({ ok: false, error: err.message });
+  }
+});
+
 app.get('/api/admin/rooms', requireAdmin, (req, res) => {
   const list = [];
   for (const [code, room] of rooms) {
