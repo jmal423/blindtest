@@ -268,7 +268,7 @@ async function getTableCounts() {
 }
 
 async function cacheSongs(tracks) {
-  const targetPool = rawPool || pool;
+  const targetPool = pool;
   for (const t of tracks) {
     if (!t.id || !t.name || !t.artist) continue;
     const genres = Array.isArray(t.genres) && t.genres.length > 0

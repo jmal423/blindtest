@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const REMOTE_URL = process.env.REMOTE_RAW_DATABASE_URL || 'postgresql://blindtest_user:blindtest_pass@localhost:5433/blindtest_old';
+const REMOTE_URL = process.env.REMOTE_DATABASE_URL || 'postgresql://blindtest_user:blindtest_pass@localhost:5433/blindtest';
 const LOCAL_URL = process.env.LOCAL_DATABASE_URL || process.env.DATABASE_URL || 'postgresql://blindtest_user:blindtest_pass@localhost:5432/blindtest';
 
 const remote = new pg.Pool({ connectionString: REMOTE_URL, max: 3 });
