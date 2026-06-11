@@ -234,8 +234,20 @@ export async function getAdminStats(): Promise<{ totalUsers: number; totalRounds
   return fetchWithAuth(`${API_URL}/api/admin/stats`);
 }
 
-export async function getAdminRooms(): Promise<{ code: string; state: string; players: number; genres: string[]; currentRound: number; totalRounds: number; settings: any }[]> {
+export async function getAdminRooms(): Promise<{ code: string; state: string; players: number; playerList: { id: string; name: string; score: number; avatarUrl?: string }[]; genres: string[]; currentRound: number; totalRounds: number; settings: any }[]> {
   return fetchWithAuth(`${API_URL}/api/admin/rooms`);
+}
+
+export async function adminStartRoom(code: string): Promise<{ ok: boolean; error?: string }> {
+  return fetchWithAuth(`${API_URL}/api/admin/rooms/${code}/start`, { method: 'POST' });
+}
+
+export async function adminKickPlayer(code: string, playerId: string): Promise<{ ok: boolean }> {
+  return fetchWithAuth(`${API_URL}/api/admin/rooms/${code}/kick/${playerId}`, { method: 'POST' });
+}
+
+export async function adminDestroyRoom(code: string): Promise<{ ok: boolean }> {
+  return fetchWithAuth(`${API_URL}/api/admin/rooms/${code}`, { method: 'DELETE' });
 }
 
 export async function testGenre(genre: string, count: number = 5): Promise<{ ok: boolean; count: number; tracks: { name: string; artist: string; previewUrl: boolean; genre: string }[]; error?: string }> {

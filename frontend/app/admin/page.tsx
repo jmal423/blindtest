@@ -2,26 +2,72 @@
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'motion/react';
-import { getMe, getAdminUsers, getAdminStats, getAdminRooms, getLeaderboard, updateUserRole, deleteUser, wipeUserScores, testDeezer, testDeezerGenre, getDbStatus, testGenre, getSongCache, fetchGenres, getAiStats, searchAiTracks, getAiRecent, getCuratedStats, getCuratedByGenre, getCuratedDiscovery, importToCurated, verifyCuratedSong, updateCuratedSongGenre } from '@/lib/api';
+import { motion, AnimatePresence } from 'motion/react';
+import { getMe, getAdminUsers, getAdminStats, getAdminRooms, getLeaderboard, updateUserRole, deleteUser, wipeUserScores, testDeezer, testDeezerGenre, getDbStatus, testGenre, getSongCache, fetchGenres, getAiStats, searchAiTracks, getAiRecent, getCuratedStats, getCuratedByGenre, getCuratedDiscovery, importToCurated, verifyCuratedSong, updateCuratedSongGenre, adminStartRoom, adminKickPlayer, adminDestroyRoom } from '@/lib/api';
 
 type Tab = 'system' | 'users' | 'rooms' | 'leaderboard' | 'music' | 'curated' | 'ai' | 'api';
 
-const tabs: { id: Tab; label: string }[] = [
-  { id: 'system', label: 'System' },
-  { id: 'users', label: 'Users' },
-  { id: 'rooms', label: 'Rooms' },
-  { id: 'leaderboard', label: 'Leaderboard' },
-  { id: 'music', label: 'Music' },
-  { id: 'curated', label: 'Curated' },
-  { id: 'ai', label: 'AI' },
-  { id: 'api', label: 'API' },
+const GENRE_OPTIONS: { id: string; label: string }[] = [
+  { id: 'fado', label: 'Fado' },
+  { id: 'traditional_pimba', label: 'Tradicional / Pimba' },
+  { id: 'pop_tuga', label: 'Pop Tuga' },
+  { id: 'pop_rock_tuga', label: 'Pop / Rock Tuga' },
+  { id: 'hip_hop_tuga', label: 'Hip Hop Tuga' },
+  { id: 'classica_tuga', label: 'Clássica Tuga' },
+  { id: 'kizomba', label: 'Kizomba' },
+  { id: 'pop_urbano_nova_tuga', label: 'Pop Urbano / Nova Tuga' },
+  { id: 'pop_us', label: 'Pop US' },
+  { id: 'hip_hop_trap_us', label: 'Hip Hop / Trap US' },
+  { id: 'country_americana', label: 'Country / Americana' },
+  { id: 'rock_alternative_us', label: 'Rock / Alternative US' },
+  { id: 'pop_uk', label: 'Pop UK' },
+  { id: 'uk_drill_grime_hip_hop', label: 'UK Drill / Grime / Hip Hop' },
+  { id: 'britpop_rock_uk', label: 'Britpop / Rock UK' },
+  { id: 'uk_garage_drum_bass', label: 'UK Garage / Drum & Bass' },
+];
+
+const tabs: { id: Tab; label: string; icon: string }[] = [
+  { id: 'system', label: 'System', icon: 'M4 8a4 4 0 014-4h8a4 4 0 014 4v8a4 4 0 01-4 4H8a4 4 0 01-4-4V8z' },
+  { id: 'users', label: 'Users', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' },
+  { id: 'rooms', label: 'Rooms', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
+  { id: 'leaderboard', label: 'Leaderboard', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
+  { id: 'music', label: 'Music', icon: 'M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3' },
+  { id: 'curated', label: 'Curated', icon: 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z' },
+  { id: 'ai', label: 'AI', icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
+  { id: 'api', label: 'API', icon: 'M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
+];
+
+const SOURCES = [
+  { id: 'deezer', label: 'Deezer', desc: 'Free, has rank data' },
 ];
 
 export default function AdminPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>('system');
   const [authorized, setAuthorized] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [playingTrackId, setPlayingTrackId] = useState<string | null>(null);
+
+  const handleTogglePreview = useCallback((trackId: string, previewUrl: string) => {
+    if (playingTrackId === trackId) {
+      audioRef.current?.pause();
+      if (audioRef.current) audioRef.current.src = '';
+      setPlayingTrackId(null);
+    } else {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = '';
+      }
+      const audio = new Audio(previewUrl);
+      audio.play();
+      audio.addEventListener('ended', () => {
+        audio.src = '';
+        setPlayingTrackId(null);
+      });
+      audioRef.current = audio;
+      setPlayingTrackId(trackId);
+    }
+  }, [playingTrackId]);
 
   useEffect(() => {
     const token = localStorage.getItem('blindtest_token');
@@ -36,50 +82,113 @@ export default function AdminPage() {
     });
   }, [router]);
 
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = '';
+      }
+    };
+  }, []);
+
   if (!authorized) {
     return <div className="flex-1 flex items-center justify-center"><p className="text-zinc-400">Loading...</p></div>;
   }
 
   return (
-    <div className="flex-1 flex flex-col p-4 md:p-8 max-w-5xl mx-auto w-full gap-6">
-      <h1 className="text-2xl font-bold">Admin Panel</h1>
+    <div className="flex h-full min-h-[calc(100vh-4rem)]">
+      {/* Sidebar — desktop */}
+      <aside className="hidden md:flex flex-col w-56 fixed left-0 top-16 bottom-0 bg-black/80 backdrop-blur-md border-r border-white/10 z-30 overflow-y-auto">
+        <div className="p-4 border-b border-white/10">
+          <h1 className="text-lg font-bold">Admin Panel</h1>
+        </div>
+        <nav className="flex-1 p-3 space-y-1">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-colors ${
+                activeTab === tab.id ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/5'
+              }`}
+            >
+              <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d={tab.icon} />
+              </svg>
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+      </aside>
 
-      <div className="flex gap-1 bg-[var(--surface)] rounded-xl p-1 border border-white/10 overflow-x-auto">
+      {/* Bottom bar — mobile */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-black/90 backdrop-blur-md border-t border-white/10 z-30 flex justify-around px-2 py-2">
         {tabs.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`relative px-3 md:px-4 py-2 text-xs md:text-sm font-medium rounded-lg whitespace-nowrap transition-colors ${
-              activeTab === tab.id ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'
+            className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg transition-colors min-w-0 ${
+              activeTab === tab.id ? 'text-white' : 'text-zinc-500'
             }`}
           >
-            {activeTab === tab.id && (
-              <motion.div
-                layoutId="tab-bg"
-                className="absolute inset-0 bg-white/10 rounded-lg"
-                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-              />
-            )}
-            <span className="relative z-10">{tab.label}</span>
+            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d={tab.icon} />
+            </svg>
+            <span className="text-[10px] leading-tight">{tab.label}</span>
           </button>
         ))}
-      </div>
+      </nav>
 
-      <motion.div
-        key={activeTab}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.2 }}
-      >
-        {activeTab === 'system' && <SystemTab />}
-        {activeTab === 'users' && <UsersTab />}
-        {activeTab === 'rooms' && <RoomsTab />}
-        {activeTab === 'leaderboard' && <LeaderboardTab />}
-        {activeTab === 'music' && <MusicTab />}
-        {activeTab === 'curated' && <CuratedTab />}
-        {activeTab === 'ai' && <AiTab />}
-        {activeTab === 'api' && <ApiTab />}
-      </motion.div>
+      {/* Main content */}
+      <main className="flex-1 ml-0 md:ml-56 p-4 md:p-8 pb-20 md:pb-8 max-w-5xl mx-auto w-full">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.15 }}
+          >
+            {activeTab === 'system' && <SystemTab />}
+            {activeTab === 'users' && <UsersTab />}
+            {activeTab === 'rooms' && <RoomsTab />}
+            {activeTab === 'leaderboard' && <LeaderboardTab />}
+            {activeTab === 'music' && <MusicTab />}
+            {activeTab === 'curated' && <CuratedTab onTogglePreview={handleTogglePreview} playingTrackId={playingTrackId} />}
+            {activeTab === 'ai' && <AiTab />}
+            {activeTab === 'api' && <ApiTab onTogglePreview={handleTogglePreview} playingTrackId={playingTrackId} />}
+          </motion.div>
+        </AnimatePresence>
+      </main>
+    </div>
+  );
+}
+
+function StatCard({ value, label, color }: { value: number | string; label: string; color: string }) {
+  return (
+    <div className="bg-white/[0.02] backdrop-blur-md border border-white/10 rounded-2xl p-8 text-center">
+      <p className="text-5xl font-bold" style={{ color }}>{value}</p>
+      <p className="text-zinc-500 mt-2 text-sm uppercase tracking-wider">{label}</p>
+    </div>
+  );
+}
+
+function VolumeBar({ value, max, label, color }: { value: number; max: number; label: string; color: string }) {
+  const pct = Math.min((value / max) * 100, 100);
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between text-xs">
+        <span className="text-zinc-500">{label}</span>
+        <span className="text-zinc-300 font-mono">{value.toLocaleString()}</span>
+      </div>
+      <div className="h-2.5 bg-white/5 rounded-full overflow-hidden">
+        <motion.div
+          className="h-full rounded-full"
+          style={{ background: color }}
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
+        />
+      </div>
     </div>
   );
 }
@@ -102,31 +211,22 @@ function SystemTab() {
         <StatCard value={stats?.activeRooms ?? '-'} label="Active Rooms" color="#10b981" />
       </div>
 
-      <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6">
+      <div className="bg-white/[0.02] backdrop-blur-md border border-white/10 rounded-2xl p-6">
         <h2 className="text-sm font-semibold mb-4">Database</h2>
         {dbStatus ? (
           dbStatus.ok ? (
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="flex items-center gap-3">
                 <span className={`w-2 h-2 rounded-full ${dbStatus.hasData ? 'bg-green-400' : 'bg-yellow-400'}`} />
-                <span className="text-sm">PostgreSQL</span>
+                <span className="text-sm text-zinc-300">PostgreSQL</span>
                 <span className={`text-xs px-2 py-0.5 rounded-full ${dbStatus.hasData ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
                   {dbStatus.hasData ? 'Has data' : 'Empty'}
                 </span>
               </div>
-              <div className="grid grid-cols-3 gap-3 pt-3 border-t border-white/5">
-                <div className="text-center">
-                  <p className="text-lg font-bold">{dbStatus.tables?.users ?? 0}</p>
-                  <p className="text-[10px] text-zinc-500">Users</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-lg font-bold">{dbStatus.tables?.game_scores ?? 0}</p>
-                  <p className="text-[10px] text-zinc-500">Scores</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-lg font-bold">{dbStatus.tables?.round_results ?? 0}</p>
-                  <p className="text-[10px] text-zinc-500">Rounds</p>
-                </div>
+              <div className="space-y-3 pt-3 border-t border-white/5">
+                <VolumeBar value={dbStatus.tables?.users ?? 0} max={10000} label="Users" color="var(--primary)" />
+                <VolumeBar value={dbStatus.tables?.game_scores ?? 0} max={50000} label="Scores" color="var(--accent)" />
+                <VolumeBar value={dbStatus.tables?.round_results ?? 0} max={50000} label="Rounds" color="#8b5cf6" />
               </div>
             </div>
           ) : (
@@ -143,19 +243,12 @@ function SystemTab() {
   );
 }
 
-function StatCard({ value, label, color }: { value: number | string; label: string; color: string }) {
-  return (
-    <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-8 text-center">
-      <p className="text-5xl font-bold" style={{ color }}>{value}</p>
-      <p className="text-zinc-500 mt-2 text-sm uppercase tracking-wider">{label}</p>
-    </div>
-  );
-}
-
 function UsersTab() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
@@ -165,9 +258,21 @@ function UsersTab() {
 
   useEffect(() => { loadUsers(); }, [loadUsers]);
 
+  const handleSearchChange = (val: string) => {
+    setSearch(val);
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => setDebouncedSearch(val), 250);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    };
+  }, []);
+
   const filtered = useMemo(() =>
-    search ? users.filter(u => u.username.toLowerCase().includes(search.toLowerCase())) : users,
-    [users, search]
+    debouncedSearch ? users.filter(u => u.username.toLowerCase().includes(debouncedSearch.toLowerCase())) : users,
+    [users, debouncedSearch]
   );
 
   const handleRole = async (userId: string, role: string) => {
@@ -185,9 +290,9 @@ function UsersTab() {
     <div className="space-y-4">
       <input
         value={search}
-        onChange={e => setSearch(e.target.value)}
+        onChange={e => handleSearchChange(e.target.value)}
         placeholder="Search users..."
-        className="w-full px-4 py-2 bg-[var(--surface)] border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-[var(--primary)] transition-colors text-sm"
+        className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-[var(--primary)] transition-colors text-sm"
       />
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
@@ -212,7 +317,7 @@ function UsersTab() {
                       )}
                     </div>
                     <div className="min-w-0">
-                      <p className="font-medium truncate">{u.username}</p>
+                      <p className="font-medium truncate text-zinc-300">{u.username}</p>
                       <p className="text-[10px] text-zinc-600 truncate">{u.id}</p>
                     </div>
                   </div>
@@ -230,7 +335,7 @@ function UsersTab() {
                     <select
                       value={u.role}
                       onChange={e => handleRole(u.id, e.target.value)}
-                      className="bg-[var(--surface)] border border-white/10 rounded-lg px-2 py-1 text-xs text-white"
+                      className="bg-black/30 border border-white/10 rounded-lg px-2 py-1 text-xs text-white"
                     >
                       <option value="user">user</option>
                       <option value="admin">admin</option>
@@ -255,7 +360,8 @@ function UsersTab() {
 function RoomsTab() {
   const [rooms, setRooms] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showAll, setShowAll] = useState(false);
+  const [expandedCode, setExpandedCode] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({});
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -263,9 +369,7 @@ function RoomsTab() {
     setLoading(false);
   }, []);
 
-  useEffect(() => { load(); const t = setInterval(load, 10000); return () => clearInterval(t); }, [load]);
-
-  const filtered = showAll ? rooms : rooms.filter(r => r.state !== 'game_over');
+  useEffect(() => { load(); const t = setInterval(load, 5000); return () => clearInterval(t); }, [load]);
 
   const stateLabel = (s: string) => {
     const map: Record<string, { text: string; cls: string }> = {
@@ -278,52 +382,125 @@ function RoomsTab() {
     return map[s] || { text: s, cls: 'text-zinc-500' };
   };
 
+  const genreLabel = (id: string) => {
+    const g = GENRE_OPTIONS.find(x => x.id === id);
+    return g ? g.label : id;
+  };
+
+  const handleStart = async (code: string) => {
+    setActionLoading(prev => ({ ...prev, [`start-${code}`]: true }));
+    try { await adminStartRoom(code); load(); } catch {}
+    setActionLoading(prev => ({ ...prev, [`start-${code}`]: false }));
+  };
+
+  const handleKick = async (code: string, playerId: string) => {
+    setActionLoading(prev => ({ ...prev, [`kick-${code}-${playerId}`]: true }));
+    try { await adminKickPlayer(code, playerId); load(); } catch {}
+    setActionLoading(prev => ({ ...prev, [`kick-${code}-${playerId}`]: false }));
+  };
+
+  const handleDestroy = async (code: string) => {
+    if (!confirm(`Shut down room "${code}"? This action cannot be undone.`)) return;
+    setActionLoading(prev => ({ ...prev, [`destroy-${code}`]: true }));
+    try { await adminDestroyRoom(code); load(); } catch {}
+    setActionLoading(prev => ({ ...prev, [`destroy-${code}`]: false }));
+  };
+
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <div className="flex items-center gap-3 mb-2">
-        <button
-          onClick={() => setShowAll(false)}
-          className={`px-3 py-1 text-xs rounded-lg transition-colors ${!showAll ? 'bg-[var(--primary)] text-white' : 'bg-white/5 text-zinc-400 hover:text-white'}`}
-        >
-          Active
-        </button>
-        <button
-          onClick={() => setShowAll(true)}
-          className={`px-3 py-1 text-xs rounded-lg transition-colors ${showAll ? 'bg-[var(--primary)] text-white' : 'bg-white/5 text-zinc-400 hover:text-white'}`}
-        >
-          All rooms
-        </button>
-        <span className="text-[10px] text-zinc-600 ml-auto">
-          {filtered.length} room{filtered.length !== 1 ? 's' : ''}
+        <span className="text-xs text-zinc-600 ml-auto">
+          {rooms.length} room{rooms.length !== 1 ? 's' : ''} · auto-refresh 5s
         </span>
       </div>
-      {filtered.map(r => {
+      {rooms.map(r => {
         const s = stateLabel(r.state);
         return (
-          <div key={r.code} className="bg-[var(--surface)] rounded-xl border border-white/10 p-4 flex items-center gap-4 flex-wrap">
-            <div className="text-center min-w-[60px]">
-              <p className="text-xl font-bold tracking-[0.2em] text-[var(--primary)]">{r.code}</p>
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${s.cls}`}>{s.text}</span>
-                <span className="text-xs text-zinc-500">{r.players} player{r.players !== 1 ? 's' : ''}</span>
-                {r.state !== 'waiting' && (
-                  <span className="text-xs text-zinc-500">Round {r.currentRound}/{r.totalRounds}</span>
+          <div key={r.code} className="bg-white/[0.02] backdrop-blur-md border border-white/10 rounded-2xl p-4">
+            <div className="flex items-center gap-4 flex-wrap">
+              <div className="text-center min-w-[80px]">
+                <p className="text-2xl font-bold tracking-[0.15em] text-[var(--primary)] font-mono">{r.code}</p>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${s.cls}`}>{s.text}</span>
+                  <span className="text-xs text-zinc-500">{r.players} player{r.players !== 1 ? 's' : ''}</span>
+                  {r.state !== 'waiting' && (
+                    <span className="text-xs text-zinc-500">Round {r.currentRound}/{r.totalRounds}</span>
+                  )}
+                </div>
+                {r.genres?.length > 0 && (
+                  <p className="text-[10px] text-zinc-600 mt-1 truncate">
+                    {r.genres.map((g: string) => genreLabel(g)).join(', ')}
+                  </p>
                 )}
               </div>
-              <p className="text-[10px] text-zinc-600 mt-1 truncate">
-                {r.genres?.join(', ') || 'no genres'}
-              </p>
+              <div className="flex items-center gap-2 shrink-0">
+                {r.state === 'waiting' && (
+                  <button
+                    onClick={() => handleStart(r.code)}
+                    disabled={actionLoading[`start-${r.code}`]}
+                    className="px-3 py-1.5 bg-green-500/20 text-green-400 rounded-lg text-xs font-medium hover:bg-green-500/30 transition-colors disabled:opacity-50"
+                  >
+                    {actionLoading[`start-${r.code}`] ? '...' : 'Start'}
+                  </button>
+                )}
+                <button
+                  onClick={() => handleDestroy(r.code)}
+                  disabled={actionLoading[`destroy-${r.code}`]}
+                  className="px-3 py-1.5 bg-red-500/20 text-red-400 rounded-lg text-xs font-medium hover:bg-red-500/30 transition-colors disabled:opacity-50"
+                >
+                  {actionLoading[`destroy-${r.code}`] ? '...' : 'Kill'}
+                </button>
+                <button
+                  onClick={() => setExpandedCode(expandedCode === r.code ? null : r.code)}
+                  className="px-3 py-1.5 bg-white/5 text-zinc-400 rounded-lg text-xs font-medium hover:bg-white/10 transition-colors"
+                >
+                  {expandedCode === r.code ? 'Hide Players' : 'Inspect Players'}
+                </button>
+              </div>
             </div>
+            {expandedCode === r.code && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="mt-4 pt-4 border-t border-white/10 overflow-hidden"
+              >
+                {r.playersList && r.playersList.length > 0 ? (
+                  <div className="space-y-2">
+                    {r.playersList.map((p: any) => (
+                      <div key={p.id || p.player_id} className="flex items-center gap-3 px-3 py-2 bg-white/[0.02] rounded-xl">
+                        <div className="w-7 h-7 rounded-full bg-zinc-700 flex items-center justify-center text-xs font-bold overflow-hidden shrink-0">
+                          {p.avatar_url ? (
+                            <img src={p.avatar_url} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                          ) : (
+                            (p.username || p.player_name || '?')[0].toUpperCase()
+                          )}
+                        </div>
+                        <span className="text-sm text-zinc-300 flex-1 truncate">{p.username || p.player_name || 'Unknown'}</span>
+                        <span className="text-xs text-zinc-500">{p.score ?? '-'}</span>
+                        <button
+                          onClick={() => handleKick(r.code, p.id || p.player_id)}
+                          disabled={actionLoading[`kick-${r.code}-${p.id || p.player_id}`]}
+                          className="px-2 py-1 bg-red-500/20 text-red-400 rounded-lg text-[10px] font-medium hover:bg-red-500/30 transition-colors disabled:opacity-50"
+                        >
+                          {actionLoading[`kick-${r.code}-${p.id || p.player_id}`] ? '...' : 'Kick'}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-zinc-600 text-center py-3">No player data available.</p>
+                )}
+              </motion.div>
+            )}
           </div>
         );
       })}
       {loading && <p className="text-zinc-500 text-center py-8">Loading...</p>}
-      {!loading && filtered.length === 0 && <p className="text-zinc-500 text-center py-8">{showAll ? 'No rooms.' : 'No active rooms.'}</p>}
-      {!loading && rooms.length > 0 && (
-        <p className="text-[10px] text-zinc-600 text-center pt-2">Auto-refreshes every 10s</p>
-      )}
+      {!loading && rooms.length === 0 && <p className="text-zinc-500 text-center py-8">No rooms.</p>}
     </div>
   );
 }
@@ -345,21 +522,28 @@ function LeaderboardTab() {
     try { await wipeUserScores(userId); load(); } catch {}
   };
 
+  const topBorder = (i: number) => {
+    if (i === 0) return 'border-yellow-400/30 bg-yellow-500/[0.04]';
+    if (i === 1) return 'border-zinc-300/20 bg-zinc-300/[0.03]';
+    if (i === 2) return 'border-amber-600/20 bg-amber-600/[0.04]';
+    return 'border-white/10';
+  };
+
+  const rankColor = (i: number) => {
+    if (i === 0) return 'text-yellow-400';
+    if (i === 1) return 'text-zinc-300';
+    if (i === 2) return 'text-amber-600';
+    return 'text-zinc-500';
+  };
+
   return (
-    <div className="space-y-1">
+    <div className="space-y-2">
       {leaderboard.map((e: any, i: number) => (
         <div
           key={e.id || e.player_id}
-          className={`flex items-center gap-3 px-4 py-3 rounded-xl ${
-            i === 0 ? 'bg-yellow-500/10 border border-yellow-500/20'
-              : i === 1 ? 'bg-zinc-300/5 border border-white/5'
-              : i === 2 ? 'bg-amber-600/10 border border-amber-600/20'
-              : 'bg-[var(--surface)]'
-          }`}
+          className={`flex items-center gap-3 px-4 py-3 rounded-2xl bg-white/[0.02] backdrop-blur-md border ${topBorder(i)}`}
         >
-          <span className={`w-6 text-center text-sm font-bold ${
-            i === 0 ? 'text-yellow-400' : i === 1 ? 'text-zinc-300' : i === 2 ? 'text-amber-600' : 'text-zinc-500'
-          }`}>
+          <span className={`w-7 text-center text-sm font-bold ${rankColor(i)}`}>
             {i + 1}
           </span>
           <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 bg-zinc-700 flex items-center justify-center text-xs font-bold">
@@ -370,7 +554,7 @@ function LeaderboardTab() {
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-medium text-sm truncate">{e.username || e.player_name || 'Unknown'}</p>
+            <p className="font-medium text-sm truncate text-zinc-300">{e.username || e.player_name || 'Unknown'}</p>
             <p className="text-xs text-zinc-500">{e.games_played} games · {e.wins || 0} wins</p>
           </div>
           <span className="text-lg font-bold text-[var(--accent)]">{e.total_score}</span>
@@ -385,7 +569,7 @@ function LeaderboardTab() {
   );
 }
 
-function CuratedTab() {
+function CuratedTab({ onTogglePreview, playingTrackId }: { onTogglePreview?: (trackId: string, previewUrl: string) => void; playingTrackId?: string | null }) {
   const [stats, setStats] = useState<any>(null);
   const [byGenre, setByGenre] = useState<any[]>([]);
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
@@ -465,9 +649,9 @@ function CuratedTab() {
         <StatCard value={stats?.genres ?? '-'} label="Genres" color="#8b5cf6" />
       </div>
 
-      <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6">
+      <div className="bg-white/[0.02] backdrop-blur-md border border-white/10 rounded-2xl p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold">Songs by Genre</h2>
+          <h2 className="text-sm font-semibold text-zinc-300">Songs by Genre</h2>
           <button
             onClick={() => { setShowDiscovery(!showDiscovery); if (!showDiscovery) loadDiscovery(); }}
             className="text-xs px-3 py-1.5 rounded-lg bg-[var(--accent)]/20 text-[var(--accent)] hover:bg-[var(--accent)]/30 transition-colors"
@@ -501,7 +685,7 @@ function CuratedTab() {
                       <th className="text-left py-2 px-2">Artist</th>
                       <th className="text-left py-2 px-2 hidden sm:table-cell">Genre</th>
                       <th className="text-right py-2 pl-2">Rank</th>
-                      <th className="text-right py-2 pl-2 w-16"></th>
+                      <th className="text-right py-2 pl-2 w-16">Preview</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -516,7 +700,7 @@ function CuratedTab() {
                             {importing.has(t.id) ? '...' : 'Import'}
                           </button>
                         </td>
-                        <td className="py-1.5 pr-2 font-medium truncate max-w-[180px]">{t.name}</td>
+                        <td className="py-1.5 pr-2 font-medium truncate max-w-[180px] text-zinc-300">{t.name}</td>
                         <td className="py-1.5 px-2 truncate max-w-[150px] text-zinc-400">{t.artist}</td>
                         <td className="py-1.5 px-2 hidden sm:table-cell text-zinc-500">{t.genre || t.genres?.[0] || '-'}</td>
                         <td className="py-1.5 pl-2 text-right tabular-nums text-zinc-500">{t.rank > 0 ? `#${t.rank.toLocaleString()}` : '-'}</td>
@@ -571,14 +755,15 @@ function CuratedTab() {
                               <th className="text-left py-2 px-2">Genre</th>
                               <th className="text-right py-2 px-2">Plays</th>
                               <th className="text-center py-2 px-2">Verified</th>
+                              <th className="text-center py-2 px-2">Play</th>
                               <th className="text-right py-2 pl-2">Preview</th>
                             </tr>
                           </thead>
                           <tbody>
                             {genreSongs.map((s: any) => (
                               <tr key={s.id} className="border-b border-white/5 hover:bg-white/[0.02]">
-                                <td className="py-1.5 pr-2 truncate max-w-[160px] font-medium text-zinc-200">{s.name}</td>
-                                <td className="py-1.5 px-2 truncate max-w-[120px] text-zinc-400">{s.artist}</td>
+                                <td className="py-1.5 pr-2 truncate max-w-[140px] font-medium text-zinc-200">{s.name}</td>
+                                <td className="py-1.5 px-2 truncate max-w-[100px] text-zinc-400">{s.artist}</td>
                                 <td className="py-1.5 px-2">
                                   <select
                                     value={s.genre}
@@ -603,6 +788,18 @@ function CuratedTab() {
                                   >
                                     {s.verified ? 'Verified' : 'Unverified'}
                                   </button>
+                                </td>
+                                <td className="py-1.5 px-2 text-center">
+                                  {onTogglePreview && s.preview_url ? (
+                                    <button
+                                      onClick={() => onTogglePreview(s.id, s.preview_url)}
+                                      className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-zinc-400 hover:bg-white/10 transition-colors"
+                                    >
+                                      {playingTrackId === s.id ? '⏸' : '▶'}
+                                    </button>
+                                  ) : (
+                                    <span className="text-[10px] text-zinc-600">—</span>
+                                  )}
                                 </td>
                                 <td className="py-1.5 pl-2 text-right">
                                   <span className={`text-[10px] ${s.has_preview ? 'text-green-500' : 'text-red-500'}`}>
@@ -645,23 +842,23 @@ function MusicTab() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-3 gap-4">
-        <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6 text-center">
+        <div className="bg-white/[0.02] backdrop-blur-md border border-white/10 rounded-2xl p-6 text-center">
           <p className="text-3xl font-bold text-[var(--primary)]">{total.toLocaleString()}</p>
           <p className="text-zinc-500 text-xs uppercase tracking-wider mt-1">Songs</p>
         </div>
-        <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6 text-center">
+        <div className="bg-white/[0.02] backdrop-blur-md border border-white/10 rounded-2xl p-6 text-center">
           <p className="text-3xl font-bold text-[var(--accent)]">{totalPlays.toLocaleString()}</p>
           <p className="text-zinc-500 text-xs uppercase tracking-wider mt-1">Plays</p>
         </div>
-        <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6 text-center">
+        <div className="bg-white/[0.02] backdrop-blur-md border border-white/10 rounded-2xl p-6 text-center">
           <p className="text-3xl font-bold text-purple-400">{genreCount}</p>
           <p className="text-zinc-500 text-xs uppercase tracking-wider mt-1">Genres</p>
         </div>
       </div>
 
-      <div className="bg-[var(--surface)] rounded-2xl border border-white/10 overflow-hidden">
+      <div className="bg-white/[0.02] backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden">
         <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between">
-          <h2 className="text-sm font-semibold">Most Played</h2>
+          <h2 className="text-sm font-semibold text-zinc-300">Most Played</h2>
           <span className="text-[10px] text-zinc-500">{played.length} songs</span>
         </div>
         <div className="overflow-y-auto max-h-[50vh]">
@@ -698,8 +895,8 @@ function MusicTab() {
         </div>
       </div>
 
-      <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6">
-        <h2 className="text-sm font-semibold mb-4">By Genre</h2>
+      <div className="bg-white/[0.02] backdrop-blur-md border border-white/10 rounded-2xl p-6">
+        <h2 className="text-sm font-semibold text-zinc-300 mb-4">By Genre</h2>
         <div className="space-y-2">
           {genreList.map((g: any) => {
             const pct = total > 0 ? (g.count / total) * 100 : 0;
@@ -768,8 +965,8 @@ function AiTab() {
         <StatCard value={stats?.errors ?? '-'} label="Errors" color="#ef4444" />
       </div>
 
-      <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6">
-        <h2 className="text-sm font-semibold mb-4">AI Genre Distribution</h2>
+      <div className="bg-white/[0.02] backdrop-blur-md border border-white/10 rounded-2xl p-6">
+        <h2 className="text-sm font-semibold text-zinc-300 mb-4">AI Genre Distribution</h2>
         {stats?.distribution?.length > 0 ? (
           <div className="space-y-2">
             {stats.distribution.map((g: any) => (
@@ -788,8 +985,8 @@ function AiTab() {
         )}
       </div>
 
-      <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6">
-        <h2 className="text-sm font-semibold mb-4">Unprocessed Queue</h2>
+      <div className="bg-white/[0.02] backdrop-blur-md border border-white/10 rounded-2xl p-6">
+        <h2 className="text-sm font-semibold text-zinc-300 mb-4">Unprocessed Queue</h2>
         {stats?.unprocessedTracks?.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
@@ -805,7 +1002,7 @@ function AiTab() {
                 {stats.unprocessedTracks.map((t: any, i: number) => (
                   <tr key={t.id} className="border-b border-white/5">
                     <td className="py-1.5 pr-2 text-zinc-600 tabular-nums">{i + 1}</td>
-                    <td className="py-1.5 px-2 truncate max-w-[180px]">{t.name}</td>
+                    <td className="py-1.5 px-2 truncate max-w-[180px] text-zinc-300">{t.name}</td>
                     <td className="py-1.5 px-2 truncate max-w-[180px] hidden sm:table-cell text-zinc-400">{t.artist}</td>
                     <td className="py-1.5 pl-2 text-right tabular-nums text-zinc-500">{t.rank > 0 ? `#${t.rank.toLocaleString()}` : '-'}</td>
                   </tr>
@@ -818,14 +1015,14 @@ function AiTab() {
         )}
       </div>
 
-      <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6">
-        <h2 className="text-sm font-semibold mb-4">Search AI Tags</h2>
+      <div className="bg-white/[0.02] backdrop-blur-md border border-white/10 rounded-2xl p-6">
+        <h2 className="text-sm font-semibold text-zinc-300 mb-4">Search AI Tags</h2>
         <p className="text-xs text-zinc-500 mb-4">Search tracks by AI-generated tags, genres, name, or artist.</p>
         <input
           value={searchQ}
           onChange={e => handleSearchInput(e.target.value)}
           placeholder="e.g. sad piano, upbeat rock, chill..."
-          className="w-full px-4 py-2 bg-black/20 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-[var(--accent)] transition-colors text-sm"
+          className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-[var(--accent)] transition-colors text-sm"
         />
         {searching && <p className="text-zinc-500 text-xs mt-2">Searching...</p>}
         {searchResults?.tracks?.length > 0 && (
@@ -842,7 +1039,7 @@ function AiTab() {
               <tbody>
                 {searchResults.tracks.map((t: any) => (
                   <tr key={t.id} className="border-b border-white/5">
-                    <td className="py-1.5 pr-2 font-medium">{t.name}</td>
+                    <td className="py-1.5 pr-2 font-medium text-zinc-300">{t.name}</td>
                     <td className="py-1.5 px-2 text-zinc-400">{t.artist}</td>
                     <td className="py-1.5 px-2">
                       <span className="flex gap-1 flex-wrap">
@@ -873,9 +1070,9 @@ function AiTab() {
         )}
       </div>
 
-      <div className="bg-[var(--surface)] rounded-2xl border border-white/10 overflow-hidden">
+      <div className="bg-white/[0.02] backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden">
         <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between">
-          <h2 className="text-sm font-semibold">Recently Processed</h2>
+          <h2 className="text-sm font-semibold text-zinc-300">Recently Processed</h2>
           <span className="text-[10px] text-zinc-500">{recentTracks.length} tracks</span>
         </div>
         <div className="overflow-y-auto max-h-[50vh]">
@@ -927,24 +1124,17 @@ function AiTab() {
   );
 }
 
-const SOURCES = [
-  { id: 'deezer', label: 'Deezer', desc: 'Free, has rank data' },
-];
-
-function ApiTab() {
+function ApiTab({ onTogglePreview, playingTrackId }: { onTogglePreview?: (trackId: string, previewUrl: string) => void; playingTrackId?: string | null }) {
   const [deezerResult, setDeezerResult] = useState<any>(null);
   const [deezerLoading, setDeezerLoading] = useState(false);
   const [dbStatus, setDbStatus] = useState<any>(null);
 
-  const [genreList, setGenreList] = useState<{ id: string; label: string }[]>([]);
-  const [genre, setGenre] = useState('pop');
+  const [genre, setGenre] = useState('pop_us');
   const [count, setCount] = useState(50);
   const [source, setSource] = useState('deezer');
   const [results, setResults] = useState<any>(null);
   const [testerLoading, setTesterLoading] = useState(false);
   const [error, setError] = useState('');
-
-  useEffect(() => { fetchGenres().then(setGenreList).catch(() => {}); }, []);
 
   const runConnectivity = () => {
     setDeezerLoading(true);
@@ -970,7 +1160,7 @@ function ApiTab() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-[var(--surface)] rounded-xl border border-white/10 p-5">
+        <div className="bg-white/[0.02] backdrop-blur-md border border-white/10 rounded-2xl p-5">
           <h3 className="text-xs text-zinc-500 uppercase tracking-wider mb-3">Deezer API</h3>
           {deezerResult ? (
             <div className="space-y-1.5 text-[10px] font-mono">
@@ -999,14 +1189,14 @@ function ApiTab() {
           </button>
         </div>
 
-        <div className="bg-[var(--surface)] rounded-xl border border-white/10 p-5">
+        <div className="bg-white/[0.02] backdrop-blur-md border border-white/10 rounded-2xl p-5">
           <h3 className="text-xs text-zinc-500 uppercase tracking-wider mb-3">Database</h3>
           {dbStatus ? (
             dbStatus.ok ? (
               <div className="space-y-1.5 text-[10px]">
                 <div className="flex items-center justify-between">
                   <span className="text-zinc-500">Type</span>
-                  <span>PostgreSQL</span>
+                  <span className="text-zinc-300">PostgreSQL</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-zinc-500">Status</span>
@@ -1016,11 +1206,11 @@ function ApiTab() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-zinc-500">Users</span>
-                  <span>{dbStatus.tables?.users ?? 0}</span>
+                  <span className="text-zinc-300">{dbStatus.tables?.users ?? 0}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-zinc-500">Scores</span>
-                  <span>{dbStatus.tables?.game_scores ?? 0}</span>
+                  <span className="text-zinc-300">{dbStatus.tables?.game_scores ?? 0}</span>
                 </div>
               </div>
             ) : (
@@ -1032,8 +1222,8 @@ function ApiTab() {
         </div>
       </div>
 
-      <div className="bg-[var(--surface)] rounded-2xl border border-white/10 p-6">
-        <h2 className="text-sm font-semibold mb-4">Genre Tester</h2>
+      <div className="bg-white/[0.02] backdrop-blur-md border border-white/10 rounded-2xl p-6">
+        <h2 className="text-sm font-semibold text-zinc-300 mb-4">Genre Tester</h2>
         <p className="text-xs text-zinc-500 mb-4">Fetches tracks from live APIs and shows rank/popularity data.</p>
 
         <div className="flex flex-wrap items-end gap-3 mb-5">
@@ -1059,9 +1249,9 @@ function ApiTab() {
             <select
               value={genre}
               onChange={e => { setGenre(e.target.value); setResults(null); }}
-              className="bg-[var(--surface)] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white"
+              className="bg-black/30 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white"
             >
-              {genreList.map(g => (
+              {GENRE_OPTIONS.map(g => (
                 <option key={g.id} value={g.id}>{g.label}</option>
               ))}
             </select>
@@ -1109,6 +1299,7 @@ function ApiTab() {
                     <th className="text-left py-2 px-2">Track</th>
                     <th className="text-left py-2 px-2 hidden md:table-cell">Artist</th>
                     <th className="text-center py-2 px-2 w-14">Preview</th>
+                    <th className="text-center py-2 px-2 w-14">Play</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1126,7 +1317,19 @@ function ApiTab() {
                       <td className="py-1.5 px-2 truncate max-w-[200px] text-zinc-300">{t.name}</td>
                       <td className="py-1.5 px-2 truncate max-w-[200px] hidden md:table-cell text-zinc-500">{t.artist}</td>
                       <td className="py-1.5 px-2 text-center">
-                        <span className={`w-1.5 h-1.5 rounded-full inline-block ${t.previewUrl ? 'bg-green-400' : 'bg-zinc-600'}`} />
+                        <span className={`w-1.5 h-1.5 rounded-full inline-block ${t.previewUrl || t.preview_url ? 'bg-green-400' : 'bg-zinc-600'}`} />
+                      </td>
+                      <td className="py-1.5 px-2 text-center">
+                        {onTogglePreview && (t.previewUrl || t.preview_url) ? (
+                          <button
+                            onClick={() => onTogglePreview(t.id || `${i}`, t.previewUrl || t.preview_url)}
+                            className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-zinc-400 hover:bg-white/10 transition-colors"
+                          >
+                            {playingTrackId === t.id ? '⏸' : '▶'}
+                          </button>
+                        ) : (
+                          <span className="text-[10px] text-zinc-600">—</span>
+                        )}
                       </td>
                     </tr>
                   ))}

@@ -823,6 +823,7 @@ app.get('/api/admin/rooms', requireAdmin, (req, res) => {
       code,
       state: room.state,
       players: room.players.length,
+      playerList: room.players.map(p => ({ id: p.id, name: p.name, score: p.score, avatarUrl: p.avatarUrl })),
       genres: room.genres,
       currentRound: room.tracksPlayed + 1,
       totalRounds: room.totalRounds,
@@ -831,6 +832,30 @@ app.get('/api/admin/rooms', requireAdmin, (req, res) => {
   }
   list.sort((a, b) => (b.players || 0) - (a.players || 0));
   res.json(list);
+});
+
+app.post('/api/admin/rooms/:code/start', requireAdmin, async (req, res) => {
+  const room = rooms.get(req.params.code);
+  if (!room) return res.status(404).json({ ok: false, error: 'Room not found' });
+  if (room.state !== 'waiting') return res.status(400).json({ ok: false, error: `Room is ${room.state}, not waiting` });
+  const error = await room.startGame();
+  if (error) return res.status(400).json({ ok: false, error });
+  res.json({ ok: true });
+});
+
+app.post('/api/admin/rooms/:code/kick/:playerId', requireAdmin, (req, res) => {
+  const room = rooms.get(req.params.code);
+  if (!room) return res.status(404).json({ ok: false, error: 'Room not found' });
+  room.kickPlayer(req.params.playerId);
+  res.json({ ok: true });
+});
+
+app.delete('/api/admin/rooms/:code', requireAdmin, (req, res) => {
+  const room = rooms.get(req.params.code);
+  if (!room) return res.status(404).json({ ok: false, error: 'Room not found' });
+  room.destroy();
+  rooms.delete(req.params.code);
+  res.json({ ok: true });
 });
 
 app.delete('/api/admin/users/:id/scores', requireAdmin, async (req, res) => {
