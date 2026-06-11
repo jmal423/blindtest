@@ -208,7 +208,16 @@ export default function GamePage({
         router.push(`/?redirect=/game/${code}`);
         return;
       }
-      router.push('/');
+      // Logged in but no stored player ID for this room: perform automatic registration
+      joinRoom(code)
+        .then(({ playerId: newPid }) => {
+          localStorage.setItem(`blindtest_player_${code}`, newPid);
+          setPlayerId(newPid);
+        })
+        .catch((err) => {
+          console.error("Failed to automatically join lobby:", err);
+          router.push('/');
+        });
       return;
     }
     setPlayerId(pid);
