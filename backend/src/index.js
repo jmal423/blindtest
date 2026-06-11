@@ -487,6 +487,29 @@ function cleanupInvites() {
   activeInvites = activeInvites.filter(inv => inv.expiresAt > now);
 }
 
+app.get('/api/users/search', authenticate, async (req, res) => {
+  const query = req.query.q;
+  if (!query || typeof query !== 'string' || query.trim().length < 2) {
+    return res.json([]);
+  }
+  const searchPattern = `%${query.toLowerCase()}%`;
+  try {
+    const matches = await all(`
+      SELECT u.id, u.username, u.avatar_url, f.status, f.user_id AS friendship_sender
+      FROM users u
+      LEFT JOIN friendships f ON 
+        (f.user_id = ? AND f.friend_id = u.id) OR 
+        (f.user_id = u.id AND f.friend_id = ?)
+      WHERE (LOWER(u.username) LIKE ? OR u.id = ?) AND u.id != ?
+      LIMIT 10
+    `, [req.user.userId, req.user.userId, searchPattern, query, req.user.userId]);
+    res.json(matches);
+  } catch (err) {
+    console.error('Failed to search users:', err);
+    res.status(500).json({ error: 'Failed to search users' });
+  }
+});
+
 app.get('/api/friends', authenticate, async (req, res) => {
   const friends = await all(`
     SELECT u.id, u.username, u.avatar_url, f.status, f.created_at

@@ -200,6 +200,10 @@ export async function getFriends(): Promise<{ friends: Friend[]; pending: Friend
   return fetchWithAuth(`${API_URL}/api/friends`);
 }
 
+export async function searchUsers(q: string): Promise<{ id: string; username: string; avatar_url: string | null; status: 'accepted' | 'pending' | null; friendship_sender: string | null }[]> {
+  return fetchWithAuth(`${API_URL}/api/users/search?q=${encodeURIComponent(q)}`);
+}
+
 export async function sendFriendRequest(userId: string): Promise<void> {
   await fetchWithAuth(`${API_URL}/api/friends/request/${userId}`, { method: 'POST' });
 }

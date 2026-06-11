@@ -82,6 +82,22 @@ const SFX = {
       });
     });
   },
+  notification: (vol: number) => {
+    withCtx(ac => {
+      [587.33, 880].forEach((f, i) => {
+        const osc = ac.createOscillator();
+        const gain = ac.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = f;
+        gain.gain.value = vol * 0.15;
+        gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.2 + i * 0.08);
+        osc.connect(gain);
+        gain.connect(ac.destination);
+        osc.start(ac.currentTime + i * 0.08);
+        osc.stop(ac.currentTime + 0.2 + i * 0.08);
+      });
+    });
+  },
 };
 
 type SfxName = keyof typeof SFX;

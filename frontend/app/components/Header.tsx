@@ -8,6 +8,7 @@ import { getMyStats, getInvites, declineInvite } from '@/lib/api';
 import { useAuth } from '@/app/context/AuthContext';
 import { isDebugMode, setDebugMode } from '@/lib/debug-context';
 import { useTranslation } from '@/lib/useTranslation';
+import { useSound } from '@/lib/useSound';
 import SettingsModal from './SettingsModal';
 import LanguageSwitcher from './LanguageSwitcher';
 
@@ -16,6 +17,7 @@ export default function Header() {
   const pathname = usePathname();
   const { user, signOut } = useAuth();
   const { t } = useTranslation();
+  const playSound = useSound();
   const [stats, setStats] = useState<any>(null);
   const [open, setOpen] = useState(false);
   const [debugOn, setDebugOn] = useState(false);
@@ -34,6 +36,7 @@ export default function Header() {
 
   const [activeInvite, setActiveInvite] = useState<any>(null);
   const dismissedInviteIdsRef = useRef<Set<string>>(new Set());
+  const lastInviteIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -47,8 +50,13 @@ export default function Header() {
         const fresh = list.find(inv => !dismissedInviteIdsRef.current.has(inv.id));
         if (fresh) {
           setActiveInvite(fresh);
+          if (lastInviteIdRef.current !== fresh.id) {
+            playSound('notification');
+            lastInviteIdRef.current = fresh.id;
+          }
         } else {
           setActiveInvite(null);
+          lastInviteIdRef.current = null;
         }
       } catch (err) {
         console.error('Failed to poll invites:', err);

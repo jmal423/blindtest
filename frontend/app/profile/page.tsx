@@ -9,7 +9,8 @@ import {
   getMyStats,
   sendFriendRequest,
   acceptFriendRequest,
-  removeFriend
+  removeFriend,
+  searchUsers
 } from '@/lib/api';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'motion/react';
@@ -30,6 +31,8 @@ export default function ProfilePage() {
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'friends' | 'history'>('overview');
   const [friendsSearch, setFriendsSearch] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
 
   const loadProfileData = useCallback(async () => {
     try {
@@ -80,12 +83,72 @@ export default function ProfilePage() {
       await sendFriendRequest(friendInput.trim());
       setFriendSuccess('Friend request sent!');
       setFriendInput('');
-      // Refresh friends list to show the request if self-updates are immediate
       const d = await getFriends();
       setFriends(d.friends || []);
       setPending(d.pending || []);
     } catch (err: any) {
       setFriendError(err.message || 'Failed to send request');
+    }
+  };
+
+  useEffect(() => {
+    const query = friendInput.trim();
+    if (query.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    const delayDebounce = setTimeout(async () => {
+      setSearchLoading(true);
+      try {
+        const matches = await searchUsers(query);
+        setSearchResults(matches);
+      } catch (err) {
+        console.error('Failed to search users:', err);
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(delayDebounce);
+  }, [friendInput]);
+
+  const handleAddFriendFromSearch = async (userId: string) => {
+    setFriendError('');
+    setFriendSuccess('');
+    try {
+      await sendFriendRequest(userId);
+      setFriendSuccess('Friend request sent!');
+      setSearchResults(prev =>
+        prev.map(item =>
+          item.id === userId
+            ? { ...item, status: 'pending', friendship_sender: user.id }
+            : item
+        )
+      );
+      const d = await getFriends();
+      setFriends(d.friends || []);
+      setPending(d.pending || []);
+    } catch (err: any) {
+      setFriendError(err.message || 'Failed to send request');
+    }
+  };
+
+  const handleAcceptFromSearch = async (userId: string) => {
+    try {
+      await acceptFriendRequest(userId);
+      setSearchResults(prev =>
+        prev.map(item =>
+          item.id === userId
+            ? { ...item, status: 'accepted' }
+            : item
+        )
+      );
+      const d = await getFriends();
+      setFriends(d.friends || []);
+      setPending(d.pending || []);
+    } catch (err) {
+      console.error('Failed to accept request:', err);
     }
   };
 
@@ -373,8 +436,8 @@ export default function ProfilePage() {
                       value={friendInput}
                       onChange={e => setFriendInput(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && handleAddFriend()}
-                      placeholder="Enter username or User ID..."
-                      className="flex-1 px-4 py-3 bg-black/20 border border-white/5 hover:border-white/10 focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]/30 rounded-2xl text-white placeholder-zinc-600 focus:outline-none transition-all text-sm"
+                      placeholder="Search users by name or ID..."
+                      className="flex-1 px-4 py-3 bg-black/20 border border-white/5 hover:border-white/10 focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]/30 rounded-2xl text-white placeholder-zinc-605 focus:outline-none transition-all text-sm"
                     />
                     <button 
                       onClick={handleAddFriend} 
@@ -386,6 +449,81 @@ export default function ProfilePage() {
                       {t('add_btn')}
                     </button>
                   </div>
+
+                  {/* Autocomplete Search Results */}
+                  <AnimatePresence>
+                    {(searchLoading || searchResults.length > 0 || (friendInput.trim().length >= 2 && !searchLoading)) && (
+                      <motion.div 
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="border-t border-white/5 pt-4 space-y-2 overflow-hidden"
+                      >
+                        <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-1">Search Results</h4>
+                        
+                        {searchLoading ? (
+                          <div className="flex items-center gap-2 py-4 px-2 text-xs text-zinc-500">
+                            <div className="w-4 h-4 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
+                            Searching users...
+                          </div>
+                        ) : searchResults.length === 0 ? (
+                          <p className="text-xs text-zinc-600 py-3 px-1">No matching users found.</p>
+                        ) : (
+                          <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                            {searchResults.map(result => {
+                              const isFriend = result.status === 'accepted';
+                              const isPendingSent = result.status === 'pending' && result.friendship_sender === user.id;
+                              const isPendingReceived = result.status === 'pending' && result.friendship_sender !== user.id;
+
+                              return (
+                                <div key={result.id} className="flex items-center justify-between p-3 bg-black/20 hover:bg-black/30 border border-white/5 rounded-2xl shadow-sm transition-all">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-bold border border-white/10 overflow-hidden shrink-0">
+                                      {result.avatar_url ? (
+                                        <img src={result.avatar_url} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                                      ) : (
+                                        result.username[0].toUpperCase()
+                                      )}
+                                    </div>
+                                    <div className="min-w-0">
+                                      <p className="font-bold text-xs text-zinc-200 truncate">{result.username}</p>
+                                      <p className="text-[9px] text-zinc-500">ID: {result.id}</p>
+                                    </div>
+                                  </div>
+
+                                  <div>
+                                    {isFriend ? (
+                                      <span className="text-[10px] text-zinc-400 bg-white/5 border border-white/5 px-2.5 py-1.5 rounded-xl font-bold">
+                                        Friends
+                                      </span>
+                                    ) : isPendingSent ? (
+                                      <span className="text-[10px] text-[var(--accent)] bg-[var(--accent)]/5 border border-[var(--accent)]/15 px-2.5 py-1.5 rounded-xl font-bold">
+                                        Pending
+                                      </span>
+                                    ) : isPendingReceived ? (
+                                      <button
+                                        onClick={() => handleAcceptFromSearch(result.id)}
+                                        className="px-3.5 py-1.5 bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/20 rounded-xl text-[10px] font-bold transition-all cursor-pointer"
+                                      >
+                                        Accept Request
+                                      </button>
+                                    ) : (
+                                      <button
+                                        onClick={() => handleAddFriendFromSearch(result.id)}
+                                        className="px-3 py-1.5 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white rounded-xl text-[10px] font-bold shadow transition-all cursor-pointer"
+                                      >
+                                        Add Friend
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                   
                   {/* Status Badges */}
                   <AnimatePresence>
