@@ -157,12 +157,18 @@ export interface GameScore {
   played_at: string;
 }
 
+export interface FriendPresence {
+  status: 'lobby' | 'playing' | 'offline';
+  roomCode: string | null;
+}
+
 export interface Friend {
   id: string;
   username: string;
   avatar_url: string | null;
   status: string;
   created_at: string;
+  presence?: FriendPresence;
 }
 
 export async function getMe(): Promise<User> {
@@ -204,6 +210,27 @@ export async function acceptFriendRequest(userId: string): Promise<void> {
 
 export async function removeFriend(userId: string): Promise<void> {
   await fetchWithAuth(`${API_URL}/api/friends/${userId}`, { method: 'DELETE' });
+}
+
+export interface Invite {
+  id: string;
+  fromUser: string;
+  fromUserId: string;
+  toUserId: string;
+  roomCode: string;
+  expiresAt: number;
+}
+
+export async function sendInvite(code: string, friendId: string): Promise<void> {
+  await fetchWithAuth(`${API_URL}/api/game/${code}/invite/${friendId}`, { method: 'POST' });
+}
+
+export async function getInvites(): Promise<Invite[]> {
+  return fetchWithAuth(`${API_URL}/api/invites`);
+}
+
+export async function declineInvite(inviteId: string): Promise<void> {
+  await fetchWithAuth(`${API_URL}/api/invites/${inviteId}`, { method: 'DELETE' });
 }
 
 export interface UserStats {

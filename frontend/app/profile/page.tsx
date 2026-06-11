@@ -477,29 +477,68 @@ export default function ProfilePage() {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                    {filteredFriends.map(f => (
-                      <div key={f.id} className="group flex items-center justify-between p-4 bg-white/[0.01] hover:bg-white/[0.02] border border-white/5 rounded-2xl transition-all shadow-sm">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center font-bold border border-white/10 overflow-hidden relative shadow-inner">
-                            {f.avatar_url ? (
-                              <img src={f.avatar_url} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
-                            ) : (
-                              f.username[0].toUpperCase()
-                            )}
+                    {filteredFriends.map(f => {
+                      const presence = f.presence || { status: 'offline', roomCode: null };
+                      let statusDot = 'bg-zinc-600';
+                      let statusText = 'Offline';
+                      
+                      if (presence.status === 'lobby') {
+                        statusDot = 'bg-emerald-500 animate-pulse';
+                        statusText = `In Lobby (${presence.roomCode})`;
+                      } else if (presence.status === 'playing') {
+                        statusDot = 'bg-purple-500';
+                        statusText = 'In Game';
+                      }
+
+                      return (
+                        <div key={f.id} className="group flex items-center justify-between p-4 bg-white/[0.01] hover:bg-white/[0.02] border border-white/5 rounded-2xl transition-all shadow-sm">
+                          <div className="flex items-center gap-3">
+                            <div className="relative">
+                              <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center font-bold border border-white/10 overflow-hidden relative shadow-inner">
+                                {f.avatar_url ? (
+                                  <img src={f.avatar_url} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                                ) : (
+                                  f.username[0].toUpperCase()
+                                )}
+                              </div>
+                              <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0d0e12] ${statusDot}`} title={statusText} />
+                            </div>
+                            <div className="space-y-0.5">
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-bold text-sm text-zinc-200">{f.username}</span>
+                                {presence.status === 'lobby' && (
+                                  <span className="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded font-semibold">
+                                    Lobby
+                                  </span>
+                                )}
+                                {presence.status === 'playing' && (
+                                  <span className="text-[9px] bg-purple-500/10 text-purple-400 border border-purple-500/20 px-1.5 py-0.5 rounded font-semibold">
+                                    In Game
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[10px] text-zinc-650">ID: {f.id}</p>
+                            </div>
                           </div>
-                          <div className="space-y-0.5">
-                            <span className="font-bold text-sm text-zinc-200">{f.username}</span>
-                            <p className="text-[10px] text-zinc-600">ID: {f.id}</p>
+                          <div className="flex items-center gap-2">
+                            {presence.status === 'lobby' && presence.roomCode && (
+                              <Link 
+                                href={`/game/${presence.roomCode}`}
+                                className="px-3 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                              >
+                                Join
+                              </Link>
+                            )}
+                            <button 
+                              onClick={() => handleRemove(f.id)} 
+                              className="opacity-40 group-hover:opacity-100 text-red-400/80 hover:text-red-400 text-xs font-bold transition-all border border-transparent hover:border-red-500/20 hover:bg-red-500/5 px-2.5 py-1.5 rounded-xl cursor-pointer"
+                            >
+                              {t('remove_btn')}
+                            </button>
                           </div>
                         </div>
-                        <button 
-                          onClick={() => handleRemove(f.id)} 
-                          className="opacity-60 group-hover:opacity-100 text-red-400/80 hover:text-red-400 text-xs font-bold transition-all border border-transparent hover:border-red-500/20 hover:bg-red-500/5 px-3 py-1.5 rounded-xl cursor-pointer"
-                        >
-                          {t('remove_btn')}
-                        </button>
-                      </div>
-                    ))}
+                      );
+                    })}
 
                     {filteredFriends.length === 0 && (
                       <div className="col-span-2 py-12 text-center flex flex-col items-center justify-center gap-3">

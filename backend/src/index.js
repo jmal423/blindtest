@@ -461,6 +461,32 @@ app.get('/api/games/:id', async (req, res) => {
 });
 
 // Friends
+function getUserPresence(userId) {
+  for (const room of rooms.values()) {
+    const player = room.players.find(p => p.userId === userId);
+    if (player) {
+      // Check if player socket is active in room
+      const socketId = room.playerSockets[player.id];
+      if (socketId) {
+        if (room.state === 'waiting') {
+          return { status: 'lobby', roomCode: room.code };
+        } else if (room.state !== 'game_over') {
+          return { status: 'playing', roomCode: room.code };
+        }
+      }
+    }
+  }
+  return { status: 'offline', roomCode: null };
+}
+
+// Memory-based invites storage: { id, fromUser, fromUserId, toUserId, roomCode, expiresAt }
+let activeInvites = [];
+
+function cleanupInvites() {
+  const now = Date.now();
+  activeInvites = activeInvites.filter(inv => inv.expiresAt > now);
+}
+
 app.get('/api/friends', authenticate, async (req, res) => {
   const friends = await all(`
     SELECT u.id, u.username, u.avatar_url, f.status, f.created_at
@@ -474,7 +500,60 @@ app.get('/api/friends', authenticate, async (req, res) => {
     WHERE f.friend_id = ? AND f.status = 'pending'
   `, [req.user.userId]);
 
-  res.json({ friends, pending });
+  const friendsWithPresence = friends.map(f => ({
+    ...f,
+    presence: getUserPresence(f.id)
+  }));
+
+  res.json({ friends: friendsWithPresence, pending });
+});
+
+// Lobby Invite Endpoints
+app.post('/api/game/:code/invite/:friendId', authenticate, async (req, res) => {
+  const room = rooms.get(req.params.code.toUpperCase());
+  if (!room) return res.status(404).json({ error: 'Room not found' });
+
+  const friend = await get('SELECT id, username FROM users WHERE id = ?', [req.params.friendId]);
+  if (!friend) return res.status(404).json({ error: 'Friend not found' });
+
+  // Verify friendship
+  const friendship = await get(
+    'SELECT * FROM friendships WHERE status = \'accepted\' AND ((user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?))',
+    [req.user.userId, friend.id, friend.id, req.user.userId]
+  );
+  if (!friendship) return res.status(403).json({ error: 'You can only invite friends' });
+
+  cleanupInvites();
+  // Filter out any existing active invites to this same friend for this room
+  activeInvites = activeInvites.filter(
+    inv => !(inv.toUserId === friend.id && inv.roomCode === room.code)
+  );
+
+  const invite = {
+    id: generateId(),
+    fromUser: req.user.username,
+    fromUserId: req.user.userId,
+    toUserId: friend.id,
+    roomCode: room.code,
+    expiresAt: Date.now() + 60000 // 60 seconds
+  };
+  activeInvites.push(invite);
+
+  res.json({ ok: true });
+});
+
+app.get('/api/invites', authenticate, (req, res) => {
+  cleanupInvites();
+  const myInvites = activeInvites.filter(inv => inv.toUserId === req.user.userId);
+  res.json(myInvites);
+});
+
+app.delete('/api/invites/:inviteId', authenticate, (req, res) => {
+  cleanupInvites();
+  activeInvites = activeInvites.filter(
+    inv => !(inv.id === req.params.inviteId && inv.toUserId === req.user.userId)
+  );
+  res.json({ ok: true });
 });
 
 app.post('/api/friends/request/:userId', authenticate, async (req, res) => {

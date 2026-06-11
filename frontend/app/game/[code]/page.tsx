@@ -2,9 +2,9 @@
 
 import { useEffect, useState, useRef, use, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { io as socketIo, Socket } from 'socket.io-client';
-import { getToken, GameState, Player, RoomSettings, startGame, updateSettings, fetchGenres, fetchGenreGroups, joinRoom } from '@/lib/api';
+import { getToken, GameState, Player, RoomSettings, startGame, updateSettings, fetchGenres, fetchGenreGroups, joinRoom, getFriends, sendInvite } from '@/lib/api';
 import { isDebugMode } from '@/lib/debug-context';
 import AudioPlayer, { AudioPlayerHandle } from '@/app/components/AudioPlayer';
 import { useSettings } from '@/app/context/SettingsContext';
@@ -671,6 +671,41 @@ function WaitingRoom({
   const [genreGroups, setGenreGroups] = useState<{ id: string; genreIds: string[] }[]>([]);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [friendsList, setFriendsList] = useState<any[]>([]);
+  const [invitedIds, setInvitedIds] = useState<Set<string>>(new Set());
+  const [modalLoading, setModalLoading] = useState(false);
+
+  useEffect(() => {
+    if (showInviteModal) {
+      setModalLoading(true);
+      getFriends()
+        .then(data => setFriendsList(data.friends || []))
+        .catch(() => {})
+        .finally(() => setModalLoading(false));
+    }
+  }, [showInviteModal]);
+
+  const handleSendInvite = async (friendId: string) => {
+    try {
+      await sendInvite(gameCode, friendId);
+      setInvitedIds(prev => {
+        const next = new Set(prev);
+        next.add(friendId);
+        return next;
+      });
+      setTimeout(() => {
+        setInvitedIds(prev => {
+          const next = new Set(prev);
+          next.delete(friendId);
+          return next;
+        });
+      }, 3000);
+    } catch (err) {
+      console.error('Failed to send invite:', err);
+    }
+  };
+
   useEffect(() => {
     fetchGenreGroups().then(data => {
       setGenreGroups(data?.groups || []);
@@ -711,13 +746,22 @@ function WaitingRoom({
   return (
     <div className="flex-1 flex flex-col items-center gap-6 overflow-y-auto pb-24 md:pb-8 w-full max-w-4xl mx-auto px-4">
       {/* Title Header */}
-      <div className="text-center space-y-1.5 mt-2 mb-1">
+      <div className="text-center space-y-1.5 mt-2 mb-1 flex flex-col items-center">
         <h2 className="text-2xl font-bold tracking-tight text-zinc-100">
           Game Lobby
         </h2>
         <p className="text-xs text-zinc-500 font-medium">
           Invite friends by sharing the lobby code above
         </p>
+        <button
+          onClick={() => setShowInviteModal(true)}
+          className="mt-2 text-xs px-3.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-white/5 hover:border-white/10 rounded-xl text-zinc-300 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer font-bold shadow-md animate-fade-in"
+        >
+          <svg className="w-3.5 h-3.5 text-[var(--primary)]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+          </svg>
+          Invite Friends
+        </button>
       </div>
 
       <div className="w-full grid grid-cols-1 md:grid-cols-[1fr_1.3fr] gap-6 md:gap-8 items-start">
@@ -1054,6 +1098,96 @@ function WaitingRoom({
           </div>
         )}
       </div>
+
+      <AnimatePresence>
+        {showInviteModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-fade-in">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-md bg-zinc-950 border border-white/10 rounded-3xl p-6 shadow-2xl flex flex-col gap-4 max-h-[80vh] text-zinc-100"
+            >
+              <div className="flex items-center justify-between border-b border-white/5 pb-3">
+                <h3 className="text-base font-bold text-zinc-200 uppercase tracking-wider">Invite Friends</h3>
+                <button 
+                  onClick={() => setShowInviteModal(false)}
+                  className="text-zinc-500 hover:text-white transition-colors cursor-pointer"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {modalLoading ? (
+                <div className="flex flex-col items-center justify-center py-12 gap-2">
+                  <div className="w-6 h-6 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin"></div>
+                  <p className="text-xs text-zinc-500 font-medium">Loading friends...</p>
+                </div>
+              ) : (
+                <div className="flex-1 overflow-y-auto space-y-2 pr-1 max-h-[50vh]">
+                  {friendsList.map(f => {
+                    const presence = f.presence || { status: 'offline', roomCode: null };
+                    let isOnline = presence.status !== 'offline';
+                    let statusColor = isOnline ? 'bg-emerald-500' : 'bg-zinc-650';
+                    let statusText = isOnline 
+                      ? presence.status === 'lobby' ? 'In Lobby' : 'In Game' 
+                      : 'Offline';
+                    const isInvited = invitedIds.has(f.id);
+
+                    return (
+                      <div key={f.id} className="flex items-center justify-between p-3 bg-white/[0.02] border border-white/5 rounded-2xl shadow-sm hover:bg-white/[0.04] transition-all">
+                        <div className="flex items-center gap-3">
+                          <div className="relative">
+                            <div className="w-9 h-9 rounded-full bg-zinc-800 flex items-center justify-center font-bold border border-white/10 overflow-hidden relative shadow-inner">
+                              {f.avatar_url ? (
+                                <img src={f.avatar_url} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                f.username[0].toUpperCase()
+                              )}
+                            </div>
+                            <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-zinc-950 ${statusColor}`} />
+                          </div>
+                          <div className="space-y-0.5">
+                            <p className="font-bold text-xs text-zinc-200">{f.username}</p>
+                            <p className="text-[9px] text-zinc-500 font-semibold">{statusText}</p>
+                          </div>
+                        </div>
+
+                        <button
+                          disabled={isInvited}
+                          onClick={() => handleSendInvite(f.id)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                            isInvited
+                              ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                              : 'bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white shadow shadow-primary/20 active:scale-95'
+                          }`}
+                        >
+                          {isInvited ? 'Invited!' : 'Invite'}
+                        </button>
+                      </div>
+                    );
+                  })}
+
+                  {friendsList.length === 0 && (
+                    <div className="py-12 text-center flex flex-col items-center justify-center gap-3">
+                      <p className="text-zinc-650 text-xs">No friends found. Add friends in your profile first!</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <button
+                onClick={() => setShowInviteModal(false)}
+                className="w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-zinc-300 hover:text-white rounded-xl text-xs font-bold transition-all cursor-pointer text-center"
+              >
+                Close
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

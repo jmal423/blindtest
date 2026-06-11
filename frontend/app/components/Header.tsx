@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import Link from 'next/link';
-import { getMyStats } from '@/lib/api';
+import { getMyStats, getInvites, declineInvite } from '@/lib/api';
 import { useAuth } from '@/app/context/AuthContext';
 import { isDebugMode, setDebugMode } from '@/lib/debug-context';
 import { useTranslation } from '@/lib/useTranslation';
@@ -31,6 +31,56 @@ export default function Header() {
       getMyStats().then(setStats).catch(() => {});
     }
   }, [open, user]);
+
+  const [activeInvite, setActiveInvite] = useState<any>(null);
+  const dismissedInviteIdsRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!user) {
+      setActiveInvite(null);
+      return;
+    }
+
+    const poll = async () => {
+      try {
+        const list = await getInvites();
+        const fresh = list.find(inv => !dismissedInviteIdsRef.current.has(inv.id));
+        if (fresh) {
+          setActiveInvite(fresh);
+        } else {
+          setActiveInvite(null);
+        }
+      } catch (err) {
+        console.error('Failed to poll invites:', err);
+      }
+    };
+
+    poll();
+    const interval = setInterval(poll, 8000);
+    return () => clearInterval(interval);
+  }, [user]);
+
+  const handleJoinInvite = async () => {
+    if (!activeInvite) return;
+    const code = activeInvite.roomCode;
+    const inviteId = activeInvite.id;
+    dismissedInviteIdsRef.current.add(inviteId);
+    setActiveInvite(null);
+    try {
+      await declineInvite(inviteId);
+    } catch {}
+    router.push(`/game/${code}`);
+  };
+
+  const handleDeclineInvite = async () => {
+    if (!activeInvite) return;
+    const inviteId = activeInvite.id;
+    dismissedInviteIdsRef.current.add(inviteId);
+    setActiveInvite(null);
+    try {
+      await declineInvite(inviteId);
+    } catch {}
+  };
 
   const close = useCallback(() => setOpen(false), []);
 
@@ -266,6 +316,45 @@ export default function Header() {
         )}
       </header>
       <SettingsModal open={showSettings} onClose={() => setShowSettings(false)} />
+      <AnimatePresence>
+        {activeInvite && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            className="fixed top-4 right-4 z-[9999] max-w-sm w-[calc(100vw-32px)] bg-zinc-950/90 border border-white/10 backdrop-blur-2xl p-4 rounded-2xl shadow-2xl flex flex-col gap-3 text-zinc-100"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-[var(--primary)]/10 border border-[var(--primary)]/20 flex items-center justify-center text-[var(--primary)] shadow">
+                <svg className="w-5 h-5 animate-bounce text-[var(--primary)]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.07 6.07 0 00-1-1v-1a6 6 0 00-12 0v1a6.07 6.07 0 00-1 1v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Lobby Invitation</p>
+                <p className="text-xs text-zinc-200 mt-0.5">
+                  <span className="font-extrabold text-white">{activeInvite.fromUser}</span> invited you to join room <span className="font-mono font-bold text-[var(--accent)]">{activeInvite.roomCode}</span>
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex gap-2">
+              <button
+                onClick={handleJoinInvite}
+                className="flex-1 py-2 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white text-xs font-bold rounded-xl shadow transition-all cursor-pointer text-center"
+              >
+                Join Room
+              </button>
+              <button
+                onClick={handleDeclineInvite}
+                className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 text-xs font-bold rounded-xl transition-all cursor-pointer"
+              >
+                Decline
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

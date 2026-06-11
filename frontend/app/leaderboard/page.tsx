@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getLeaderboard, getUserStats } from '@/lib/api';
+import { getLeaderboard, getUserStats, getFriends } from '@/lib/api';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'motion/react';
+import { useAuth } from '@/app/context/AuthContext';
 
 interface LeaderboardEntry {
   id: string;
@@ -18,11 +19,14 @@ interface LeaderboardEntry {
 }
 
 export default function LeaderboardPage() {
+  const { user } = useAuth();
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedStats, setSelectedStats] = useState<any>(null);
   const [statsLoading, setStatsLoading] = useState(false);
+  const [friendIds, setFriendIds] = useState<string[]>([]);
+  const [showFriendsOnly, setShowFriendsOnly] = useState(false);
 
   useEffect(() => {
     getLeaderboard()
@@ -38,6 +42,18 @@ export default function LeaderboardPage() {
   }, []);
 
   useEffect(() => {
+    if (user) {
+      getFriends()
+        .then(data => {
+          if (data && data.friends) {
+            setFriendIds(data.friends.map(f => f.id));
+          }
+        })
+        .catch(() => {});
+    }
+  }, [user]);
+
+  useEffect(() => {
     if (!selectedId) {
       setSelectedStats(null);
       return;
@@ -48,6 +64,24 @@ export default function LeaderboardPage() {
       .catch(() => setSelectedStats(null))
       .finally(() => setStatsLoading(false));
   }, [selectedId]);
+
+  const displayedEntries = showFriendsOnly
+    ? entries.filter(e => e.id === user?.id || friendIds.includes(e.id))
+    : entries;
+
+  // Make sure a valid entry is selected in the current view
+  useEffect(() => {
+    if (displayedEntries.length > 0) {
+      const exists = displayedEntries.some(e => e.id === selectedId);
+      if (!exists) {
+        setSelectedId(displayedEntries[0].id);
+      }
+    } else {
+      if (selectedId !== null) {
+        setSelectedId(null);
+      }
+    }
+  }, [showFriendsOnly, friendIds, entries, selectedId, displayedEntries]);
 
   if (loading) {
     return (
@@ -60,13 +94,13 @@ export default function LeaderboardPage() {
     );
   }
 
-  const selectedEntry = entries.find(e => e.id === selectedId);
+  const selectedEntry = displayedEntries.find(e => e.id === selectedId);
 
   // Setup Podium positions (order left-to-right: 2nd, 1st, 3rd)
   const podiumItems = [];
-  if (entries.length > 1) {
+  if (displayedEntries.length > 1) {
     podiumItems.push({
-      entry: entries[1],
+      entry: displayedEntries[1],
       rank: 2,
       label: '2nd',
       color: 'text-zinc-300',
@@ -77,9 +111,9 @@ export default function LeaderboardPage() {
       delay: 0.1,
     });
   }
-  if (entries.length > 0) {
+  if (displayedEntries.length > 0) {
     podiumItems.push({
-      entry: entries[0],
+      entry: displayedEntries[0],
       rank: 1,
       label: '1st',
       color: 'text-yellow-400',
@@ -91,9 +125,9 @@ export default function LeaderboardPage() {
       delay: 0,
     });
   }
-  if (entries.length > 2) {
+  if (displayedEntries.length > 2) {
     podiumItems.push({
-      entry: entries[2],
+      entry: displayedEntries[2],
       rank: 3,
       label: '3rd',
       color: 'text-amber-600',
@@ -105,16 +139,47 @@ export default function LeaderboardPage() {
     });
   }
 
-  const listEntries = entries.slice(3);
+  const listEntries = displayedEntries.slice(3);
 
   return (
     <div className="flex-1 flex flex-col p-4 md:p-8 max-w-5xl mx-auto w-full gap-6">
       {/* Header */}
-      <div className="text-center space-y-1">
-        <h1 className="text-3xl md:text-4xl font-black text-zinc-100 tracking-tight">
-          LEADERBOARD
-        </h1>
-        <p className="text-zinc-500 text-xs font-semibold uppercase tracking-widest">Top Players Overall</p>
+      <div className="text-center space-y-3">
+        <div className="space-y-1">
+          <h1 className="text-3xl md:text-4xl font-black text-zinc-100 tracking-tight">
+            LEADERBOARD
+          </h1>
+          <p className="text-zinc-500 text-xs font-semibold uppercase tracking-widest">
+            {showFriendsOnly ? 'Top Friends Overall' : 'Top Players Overall'}
+          </p>
+        </div>
+
+        {user && (
+          <div className="flex justify-center">
+            <div className="inline-flex p-1 bg-white/[0.02] border border-white/5 rounded-xl backdrop-blur-md shadow-inner">
+              <button
+                onClick={() => setShowFriendsOnly(false)}
+                className={`px-4 py-1.5 text-xs font-extrabold rounded-lg transition-all duration-200 cursor-pointer ${
+                  !showFriendsOnly
+                    ? 'bg-[var(--primary)] text-white shadow shadow-[var(--primary)]/20'
+                    : 'text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                Global Standings
+              </button>
+              <button
+                onClick={() => setShowFriendsOnly(true)}
+                className={`px-4 py-1.5 text-xs font-extrabold rounded-lg transition-all duration-200 cursor-pointer ${
+                  showFriendsOnly
+                    ? 'bg-[var(--primary)] text-white shadow shadow-[var(--primary)]/20'
+                    : 'text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                Friends Only
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Main Content Area */}
@@ -124,7 +189,7 @@ export default function LeaderboardPage() {
         <div className="flex-1 flex flex-col gap-6">
           
           {/* Top 3 Podium Visuals */}
-          {entries.length > 0 ? (
+          {displayedEntries.length > 0 ? (
             <div className="bg-white/[0.01] border border-white/5 rounded-3xl p-6 shadow-xl relative overflow-hidden flex flex-col">
               {/* Decorative glows */}
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-32 bg-[var(--primary)]/10 blur-[60px] rounded-full pointer-events-none" />
@@ -192,7 +257,11 @@ export default function LeaderboardPage() {
             </div>
           ) : (
             <div className="bg-white/[0.01] border border-white/5 rounded-3xl p-12 text-center shadow-xl">
-              <p className="text-zinc-500 font-medium text-sm">No scores yet. Play a game to get on the board!</p>
+              <p className="text-zinc-500 font-medium text-sm">
+                {showFriendsOnly
+                  ? "No friends on the leaderboard yet. Invite some friends to play!"
+                  : "No scores yet. Play a game to get on the board!"}
+              </p>
             </div>
           )}
 
