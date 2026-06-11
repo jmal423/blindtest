@@ -1,22 +1,47 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { getTrackPreviewUrl } from '@/lib/api';
 
 export function useAdminAudio() {
   const [playingTrackId, setPlayingTrackId] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const activeTrackRef = useRef<string | null>(null);
 
-  const togglePreview = (trackId: string, url: string) => {
-    if (playingTrackId === trackId) {
+  const togglePreview = async (trackId: string, url?: string) => {
+    if (activeTrackRef.current === trackId) {
       stopPreview();
     } else {
+      activeTrackRef.current = trackId;
       setPlayingTrackId(trackId);
-      setPreviewUrl(url);
+      setPreviewUrl(null);
+
+      let urlToPlay = url;
+
+      if (trackId && !trackId.startsWith('test-')) {
+        try {
+          const res = await getTrackPreviewUrl(trackId);
+          if (activeTrackRef.current === trackId && res.ok && res.previewUrl) {
+            urlToPlay = res.previewUrl;
+          }
+        } catch (err) {
+          console.error('[useAdminAudio] Failed to fetch fresh preview url:', err);
+        }
+      }
+
+      if (activeTrackRef.current === trackId) {
+        if (urlToPlay) {
+          setPreviewUrl(urlToPlay);
+        } else {
+          stopPreview();
+        }
+      }
     }
   };
 
   const stopPreview = () => {
+    activeTrackRef.current = null;
     setPlayingTrackId(null);
     setPreviewUrl(null);
     if (audioRef.current) audioRef.current.pause();
@@ -60,3 +85,4 @@ export function useAdminAudio() {
 
   return { playingTrackId, togglePreview, AudioPlayerOverlay, stopPreview };
 }
+

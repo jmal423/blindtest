@@ -825,6 +825,21 @@ app.delete('/api/admin/curated/:id', requireAdmin, async (req, res) => {
   }
 });
 
+app.get('/api/admin/tracks/:id/preview', requireAdmin, async (req, res) => {
+  try {
+    const rawId = req.params.id.replace('deezer:', '');
+    const response = await fetch(`https://api.deezer.com/track/${rawId}`);
+    const data = await response.json();
+    if (data && data.preview) {
+      res.json({ ok: true, previewUrl: data.preview });
+    } else {
+      res.json({ ok: false, error: 'No preview available' });
+    }
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 app.get('/api/admin/rooms', requireAdmin, (req, res) => {
   const list = [];
   for (const [code, room] of rooms) {

@@ -384,3 +384,8 @@ export async function updateCuratedSongGenre(songId: string, genre: string): Pro
 export async function deleteCuratedSong(songId: string): Promise<{ ok: boolean }> {
   return fetchWithAuth(`${API_URL}/api/admin/curated/${songId}`, { method: 'DELETE' });
 }
+
+export async function getTrackPreviewUrl(trackId: string): Promise<{ ok: boolean; previewUrl?: string; error?: string }> {
+  return fetchWithAuth(`${API_URL}/api/admin/tracks/${encodeURIComponent(trackId)}/preview`);
+}
+
