@@ -147,7 +147,7 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
           <div className="grid grid-cols-2 gap-2">
             {(['dark', 'light', 'synthwave', 'terminal'] as const).map(theme => {
               const active = settings.theme === theme;
-              
+
               let label = '';
               if (theme === 'dark') label = `🌙 ${t('dark_theme')}`;
               else if (theme === 'light') label = `☀️ ${t('light_theme')}`;
@@ -244,16 +244,16 @@ function SliderRow({
           step={step}
           value={value}
           onChange={e => onChange(Number(e.target.value))}
-          className="w-full h-1.5 rounded-lg appearance-none bg-surface-light focus:outline-none cursor-pointer 
+          className="w-full h-1.5 rounded-lg appearance-none bg-surface-light focus:outline-none cursor-pointer
             [&::-webkit-slider-runnable-track]:bg-surface-light/60
-            [&::-webkit-slider-thumb]:appearance-none 
-            [&::-webkit-slider-thumb]:h-4 
-            [&::-webkit-slider-thumb]:w-4 
-            [&::-webkit-slider-thumb]:rounded-full 
-            [&::-webkit-slider-thumb]:bg-white 
-            [&::-webkit-slider-thumb]:border-2 
-            [&::-webkit-slider-thumb]:border-[var(--primary)] 
-            [&::-webkit-slider-thumb]:shadow-lg 
+            [&::-webkit-slider-thumb]:appearance-none
+            [&::-webkit-slider-thumb]:h-4
+            [&::-webkit-slider-thumb]:w-4
+            [&::-webkit-slider-thumb]:rounded-full
+            [&::-webkit-slider-thumb]:bg-white
+            [&::-webkit-slider-thumb]:border-2
+            [&::-webkit-slider-thumb]:border-[var(--primary)]
+            [&::-webkit-slider-thumb]:shadow-lg
             [&::-webkit-slider-thumb]:shadow-[var(--primary)]/20
             [&::-webkit-slider-thumb]:transition-all
             [&::-webkit-slider-thumb]:group-hover:scale-110"

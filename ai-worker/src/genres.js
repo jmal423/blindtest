@@ -1,6 +1,6 @@
 export const GENRES = [
   "PT_fado", "PT_tradicional_folklore_pimba", "PT_pop_tuga", "PT_pop_rock_tuga", "PT_hip_hop_tuga", "PT_classica_tuga", "PT_kizomba_palop", "PT_pop_urbano_nova_pop",
-  "BR_samba_pagode", "BR_bossa_nova", "BR_funk_brasileiro", "BR_pop_rock_brasileiro",
+  "BR_samba_pagode", "BR_bossa_nova", "BR_funk_brasileiro", "BR_pop_rock_brasileiro", "BR_pop",
   "US_pop_us", "US_hip_hop_trap_us", "US_country_americana_us", "US_rock_alternative_us",
   "UK_pop_uk", "UK_uk_drill_grime", "UK_britpop_rock_uk", "UK_uk_garage_dnb",
   "FR_chanson_francaise", "FR_pop_francaise", "FR_rap_francais", "FR_french_touch_electro",
@@ -29,6 +29,7 @@ You must map the track to exactly ONE "region" and ONE matching "genre_id" from 
    - genre_id: "BR_bossa_nova" (Bossa Nova, MPB, classic acoustic melodies)
    - genre_id: "BR_funk_brasileiro" (Funk Carioca, Baile Funk, Funk Ostentação)
    - genre_id: "BR_pop_rock_brasileiro" (Brazilian Rock, Pop-Rock, alternative rock)
+   - genre_id: "BR_pop" (Brazilian Pop, modern pop, mainstream pop, sertanejo pop, Luísa Sonza, Jão)
 
 3. region: "united_states" (Only for US-based artists, historical legends or American bands)
    - genre_id: "US_pop_us" (Mainstream US Pop)
@@ -85,6 +86,7 @@ You must map the track to exactly ONE "region" and ONE matching "genre_id" from 
 - If the artist is "Anitta": region MUST be "brazilian". If track is "Funk Rave" or tags contain funk, genre_id is "BR_funk_brasileiro". If track is "Downtown" or "Choka Choka", map to genre_id: "ES_reggaeton_urbano" (exception for her global urban collabs).
 - If the artist is or contains "Xutos & Pontapés", "Xutos e Pontapés", "GNR", "Rui Veloso", "UHF", "Ornatos Violeta", "Quinta do Bill", "Delfins", "The Gift", "Silence 4", "Jorge Palma", "Clã", "Amor Electro", "Sétima Legião", "Tara Perdida", "Mão Morta", "Capitão Fausto", "Linda Martini", "Taxi", "Peste & Sida", "Heróis do Mar", you MUST map to region: "portuguese" and genre_id: "PT_pop_rock_tuga".
 - If the artist is or contains "Pitty", "Skank", "Raimundos", "Ira!", "RPM", "Engenheiros do Hawaii", "Legião Urbana", "Paralamas do Sucesso", "Barão Vermelho", "Titãs", "Charlie Brown Jr.", "Capital Inicial", "O Rappa", "Detonautas", "Mamonas Assassinas", "CPM 22", "Fresno", "Nx Zero", "Jota Quest", "Los Hermanos", you MUST map to region: "brazilian" and genre_id: "BR_pop_rock_brasileiro".
+- If the artist is or contains "Luísa Sonza", "Pabllo Vittar", "Iza", "Marina Sena", "Gloria Groove", "Ludmilla", "Giulia Be", "Jão", "Melim", "Luan Santana", "Gusttavo Lima", "Ana Castela", "Sandy", "Junior", "Wanessa", "Vitor Kley", "Manu Gavassi", "Lulu Santos" (when pop/modern), you MUST map to region: "brazilian" and genre_id: "BR_pop".
 - If the artist is or contains "Rammstein", "Metallica", "Sepultura", "Angra", "Slipknot", "Jernblod", you MUST map to region: "global_other" and genre_id: "GL_metal".
 - If the artist is or contains "David Guetta", "Swedish House Mafia", "Martin Garrix", "Avicii", "Blasterjaxx", "Nadia Ali", "Cloonee", "HUGEL", "&ME", "Trinix", "Mosimann", "DJ Snake", you MUST map to region: "global_other" and genre_id: "GL_edm_dance".
 - If the artist is or contains "Calema", "Fally Ipupa", "CKay", "Master KG", "Magic System", "Burna Boy", "Chelsea Dinorath", "1t1", "Vanco", you MUST map to region: "global_other" and genre_id: "GL_afrobeats_african".

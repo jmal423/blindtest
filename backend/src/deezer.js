@@ -26,94 +26,97 @@ const GENRE_ID_MAP = {
 
 const CUSTOM_GENRE_PLAYLISTS = {
   // Portuguese
-  fado: [2734677584, 10613220962, 4782723304, 14974361323],
-  tradicional_folklore_pimba: [
+  PT_fado: [2734677584, 10613220962, 4782723304, 14974361323],
+  PT_tradicional_folklore_pimba: [
     1478605935, 6163368884, 14302375881, 15135817403, 4782723304,
     13980025901, 3835511186, 13493798923
   ],
-  pop_tuga: [3562194622, 5898788844],
-  pop_rock_tuga: [3562194622, 5898788844, 10642447282],
-  hip_hop_tuga: [3481848302, 15066013003, 8211186722],
-  classica_tuga: [8048810122, 12356713983, 14476568723, 15102890763],
-  kizomba_palop: [4427293502, 1205831211, 3311387182, 1839099582],
-  pop_urbano_nova_pop: [14341944421, 11555475044, 15060016783],
+  PT_pop_tuga: [3562194622, 5898788844],
+  PT_pop_rock_tuga: [3562194622, 5898788844, 10642447282],
+  PT_hip_hop_tuga: [3481848302, 15066013003, 8211186722],
+  PT_classica_tuga: [8048810122, 12356713983, 14476568723, 15102890763],
+  PT_kizomba_palop: [4427293502, 1205831211, 3311387182, 1839099582],
+  PT_pop_urbano_nova_pop: [14341944421, 11555475044, 15060016783],
   // Brazilian
-  samba_pagode: [5449764382, 5709940122, 12968855623, 3396745906],
-  bossa_nova: [556502217, 12607436323, 11566444484, 15172273023],
-  funk_brasileiro: [15204407463, 15355968343, 15126778163, 9743264302],
+  BR_samba_pagode: [5449764382, 5709940122, 12968855623, 3396745906],
+  BR_bossa_nova: [556502217, 12607436323, 11566444484, 15172273023],
+  BR_funk_brasileiro: [15204407463, 15355968343, 15126778163, 9743264302],
+  BR_pop: [3155776882, 11629851604, 12431698623],
   // US
-  pop_us: [1282483245],
-  hip_hop_trap_us: [12547421383],
-  country_americana_us: [11336583364, 14013464681, 9195238842, 7688601282],
-  rock_alternative_us: [1318451857, 8074584322, 8716319082, 8929584182, 1402845615],
+  US_pop_us: [1282483245],
+  US_hip_hop_trap_us: [12547421383],
+  US_country_americana_us: [11336583364, 14013464681, 9195238842, 7688601282],
+  US_rock_alternative_us: [1318451857, 8074584322, 8716319082, 8929584182, 1402845615],
   // UK
-  pop_uk: [14645078321, 15199165723, 8603778582, 7386651364],
-  uk_drill_grime: [10361171462, 8322893622, 11336030544, 8672240222, 14701050621],
-  britpop_rock_uk: [8715045762, 9066452562, 855150871],
-  uk_garage_dnb: [14596222441, 14268860961, 13809941261, 11374785584, 3274357942],
+  UK_pop_uk: [14645078321, 15199165723, 8603778582, 7386651364],
+  UK_uk_drill_grime: [10361171462, 8322893622, 11336030544, 8672240222, 14701050621],
+  UK_britpop_rock_uk: [8715045762, 9066452562, 855150871],
+  UK_uk_garage_dnb: [14596222441, 14268860961, 13809941261, 11374785584, 3274357942],
   // French
-  chanson_francaise: [700895155, 1884320402, 957995855, 1420459465],
-  pop_francaise: [1235433511, 1021647001, 1067140111, 1280262301],
-  french_touch_electro: [962293895, 13065304003, 7281037904, 9197791042, 6300460544, 7342240164],
-  rap_francais: [6568026624, 8619246462, 15155137203, 1836636662],
+  FR_chanson_francaise: [700895155, 1884320402, 957995855, 1420459465],
+  FR_pop_francaise: [1235433511, 1021647001, 1067140111, 1280262301],
+  FR_french_touch_electro: [962293895, 13065304003, 7281037904, 9197791042, 6300460544, 7342240164],
+  FR_rap_francais: [6568026624, 8619246462, 15155137203, 1836636662],
   // Spanish
-  flamenco: [777756285, 3582568026, 13941285401, 15148096583, 6177686164],
-  reggaeton_urbano: [178699142, 3803398766, 1273315391, 11120289724, 925131455],
-  musica_regional_latina: [9003957462, 10629918582, 10630090322, 10630096622, 10630104822],
+  ES_flamenco: [777756285, 3582568026, 13941285401, 15148096583, 6177686164],
+  ES_reggaeton_urbano: [178699142, 3803398766, 1273315391, 11120289724, 925131455],
+  ES_musica_regional_latina: [9003957462, 10629918582, 10630090322, 10630096622, 10630104822],
   // Global
-  kpop: [4096400722, 12244134951, 7482846624],
-  reggae: [2448918882, 1295485847, 1503415633, 2042023484],
+  GL_kpop: [4096400722, 12244134951, 7482846624],
+  GL_reggae: [2448918882, 1295485847, 1503415633, 2042023484],
 };
 
 const SEARCH_QUERY_MAP = {
-  fado: 'Fado',
-  tradicional_folklore_pimba: 'Pimba Folclore Portugal',
-  pop_tuga: 'Pop Português',
-  pop_rock_tuga: 'Pop Rock Português',
-  hip_hop_tuga: 'Hip Hop Tuga',
-  classica_tuga: 'Música Clássica Portuguesa',
-  kizomba_palop: 'Kizomba Kuduro',
-  pop_urbano_nova_pop: 'Nova Pop Portuguesa Bárbara Bandeira Ivandro',
-  samba_pagode: 'Samba Pagode',
-  bossa_nova: 'Bossa Nova MPB',
-  funk_brasileiro: 'Funk Brasileiro',
-  pop_us: 'Pop US',
-  hip_hop_trap_us: 'Hip Hop US Trap',
-  country_americana_us: 'Country Americana',
-  rock_alternative_us: 'Rock Alternative US',
-  pop_uk: 'Pop UK Dua Lipa',
-  uk_drill_grime: 'UK Drill Grime',
-  britpop_rock_uk: 'Britpop UK Rock',
-  uk_garage_dnb: 'UK Garage Drum and Bass',
-  pop_francaise: 'Pop Française Louane Gims',
-  french_touch_electro: 'French Touch Electro',
-  rap_francais: 'Rap Français',
-  flamenco: 'Flamenco',
-  reggaeton_urbano: 'Reggaeton Urbano',
-  musica_regional_latina: 'Música Regional Latina',
-  reggae: 'Reggae',
-  kpop: 'K-Pop',
-  pop_rock_brasileiro: 'Rock Brasileiro',
-  edm_dance: 'EDM Dance Hits',
-  afrobeats_african: 'Afrobeats',
-  metal: 'Metal Hard Rock',
-  soundtracks: 'Soundtrack Film Cinema Theme',
-  jazz_lounge: 'Jazz Lounge',
-  other: 'Pop',
+  PT_fado: 'Fado',
+  PT_tradicional_folklore_pimba: 'Pimba Folclore Portugal',
+  PT_pop_tuga: 'Pop Português',
+  PT_pop_rock_tuga: 'Pop Rock Português',
+  PT_hip_hop_tuga: 'Hip Hop Tuga',
+  PT_classica_tuga: 'Música Clássica Portuguesa',
+  PT_kizomba_palop: 'Kizomba Kuduro',
+  PT_pop_urbano_nova_pop: 'Nova Pop Portuguesa Bárbara Bandeira Ivandro',
+  BR_samba_pagode: 'Samba Pagode',
+  BR_bossa_nova: 'Bossa Nova MPB',
+  BR_funk_brasileiro: 'Funk Brasileiro',
+  BR_pop_rock_brasileiro: 'Rock Brasileiro',
+  BR_pop: 'Pop Brasileiro Pop Nacional Luísa Sonza Jão',
+  US_pop_us: 'Pop US',
+  US_hip_hop_trap_us: 'Hip Hop US Trap',
+  US_country_americana_us: 'Country Americana',
+  US_rock_alternative_us: 'Rock Alternative US',
+  UK_pop_uk: 'Pop UK Dua Lipa',
+  UK_uk_drill_grime: 'UK Drill Grime',
+  UK_britpop_rock_uk: 'Britpop UK Rock',
+  UK_uk_garage_dnb: 'UK Garage Drum and Bass',
+  FR_chanson_francaise: 'Chanson Française',
+  FR_pop_francaise: 'Pop Française Louane Gims',
+  FR_french_touch_electro: 'French Touch Electro',
+  FR_rap_francais: 'Rap Français',
+  ES_flamenco: 'Flamenco',
+  ES_reggaeton_urbano: 'Reggaeton Urbano',
+  ES_musica_regional_latina: 'Música Regional Latina',
+  GL_reggae: 'Reggae',
+  GL_kpop: 'K-Pop',
+  GL_edm_dance: 'EDM Dance Hits',
+  GL_afrobeats_african: 'Afrobeats',
+  GL_metal: 'Metal Hard Rock',
+  GL_soundtracks: 'Soundtrack Film Cinema Theme',
+  GL_jazz_lounge: 'Jazz Lounge',
+  GL_other: 'Pop',
 };
 
 const ALBUM_GENRE_ALIASES = {
-  'chanson-française': 'chanson-francaise',
-  'variété-française': 'chanson-francaise',
-  'nouvelle-scène': 'chanson-francaise',
-  'chanson-francaise': 'chanson-francaise',
-  'variete-francaise': 'chanson-francaise',
-  'nouvelle-scene': 'chanson-francaise',
-  'musique-africaine': 'african',
-  'musique-arabe': 'arabic',
-  'musique-asiatique': 'asian',
-  'musique-brésilienne': 'bossa-nova',
-  'musique-bresilienne': 'bossa-nova',
+  'chanson-française': 'FR_chanson_francaise',
+  'variété-française': 'FR_chanson_francaise',
+  'nouvelle-scène': 'FR_chanson_francaise',
+  'chanson-francaise': 'FR_chanson_francaise',
+  'variete-francaise': 'FR_chanson_francaise',
+  'nouvelle-scene': 'FR_chanson_francaise',
+  'musique-africaine': 'GL_afrobeats_african',
+  'musique-arabe': 'GL_other',
+  'musique-asiatique': 'GL_kpop',
+  'musique-brésilienne': 'BR_bossa_nova',
+  'musique-bresilienne': 'BR_bossa_nova',
   'musique-indienne': 'indian',
   latino: 'reggaeton-urbano',
   electro: 'french-touch-electro',
@@ -360,29 +363,17 @@ async function getTracksByGenre(genre, count = 10) {
     console.error('[Curated] Failed to query curated songs:', err.message);
   }
 
-  // 2. Not enough curated — fetch from playlists/charts and add to curated
+  // 2. Not enough curated — fetch from playlists/charts and cache to songs_cache (not curated directly)
   console.log(`[Deezer] Fetching fresh tracks for "${genre}"`);
   const tracks = await getCustomGenreTracks(genre, count);
 
-  // Add fetched tracks to curated table for future use
+  // Cache fetched tracks to songs_cache for future AI processing / curation
+  // NOTE: We do NOT add to curated_songs here — that goes through the Curated tab's Discovery panel
   try {
-    const { addCuratedSong } = await import('./db.js');
-    for (const t of tracks) {
-      await addCuratedSong({
-        id: t.id,
-        name: t.name,
-        artist: t.artist,
-        albumImage: t.albumImage,
-        previewUrl: t.previewUrl,
-        durationMs: t.durationMs,
-        genre,
-        albumGenres: t.genres || [],
-        chartSource: t.chartSource || genre,
-        verified: false,
-      });
-    }
+    const { cacheSongs } = await import('./db.js');
+    await cacheSongs(tracks).catch(err => console.error('[Cache] Failed to cache tracks:', err.message));
   } catch (err) {
-    console.error('[Curated] Failed to cache fetched tracks:', err.message);
+    console.error('[Cache] Failed to cache fetched tracks:', err.message);
   }
 
   return tracks;
@@ -475,47 +466,48 @@ import { GENRES, GENRE_GROUPS } from './genres-config.js';
 function getGenreLabel(genre) {
   const labels = {
     // Portuguese
-    fado: 'Fado',
-    tradicional_folklore_pimba: 'Popular & Pimba / Folclore',
-    pop_tuga: 'Pop Português',
-    pop_rock_tuga: 'Pop-Rock Português',
-    hip_hop_tuga: 'Hip Hop Tuga',
-    classica_tuga: 'Clássica Portuguesa',
-    kizomba_palop: 'Kizomba & PALOP',
-    pop_urbano_nova_pop: 'Nova Pop / Pop Urbano',
+    PT_fado: 'Fado',
+    PT_tradicional_folklore_pimba: 'Popular & Pimba / Folclore',
+    PT_pop_tuga: 'Pop Português',
+    PT_pop_rock_tuga: 'Pop-Rock Português',
+    PT_hip_hop_tuga: 'Hip Hop Tuga',
+    PT_classica_tuga: 'Clássica Portuguesa',
+    PT_kizomba_palop: 'Kizomba & PALOP',
+    PT_pop_urbano_nova_pop: 'Nova Pop / Pop Urbano',
     // US
-    pop_us: 'Pop US',
-    hip_hop_trap_us: 'Hip Hop & Trap US',
-    country_americana_us: 'Country & Americana',
-    rock_alternative_us: 'Rock & Alternative US',
+    US_pop_us: 'Pop US',
+    US_hip_hop_trap_us: 'Hip Hop & Trap US',
+    US_country_americana_us: 'Country & Americana',
+    US_rock_alternative_us: 'Rock & Alternative US',
     // UK
-    pop_uk: 'Pop UK',
-    uk_drill_grime: 'UK Drill & Grime',
-    britpop_rock_uk: 'Britpop & Rock UK',
-    uk_garage_dnb: 'UK Garage & DnB',
+    UK_pop_uk: 'Pop UK',
+    UK_uk_drill_grime: 'UK Drill & Grime',
+    UK_britpop_rock_uk: 'Britpop & Rock UK',
+    UK_uk_garage_dnb: 'UK Garage & DnB',
     // French
-    chanson_francaise: 'Chanson Française',
-    pop_francaise: 'Pop Française',
-    rap_francais: 'Rap Français',
-    french_touch_electro: 'French Touch & Electro',
+    FR_chanson_francaise: 'Chanson Française',
+    FR_pop_francaise: 'Pop Française',
+    FR_rap_francais: 'Rap Français',
+    FR_french_touch_electro: 'French Touch & Electro',
     // Spanish
-    flamenco: 'Flamenco',
-    reggaeton_urbano: 'Reggaeton & Urbano',
-    musica_regional_latina: 'Música Regional Latina',
+    ES_flamenco: 'Flamenco',
+    ES_reggaeton_urbano: 'Reggaeton & Urbano',
+    ES_musica_regional_latina: 'Música Regional Latina',
     // Brazilian
-    samba_pagode: 'Samba & Pagode',
-    bossa_nova: 'Bossa Nova / MPB',
-    funk_brasileiro: 'Funk Brasileiro',
-    pop_rock_brasileiro: 'Rock & Pop-Rock Brasileiro',
-    reggae: 'Reggae',
-    kpop: 'K-Pop',
-    edm_dance: 'EDM & Dance',
-    afrobeats_african: 'Afrobeats & African',
-    metal: 'Metal & Hard Rock',
-    soundtracks: 'Soundtracks & Cinema',
-    jazz_lounge: 'Jazz & Lounge',
-    // Fallback
-    other: 'Outros',
+    BR_samba_pagode: 'Samba & Pagode',
+    BR_bossa_nova: 'Bossa Nova / MPB',
+    BR_funk_brasileiro: 'Funk Brasileiro',
+    BR_pop_rock_brasileiro: 'Rock & Pop-Rock Brasileiro',
+    BR_pop: 'Pop Brasileiro',
+    // Global
+    GL_reggae: 'Reggae',
+    GL_kpop: 'K-Pop',
+    GL_edm_dance: 'EDM & Dance',
+    GL_afrobeats_african: 'Afrobeats & African',
+    GL_metal: 'Metal & Hard Rock',
+    GL_soundtracks: 'Soundtracks & Cinema',
+    GL_jazz_lounge: 'Jazz & Lounge',
+    GL_other: 'Outros',
   };
   return labels[genre] || genre.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }
