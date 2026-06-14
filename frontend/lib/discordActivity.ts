@@ -1,6 +1,7 @@
 'use client';
 
 import { API_URL } from './api';
+import { IS_MOCK, MOCK_TOKEN, MOCK_USER } from './mock';
 
 let _sdk: any = null;
 let _identity: any = null;
@@ -9,7 +10,7 @@ let _error: string | null = null;
 export function isDiscordActivity(): boolean {
   if (typeof window === 'undefined') return false;
   try {
-    return window.parent !== window && window.location !== window.parent.location;
+    return window.parent !== window;
   } catch {
     return true;
   }
@@ -23,36 +24,35 @@ export function getDiscordSdkError() {
   return _error;
 }
 
-export async function initDiscordSdk(): Promise<boolean> {
-  if (_sdk) return true;
-  if (!isDiscordActivity()) return false;
-
-  try {
-    const { DiscordSDK } = await import('@discord/embedded-app-sdk');
-    const sdk = new DiscordSDK(process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID || '');
-    await sdk.ready();
-    _sdk = sdk;
-    return true;
-  } catch (e) {
-    _error = e instanceof Error ? e.message : 'SDK init failed';
-    return false;
-  }
-}
+const SCOPES = ['identify', 'guilds', 'applications.commands'] as const;
 
 export async function authenticateDiscordActivity(): Promise<{ token: string; user: any } | null> {
-  if (!_sdk) {
-    const ok = await initDiscordSdk();
-    if (!ok) return null;
+  if (IS_MOCK) {
+    return { token: MOCK_TOKEN, user: MOCK_USER };
   }
-
   try {
-    const auth = await _sdk.commands.authenticate({ access_token: true });
-    _identity = auth;
+    const { DiscordSDK } = await import('@discord/embedded-app-sdk');
+    const clientId = process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID || '';
+    if (!clientId) {
+      _error = 'NEXT_PUBLIC_DISCORD_CLIENT_ID not set';
+      return null;
+    }
 
-    const res = await fetch(`${API_URL}/api/auth/discord/exchange`, {
+    const sdk = new DiscordSDK(clientId);
+    await sdk.ready();
+
+    const { code } = await sdk.commands.authorize({
+      client_id: clientId,
+      response_type: 'code',
+      state: '',
+      prompt: 'none',
+      scope: [...SCOPES],
+    });
+
+    const res = await fetch(`${API_URL}/api/auth/discord/activity`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ accessToken: auth.access_token }),
+      body: JSON.stringify({ code }),
     });
 
     if (!res.ok) {
@@ -60,7 +60,15 @@ export async function authenticateDiscordActivity(): Promise<{ token: string; us
       throw new Error(err.error || 'Token exchange failed');
     }
 
-    return await res.json();
+    const data = await res.json();
+
+    // Finalize authentication with Discord client
+    await sdk.commands.authenticate({ access_token: data.access_token });
+
+    _sdk = sdk;
+    _identity = data.user;
+
+    return { token: data.token, user: data.user };
   } catch (e) {
     _error = e instanceof Error ? e.message : 'Auth failed';
     return null;

@@ -115,14 +115,44 @@ async function upsertDiscordUser(discordUser, state) {
   };
 }
 
-async function exchangeDiscordAccessToken(accessToken) {
+async function exchangeDiscordCode(code, host) {
+  const tokenRes = await fetch('https://discord.com/api/oauth2/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      client_id: process.env.DISCORD_CLIENT_ID || '',
+      client_secret: process.env.DISCORD_CLIENT_SECRET || '',
+      grant_type: 'authorization_code',
+      code,
+      redirect_uri: getRedirectUri(host),
+    }),
+  });
+
+  if (!tokenRes.ok) {
+    const err = await tokenRes.text();
+    throw new Error(`Discord token exchange failed: ${err}`);
+  }
+
+  const tokenData = await tokenRes.json();
+  const discordUser = await fetchDiscordUser(tokenData.access_token);
+  const result = await upsertDiscordUser(discordUser);
+
+  return {
+    ...result,
+    access_token: tokenData.access_token,
+  };
+}
+
+async function fetchDiscordUser(accessToken) {
   const userRes = await fetch('https://discord.com/api/users/@me', {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
-
   if (!userRes.ok) throw new Error('Failed to fetch Discord user');
+  return await userRes.json();
+}
 
-  const discordUser = await userRes.json();
+async function exchangeDiscordAccessToken(accessToken) {
+  const discordUser = await fetchDiscordUser(accessToken);
   return await upsertDiscordUser(discordUser);
 }
 
@@ -158,4 +188,4 @@ function tryDecodeToken(token) {
   }
 }
 
-export { getAuthUrl, handleDiscordCallback, exchangeDiscordAccessToken, authenticate, requireAdmin, tryDecodeToken };
+export { getAuthUrl, handleDiscordCallback, exchangeDiscordCode, exchangeDiscordAccessToken, authenticate, requireAdmin, tryDecodeToken };

@@ -48,20 +48,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (isDiscordActivity()) {
         setLoading(true);
         const result = await authenticateDiscordActivity();
-        if (result) {
-          localStorage.setItem('blindtest_token', result.token);
-        }
         if (cancelled) return;
         if (result) {
+          localStorage.setItem('blindtest_token', result.token);
           try {
             const u = await getMe();
             setUser(u);
           } catch {
             setUser(null);
           }
+          setLoading(false);
+          return;
         }
-        setLoading(false);
-        return;
       }
 
       await refresh();
