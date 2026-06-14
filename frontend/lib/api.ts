@@ -4,6 +4,8 @@ import { IS_MOCK, MOCK_TOKEN, MOCK_LEADERBOARD, MOCK_STATS } from './mock';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
+export { API_URL };
+
 export interface RoomSettings {
   rounds: number;
   roundTime: number;

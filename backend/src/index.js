@@ -6,7 +6,7 @@ import { Server } from 'socket.io';
 import { GameRoom } from './game.js';
 import { GENRES, getGenreLabel, GENRE_GROUPS } from './deezer.js';
 import { generateId, get, all, run, ping, getTableCounts, createGame, finishGame, addGamePlayer, addRoundResultV2, getGameHistory, getPlayerStats, getLeaderboardV2, getRecentGames, getGameDetails, getSongCacheCounts, getSongCacheByGenre, getPlayedSongs, getAiEnrichmentStats, getAiGenreDistribution, getUnprocessedTracks, getCuratedSongsStats, getCuratedSongsByGenreGrouped, getDiscoveryCandidates, addCuratedSong, setCuratedVerified, pool } from './db.js';
-import { getAuthUrl, handleDiscordCallback, authenticate, requireAdmin, tryDecodeToken } from './auth.js';
+import { getAuthUrl, handleDiscordCallback, exchangeDiscordAccessToken, authenticate, requireAdmin, tryDecodeToken } from './auth.js';
 
 dotenv.config();
 
@@ -331,6 +331,18 @@ app.get('/api/auth/discord', (req, res) => {
   const redirectUrl = typeof req.query.redirect === 'string' ? req.query.redirect : null;
   const url = getAuthUrl(req.headers.host, redirectUrl);
   res.redirect(url);
+});
+
+app.post('/api/auth/discord/exchange', async (req, res) => {
+  const { accessToken } = req.body;
+  if (!accessToken) return res.status(400).json({ error: 'Missing accessToken' });
+
+  try {
+    const result = await exchangeDiscordAccessToken(accessToken);
+    res.json({ token: result.token, user: result.user });
+  } catch (err) {
+    res.status(401).json({ error: err.message });
+  }
 });
 
 app.get('/api/auth/discord/callback', async (req, res) => {

@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { getMe, getToken } from '@/lib/api';
+import { isDiscordActivity, authenticateDiscordActivity } from '@/lib/discordActivity';
 
 export interface User {
   id: string;
@@ -41,7 +42,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    refresh();
+    let cancelled = false;
+
+    async function init() {
+      if (isDiscordActivity()) {
+        setLoading(true);
+        const result = await authenticateDiscordActivity();
+        if (result) {
+          localStorage.setItem('blindtest_token', result.token);
+        }
+        if (cancelled) return;
+        if (result) {
+          try {
+            const u = await getMe();
+            setUser(u);
+          } catch {
+            setUser(null);
+          }
+        }
+        setLoading(false);
+        return;
+      }
+
+      await refresh();
+    }
+
+    init();
+    return () => { cancelled = true; };
   }, [refresh]);
 
   useEffect(() => {

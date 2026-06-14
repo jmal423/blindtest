@@ -69,6 +69,10 @@ async function handleDiscordCallback(code, host, state) {
     }
   }
 
+  return await upsertDiscordUser(discordUser, state);
+}
+
+async function upsertDiscordUser(discordUser, state) {
   let fullAvatarUrl = null;
   if (discordUser.avatar) {
     const ext = discordUser.avatar.startsWith('a_') ? 'gif' : 'png';
@@ -111,6 +115,17 @@ async function handleDiscordCallback(code, host, state) {
   };
 }
 
+async function exchangeDiscordAccessToken(accessToken) {
+  const userRes = await fetch('https://discord.com/api/users/@me', {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  if (!userRes.ok) throw new Error('Failed to fetch Discord user');
+
+  const discordUser = await userRes.json();
+  return await upsertDiscordUser(discordUser);
+}
+
 function authenticate(req, res, next) {
   const header = req.headers.authorization;
   if (!header || !header.startsWith('Bearer ')) {
@@ -143,4 +158,4 @@ function tryDecodeToken(token) {
   }
 }
 
-export { getAuthUrl, handleDiscordCallback, authenticate, requireAdmin, tryDecodeToken };
+export { getAuthUrl, handleDiscordCallback, exchangeDiscordAccessToken, authenticate, requireAdmin, tryDecodeToken };
