@@ -113,6 +113,16 @@ io.on('connection', (socket) => {
     room.resetGame();
   });
 
+  socket.on('flag_song', async (songId) => {
+    if (!songId) return;
+    try {
+      await setCuratedVerified(songId, false);
+      console.log(`[Flag] Player flagged song ${songId} as incorrect. Set verified=false.`);
+    } catch (err) {
+      console.error(`[Flag] Error flagging song ${songId}:`, err);
+    }
+  });
+
   socket.on('disconnect', () => {
     const info = socketPlayerMap.get(socket.id);
     if (info) {
@@ -376,11 +386,24 @@ app.get('/api/users/me', authenticate, async (req, res) => {
 });
 
 app.get('/api/users/me/scores', authenticate, async (req, res) => {
-  const scores = await all(
-    'SELECT * FROM game_scores WHERE user_id = ? ORDER BY played_at DESC LIMIT 50',
-    [req.user.userId]
-  );
-  res.json(scores);
+  try {
+    const limit = Math.min(parseInt(req.query.limit) || 50, 100);
+    const games = await getGameHistory(req.user.userId, limit);
+    
+    // Map to legacy game_scores format for the frontend
+    const scores = games.map(g => ({
+      id: g.id,
+      user_id: req.user.userId,
+      game_code: g.code,
+      score: g.score,
+      total_rounds: g.rounds,
+      played_at: g.created_at
+    }));
+    
+    res.json(scores);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.get('/api/users/me/history', authenticate, async (req, res) => {
