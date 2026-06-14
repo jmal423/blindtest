@@ -503,7 +503,19 @@ app.get('/api/games/recent', async (req, res) => {
     // Parse genres JSON
     const parsed = games.map(g => ({ ...g, genres: g.genres ? JSON.parse(g.genres) : [] }));
     res.json(parsed);
+    res.json([]);
+  }
+});
+
+app.get('/api/artist-groups', async (req, res) => {
+  try {
+    const fs = await import('fs/promises');
+    const path = await import('path');
+    const filePath = path.join(process.cwd(), 'src', 'artist-groups.json');
+    const data = await fs.readFile(filePath, 'utf-8');
+    res.json(JSON.parse(data));
   } catch (err) {
+    console.error('Failed to read artist groups:', err);
     res.json([]);
   }
 });
@@ -916,6 +928,41 @@ app.get('/api/admin/curated/by-genre', requireAdmin, async (req, res) => {
     res.json([]);
   }
 });
+
+app.get('/api/admin/curated/unverified', requireAdmin, async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit) || 50, 200);
+    const offset = parseInt(req.query.offset) || 0;
+    const search = req.query.search ? `%${req.query.search}%` : null;
+
+    const whereClause = search
+      ? `WHERE verified = FALSE AND (name ILIKE $3 OR artist ILIKE $3)`
+      : `WHERE verified = FALSE`;
+    const params = search ? [limit, offset, search] : [limit, offset];
+
+    const { rows } = await pool.query(
+      `SELECT id, name, artist, genre, played_count, verified, curated_at, last_played_at, preview_url,
+              preview_url IS NOT NULL as has_preview
+       FROM curated_songs
+       ${whereClause}
+       ORDER BY curated_at DESC
+       LIMIT $1 OFFSET $2`,
+      params
+    );
+
+    const { rows: countRows } = await pool.query(
+      `SELECT COUNT(*) as total FROM curated_songs ${whereClause.replace('$3', '$1')}`,
+      search ? [search] : []
+    );
+
+    res.json({ songs: rows, total: parseInt(countRows[0].total) });
+  } catch (err) {
+    console.error('[Admin] Unverified fetch error:', err);
+    res.json({ songs: [], total: 0 });
+  }
+});
+
+
 
 app.get('/api/admin/curated/discovery', requireAdmin, async (req, res) => {
   try {

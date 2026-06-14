@@ -694,6 +694,13 @@ function WaitingRoom({
   const [allGenres, setAllGenres] = useState<{ id: string; label: string; group?: string }[]>([]);
   const [genreGroups, setGenreGroups] = useState<{ id: string; genreIds: string[] }[]>([]);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const [artistGroups, setArtistGroups] = useState<{ id: string; name: string; artists: string[] }[]>([]);
+
+  useEffect(() => {
+    import('@/lib/api').then(({ getArtistGroups }) => {
+      getArtistGroups().then(setArtistGroups).catch(() => {});
+    });
+  }, []);
 
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [friendsList, setFriendsList] = useState<any[]>([]);
@@ -1125,7 +1132,33 @@ function WaitingRoom({
                     </div>
                   </div>
                   {isHost && (
-                    <div className="space-y-1.5">
+                    <div className="space-y-4">
+                      {artistGroups.length > 0 && (
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-semibold tracking-wider uppercase text-foreground/40">AI Playlists</label>
+                          <select
+                            onChange={(e) => {
+                              if (!e.target.value) return;
+                              const group = artistGroups.find(g => g.id === e.target.value);
+                              if (group) {
+                                const newArtists = Array.from(new Set([...artists, ...group.artists]));
+                                onArtistsChange(newArtists);
+                              }
+                              e.target.value = "";
+                            }}
+                            className="w-full px-3 py-2 bg-white/[0.02] border border-white/5 rounded-xl text-xs text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors cursor-pointer"
+                          >
+                            <option value="" className="bg-[var(--background)] text-foreground/50">-- Select an AI Playlist --</option>
+                            {artistGroups.map(g => (
+                              <option key={g.id} value={g.id} className="bg-[var(--background)] text-foreground">
+                                {g.name} ({g.artists.length} artists)
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                      
+                      <div className="space-y-1.5">
                       <label htmlFor="artist-input" className="text-[10px] font-semibold tracking-wider uppercase text-foreground/40">Add Artist</label>
                       <form
                         onSubmit={(e) => {
@@ -1155,6 +1188,7 @@ function WaitingRoom({
                           Add
                         </button>
                       </form>
+                      </div>
                     </div>
                   )}
                 </div>

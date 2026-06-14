@@ -1,0 +1,32 @@
+[
+  {
+    "id": "french_rap",
+    "name": "French Rap",
+    "artists": ["Booba", "Ninho", "PNL", "Damso", "Orelsan", "Jul", "Gims", "Nekfeu"]
+  },
+  {
+    "id": "pop_queens",
+    "name": "Pop Queens",
+    "artists": ["Lady Gaga", "Rihanna", "Beyoncé", "Ariana Grande", "Katy Perry", "Dua Lipa", "Taylor Swift"]
+  },
+  {
+    "id": "pt_tuga",
+    "name": "Portuguese Tuga",
+    "artists": ["Bárbara Bandeira", "Ivandro", "Nininho Vaz Maia", "Plutónio", "Wet Bed Gang", "Slow J", "Piruka"]
+  },
+  {
+    "id": "br_funk_pagode",
+    "name": "BR Funk & Pagode",
+    "artists": ["Anitta", "Ludmilla", "Pedro Sampaio", "Menos é Mais", "Luísa Sonza", "Kevin o Chris"]
+  },
+  {
+    "id": "rock_legends",
+    "name": "Rock Legends",
+    "artists": ["Queen", "The Beatles", "AC/DC", "Nirvana", "Red Hot Chili Peppers", "Linkin Park", "Coldplay"]
+  },
+  {
+    "id": "reggaeton",
+    "name": "Reggaeton",
+    "artists": ["Bad Bunny", "J Balvin", "Daddy Yankee", "Maluma", "Ozuna", "Karol G"]
+  }
+]

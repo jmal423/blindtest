@@ -210,6 +210,11 @@ export async function getUserStats(userId: string): Promise<UserStats> {
   return res.json();
 }
 
+export async function getArtistGroups(): Promise<{ id: string; name: string; artists: string[] }[]> {
+  const res = await fetch(`${API_URL}/api/artist-groups`);
+  return res.json();
+}
+
 export async function getFriends(): Promise<{ friends: Friend[]; pending: Friend[] }> {
   return fetchWithAuth(`${API_URL}/api/friends`);
 }
@@ -395,6 +400,24 @@ export async function getCuratedByGenre(genre: string): Promise<{
 }[]> {
   return fetchWithAuth(`${API_URL}/api/admin/curated/by-genre?genre=${encodeURIComponent(genre)}`);
 }
+
+export async function getUnverifiedSongs(params: {
+  limit?: number; offset?: number; search?: string;
+}): Promise<{
+  songs: {
+    id: string; name: string; artist: string; genre: string; played_count: number;
+    verified: boolean; curated_at: string; has_preview: boolean; preview_url: string | null;
+  }[];
+  total: number;
+}> {
+  const q = new URLSearchParams();
+  if (params.limit) q.set('limit', String(params.limit));
+  if (params.offset) q.set('offset', String(params.offset));
+  if (params.search) q.set('search', params.search);
+  return fetchWithAuth(`${API_URL}/api/admin/curated/unverified?${q.toString()}`);
+}
+
+
 
 export async function getCuratedDiscovery(genre?: string): Promise<{
   id: string; name: string; artist: string; genre: string; genres: string[]; chart_source: string; rank: number;

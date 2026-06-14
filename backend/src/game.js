@@ -222,8 +222,26 @@ export class GameRoom {
         for (const artist of shuffledArtists) {
           try {
             const { getSongsByArtist } = await import('./db.js');
+            const { deezerFetch } = await import('./deezer.js');
+            
             // 1. Try DB First
-            let tracks = await getSongsByArtist(artist, fetchLimitPerArtist);
+            let dbTracks = await getSongsByArtist(artist, fetchLimitPerArtist);
+            
+            // Batch-refresh preview URLs for DB tracks (Deezer previews expire ~30min)
+            let tracks = [];
+            const BATCH = 10;
+            for (let i = 0; i < dbTracks.length; i += BATCH) {
+              const batch = dbTracks.slice(i, i + BATCH);
+              await Promise.all(batch.map(async (track) => {
+                try {
+                  const data = await deezerFetch(`/track/${track.rawId}`);
+                  if (data && data.preview) {
+                    track.previewUrl = data.preview;
+                    tracks.push(track);
+                  }
+                } catch { /* skip */ }
+              }));
+            }
             
             // 2. Fallback to Deezer if not enough tracks in DB (e.g. less than half the limit)
             if (tracks.length < Math.max(fetchLimitPerArtist / 2, 5)) {
