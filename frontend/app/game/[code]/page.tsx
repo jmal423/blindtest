@@ -13,6 +13,7 @@ import Chat from './Chat';
 import Podium from './Podium';
 import DebugOverlay from './DebugOverlay';
 import { useSound } from '@/lib/useSound';
+import { getProxiedUrl } from '@/lib/proxy';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005';
 
@@ -482,7 +483,7 @@ export default function GamePage({
                     >
                       {t.skipped && <span className="text-foreground/40">⏭</span>}
                       {t.albumImage && (
-                        <img src={t.albumImage} alt="" className="w-5 h-5 rounded object-cover shrink-0" />
+                        <img src={getProxiedUrl(t.albumImage)} alt="" className="w-5 h-5 rounded object-cover shrink-0" />
                       )}
                       <div className="min-w-0 flex-1">
                         <p className={`font-medium truncate leading-tight ${t.skipped ? 'line-through text-foreground/40' : ''}`}>{t.name}</p>
@@ -1509,7 +1510,7 @@ function RoundResult({ data, players = [], pauseTimeLeft, trackHistory = [] }: {
         )}
         {data?.albumImage && (
           <img
-            src={data.albumImage}
+            src={getProxiedUrl(data.albumImage)}
             alt=""
             className="w-40 h-40 md:w-48 md:h-48 rounded-2xl shadow-2xl object-cover border border-white/10"
           />

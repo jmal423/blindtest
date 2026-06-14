@@ -1,5 +1,7 @@
 'use client';
 
+import { getProxiedUrl } from '@/lib/proxy';
+
 interface TrackEntry {
   round: number;
   name: string;
@@ -27,7 +29,7 @@ export default function TrackHistory({ tracks }: { tracks: TrackEntry[] }) {
           >
             {t.skipped && <span className="text-zinc-500">⏭</span>}
             {t.albumImage && (
-              <img src={t.albumImage} alt="" className="w-6 h-6 rounded object-cover shrink-0" />
+              <img src={getProxiedUrl(t.albumImage)} alt="" className="w-6 h-6 rounded object-cover shrink-0" />
             )}
             <div className="min-w-0 flex-1">
               <p className={`text-[10px] font-medium truncate leading-tight ${t.skipped ? 'line-through text-zinc-500' : ''}`}>{t.name}</p>

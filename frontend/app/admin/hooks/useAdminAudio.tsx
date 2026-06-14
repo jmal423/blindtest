@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { getTrackPreviewUrl } from '@/lib/api';
+import { getProxiedUrl } from '@/lib/proxy';
 
 export function useAdminAudio() {
   const [playingTrackId, setPlayingTrackId] = useState<string | null>(null);
@@ -50,7 +51,7 @@ export function useAdminAudio() {
   useEffect(() => {
     if (!audioRef.current) return;
     if (previewUrl) {
-      audioRef.current.src = previewUrl;
+      audioRef.current.src = getProxiedUrl(previewUrl) || '';
       audioRef.current.load();
       audioRef.current.play().catch(err => {
         console.error('[useAdminAudio] Playback failed:', err);

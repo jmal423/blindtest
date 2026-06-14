@@ -3,6 +3,8 @@
 import { useEffect, useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
 import { useSettings } from '@/app/context/SettingsContext';
 
+import { getProxiedUrl } from '@/lib/proxy';
+
 export interface AudioPlayerHandle {
   resume: () => Promise<boolean>;
 }
@@ -51,7 +53,8 @@ const AudioPlayer = forwardRef<AudioPlayerHandle, {
   }));
 
   useEffect(() => {
-    const url = (state === 'playing' || state === 'round_preparing') ? previewUrl : null;
+    let url = (state === 'playing' || state === 'round_preparing') ? previewUrl : null;
+    url = getProxiedUrl(url) || null;
 
     if (!url) {
       if (audioRef.current) {
