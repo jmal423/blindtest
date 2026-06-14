@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Link from "next/link";
 import "./globals.css";
 import Header from "./components/Header";
 import LanguageInitializer from "./components/LanguageInitializer";
@@ -37,6 +38,16 @@ export default function RootLayout({
           <AuthProvider>
             <Header />
             <main className="flex-1 flex flex-col">{children}</main>
+            <footer className="border-t border-foreground/5 py-4 px-4 md:px-6 text-center text-[10px] text-foreground/40">
+              <div className="flex items-center justify-center gap-4">
+                <Link href="/terms" className="hover:text-foreground/60 transition-colors">
+                  Terms of Service
+                </Link>
+                <Link href="/privacy" className="hover:text-foreground/60 transition-colors">
+                  Privacy Policy
+                </Link>
+              </div>
+            </footer>
           </AuthProvider>
         </SettingsProvider>
       </body>
