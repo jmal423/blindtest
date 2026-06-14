@@ -2,12 +2,16 @@
   "$schema": "https://opencode.ai/config.json",
   "instructions": ["AGENTS.md"],
   "skills": {
-    "paths": ["../agent-skills/skills"]
+    "paths": ["../agent-skills/skills", "../skills/skills"]
   },
   "references": {
     "agent-skills": {
       "path": "../agent-skills",
       "description": "Production-grade engineering skills for AI coding agents. Use for development workflows, code reviews, testing, and shipping."
+    },
+    "anthropic-skills": {
+      "path": "../skills",
+      "description": "Anthropic's official skill library for Claude. Use for agentic workflows, tool use patterns, and prompt engineering."
     }
   }
 }
