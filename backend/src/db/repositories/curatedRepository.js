@@ -4,7 +4,7 @@ export async function getCuratedSongsByGenre(genre, count) {
   const { rows } = await pool.query(
     `SELECT * FROM curated_songs
      WHERE genre = $1 AND verified = TRUE
-     ORDER BY played_count ASC, last_played_at ASC NULLS FIRST, curated_at ASC
+     ORDER BY played_count ASC, RANDOM()
      LIMIT $2`,
     [genre, count]
   );
@@ -23,6 +23,67 @@ export async function getCuratedSongsByGenre(genre, count) {
     rawId: r.id.replace('deezer:', ''),
   }));
 }
+
+export async function getSongsByArtist(artist, count) {
+  // First try curated_songs to respect played_count
+  const { rows: curatedRows } = await pool.query(
+    `SELECT id, name, artist, album_image as "albumImage", 
+            preview_url as "previewUrl", duration_ms as "durationMs", 
+            genre, album_genres as "albumGenres", played_count
+     FROM curated_songs
+     WHERE artist ILIKE $1 AND preview_url IS NOT NULL
+     ORDER BY played_count ASC, RANDOM()
+     LIMIT $2`,
+    [`%${artist}%`, count]
+  );
+
+  let results = curatedRows.map(r => ({
+    id: r.id,
+    name: r.name,
+    artist: r.artist,
+    albumImage: r.albumImage,
+    previewUrl: r.previewUrl,
+    durationMs: r.durationMs,
+    genre: r.genre || 'artist_mode',
+    albumGenres: typeof r.albumGenres === 'string' ? JSON.parse(r.albumGenres) : (r.albumGenres || []),
+    rawId: r.id.replace('deezer:', ''),
+  }));
+
+  if (results.length >= count) return results;
+
+  // Fallback to songs_cache for additional tracks
+  const { rows: cacheRows } = await pool.query(
+    `SELECT sc.id, sc.name, sc.artist, sc.album_image as "albumImage", 
+            sc.preview_url as "previewUrl", sc.duration_ms as "durationMs", 
+            sc.genre, sc.genres as "albumGenres"
+     FROM songs_cache sc
+     WHERE sc.artist ILIKE $1 AND sc.preview_url IS NOT NULL
+     ORDER BY RANDOM()
+     LIMIT $2`,
+    [`%${artist}%`, count]
+  );
+  
+  const existingIds = new Set(results.map(r => r.id));
+  for (const r of cacheRows) {
+    if (!existingIds.has(r.id)) {
+      results.push({
+        id: r.id,
+        name: r.name,
+        artist: r.artist,
+        albumImage: r.albumImage,
+        previewUrl: r.previewUrl,
+        durationMs: r.durationMs,
+        genre: r.genre || 'artist_mode',
+        albumGenres: typeof r.albumGenres === 'string' ? JSON.parse(r.albumGenres) : (r.albumGenres || []),
+        rawId: r.id.replace('deezer:', ''),
+      });
+    }
+    if (results.length >= count) break;
+  }
+
+  return results;
+}
+
 
 export async function countCuratedSongsByGenre(genre) {
   const { rows } = await pool.query(

@@ -24,13 +24,13 @@ async function ollamaGenerate(prompt) {
 }
 
 const VALID_GENRES = new Set([
-  "fado", "tradicional_folklore_pimba", "pop_tuga", "pop_rock_tuga", "hip_hop_tuga",
-  "classica_tuga", "kizomba_palop", "pop_urbano_nova_pop", "pop_us", "hip_hop_trap_us",
-  "country_americana_us", "rock_alternative_us", "pop_uk", "uk_drill_grime", "britpop_rock_uk",
-  "uk_garage_dnb", "chanson_francaise", "pop_francaise", "rap_francais", "french_touch_electro",
-  "flamenco", "reggaeton_urbano", "musica_regional_latina", "samba_pagode", "bossa_nova",
-  "funk_brasileiro", "reggae", "kpop", "pop_rock_brasileiro", "edm_dance", "afrobeats_african",
-  "metal", "soundtracks", "jazz_lounge", "other"
+  "PT_fado", "PT_tradicional_folklore_pimba", "PT_pop_tuga", "PT_pop_rock_tuga", "PT_hip_hop_tuga",
+  "PT_classica_tuga", "PT_kizomba_palop", "PT_pop_urbano_nova_pop", "US_pop_us", "US_hip_hop_trap_us",
+  "US_country_americana_us", "US_rock_alternative_us", "UK_pop_uk", "UK_uk_drill_grime", "UK_britpop_rock_uk",
+  "UK_uk_garage_dnb", "FR_chanson_francaise", "FR_pop_francaise", "FR_rap_francais", "FR_french_touch_electro",
+  "ES_flamenco", "ES_reggaeton_urbano", "ES_musica_regional_latina", "BR_samba_pagode", "BR_bossa_nova",
+  "BR_funk_brasileiro", "GL_reggae", "GL_kpop", "BR_pop_rock_brasileiro", "GL_edm_dance", "GL_afrobeats_african",
+  "GL_metal", "GL_soundtracks", "GL_jazz_lounge", "GL_other"
 ]);
 
 const VALID_REGIONS = new Set([
@@ -38,15 +38,15 @@ const VALID_REGIONS = new Set([
 ]);
 
 const GENRE_TO_REGION = {
-  "fado": "portuguese", "tradicional_folklore_pimba": "portuguese", "pop_tuga": "portuguese", "pop_rock_tuga": "portuguese",
-  "hip_hop_tuga": "portuguese", "classica_tuga": "portuguese", "kizomba_palop": "portuguese", "pop_urbano_nova_pop": "portuguese",
-  "samba_pagode": "brazilian", "bossa_nova": "brazilian", "funk_brasileiro": "brazilian", "pop_rock_brasileiro": "brazilian",
-  "pop_us": "united_states", "hip_hop_trap_us": "united_states", "country_americana_us": "united_states", "rock_alternative_us": "united_states",
-  "pop_uk": "united_kingdom", "uk_drill_grime": "united_kingdom", "britpop_rock_uk": "united_kingdom", "uk_garage_dnb": "united_kingdom",
-  "chanson_francaise": "french", "pop_francaise": "french", "rap_francais": "french", "french_touch_electro": "french",
-  "flamenco": "spanish", "reggaeton_urbano": "spanish", "musica_regional_latina": "spanish",
-  "reggae": "global_other", "kpop": "global_other", "edm_dance": "global_other", "afrobeats_african": "global_other",
-  "metal": "global_other", "soundtracks": "global_other", "jazz_lounge": "global_other", "other": "global_other"
+  "PT_fado": "portuguese", "PT_tradicional_folklore_pimba": "portuguese", "PT_pop_tuga": "portuguese", "PT_pop_rock_tuga": "portuguese",
+  "PT_hip_hop_tuga": "portuguese", "PT_classica_tuga": "portuguese", "PT_kizomba_palop": "portuguese", "PT_pop_urbano_nova_pop": "portuguese",
+  "BR_samba_pagode": "brazilian", "BR_bossa_nova": "brazilian", "BR_funk_brasileiro": "brazilian", "BR_pop_rock_brasileiro": "brazilian",
+  "US_pop_us": "united_states", "US_hip_hop_trap_us": "united_states", "US_country_americana_us": "united_states", "US_rock_alternative_us": "united_states",
+  "UK_pop_uk": "united_kingdom", "UK_uk_drill_grime": "united_kingdom", "UK_britpop_rock_uk": "united_kingdom", "UK_uk_garage_dnb": "united_kingdom",
+  "FR_chanson_francaise": "french", "FR_pop_francaise": "french", "FR_rap_francais": "french", "FR_french_touch_electro": "french",
+  "ES_flamenco": "spanish", "ES_reggaeton_urbano": "spanish", "ES_musica_regional_latina": "spanish",
+  "GL_reggae": "global_other", "GL_kpop": "global_other", "GL_edm_dance": "global_other", "GL_afrobeats_african": "global_other",
+  "GL_metal": "global_other", "GL_soundtracks": "global_other", "GL_jazz_lounge": "global_other", "GL_other": "global_other"
 };
 
 function parseResponse(raw) {
@@ -62,7 +62,14 @@ function parseResponse(raw) {
     throw new Error(`Failed to parse LLM response: ${raw.slice(0, 200)}`);
   }
 
-  let genreId = parsed.mapped_genre_id.toLowerCase().trim();
+  let genreId = parsed.mapped_genre_id.trim();
+  
+  // Fix casing if it was lowercased by LLM (since prefixes are uppercase)
+  if (genreId.length > 3 && genreId[2] === '_') {
+    genreId = genreId.substring(0, 2).toUpperCase() + genreId.substring(2).toLowerCase();
+  } else {
+    genreId = genreId.toLowerCase();
+  }
 
   // Validate genre
   if (!VALID_GENRES.has(genreId)) {

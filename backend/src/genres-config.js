@@ -1,124 +1,124 @@
 // Standardised Genres aligned with the strict AI Taxonomy
 export const GENRES = [
   // Português
-  "fado",
-  "tradicional_folklore_pimba",
-  "pop_tuga",
-  "pop_rock_tuga",
-  "hip_hop_tuga",
-  "classica_tuga",
-  "kizomba_palop",
-  "pop_urbano_nova_pop",
+  "PT_fado",
+  "PT_tradicional_folklore_pimba",
+  "PT_pop_tuga",
+  "PT_pop_rock_tuga",
+  "PT_hip_hop_tuga",
+  "PT_classica_tuga",
+  "PT_kizomba_palop",
+  "PT_pop_urbano_nova_pop",
 
   // Brasileiro
-  "samba_pagode",
-  "bossa_nova",
-  "funk_brasileiro",
-  "pop_rock_brasileiro",
+  "BR_samba_pagode",
+  "BR_bossa_nova",
+  "BR_funk_brasileiro",
+  "BR_pop_rock_brasileiro",
 
   // Inglês US
-  "pop_us",
-  "hip_hop_trap_us",
-  "country_americana_us",
-  "rock_alternative_us",
+  "US_pop_us",
+  "US_hip_hop_trap_us",
+  "US_country_americana_us",
+  "US_rock_alternative_us",
 
   // Inglês UK
-  "pop_uk",
-  "uk_drill_grime",
-  "britpop_rock_uk",
-  "uk_garage_dnb",
+  "UK_pop_uk",
+  "UK_uk_drill_grime",
+  "UK_britpop_rock_uk",
+  "UK_uk_garage_dnb",
 
   // Francês
-  "chanson_francaise",
-  "pop_francaise",
-  "rap_francais",
-  "french_touch_electro",
+  "FR_chanson_francaise",
+  "FR_pop_francaise",
+  "FR_rap_francais",
+  "FR_french_touch_electro",
 
   // Espanhol
-  "flamenco",
-  "reggaeton_urbano",
-  "musica_regional_latina",
+  "ES_flamenco",
+  "ES_reggaeton_urbano",
+  "ES_musica_regional_latina",
 
   // Mundo & Outros
-  "reggae",
-  "kpop",
-  "edm_dance",
-  "afrobeats_african",
-  "metal",
-  "soundtracks",
-  "jazz_lounge",
-  "other"
+  "GL_reggae",
+  "GL_kpop",
+  "GL_edm_dance",
+  "GL_afrobeats_african",
+  "GL_metal",
+  "GL_soundtracks",
+  "GL_jazz_lounge",
+  "GL_other"
 ];
 
 export const GENRE_GROUPS = [
   {
     "id": "portuguese",
     "genreIds": [
-      "fado",
-      "tradicional_folklore_pimba",
-      "pop_tuga",
-      "pop_rock_tuga",
-      "hip_hop_tuga",
-      "classica_tuga",
-      "kizomba_palop",
-      "pop_urbano_nova_pop"
+      "PT_fado",
+      "PT_tradicional_folklore_pimba",
+      "PT_pop_tuga",
+      "PT_pop_rock_tuga",
+      "PT_hip_hop_tuga",
+      "PT_classica_tuga",
+      "PT_kizomba_palop",
+      "PT_pop_urbano_nova_pop"
     ]
   },
   {
     "id": "brazilian",
     "genreIds": [
-      "samba_pagode",
-      "bossa_nova",
-      "funk_brasileiro",
-      "pop_rock_brasileiro"
+      "BR_samba_pagode",
+      "BR_bossa_nova",
+      "BR_funk_brasileiro",
+      "BR_pop_rock_brasileiro"
     ]
   },
   {
     "id": "united_states",
     "genreIds": [
-      "pop_us",
-      "hip_hop_trap_us",
-      "country_americana_us",
-      "rock_alternative_us"
+      "US_pop_us",
+      "US_hip_hop_trap_us",
+      "US_country_americana_us",
+      "US_rock_alternative_us"
     ]
   },
   {
     "id": "united_kingdom",
     "genreIds": [
-      "pop_uk",
-      "uk_drill_grime",
-      "britpop_rock_uk",
-      "uk_garage_dnb"
+      "UK_pop_uk",
+      "UK_uk_drill_grime",
+      "UK_britpop_rock_uk",
+      "UK_uk_garage_dnb"
     ]
   },
   {
     "id": "french",
     "genreIds": [
-      "chanson_francaise",
-      "pop_francaise",
-      "rap_francais",
-      "french_touch_electro"
+      "FR_chanson_francaise",
+      "FR_pop_francaise",
+      "FR_rap_francais",
+      "FR_french_touch_electro"
     ]
   },
   {
     "id": "spanish",
     "genreIds": [
-      "flamenco",
-      "reggaeton_urbano",
-      "musica_regional_latina"
+      "ES_flamenco",
+      "ES_reggaeton_urbano",
+      "ES_musica_regional_latina"
     ]
   },
   {
     "id": "global_other",
     "genreIds": [
-      "reggae",
-      "kpop",
-      "edm_dance",
-      "afrobeats_african",
-      "metal",
-      "soundtracks",
-      "jazz_lounge",
-      "other"
+      "GL_reggae",
+      "GL_kpop",
+      "GL_edm_dance",
+      "GL_afrobeats_african",
+      "GL_metal",
+      "GL_soundtracks",
+      "GL_jazz_lounge",
+      "GL_other"
     ]
   }
 ];

@@ -221,8 +221,27 @@ export class GameRoom {
 
         for (const artist of shuffledArtists) {
           try {
-            const { getTracksByArtist } = await import('./deezer.js');
-            const tracks = await getTracksByArtist(artist, fetchLimitPerArtist);
+            const { getSongsByArtist } = await import('./db.js');
+            // 1. Try DB First
+            let tracks = await getSongsByArtist(artist, fetchLimitPerArtist);
+            
+            // 2. Fallback to Deezer if not enough tracks in DB (e.g. less than half the limit)
+            if (tracks.length < Math.max(fetchLimitPerArtist / 2, 5)) {
+              console.log(`[Game] Artist "${artist}" has only ${tracks.length} tracks in DB. Fetching from Deezer...`);
+              const { getTracksByArtist } = await import('./deezer.js');
+              const deezerTracks = await getTracksByArtist(artist, fetchLimitPerArtist);
+              
+              // Cache them in background
+              const { cacheSongs } = await import('./db.js');
+              cacheSongs(deezerTracks).catch(err => console.error('[Cache] Failed to cache tracks:', err.message));
+              
+              // Merge db tracks with deezer tracks uniquely
+              const dbIds = new Set(tracks.map(t => t.id));
+              for (const dt of deezerTracks) {
+                if (!dbIds.has(dt.id)) tracks.push(dt);
+              }
+            }
+
             let addedForThisArtist = 0;
             for (const t of tracks) {
               if (!seenIds.has(t.id) && t.previewUrl) {
@@ -234,11 +253,9 @@ export class GameRoom {
                 if (addedForThisArtist >= fetchLimitPerArtist) break;
               }
             }
-            const { cacheSongs } = await import('./db.js');
-            await cacheSongs(tracks).catch(err => console.error('[Cache] Failed to cache tracks:', err.message));
           } catch (err) {
             lastError = err.message;
-            console.error(`[Deezer] Failed for artist "${artist}":`, err.message);
+            console.error(`[Deezer/DB] Failed for artist "${artist}":`, err.message);
           }
         }
       } else {
