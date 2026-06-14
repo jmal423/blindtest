@@ -2,8 +2,8 @@ export function getProxiedUrl(url: string | null | undefined): string | undefine
   if (!url) return undefined;
   if (url.startsWith('/')) return url;
   if (url.includes('cdn.discordapp.com')) return url;
-  if (url.includes('api/proxy')) return url; // Already proxied
+  if (url.includes('/proxy')) return url; // Already proxied
 
   // Return the proxy URL
-  return `/api/proxy?url=${encodeURIComponent(url)}`;
+  return `/proxy?url=${encodeURIComponent(url)}`;
 }
