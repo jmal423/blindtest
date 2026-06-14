@@ -192,6 +192,7 @@ function Dashboard() {
   const [error, setError] = useState('');
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [lbLoading, setLbLoading] = useState(true);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   useEffect(() => {
     getLeaderboard()
@@ -231,65 +232,45 @@ function Dashboard() {
   };
 
   return (
-    <div className="flex-1 flex flex-col lg:flex-row items-center lg:items-stretch justify-center p-4 md:p-8 gap-8 max-w-6xl mx-auto w-full relative">
-      {/* Ambient glows */}
-      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[var(--primary)]/5 blur-[120px] rounded-full pointer-events-none -z-10" />
-      <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[400px] h-[400px] bg-[var(--accent)]/5 blur-[130px] rounded-full pointer-events-none -z-10" />
+    <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 max-w-3xl mx-auto w-full relative">
+      <div className="absolute top-1/3 left-1/3 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[var(--primary)]/5 blur-[150px] rounded-full pointer-events-none -z-10" />
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col items-center justify-center gap-8 min-w-0">
-        <div className="text-center space-y-3">
-          <motion.h1
-            initial={{ opacity: 0, y: -15 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-5xl md:text-6xl font-black tracking-tight uppercase"
-          >
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] drop-shadow-[0_2px_10px_rgba(108,92,231,0.25)]">Blind</span>
+      <div className="w-full space-y-6">
+        <motion.div
+          initial={{ opacity: 0, y: -15 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center space-y-2 mb-2"
+        >
+          <h1 className="text-5xl md:text-6xl font-black tracking-tight uppercase">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--primary)] to-[var(--accent)]">Blind</span>
             <span className="text-zinc-100">Test</span>
-          </motion.h1>
-          <p className="text-zinc-400 text-sm font-semibold tracking-wide uppercase leading-relaxed">{t('subtitle')}</p>
-        </div>
+          </h1>
+          <p className="text-zinc-500 text-sm font-semibold tracking-wide uppercase">{t('subtitle')}</p>
+        </motion.div>
 
-        {/* Action controls */}
-        <div className="bg-white/[0.01] backdrop-blur-xl border border-white/5 rounded-3xl p-6 md:p-8 w-full max-w-2xl shadow-2xl relative overflow-hidden space-y-6">
+        <div className="bg-white/[0.01] backdrop-blur-xl border border-white/5 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[var(--primary)] to-[var(--accent)]" />
           
-          <div className="flex flex-col md:flex-row gap-6 items-stretch">
-            {/* Create Lobby Column */}
-            <div className="flex-1 flex flex-col justify-between gap-4">
-              <div className="space-y-1">
-                <h3 className="text-sm font-extrabold uppercase tracking-wider text-zinc-300">Host a Game</h3>
-                <p className="text-[11px] text-zinc-500 font-semibold leading-relaxed">Create a custom room, select your favorite genres, and invite friends to play.</p>
-              </div>
+          <div className="flex flex-col md:flex-row gap-4 items-stretch">
+            <div className="flex-1">
               <button
                 onClick={handleCreate}
                 disabled={loading}
-                className="w-full py-4 bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] hover:brightness-110 text-white font-black text-sm rounded-2xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-[var(--primary)]/20 disabled:opacity-50 hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+                className="w-full py-4 bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] hover:brightness-110 text-white font-black text-sm rounded-2xl transition-all disabled:opacity-50 hover:scale-[1.01] active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
                 {loading ? t('creating') : t('create_lobby')}
               </button>
+              <p className="text-[10px] text-zinc-500 font-semibold text-center mt-2">Create a room and invite friends</p>
             </div>
 
-            {/* Divider */}
-            <div className="hidden md:flex flex-col items-center justify-center px-2">
-              <div className="w-px h-full bg-white/5" />
-              <span className="text-[10px] font-black uppercase text-zinc-600 bg-[#0a0a0f] py-2 px-1 relative -left-0.5">OR</span>
-              <div className="w-px h-full bg-white/5" />
-            </div>
-            <div className="flex md:hidden items-center justify-center py-2">
-              <div className="h-px w-full bg-white/5" />
-              <span className="text-[10px] font-black uppercase text-zinc-600 px-3">OR</span>
-              <div className="h-px w-full bg-white/5" />
+            <div className="flex items-center gap-4">
+              <div className="hidden md:block w-px h-12 bg-white/5" />
+              <span className="text-[10px] font-black uppercase text-zinc-600">OR</span>
+              <div className="hidden md:block w-px h-12 bg-white/5" />
             </div>
 
-            {/* Join Lobby Column */}
-            <div className="flex-1 flex flex-col justify-between gap-4">
-              <div className="space-y-1">
-                <h3 className="text-sm font-extrabold uppercase tracking-wider text-zinc-300">Enter a Room</h3>
-                <p className="text-[11px] text-zinc-500 font-semibold leading-relaxed">Have a code? Type it in to jump directly into an existing lobby.</p>
-              </div>
-              
+            <div className="flex-1">
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -307,135 +288,78 @@ function Dashboard() {
                   {loading ? t('joining') : t('join_lobby')}
                 </button>
               </div>
+              <p className="text-[10px] text-zinc-500 font-semibold text-center mt-2">Enter a 4-character room code</p>
             </div>
           </div>
           
           {error && (
-            <p className="text-red-400 text-xs text-center font-medium bg-red-500/5 border border-red-500/10 px-4 py-2.5 rounded-xl">
+            <p className="text-red-400 text-xs text-center font-medium bg-red-500/5 border border-red-500/10 px-4 py-2.5 rounded-xl mt-4">
               {error}
             </p>
           )}
         </div>
 
-        {/* Feature Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-2xl">
-          {/* Card 1 */}
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-white/[0.01] hover:bg-white/[0.03] backdrop-blur-xl rounded-3xl border border-white/5 hover:border-white/10 p-5 text-center transition-all duration-300 group shadow-lg flex flex-col justify-between"
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="bg-white/[0.01] border border-white/5 rounded-2xl p-4 text-center">
+            <p className="text-lg font-black text-[var(--primary)]">30+</p>
+            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Genres</p>
+          </div>
+          <div className="bg-white/[0.01] border border-white/5 rounded-2xl p-4 text-center">
+            <p className="text-lg font-black text-[var(--accent)]">4-25</p>
+            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Rounds</p>
+          </div>
+          <button
+            onClick={() => setShowLeaderboard(!showLeaderboard)}
+            className="bg-white/[0.01] border border-white/5 rounded-2xl p-4 text-center hover:bg-white/[0.03] transition-all cursor-pointer"
           >
-            <div>
-              <div className="w-12 h-12 rounded-full bg-[var(--primary)]/10 flex items-center justify-center mx-auto mb-4 text-[var(--primary)] border border-[var(--primary)]/20 transition-transform group-hover:scale-110 duration-300 relative">
-                {/* Glow layer */}
-                <div className="absolute inset-0 rounded-full bg-[var(--primary)]/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <svg className="relative" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-              </div>
-              <p className="text-xs font-black text-zinc-200 tracking-wide uppercase group-hover:text-white transition-colors">{t('feature_1_title')}</p>
-              <p className="text-[10px] text-zinc-500 font-semibold mt-2 leading-relaxed">{t('feature_1_desc')}</p>
-            </div>
-          </motion.div>
-          
-          {/* Card 2 */}
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="bg-white/[0.01] hover:bg-white/[0.03] backdrop-blur-xl rounded-3xl border border-white/5 hover:border-white/10 p-5 text-center transition-all duration-300 group shadow-lg flex flex-col justify-between"
-          >
-            <div>
-              <div className="w-12 h-12 rounded-full bg-[var(--accent)]/10 flex items-center justify-center mx-auto mb-4 text-[var(--accent)] border border-[var(--accent)]/20 transition-transform group-hover:scale-110 duration-300 relative">
-                {/* Glow layer */}
-                <div className="absolute inset-0 rounded-full bg-[var(--accent)]/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <svg className="relative" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
-              </div>
-              <p className="text-xs font-black text-zinc-200 tracking-wide uppercase group-hover:text-white transition-colors">{t('feature_2_title')}</p>
-              <p className="text-[10px] text-zinc-500 font-semibold mt-2 leading-relaxed">{t('feature_2_desc')}</p>
-            </div>
-          </motion.div>
-
-          {/* Card 3 */}
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white/[0.01] hover:bg-white/[0.03] backdrop-blur-xl rounded-3xl border border-white/5 hover:border-white/10 p-5 text-center transition-all duration-300 group shadow-lg flex flex-col justify-between"
-          >
-            <div>
-              <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto mb-4 text-amber-400 border border-amber-500/20 transition-transform group-hover:scale-110 duration-300 relative">
-                {/* Glow layer */}
-                <div className="absolute inset-0 rounded-full bg-amber-500/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <svg className="relative" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 6 9 6 9Z"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5C17 4 18 9 18 9Z"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
-              </div>
-              <p className="text-xs font-black text-zinc-200 tracking-wide uppercase group-hover:text-white transition-colors">{t('feature_3_title')}</p>
-              <p className="text-[10px] text-zinc-500 font-semibold mt-2 leading-relaxed">{t('feature_3_desc')}</p>
-            </div>
-          </motion.div>
+            <p className="text-lg font-black text-amber-400">🏆</p>
+            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Leaderboard</p>
+          </button>
         </div>
-      </div>
 
-      {/* Leaderboard sidebar */}
-      <div className="hidden lg:flex w-80 shrink-0 flex-col bg-white/[0.01] backdrop-blur-xl border border-white/5 rounded-3xl p-5 max-h-[85vh] shadow-2xl relative overflow-hidden">
-        {/* Glow overlay */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--primary)]/5 blur-[50px] rounded-full pointer-events-none" />
-
-        <div className="flex items-center justify-between mb-6 pb-3 border-b border-white/5">
-          <h2 className="text-xs font-extrabold uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-            <span className="text-[var(--primary)]">🏆</span> Leaderboard
-          </h2>
-          <Link href="/leaderboard" className="text-[10px] font-extrabold uppercase tracking-wider text-[var(--primary)] hover:text-[var(--accent)] transition-colors cursor-pointer">
-            View all
-          </Link>
-        </div>
-        
-        {lbLoading ? (
-          <div className="flex-1 flex flex-col items-center justify-center gap-2 py-12">
-            <div className="w-5 h-5 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
-            <p className="text-[10px] text-zinc-500 font-semibold animate-pulse">Loading Standings...</p>
-          </div>
-        ) : leaderboard.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center py-12">
-            <p className="text-xs text-zinc-600 font-medium">No scores yet</p>
-          </div>
-        ) : (
-          <div className="space-y-2 flex-1 overflow-y-auto pr-1 select-none scrollbar-thin">
-            {leaderboard.slice(0, 8).map((e, i) => {
-              const rankColor = i === 0 ? 'text-yellow-400 border-yellow-500/20 bg-yellow-500/5' : i === 1 ? 'text-zinc-300 border-zinc-400/20 bg-zinc-400/5' : i === 2 ? 'text-amber-600 border-amber-700/20 bg-amber-700/5' : 'text-zinc-500 border-white/5 bg-white/[0.01]';
-              
-              return (
-                <Link
-                  key={e.id || e.player_id}
-                  href="/leaderboard"
-                  className="flex items-center gap-3 px-3 py-2.5 bg-white/[0.01] hover:bg-white/[0.03] rounded-2xl border border-white/5 hover:border-white/10 transition-all duration-300 group"
-                >
-                  <span className={`w-6 h-6 rounded-lg border flex items-center justify-center text-xs font-black tabular-nums ${rankColor}`}>
-                    {i === 0 ? '👑' : i === 1 ? '2' : i === 2 ? '3' : `${i + 1}`}
-                  </span>
-                  
-                  <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-black overflow-hidden shrink-0 border border-white/10 relative">
-                    {e.avatar_url ? (
-                      <img src={e.avatar_url} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
-                    ) : (
-                      (e.username || e.player_name || '?')[0].toUpperCase()
-                    )}
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-zinc-200 group-hover:text-white truncate transition-colors">
-                      {e.username || e.player_name || 'Unknown'}
-                    </p>
-                    <p className="text-[9px] text-zinc-500 font-semibold">{e.games_played} games</p>
-                  </div>
-                  
-                  <div className="text-right shrink-0">
-                    <span className="text-xs font-extrabold text-[var(--accent)] tabular-nums">{e.total_score.toLocaleString()}</span>
-                    <p className="text-[8px] font-bold text-zinc-600 uppercase tracking-wider">pts</p>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
+        {showLeaderboard && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            className="bg-white/[0.01] border border-white/5 rounded-2xl p-4 overflow-hidden"
+          >
+            <div className="flex items-center justify-between mb-3 pb-2 border-b border-white/5">
+              <h2 className="text-xs font-extrabold uppercase tracking-widest text-zinc-400">Leaderboard</h2>
+              <Link href="/leaderboard" className="text-[10px] font-bold text-[var(--primary)] hover:text-[var(--accent)] transition-colors">
+                View all
+              </Link>
+            </div>
+            {lbLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="w-5 h-5 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : leaderboard.length === 0 ? (
+              <p className="text-xs text-zinc-600 text-center py-4">No scores yet</p>
+            ) : (
+              <div className="space-y-1.5">
+                {leaderboard.slice(0, 5).map((e, i) => (
+                  <Link
+                    key={e.id || e.player_id}
+                    href="/leaderboard"
+                    className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/[0.03] transition-all group"
+                  >
+                    <span className={`w-6 h-6 rounded-lg border flex items-center justify-center text-xs font-black ${i === 0 ? 'text-yellow-400 border-yellow-500/20' : i === 1 ? 'text-zinc-300 border-zinc-400/20' : i === 2 ? 'text-amber-600 border-amber-700/20' : 'text-zinc-500 border-white/5'}`}>
+                      {i === 0 ? '👑' : i + 1}
+                    </span>
+                    <div className="w-7 h-7 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-bold overflow-hidden border border-white/10">
+                      {e.avatar_url ? (
+                        <img src={e.avatar_url} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                      ) : (
+                        (e.username || e.player_name || '?')[0]
+                      )}
+                    </div>
+                    <span className="flex-1 text-xs font-bold text-zinc-300 truncate">{e.username || e.player_name}</span>
+                    <span className="text-xs font-extrabold text-[var(--accent)]">{e.total_score.toLocaleString()}</span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </motion.div>
         )}
       </div>
     </div>
