@@ -396,6 +396,25 @@ app.get('/api/users/me/stats', authenticate, async (req, res) => {
   }
 });
 
+app.get('/api/users/me/current-room', authenticate, (req, res) => {
+  const room = findRoomByUserId(req.user.userId);
+  if (!room) return res.json({ room: null });
+
+  const player = room.players.find(p => p.userId === req.user.userId);
+  res.json({
+    room: {
+      code: room.code,
+      state: room.state,
+      genres: room.genres,
+      playerCount: room.players.length,
+      playerScore: player?.score || 0,
+      currentRound: room.tracksPlayed + 1,
+      totalRounds: room.totalRounds,
+      settings: room.getSettings(),
+    },
+  });
+});
+
 app.get('/api/users/:id', async (req, res) => {
   const user = await get('SELECT id, username, avatar_url, role, created_at FROM users WHERE id = ?', [req.params.id]);
   if (!user) return res.status(404).json({ error: 'User not found' });
