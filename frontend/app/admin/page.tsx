@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import { getMe } from '@/lib/api';
 
-// Dynamic tabs
 import { SystemTab } from './tabs/SystemTab';
 import { UsersTab } from './tabs/UsersTab';
 import { RoomsTab } from './tabs/RoomsTab';
@@ -61,10 +60,10 @@ export default function AdminPage() {
 
   if (loadingUser) {
     return (
-      <div className="flex-1 flex items-center justify-center min-h-screen bg-[#07070f]">
+      <div className="flex-1 flex items-center justify-center min-h-screen" style={{ backgroundColor: 'var(--background)' }}>
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 rounded-full border-2 border-[var(--primary)]/20 border-t-[var(--primary)] animate-spin" />
-          <p className="text-zinc-500 text-sm animate-pulse">Checking credentials...</p>
+          <p className="text-foreground/40 text-sm animate-pulse">Checking credentials...</p>
         </div>
       </div>
     );
@@ -73,18 +72,18 @@ export default function AdminPage() {
   if (!authorized) return null;
 
   return (
-    <div className="flex-1 flex min-h-screen bg-[#07070f] text-foreground font-sans selection:bg-[var(--primary)]/30 selection:text-white">
-      {/* Sidebar Navigation */}
+    <div className="flex-1 flex min-h-screen" style={{ backgroundColor: 'var(--background)', color: 'var(--foreground)' }}>
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-surface/30 backdrop-blur-xl border-r border-white/5 transition-all duration-300 ${
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col transition-all duration-300 ${
           sidebarOpen ? 'w-64' : 'w-20'
         } hidden md:flex`}
+        style={{ backgroundColor: 'color-mix(in srgb, var(--surface) 60%, transparent)', backdropFilter: 'blur(24px)', borderRight: '1px solid color-mix(in srgb, var(--foreground) 5%, transparent)' }}
       >
-        <div className="h-16 flex items-center justify-between px-6 border-b border-white/5">
+        <div className="h-16 flex items-center justify-between px-6" style={{ borderBottom: '1px solid color-mix(in srgb, var(--foreground) 5%, transparent)' }}>
           <div className={`flex items-center gap-3 ${!sidebarOpen && 'justify-center w-full'}`}>
-            <span className="text-2xl">🎵</span>
+            <span className="text-xl">🎵</span>
             {sidebarOpen && (
-              <span className="font-bold bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] bg-clip-text text-transparent tracking-wide">
+              <span className="font-bold text-sm tracking-wide" style={{ background: 'linear-gradient(to right, var(--primary), var(--accent))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                 BlindTest Admin
               </span>
             )}
@@ -99,20 +98,24 @@ export default function AdminPage() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all relative group ${
-                  isActive ? 'text-white' : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.02]'
+                  isActive ? 'text-foreground' : 'text-foreground/40 hover:text-foreground/60'
                 }`}
+                style={isActive ? { backgroundColor: 'color-mix(in srgb, var(--foreground) 5%, transparent)' } : {}}
               >
                 {isActive && (
                   <motion.div
                     layoutId="sidebar-active"
-                    className="absolute inset-0 bg-white/5 border border-white/10 rounded-xl"
+                    className="absolute inset-0 rounded-xl"
+                    style={{ border: '1px solid color-mix(in srgb, var(--foreground) 10%, transparent)' }}
                     transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                   />
                 )}
-                <span className="text-lg relative z-10">{tab.icon}</span>
-                {sidebarOpen && <span className="relative z-10">{tab.label}</span>}
+                <span className="text-base relative z-10">{tab.icon}</span>
+                {sidebarOpen && <span className="relative z-10 text-xs font-extrabold uppercase tracking-wider">{tab.label}</span>}
                 {!sidebarOpen && (
-                  <div className="absolute left-full ml-4 px-2 py-1 bg-surface border border-white/10 rounded text-xs text-white opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+                  <div className="absolute left-full ml-4 px-2 py-1 rounded text-xs text-foreground opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50"
+                    style={{ backgroundColor: 'var(--surface)', border: '1px solid color-mix(in srgb, var(--foreground) 10%, transparent)' }}
+                  >
                     {tab.label}
                   </div>
                 )}
@@ -121,48 +124,54 @@ export default function AdminPage() {
           })}
         </nav>
 
-        <div className="p-4 border-t border-white/5">
+        <div className="p-4" style={{ borderTop: '1px solid color-mix(in srgb, var(--foreground) 5%, transparent)' }}>
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="w-full flex items-center justify-center p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-zinc-400 hover:text-white transition-colors"
+            className="w-full flex items-center justify-center p-2 rounded-xl transition-colors text-foreground/40 hover:text-foreground cursor-pointer text-xs font-extrabold uppercase tracking-wider"
+            style={{ backgroundColor: 'color-mix(in srgb, var(--foreground) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--foreground) 10%, transparent)' }}
           >
             {sidebarOpen ? '◀ Collapse' : '▶'}
           </button>
         </div>
       </aside>
 
-      {/* Main Panel Wrapper */}
       <div className={`flex-1 flex flex-col ${sidebarOpen ? 'md:pl-64' : 'md:pl-20'} transition-all duration-300 min-w-0`}>
-        {/* Top Header */}
-        <header className="h-16 flex items-center justify-between px-6 bg-surface/10 backdrop-blur-md border-b border-white/5 sticky top-0 z-30">
+        <header className="h-16 flex items-center justify-between px-6 sticky top-0 z-30"
+          style={{ backgroundColor: 'color-mix(in srgb, var(--surface) 40%, transparent)', backdropFilter: 'blur(12px)', borderBottom: '1px solid color-mix(in srgb, var(--foreground) 5%, transparent)' }}
+        >
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-zinc-400 md:hidden"
+              className="md:hidden p-2 rounded-lg text-foreground/40 cursor-pointer"
+              style={{ backgroundColor: 'color-mix(in srgb, var(--foreground) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--foreground) 10%, transparent)' }}
             >
               ☰
             </button>
-            <h2 className="font-bold text-lg text-white">
-              {tabs.find(t => t.id === activeTab)?.label} Dashboard
+            <h2 className="font-extrabold text-sm uppercase tracking-wider text-foreground">
+              {tabs.find(t => t.id === activeTab)?.label}
+              <span className="text-foreground/30 font-bold ml-1.5">Dashboard</span>
             </h2>
           </div>
           <button
             onClick={() => router.push('/')}
-            className="px-4 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white transition-all"
+            className="px-4 py-1.5 rounded-xl text-xs font-extrabold uppercase tracking-wider text-foreground/40 hover:text-foreground transition-all cursor-pointer"
+            style={{ backgroundColor: 'color-mix(in srgb, var(--foreground) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--foreground) 10%, transparent)' }}
           >
-            ← Back to Game
+            ← Back
           </button>
         </header>
 
-        {/* Mobile Navigation bar */}
-        <div className="flex md:hidden bg-surface/30 backdrop-blur-xl border-b border-white/5 p-2 gap-1 overflow-x-auto scrollbar-none">
+        <div className="flex md:hidden p-2 gap-1 overflow-x-auto scrollbar-none"
+          style={{ backgroundColor: 'color-mix(in srgb, var(--surface) 40%, transparent)', backdropFilter: 'blur(12px)', borderBottom: '1px solid color-mix(in srgb, var(--foreground) 5%, transparent)' }}
+        >
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap transition-colors flex items-center gap-1.5 ${
-                activeTab === tab.id ? 'bg-[var(--primary)] text-white' : 'text-zinc-500 hover:text-zinc-300'
+              className={`px-3 py-1.5 text-xs font-extrabold uppercase tracking-wider rounded-lg whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+                activeTab === tab.id ? 'text-[var(--background)]' : 'text-foreground/40 hover:text-foreground/60'
               }`}
+              style={activeTab === tab.id ? { backgroundColor: 'var(--primary)' } : {}}
             >
               <span>{tab.icon}</span>
               <span>{tab.label}</span>
@@ -170,7 +179,6 @@ export default function AdminPage() {
           ))}
         </div>
 
-        {/* Tab content area */}
         <main className="flex-1 p-6 md:p-8 max-w-6xl w-full mx-auto space-y-6">
           <AnimatePresence mode="wait">
             <motion.div

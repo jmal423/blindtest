@@ -14,16 +14,16 @@ export function StatCard({ value, label, color, glowColor, icon }: StatCardProps
   return (
     <motion.div
       whileHover={{ y: -4 }}
-      className="bg-surface/20 backdrop-blur-md rounded-2xl border border-white/5 p-6 relative overflow-hidden group shadow-lg"
-      style={{ boxShadow: `0 10px 30px -10px ${glowColor}` }}
+      className="rounded-2xl p-5 relative overflow-hidden group shadow-lg"
+      style={{ backgroundColor: 'color-mix(in srgb, var(--surface) 60%, transparent)', backdropFilter: 'blur(12px)', border: '1px solid color-mix(in srgb, var(--foreground) 5%, transparent)', boxShadow: `0 10px 30px -10px ${glowColor}` }}
     >
-      <div className="absolute top-4 right-4 text-2xl opacity-20 group-hover:scale-110 transition-transform">
+      <div className="absolute top-4 right-4 text-2xl opacity-15 group-hover:scale-110 transition-transform pointer-events-none">
         {icon}
       </div>
-      <p className="text-4xl font-extrabold tracking-tight" style={{ color }}>
+      <p className="text-3xl font-black tracking-tight" style={{ color }}>
         {value}
       </p>
-      <p className="text-zinc-400 mt-2 text-xs font-semibold uppercase tracking-wider">
+      <p className="mt-1.5 text-[10px] font-extrabold uppercase tracking-widest" style={{ color: 'color-mix(in srgb, var(--foreground) 40%, transparent)' }}>
         {label}
       </p>
     </motion.div>

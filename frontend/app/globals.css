@@ -1,13 +1,13 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0a0a0a;
-  --foreground: #f5f5f5;
-  --primary: #6c5ce7;
-  --primary-hover: #5a4bd1;
-  --accent: #00cec9;
-  --surface: #1a1a2e;
-  --surface-light: #25253e;
+  --background: #0a0808;
+  --foreground: #ede8e0;
+  --primary: #ff2d78;
+  --primary-hover: #e62069;
+  --accent: #f0c040;
+  --surface: #121010;
+  --surface-light: #1e1818;
 }
 
 @theme inline {
@@ -23,22 +23,22 @@
 }
 
 body {
-  background: radial-gradient(circle at 50% 0%, #171633 0%, #08080f 50%, #030305 100%) no-repeat fixed;
+  background: radial-gradient(ellipse at 50% 0%, #1a0e14 0%, #0a0808 70%, #060506 100%) no-repeat fixed;
   color: var(--foreground);
 }
 
 [data-theme="light"] {
-  --background: #f0f0f5;
-  --foreground: #1a1a2e;
-  --primary: #6c5ce7;
-  --primary-hover: #5a4bd1;
-  --accent: #00b8b3;
+  --background: #f5f0ea;
+  --foreground: #1a1412;
+  --primary: #d92d6b;
+  --primary-hover: #c02058;
+  --accent: #c9a030;
   --surface: #ffffff;
-  --surface-light: #e4e4f0;
+  --surface-light: #ece4dc;
 }
 
 [data-theme="light"] body {
-  background: radial-gradient(circle at 50% 0%, #ffffff 0%, #f0f0f5 70%, #e4e4f0 100%) no-repeat fixed;
+  background: radial-gradient(ellipse at 50% 0%, #faf5f0 0%, #f5f0ea 70%, #ece4dc 100%) no-repeat fixed;
 }
 
 [data-theme="synthwave"] {
@@ -72,7 +72,6 @@ body {
 [data-theme="terminal"] * {
   font-family: var(--font-mono) !important;
 }
-
 
 @keyframes pulse-glow {
   0%, 100% { box-shadow: 0 0 5px var(--primary), 0 0 10px var(--primary); }

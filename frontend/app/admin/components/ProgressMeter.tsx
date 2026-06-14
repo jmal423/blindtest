@@ -12,12 +12,12 @@ export function ProgressMeter({ label, value, max, color }: ProgressMeterProps) 
   return (
     <div>
       <div className="flex justify-between text-xs font-medium mb-1.5">
-        <span className="text-zinc-400">{label}</span>
-        <span className="text-zinc-200 tabular-nums">
+        <span style={{ color: 'color-mix(in srgb, var(--foreground) 60%, transparent)' }}>{label}</span>
+        <span style={{ color: 'color-mix(in srgb, var(--foreground) 80%, transparent)' }}>
           {value.toLocaleString()} / {max.toLocaleString()} ({percentage}%)
         </span>
       </div>
-      <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden">
+      <div className="w-full h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'color-mix(in srgb, var(--foreground) 5%, transparent)' }}>
         <div
           className={`h-full rounded-full transition-all duration-500 ${color}`}
           style={{ width: `${percentage}%` }}

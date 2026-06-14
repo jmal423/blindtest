@@ -330,7 +330,7 @@ export default function Header() {
             initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            className="fixed top-4 right-4 z-[9999] max-w-sm w-[calc(100vw-32px)] bg-zinc-950/90 border border-white/10 backdrop-blur-2xl p-4 rounded-2xl shadow-2xl flex flex-col gap-3 text-zinc-100"
+            className="fixed top-4 right-4 z-[9999] max-w-sm w-[calc(100vw-32px)] bg-surface/90 backdrop-blur-2xl p-4 rounded-2xl shadow-2xl flex flex-col gap-3 text-foreground"
           >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-[var(--primary)]/10 border border-[var(--primary)]/20 flex items-center justify-center text-[var(--primary)] shadow">
@@ -339,9 +339,9 @@ export default function Header() {
                 </svg>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Lobby Invitation</p>
-                <p className="text-xs text-zinc-200 mt-0.5">
-                  <span className="font-extrabold text-white">{activeInvite.fromUser}</span> invited you to join room <span className="font-mono font-bold text-[var(--accent)]">{activeInvite.roomCode}</span>
+                <p className="text-xs font-bold text-foreground/60 uppercase tracking-widest">Lobby Invitation</p>
+                <p className="text-xs text-foreground/90 mt-0.5">
+                  <span className="font-extrabold text-foreground">{activeInvite.fromUser}</span> invited you to join room <span className="font-mono font-bold text-[var(--accent)]">{activeInvite.roomCode}</span>
                 </p>
               </div>
             </div>
@@ -349,13 +349,13 @@ export default function Header() {
             <div className="flex gap-2">
               <button
                 onClick={handleJoinInvite}
-                className="flex-1 py-2 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white text-xs font-bold rounded-xl shadow transition-all cursor-pointer text-center"
+                className="flex-1 py-2 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-[var(--background)] text-xs font-bold rounded-xl shadow transition-all cursor-pointer text-center"
               >
                 Join Room
               </button>
               <button
                 onClick={handleDeclineInvite}
-                className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 text-xs font-bold rounded-xl transition-all cursor-pointer"
+                className="px-4 py-2 bg-foreground/5 hover:bg-foreground/10 border border-foreground/10 text-foreground/80 text-xs font-bold rounded-xl transition-all cursor-pointer"
               >
                 Decline
               </button>

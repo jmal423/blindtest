@@ -68,8 +68,8 @@ export function useAdminAudio() {
           <div className="flex items-center gap-3">
             <span className="text-xl animate-pulse">🔊</span>
             <div>
-              <p className="text-xs font-bold text-white">Playing Audio Preview</p>
-              <p className="text-[10px] text-zinc-500">Listening to active clip.</p>
+              <p className="text-xs font-bold text-foreground">Playing Audio Preview</p>
+              <p className="text-[10px] text-foreground/40">Listening to active clip.</p>
             </div>
           </div>
           <button

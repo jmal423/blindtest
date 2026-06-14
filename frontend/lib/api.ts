@@ -1,5 +1,7 @@
 'use client';
 
+import { IS_MOCK, MOCK_TOKEN, MOCK_LEADERBOARD, MOCK_STATS } from './mock';
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 export interface RoomSettings {
@@ -43,6 +45,7 @@ export async function createRoom(
 ): Promise<{ code: string; playerId: string; settings: RoomSettings; genres: string[] }> {
   const token = getToken();
   if (!token) throw new Error('Authentication required');
+  if (IS_MOCK) return { code: 'MOCK', playerId: 'mock-player-1', settings: { rounds: 10, roundTime: 15, pauseTime: 5, autoStart: false, audioSource: 'deezer' }, genres: genres || [] };
   const res = await fetch(`${API_URL}/api/rooms`, {
     method: 'POST',
     headers: {
@@ -61,6 +64,7 @@ export async function createRoom(
 export async function joinRoom(code: string): Promise<{ code: string; playerId: string }> {
   const token = getToken();
   if (!token) throw new Error('Authentication required');
+  if (IS_MOCK) return { code: code.toUpperCase(), playerId: 'mock-player-1' };
   const res = await fetch(`${API_URL}/api/rooms/join`, {
     method: 'POST',
     headers: {
@@ -118,7 +122,10 @@ export function getDiscordAuthUrl(redirect?: string) {
 
 export function getToken(): string | null {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('blindtest_token');
+  const stored = localStorage.getItem('blindtest_token');
+  if (stored) return stored;
+  if (IS_MOCK) return MOCK_TOKEN;
+  return null;
 }
 
 export async function fetchWithAuth(url: string, options?: RequestInit) {
@@ -172,6 +179,7 @@ export interface Friend {
 }
 
 export async function getMe(): Promise<User> {
+  if (IS_MOCK) return { id: 'mock-user-1', username: 'PlayerOne', avatar_url: null, role: 'user', created_at: '2025-01-01T00:00:00Z' };
   return fetchWithAuth(`${API_URL}/api/users/me`);
 }
 
@@ -185,7 +193,8 @@ export async function getUserProfile(id: string): Promise<User & { scores: GameS
   return res.json();
 }
 
-export async function getLeaderboard(): Promise<{ id: string; username: string; player_name: string; avatar_url: string; total_score: number; games_played: number; avg_score: number; best_score: number; wins: number }[]> {
+export async function getLeaderboard(): Promise<{ id: string; username: string; player_name: string; avatar_url: string | null; total_score: number; games_played: number; avg_score: number; best_score: number; wins: number }[]> {
+  if (IS_MOCK) return MOCK_LEADERBOARD;
   const res = await fetch(`${API_URL}/api/leaderboard`);
   return res.json();
 }
@@ -250,6 +259,7 @@ export interface UserStats {
 }
 
 export async function getMyStats(): Promise<UserStats> {
+  if (IS_MOCK) return MOCK_STATS;
   return fetchWithAuth(`${API_URL}/api/users/me/stats`);
 }
 

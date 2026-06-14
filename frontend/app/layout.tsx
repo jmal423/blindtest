@@ -31,7 +31,9 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
+      <meta name="color-scheme" content="dark" />
       <body className="min-h-dvh flex flex-col">
         <SettingsProvider>
           <LanguageInitializer />

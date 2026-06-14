@@ -5,6 +5,8 @@
   "create_lobby": "Crear Sala",
   "join_lobby": "Unirse a la Sala",
   "join_placeholder": "Código de la sala...",
+  "create_room_hint": "Crea una sala e invita a amigos",
+  "join_room_hint": "Introduce un código de sala de 4 caracteres",
   "features_heading": "¿Por qué elegir BlindTest?",
   "feature_1_title": "29 Géneros",
   "feature_1_desc": "Pop, Rock, Hip-Hop, Electrónica y mucho más. Elige tu estilo.",

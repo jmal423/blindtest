@@ -176,11 +176,11 @@ export default function ProfilePage() {
 
   if (!user) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-[#0d0e12]">
+      <div className="flex-1 flex items-center justify-center bg-background">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-          className="w-10 h-10 border-4 border-zinc-800 border-t-[var(--primary)] rounded-full"
+          className="w-10 h-10 border-4 border-surface-light border-t-[var(--primary)] rounded-full"
         />
       </div>
     );
@@ -196,7 +196,7 @@ export default function ProfilePage() {
   const averagePointsPerGame = stats?.gamesPlayed ? Math.round(stats.totalPoints / stats.gamesPlayed) : 0;
 
   return (
-    <div className="flex-1 min-h-screen bg-[#0d0e12] text-zinc-100 flex flex-col items-center py-6 px-4 md:py-10">
+    <div className="flex-1 min-h-screen bg-background text-foreground flex flex-col items-center py-6 px-4 md:py-10">
       <div className="max-w-4xl w-full flex flex-col gap-6 md:gap-8">
         
         {/* Profile Header */}
@@ -212,7 +212,7 @@ export default function ProfilePage() {
           {/* Avatar wrapper */}
           <div className="relative group">
             <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] opacity-40 blur group-hover:opacity-70 transition-all duration-300" />
-            <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-full bg-zinc-900 flex items-center justify-center text-4xl font-extrabold text-[var(--primary)] overflow-hidden border-2 border-white/10 shadow-lg">
+            <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-full bg-surface flex items-center justify-center text-4xl font-extrabold text-[var(--primary)] overflow-hidden border-2 border-white/10 shadow-lg">
               {user.avatar_url ? (
                 <img src={user.avatar_url} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
               ) : (
@@ -224,14 +224,14 @@ export default function ProfilePage() {
           {/* User Meta */}
           <div className="flex-1 text-center sm:text-left space-y-2.5">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 justify-center sm:justify-start">
-              <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-zinc-200 to-zinc-400 bg-clip-text text-transparent">{user.username}</h1>
+              <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-foreground via-foreground/80 to-foreground/60 bg-clip-text text-transparent">{user.username}</h1>
               <div className="flex items-center gap-2 justify-center sm:justify-start">
                 {user.role === 'admin' && (
                   <span className="text-[10px] bg-red-500/10 text-red-400 border border-red-500/20 px-2 py-0.5 rounded-md font-bold tracking-wider uppercase">
                     Admin
                   </span>
                 )}
-                <span className="text-[10px] bg-white/5 border border-white/10 text-zinc-400 px-2 py-0.5 rounded-md font-semibold tracking-wider">
+                <span className="text-[10px] bg-white/5 border border-white/10 text-foreground/60 px-2 py-0.5 rounded-md font-semibold tracking-wider">
                   {new Date(user.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short' })}
                 </span>
               </div>
@@ -241,7 +241,7 @@ export default function ProfilePage() {
             <div className="flex justify-center sm:justify-start">
               <button 
                 onClick={handleCopyId}
-                className="group flex items-center gap-2 bg-black/20 hover:bg-black/40 border border-white/5 hover:border-white/10 px-3 py-1.5 rounded-xl text-zinc-400 hover:text-white transition-all cursor-pointer text-xs"
+                className="group flex items-center gap-2 bg-black/20 hover:bg-black/40 border border-white/5 hover:border-white/10 px-3 py-1.5 rounded-xl text-foreground/60 hover:text-foreground transition-all cursor-pointer text-xs"
               >
                 <span className="font-mono text-[11px] select-all">ID: {user.id}</span>
                 <div className="w-4 h-4 flex items-center justify-center text-[var(--primary)] group-hover:scale-110 transition-transform">
@@ -250,7 +250,7 @@ export default function ProfilePage() {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   ) : (
-                    <svg className="w-3.5 h-3.5 text-zinc-400 group-hover:text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5 text-foreground/60 group-hover:text-foreground" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
                     </svg>
                   )}
@@ -269,8 +269,8 @@ export default function ProfilePage() {
               onClick={() => setActiveTab(tab)}
               className={`relative flex-1 py-3 text-sm font-semibold rounded-xl transition-all cursor-pointer ${
                 activeTab === tab 
-                  ? 'text-white' 
-                  : 'text-zinc-500 hover:text-zinc-300'
+                  ? 'text-foreground' 
+                  : 'text-foreground/40 hover:text-foreground/80'
               }`}
             >
               {activeTab === tab && (
@@ -308,8 +308,8 @@ export default function ProfilePage() {
                       </svg>
                     </div>
                     <div className="space-y-0.5">
-                      <p className="text-2xl font-black text-white tracking-tight tabular-nums">{stats?.totalPoints ?? 0}</p>
-                      <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">{t('total_points')}</p>
+                      <p className="text-2xl font-black text-foreground tracking-tight tabular-nums">{stats?.totalPoints ?? 0}</p>
+                      <p className="text-[10px] font-semibold text-foreground/40 uppercase tracking-widest">{t('total_points')}</p>
                     </div>
                   </div>
 
@@ -322,8 +322,8 @@ export default function ProfilePage() {
                       </svg>
                     </div>
                     <div className="space-y-0.5">
-                      <p className="text-2xl font-black text-white tracking-tight tabular-nums">{stats?.gamesPlayed ?? 0}</p>
-                      <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">Games Played</p>
+                      <p className="text-2xl font-black text-foreground tracking-tight tabular-nums">{stats?.gamesPlayed ?? 0}</p>
+                      <p className="text-[10px] font-semibold text-foreground/40 uppercase tracking-widest">Games Played</p>
                     </div>
                   </div>
 
@@ -335,8 +335,8 @@ export default function ProfilePage() {
                       </svg>
                     </div>
                     <div className="space-y-0.5">
-                      <p className="text-2xl font-black text-white tracking-tight tabular-nums">{stats?.bestScore ?? 0}</p>
-                      <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">Best Score</p>
+                      <p className="text-2xl font-black text-foreground tracking-tight tabular-nums">{stats?.bestScore ?? 0}</p>
+                      <p className="text-[10px] font-semibold text-foreground/40 uppercase tracking-widest">Best Score</p>
                     </div>
                   </div>
 
@@ -349,10 +349,10 @@ export default function ProfilePage() {
                       </svg>
                     </div>
                     <div className="space-y-0.5">
-                      <p className="text-2xl font-black text-white tracking-tight tabular-nums">
+                      <p className="text-2xl font-black text-foreground tracking-tight tabular-nums">
                         {stats?.averageSpeedMs != null ? `${(stats.averageSpeedMs / 1000).toFixed(2)}s` : 'N/A'}
                       </p>
-                      <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">{t('avg_answer_speed')}</p>
+                      <p className="text-[10px] font-semibold text-foreground/40 uppercase tracking-widest">{t('avg_answer_speed')}</p>
                     </div>
                   </div>
 
@@ -366,8 +366,8 @@ export default function ProfilePage() {
                       </svg>
                     </div>
                     <div className="space-y-0.5 min-w-0">
-                      <p className="text-lg font-black text-white tracking-tight truncate capitalize">{stats?.bestGenre ? stats.bestGenre.replace(/_/g, ' ') : 'None'}</p>
-                      <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">Best Genre</p>
+                      <p className="text-lg font-black text-foreground tracking-tight truncate capitalize">{stats?.bestGenre ? stats.bestGenre.replace(/_/g, ' ') : 'None'}</p>
+                      <p className="text-[10px] font-semibold text-foreground/40 uppercase tracking-widest">Best Genre</p>
                     </div>
                   </div>
 
@@ -379,8 +379,8 @@ export default function ProfilePage() {
                       </svg>
                     </div>
                     <div className="space-y-0.5">
-                      <p className="text-2xl font-black text-white tracking-tight tabular-nums">{stats?.perfects ?? 0}</p>
-                      <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">Perfect guesses</p>
+                      <p className="text-2xl font-black text-foreground tracking-tight tabular-nums">{stats?.perfects ?? 0}</p>
+                      <p className="text-[10px] font-semibold text-foreground/40 uppercase tracking-widest">Perfect guesses</p>
                     </div>
                   </div>
                 </div>
@@ -388,12 +388,12 @@ export default function ProfilePage() {
                 {/* Extended Insights Card */}
                 <div className="bg-gradient-to-br from-white/[0.02] to-transparent border border-white/5 rounded-3xl p-6 shadow-xl relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--primary)]/5 rounded-full blur-2xl" />
-                  <h3 className="text-sm font-bold text-zinc-200 mb-4 tracking-wider uppercase">Performance Summary</h3>
+                  <h3 className="text-sm font-bold text-foreground/90 mb-4 tracking-wider uppercase">Performance Summary</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <div className="flex justify-between text-xs text-zinc-400">
+                      <div className="flex justify-between text-xs text-foreground/60">
                         <span>Perfect Guess Rate</span>
-                        <span className="font-bold text-white">{perfectRatio}%</span>
+                        <span className="font-bold text-foreground">{perfectRatio}%</span>
                       </div>
                       <div className="w-full bg-white/5 h-2 rounded-full overflow-hidden">
                         <motion.div 
@@ -403,15 +403,15 @@ export default function ProfilePage() {
                           transition={{ duration: 0.8, ease: 'easeOut' }}
                         />
                       </div>
-                      <p className="text-[10px] text-zinc-500 font-medium">Percentage of rounds where you guessed both Artist and Title.</p>
+                      <p className="text-[10px] text-foreground/40 font-medium">Percentage of rounds where you guessed both Artist and Title.</p>
                     </div>
 
                     <div className="flex justify-between items-center bg-black/10 border border-white/5 rounded-2xl p-4">
                       <div>
-                        <p className="text-zinc-400 text-xs font-semibold">Avg Score per Game</p>
-                        <p className="text-[10px] text-zinc-500 font-medium mt-1">Average points accumulated per complete lobby match.</p>
+                        <p className="text-foreground/60 text-xs font-semibold">Avg Score per Game</p>
+                        <p className="text-[10px] text-foreground/40 font-medium mt-1">Average points accumulated per complete lobby match.</p>
                       </div>
-                      <p className="text-2xl font-black text-[var(--accent)] tabular-nums">{averagePointsPerGame} <span className="text-[10px] text-zinc-500 font-bold">pts</span></p>
+                      <p className="text-2xl font-black text-[var(--accent)] tabular-nums">{averagePointsPerGame} <span className="text-[10px] text-foreground/40 font-bold">pts</span></p>
                     </div>
                   </div>
                 </div>
@@ -429,7 +429,7 @@ export default function ProfilePage() {
               >
                 {/* Search & Add Friend Block */}
                 <div className="bg-white/[0.01] border border-white/5 rounded-3xl p-6 shadow-xl space-y-4">
-                  <h3 className="text-sm font-bold text-zinc-200 tracking-wider uppercase">Add New Friend</h3>
+                  <h3 className="text-sm font-bold text-foreground/90 tracking-wider uppercase">Add New Friend</h3>
                   <div className="flex flex-col sm:flex-row gap-2">
                     <input
                       type="text"
@@ -437,11 +437,11 @@ export default function ProfilePage() {
                       onChange={e => setFriendInput(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && handleAddFriend()}
                       placeholder="Search users by name or ID..."
-                      className="flex-1 px-4 py-3 bg-black/20 border border-white/5 hover:border-white/10 focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]/30 rounded-2xl text-white placeholder-zinc-605 focus:outline-none transition-all text-sm"
+                      className="flex-1 px-4 py-3 bg-black/20 border border-white/5 hover:border-white/10 focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]/30 rounded-2xl text-foreground placeholder-foreground/40 focus:outline-none transition-all text-sm"
                     />
                     <button 
                       onClick={handleAddFriend} 
-                      className="px-6 py-3 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white rounded-2xl text-sm font-bold shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
+                      className="px-6 py-3 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-foreground rounded-2xl text-sm font-bold shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
@@ -459,15 +459,15 @@ export default function ProfilePage() {
                         exit={{ opacity: 0, height: 0 }}
                         className="border-t border-white/5 pt-4 space-y-2 overflow-hidden"
                       >
-                        <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-1">Search Results</h4>
+                        <h4 className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest px-1">Search Results</h4>
                         
                         {searchLoading ? (
-                          <div className="flex items-center gap-2 py-4 px-2 text-xs text-zinc-500">
+                          <div className="flex items-center gap-2 py-4 px-2 text-xs text-foreground/40">
                             <div className="w-4 h-4 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
                             Searching users...
                           </div>
                         ) : searchResults.length === 0 ? (
-                          <p className="text-xs text-zinc-600 py-3 px-1">No matching users found.</p>
+                          <p className="text-xs text-foreground/30 py-3 px-1">No matching users found.</p>
                         ) : (
                           <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
                             {searchResults.map(result => {
@@ -478,7 +478,7 @@ export default function ProfilePage() {
                               return (
                                 <div key={result.id} className="flex items-center justify-between p-3 bg-black/20 hover:bg-black/30 border border-white/5 rounded-2xl shadow-sm transition-all">
                                   <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-bold border border-white/10 overflow-hidden shrink-0">
+                                    <div className="w-8 h-8 rounded-full bg-surface-light flex items-center justify-center text-xs font-bold border border-white/10 overflow-hidden shrink-0">
                                       {result.avatar_url ? (
                                         <img src={result.avatar_url} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                                       ) : (
@@ -486,14 +486,14 @@ export default function ProfilePage() {
                                       )}
                                     </div>
                                     <div className="min-w-0">
-                                      <p className="font-bold text-xs text-zinc-200 truncate">{result.username}</p>
-                                      <p className="text-[9px] text-zinc-500">ID: {result.id}</p>
+                                      <p className="font-bold text-xs text-foreground/90 truncate">{result.username}</p>
+                                      <p className="text-[9px] text-foreground/40">ID: {result.id}</p>
                                     </div>
                                   </div>
 
                                   <div>
                                     {isFriend ? (
-                                      <span className="text-[10px] text-zinc-400 bg-white/5 border border-white/5 px-2.5 py-1.5 rounded-xl font-bold">
+                                      <span className="text-[10px] text-foreground/60 bg-white/5 border border-white/5 px-2.5 py-1.5 rounded-xl font-bold">
                                         Friends
                                       </span>
                                     ) : isPendingSent ? (
@@ -510,7 +510,7 @@ export default function ProfilePage() {
                                     ) : (
                                       <button
                                         onClick={() => handleAddFriendFromSearch(result.id)}
-                                        className="px-3 py-1.5 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white rounded-xl text-[10px] font-bold shadow transition-all cursor-pointer"
+                                        className="px-3 py-1.5 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-foreground rounded-xl text-[10px] font-bold shadow transition-all cursor-pointer"
                                       >
                                         Add Friend
                                       </button>
@@ -559,19 +559,19 @@ export default function ProfilePage() {
                 {/* Pending Invites */}
                 {pending.length > 0 && (
                   <div className="bg-white/[0.01] border border-white/5 rounded-3xl p-6 shadow-xl space-y-3">
-                    <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest">{t('pending_requests')} ({pending.length})</h3>
+                    <h3 className="text-xs font-bold text-foreground/60 uppercase tracking-widest">{t('pending_requests')} ({pending.length})</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {pending.map(p => (
                         <div key={p.id} className="flex items-center justify-between p-4 bg-black/20 border border-white/5 rounded-2xl shadow-sm">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-bold border border-white/10 overflow-hidden">
+                            <div className="w-8 h-8 rounded-full bg-surface-light flex items-center justify-center text-xs font-bold border border-white/10 overflow-hidden">
                               {p.avatar_url ? (
                                 <img src={p.avatar_url} alt="" className="w-full h-full object-cover" />
                               ) : (
                                 p.username[0].toUpperCase()
                               )}
                             </div>
-                            <span className="font-bold text-sm text-zinc-200">{p.username}</span>
+                            <span className="font-bold text-sm text-foreground/90">{p.username}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <button 
@@ -596,7 +596,7 @@ export default function ProfilePage() {
                 {/* Current Friends list */}
                 <div className="bg-white/[0.01] border border-white/5 rounded-3xl p-6 shadow-xl space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <h3 className="text-sm font-bold text-zinc-200 tracking-wider uppercase">Friends List ({friends.length})</h3>
+                    <h3 className="text-sm font-bold text-foreground/90 tracking-wider uppercase">Friends List ({friends.length})</h3>
                     {friends.length > 0 && (
                       <div className="relative">
                         <input
@@ -604,9 +604,9 @@ export default function ProfilePage() {
                           value={friendsSearch}
                           onChange={e => setFriendsSearch(e.target.value)}
                           placeholder="Search friends..."
-                          className="w-full sm:w-60 pl-8 pr-4 py-1.5 bg-black/20 border border-white/5 focus:border-[var(--primary)] focus:outline-none rounded-xl text-xs text-white placeholder-zinc-600 transition-colors"
+                          className="w-full sm:w-60 pl-8 pr-4 py-1.5 bg-black/20 border border-white/5 focus:border-[var(--primary)] focus:outline-none rounded-xl text-xs text-foreground placeholder-foreground/30 transition-colors"
                         />
-                        <svg className="w-3.5 h-3.5 text-zinc-600 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <svg className="w-3.5 h-3.5 text-foreground/30 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                           <circle cx="11" cy="11" r="8" />
                           <line x1="21" y1="21" x2="16.65" y2="16.65" />
                         </svg>
@@ -617,7 +617,7 @@ export default function ProfilePage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                     {filteredFriends.map(f => {
                       const presence = f.presence || { status: 'offline', roomCode: null };
-                      let statusDot = 'bg-zinc-600';
+                      let statusDot = 'bg-foreground/30';
                       let statusText = 'Offline';
                       
                       if (presence.status === 'lobby') {
@@ -632,7 +632,7 @@ export default function ProfilePage() {
                         <div key={f.id} className="group flex items-center justify-between p-4 bg-white/[0.01] hover:bg-white/[0.02] border border-white/5 rounded-2xl transition-all shadow-sm">
                           <div className="flex items-center gap-3">
                             <div className="relative">
-                              <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center font-bold border border-white/10 overflow-hidden relative shadow-inner">
+                              <div className="w-10 h-10 rounded-full bg-surface-light flex items-center justify-center font-bold border border-white/10 overflow-hidden relative shadow-inner">
                                 {f.avatar_url ? (
                                   <img src={f.avatar_url} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                                 ) : (
@@ -643,7 +643,7 @@ export default function ProfilePage() {
                             </div>
                             <div className="space-y-0.5">
                               <div className="flex items-center gap-1.5">
-                                <span className="font-bold text-sm text-zinc-200">{f.username}</span>
+                                <span className="font-bold text-sm text-foreground/90">{f.username}</span>
                                 {presence.status === 'lobby' && (
                                   <span className="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded font-semibold">
                                     Lobby
@@ -655,7 +655,7 @@ export default function ProfilePage() {
                                   </span>
                                 )}
                               </div>
-                              <p className="text-[10px] text-zinc-650">ID: {f.id}</p>
+                              <p className="text-[10px] text-foreground/20">ID: {f.id}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
@@ -680,12 +680,12 @@ export default function ProfilePage() {
 
                     {filteredFriends.length === 0 && (
                       <div className="col-span-2 py-12 text-center flex flex-col items-center justify-center gap-3">
-                        <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center text-zinc-500">
+                        <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center text-foreground/40">
                           <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                           </svg>
                         </div>
-                        <p className="text-zinc-600 text-xs">
+                        <p className="text-foreground/30 text-xs">
                           {friends.length === 0 
                             ? 'No friends added yet. Type a username or ID above to send a request!'
                             : 'No friends found matching that search.'
@@ -709,13 +709,13 @@ export default function ProfilePage() {
               >
                 {/* Recent Games Panel */}
                 <div className="bg-white/[0.01] border border-white/5 rounded-3xl p-6 shadow-xl space-y-4">
-                  <h3 className="text-sm font-bold text-zinc-200 tracking-wider uppercase">{t('recent_games')}</h3>
+                  <h3 className="text-sm font-bold text-foreground/90 tracking-wider uppercase">{t('recent_games')}</h3>
                   <div className="space-y-3">
                     {scores.map(s => {
                       const maxScore = s.total_rounds * 100;
                       const scoreRatio = s.score / maxScore;
                       let performanceLabel = 'Novice';
-                      let performanceColor = 'text-zinc-400 bg-zinc-500/10 border-zinc-500/20';
+                      let performanceColor = 'text-foreground/60 bg-foreground/10 border-foreground/10';
 
                       if (scoreRatio >= 0.8) {
                         performanceLabel = 'Grandmaster';
@@ -735,12 +735,12 @@ export default function ProfilePage() {
                         >
                           <div className="space-y-1">
                             <div className="flex items-center gap-2">
-                              <p className="text-sm font-bold text-zinc-200">{t('room_game_prefix')} {s.game_code}</p>
+                              <p className="text-sm font-bold text-foreground/90">{t('room_game_prefix')} {s.game_code}</p>
                               <span className={`text-[9px] font-bold px-2 py-0.5 border rounded-md uppercase tracking-wider ${performanceColor}`}>
                                 {performanceLabel}
                               </span>
                             </div>
-                            <p className="text-[10px] text-zinc-500 font-medium">
+                            <p className="text-[10px] text-foreground/40 font-medium">
                               {new Date(s.played_at).toLocaleDateString(undefined, { 
                                 month: 'short', 
                                 day: 'numeric', 
@@ -753,7 +753,7 @@ export default function ProfilePage() {
                           
                           <div className="flex items-center gap-3">
                             <span className="text-base font-extrabold text-[var(--accent)] bg-[var(--accent)]/5 border border-[var(--accent)]/15 px-3.5 py-1.5 rounded-xl tabular-nums">
-                              {s.score} <span className="text-[10px] text-zinc-500 font-bold">/ {maxScore}</span>
+                              {s.score} <span className="text-[10px] text-foreground/40 font-bold">/ {maxScore}</span>
                             </span>
                           </div>
                         </div>
@@ -762,12 +762,12 @@ export default function ProfilePage() {
 
                     {scores.length === 0 && (
                       <div className="py-12 text-center flex flex-col items-center justify-center gap-3">
-                        <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center text-zinc-500">
+                        <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center text-foreground/40">
                           <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
                         </div>
-                        <p className="text-zinc-600 text-xs">{t('no_games_yet')}</p>
+                        <p className="text-foreground/30 text-xs">{t('no_games_yet')}</p>
                       </div>
                     )}
                   </div>
@@ -780,7 +780,7 @@ export default function ProfilePage() {
         {/* Back navigation footer link */}
         <Link 
           href="/" 
-          className="text-xs text-zinc-600 hover:text-zinc-300 text-center transition-colors font-semibold self-center flex items-center gap-2 cursor-pointer pt-4"
+          className="text-xs text-foreground/30 hover:text-foreground/80 text-center transition-colors font-semibold self-center flex items-center gap-2 cursor-pointer pt-4"
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />

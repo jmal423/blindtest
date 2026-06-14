@@ -66,7 +66,7 @@ export function ApiTab() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-surface/20 backdrop-blur-md rounded-2xl border border-white/5 p-6 shadow-lg flex flex-col justify-between">
           <div>
-            <h3 className="font-bold text-white text-xs uppercase tracking-wider mb-4">Deezer Live Endpoints</h3>
+            <h3 className="font-extrabold text-xs uppercase tracking-wider text-foreground mb-4">Deezer Live Endpoints</h3>
             {deezerResult ? (
               <div className="space-y-2 text-xs font-mono">
                 {deezerResult.error ? (
@@ -74,7 +74,7 @@ export function ApiTab() {
                 ) : (
                   (deezerResult.tests || []).map((t: any, i: number) => (
                     <div key={i} className="flex items-center justify-between border-b border-white/[0.01] pb-1.5">
-                      <span className="text-zinc-500">{t.label || t.endpoint}</span>
+                      <span className="text-foreground/40">{t.label || t.endpoint}</span>
                       <span className={t.ok ? 'text-green-400 font-bold' : 'text-red-400 font-bold'}>
                         {t.ok ? `${t.ms || t.latencyMs}ms ✓` : 'Offline ✗'}
                       </span>
@@ -83,13 +83,13 @@ export function ApiTab() {
                 )}
               </div>
             ) : (
-              <p className="text-zinc-500 text-xs italic">No latency metrics recorded.</p>
+              <p className="text-foreground/40 text-xs italic">No latency metrics recorded.</p>
             )}
           </div>
           <button
             onClick={runConnectivity}
             disabled={deezerLoading}
-            className="mt-6 w-full py-2 bg-white/5 hover:bg-white/10 text-white font-semibold text-xs rounded-xl border border-white/10 transition-colors disabled:opacity-50"
+            className="mt-6 w-full py-2 bg-white/5 hover:bg-white/10 text-foreground font-semibold text-xs rounded-xl border border-white/10 transition-colors disabled:opacity-50"
           >
             {deezerLoading ? 'Pinging endpoints...' : 'Ping Deezer API'}
           </button>
@@ -97,35 +97,35 @@ export function ApiTab() {
 
         <div className="bg-surface/20 backdrop-blur-md rounded-2xl border border-white/5 p-6 shadow-lg flex flex-col justify-between">
           <div>
-            <h3 className="font-bold text-white text-xs uppercase tracking-wider mb-4">Internal postgresql</h3>
+            <h3 className="font-extrabold text-xs uppercase tracking-wider text-foreground mb-4">Internal postgresql</h3>
             {dbStatus ? (
               dbStatus.ok ? (
                 <div className="space-y-2 text-xs font-mono">
                   <div className="flex items-center justify-between">
-                    <span className="text-zinc-500">Database Driver</span>
+                    <span className="text-foreground/40">Database Driver</span>
                     <span>Postgres Client Pool</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-zinc-500">Status</span>
+                    <span className="text-foreground/40">Status</span>
                     <span className="text-green-400 font-bold">Connected</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-zinc-500">User records</span>
-                    <span className="text-zinc-300 font-bold">{dbStatus.tables?.users ?? 0}</span>
+                    <span className="text-foreground/40">User records</span>
+                    <span className="text-foreground/80 font-bold">{dbStatus.tables?.users ?? 0}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-zinc-500">Round Guesses</span>
-                    <span className="text-zinc-300 font-bold">{dbStatus.tables?.round_results_v2 ?? 0}</span>
+                    <span className="text-foreground/40">Round Guesses</span>
+                    <span className="text-foreground/80 font-bold">{dbStatus.tables?.round_results_v2 ?? 0}</span>
                   </div>
                 </div>
               ) : (
                 <p className="text-xs text-red-400 font-mono">{dbStatus.error || 'Failed'}</p>
               )
             ) : (
-              <p className="text-zinc-500 text-xs italic">Checking database status...</p>
+              <p className="text-foreground/40 text-xs italic">Checking database status...</p>
             )}
           </div>
-          <div className="text-xs text-zinc-500 pt-3 border-t border-white/5">
+          <div className="text-xs text-foreground/40 pt-3 border-t border-white/5">
             Active connection pool size: 10
           </div>
         </div>
@@ -134,13 +134,13 @@ export function ApiTab() {
       {/* Genre Tester and Audio Player */}
       <div className="bg-surface/20 backdrop-blur-md rounded-2xl border border-white/5 p-6 shadow-lg">
         <div className="mb-4">
-          <h3 className="font-bold text-white text-sm uppercase tracking-wider">Live Genre API Tester</h3>
-          <p className="text-xs text-zinc-500 mt-1">Directly query Deezer music catalog for specific genres, list ranks, and verify audio clips.</p>
+          <h3 className="font-extrabold text-sm uppercase tracking-wider text-foreground">Live Genre API Tester</h3>
+          <p className="text-xs text-foreground/40 mt-1">Directly query Deezer music catalog for specific genres, list ranks, and verify audio clips.</p>
         </div>
 
         <div className="flex flex-wrap items-end gap-4 bg-white/[0.01] border border-white/5 p-4 rounded-2xl mb-6">
           <div className="flex-1 min-w-[150px]">
-            <label className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider block mb-1.5">Query Source</label>
+            <label className="text-[10px] text-foreground/40 uppercase font-bold tracking-wider block mb-1.5">Query Source</label>
             <div className="flex gap-1">
               {API_SOURCES.map(s => (
                 <button
@@ -152,7 +152,7 @@ export function ApiTab() {
                   className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all ${
                     source === s.id
                       ? 'bg-[var(--primary)] border-[var(--primary)] text-white shadow-lg'
-                      : 'bg-white/5 border-white/5 text-zinc-400 hover:text-white'
+                      : 'bg-white/5 border-white/5 text-foreground/60 hover:text-foreground'
                   }`}
                   title={s.desc}
                 >
@@ -163,14 +163,14 @@ export function ApiTab() {
           </div>
 
           <div>
-            <label className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider block mb-1.5">Genre</label>
+            <label className="text-[10px] text-foreground/40 uppercase font-bold tracking-wider block mb-1.5">Genre</label>
             <select
               value={genre}
               onChange={e => {
                 setGenre(e.target.value);
                 setResults(null);
               }}
-              className="bg-surface border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-[var(--primary)]"
+              className="bg-surface border border-white/10 rounded-xl px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-[var(--primary)]"
             >
               {genreList.map(g => (
                 <option key={g.id} value={g.id}>{g.label}</option>
@@ -179,7 +179,7 @@ export function ApiTab() {
           </div>
 
           <div>
-            <label className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider block mb-1.5">Quantity</label>
+            <label className="text-[10px] text-foreground/40 uppercase font-bold tracking-wider block mb-1.5">Quantity</label>
             <div className="flex items-center gap-3">
               <input
                 type="range"
@@ -192,7 +192,7 @@ export function ApiTab() {
                 }}
                 className="w-24 accent-[var(--primary)] h-1.5 cursor-pointer"
               />
-              <span className="text-xs text-zinc-400 font-bold font-mono w-6 tabular-nums">{count}</span>
+              <span className="text-xs text-foreground/60 font-bold font-mono w-6 tabular-nums">{count}</span>
             </div>
           </div>
 
@@ -210,15 +210,15 @@ export function ApiTab() {
         {/* Results grid */}
         {results && (
           <div className="space-y-4">
-            <div className="flex items-center gap-4 text-xs font-semibold text-zinc-500 border-b border-white/5 pb-2">
+            <div className="flex items-center gap-4 text-xs font-semibold text-foreground/40 border-b border-white/5 pb-2">
               <span>Found: {results.count ?? results.tracks?.length} tracks</span>
               {results.previewCount != null && <span className="text-green-400">{results.previewCount} with audio previews</span>}
-              {results.latencyMs != null && <span className="text-zinc-600">Response time: {results.latencyMs}ms</span>}
+              {results.latencyMs != null && <span className="text-foreground/30">Response time: {results.latencyMs}ms</span>}
             </div>
 
             <div className="overflow-y-auto max-h-96 border border-white/5 rounded-xl">
               <table className="w-full text-xs">
-                <thead className="sticky top-0 bg-surface/90 backdrop-blur-md z-10 text-zinc-500 border-b border-white/5">
+                <thead className="sticky top-0 bg-surface/90 backdrop-blur-md z-10 text-foreground/40 border-b border-white/5">
                   <tr>
                     <th className="text-right py-3 px-4 w-16">Rank</th>
                     <th className="text-left py-3 px-2">Track Title</th>
@@ -239,11 +239,11 @@ export function ApiTab() {
                           t.rank >= 1000000 ? 'bg-purple-500/5' : t.rank >= 100000 ? 'bg-blue-500/5' : ''
                         }`}
                       >
-                        <td className="py-2.5 px-4 text-right font-mono text-zinc-500">
+                        <td className="py-2.5 px-4 text-right font-mono text-foreground/40">
                           {t.rank > 0 ? `#${t.rank.toLocaleString()}` : '-'}
                         </td>
-                        <td className="py-2.5 px-2 font-semibold text-zinc-200 truncate max-w-[200px]">{t.name || t.title}</td>
-                        <td className="py-2.5 px-2 text-zinc-400 hidden sm:table-cell truncate max-w-[200px]">{t.artist}</td>
+                        <td className="py-2.5 px-2 font-semibold text-foreground/90 truncate max-w-[200px]">{t.name || t.title}</td>
+                        <td className="py-2.5 px-2 text-foreground/60 hidden sm:table-cell truncate max-w-[200px]">{t.artist}</td>
                         <td className="py-2.5 px-4 text-center">
                           {hasAudio && audioUrl ? (
                             <button
@@ -251,13 +251,13 @@ export function ApiTab() {
                               className={`px-3 py-1 rounded-lg text-[10px] font-bold transition-all border ${
                                 isPlaying
                                   ? 'bg-[var(--accent)]/15 text-[var(--accent)] border-[var(--accent)]/20 shadow-lg'
-                                  : 'bg-white/5 border-white/5 text-zinc-300 hover:bg-white/10'
+                                  : 'bg-white/5 border-white/5 text-foreground/80 hover:bg-white/10'
                               }`}
                             >
                               {isPlaying ? '⏸ Pause' : '▶ Play'}
                             </button>
                           ) : (
-                            <span className="text-zinc-600 italic text-[10px]">No audio</span>
+                            <span className="text-foreground/30 italic text-[10px]">No audio</span>
                           )}
                         </td>
                       </tr>

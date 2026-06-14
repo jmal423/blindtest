@@ -354,7 +354,7 @@ export default function GamePage({
   if (!playerId) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <p className="text-zinc-400 text-lg">{t('connecting')}</p>
+        <p className="text-foreground/60 text-lg">{t('connecting')}</p>
       </div>
     );
   }
@@ -363,8 +363,8 @@ export default function GamePage({
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 gap-4">
         <p className="text-red-400 text-lg">{error}</p>
-        <p className="text-zinc-500 text-sm">Server: {process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005'}</p>
-        <button onClick={() => router.push('/')} className="px-6 py-3 bg-[var(--primary)] text-white rounded-xl">
+        <p className="text-foreground/40 text-sm">Server: {process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005'}</p>
+        <button onClick={() => router.push('/')} className="px-6 py-3 bg-[var(--primary)] text-foreground rounded-xl">
           {t('back_home')}
         </button>
       </div>
@@ -374,7 +374,7 @@ export default function GamePage({
   if (!gameState) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <p className="text-zinc-400 text-lg">{t('connecting_to_game')}</p>
+        <p className="text-foreground/60 text-lg">{t('connecting_to_game')}</p>
       </div>
     );
   }
@@ -386,12 +386,12 @@ export default function GamePage({
           <p className="text-xl font-bold tracking-[0.2em] text-[var(--primary)]">{code}</p>
           <button
             onClick={() => { navigator.clipboard.writeText(code); }}
-            className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-zinc-500 hover:text-zinc-300 transition-colors"
+            className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-foreground/40 hover:text-foreground/80 transition-colors"
           >
             {t('copy')}
           </button>
           {gameState.state === 'waiting' && (
-            <div className="hidden md:flex items-center gap-2 text-[11px] text-zinc-500">
+            <div className="hidden md:flex items-center gap-2 text-[11px] text-foreground/40">
               {(gameState as any).genres?.length > 0 && (
                 <span className="px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">
                   {(gameState as any).genres?.slice(0, 3).join(', ')}{(gameState as any).genres?.length > 3 ? ` +${(gameState as any).genres.length - 3}` : ''}
@@ -402,7 +402,7 @@ export default function GamePage({
             </div>
           )}
           {gameState.state !== 'waiting' && gameState.state !== 'game_over' && (
-            <span className="text-xs text-zinc-600">Round {gameState.currentRound}/{gameState.totalRounds}</span>
+            <span className="text-xs text-foreground/30">Round {gameState.currentRound}/{gameState.totalRounds}</span>
           )}
         </div>
         <div className="flex items-center gap-2">
@@ -418,7 +418,7 @@ export default function GamePage({
                       updateLocalSettings({ masterVolume: prevVolumeRef.current || 1 });
                     }
                   }}
-                  className="text-zinc-400 hover:text-zinc-200 transition-colors p-1"
+                  className="text-foreground/60 hover:text-foreground/90 transition-colors p-1"
                   title={userSettings.masterVolume === 0 ? 'Unmute (M)' : 'Mute (M)'}
                 >
                   {userSettings.masterVolume === 0 ? (
@@ -438,7 +438,7 @@ export default function GamePage({
               </div>
               <button
                 onClick={() => setChatOpen(o => !o)}
-                className="md:hidden text-[10px] px-2 py-0.5 rounded bg-white/5 text-zinc-400 hover:text-zinc-300 transition-colors"
+                className="md:hidden text-[10px] px-2 py-0.5 rounded bg-white/5 text-foreground/60 hover:text-foreground/80 transition-colors"
               >
                 {chatOpen ? t('hide_chat') : t('chat')}
               </button>
@@ -451,7 +451,7 @@ export default function GamePage({
         {gameState.state !== 'waiting' && gameState.state !== 'game_over' && (
           <div className="hidden md:flex flex-col w-52 shrink-0 gap-3 max-h-[calc(100vh-10rem)]">
             <div>
-              <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">{t('players_label') || 'Players'}</p>
+              <p className="text-[10px] text-foreground/40 uppercase tracking-wider mb-2">{t('players_label') || 'Players'}</p>
               <div className="space-y-1">
                 {[...gameState.players].sort((a: any, b: any) => b.score - a.score).map((p: any) => (
                   <div key={p.id} className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-[11px] ${p.id === playerId ? 'bg-[var(--primary)]/10 border border-[var(--primary)]/20' : 'bg-white/[0.03]'}`}>
@@ -462,7 +462,7 @@ export default function GamePage({
                         p.name?.[0]?.toUpperCase() || '?'
                       )}
                     </div>
-                    <span className="truncate flex-1 text-zinc-300">{p.name}</span>
+                    <span className="truncate flex-1 text-foreground/80">{p.name}</span>
                     <span className="text-[var(--accent)] font-bold tabular-nums shrink-0">{p.score}</span>
                   </div>
                 ))}
@@ -471,7 +471,7 @@ export default function GamePage({
 
             {((gameState as any)?.trackHistory?.length > 0) && (
               <div className="flex-1 min-h-0 flex flex-col">
-                <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">{t('history_label')}</p>
+                <p className="text-[10px] text-foreground/40 uppercase tracking-wider mb-2">{t('history_label')}</p>
                 <div className="flex-1 overflow-y-auto space-y-1">
                   {[...((gameState as any)?.trackHistory || [])].reverse().map((t: any, idx: number) => (
                     <div
@@ -480,13 +480,13 @@ export default function GamePage({
                         idx === 0 ? 'bg-[var(--primary)]/10 border border-[var(--primary)]/20' : 'bg-white/[0.03]'
                       }`}
                     >
-                      {t.skipped && <span className="text-zinc-500">⏭</span>}
+                      {t.skipped && <span className="text-foreground/40">⏭</span>}
                       {t.albumImage && (
                         <img src={t.albumImage} alt="" className="w-5 h-5 rounded object-cover shrink-0" />
                       )}
                       <div className="min-w-0 flex-1">
-                        <p className={`font-medium truncate leading-tight ${t.skipped ? 'line-through text-zinc-500' : ''}`}>{t.name}</p>
-                        <p className="text-zinc-500 truncate leading-tight">
+                        <p className={`font-medium truncate leading-tight ${t.skipped ? 'line-through text-foreground/40' : ''}`}>{t.name}</p>
+                        <p className="text-foreground/40 truncate leading-tight">
                           {t.artist}{t.rank > 0 ? ` · #${t.rank.toLocaleString()}` : ''}
                         </p>
                       </div>
@@ -558,7 +558,7 @@ onSkipVote={handleSkipVote}
           <div className={`${chatOpen ? 'fixed inset-0 z-40 bg-black/80 md:bg-transparent md:static flex items-end md:block' : 'hidden md:block'} w-64 shrink-0`}>
             <div className="w-full md:w-64 bg-[var(--surface)] md:bg-transparent rounded-t-2xl md:rounded-none md:h-auto max-h-[60vh] md:max-h-none overflow-y-auto">
               {chatOpen && (
-                <button onClick={() => setChatOpen(false)} className="md:hidden w-full text-center py-2 text-xs text-zinc-500 border-b border-white/5">
+                <button onClick={() => setChatOpen(false)} className="md:hidden w-full text-center py-2 text-xs text-foreground/40 border-b border-white/5">
                   Close
                 </button>
               )}
@@ -604,8 +604,8 @@ onSkipVote={handleSkipVote}
                 <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
               </svg>
             </div>
-            <p className="text-xl font-bold text-white">Tap to enable audio</p>
-            <p className="text-sm text-zinc-400">Your browser needs a tap to play sound</p>
+            <p className="text-xl font-bold text-foreground">Tap to enable audio</p>
+            <p className="text-sm text-foreground/60">Your browser needs a tap to play sound</p>
           </div>
         </div>
       )}
@@ -625,7 +625,7 @@ function SliderSetting({ label, value, min, max, suffix = '', isHost, onChange }
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-zinc-400">{label}</span>
+        <span className="text-xs font-medium text-foreground/60">{label}</span>
         <span className="text-xs font-semibold text-[var(--primary)] tabular-nums bg-[var(--primary)]/5 px-2 py-0.5 rounded border border-[var(--primary)]/15">{value}{suffix}</span>
       </div>
       {isHost ? (
@@ -756,15 +756,15 @@ function WaitingRoom({
     <div className="flex-1 flex flex-col items-center gap-6 overflow-y-auto pb-24 md:pb-8 w-full max-w-4xl mx-auto px-4">
       {/* Title Header */}
       <div className="text-center space-y-1.5 mt-2 mb-1 flex flex-col items-center">
-        <h2 className="text-2xl font-bold tracking-tight text-zinc-100">
+        <h2 className="text-2xl font-bold tracking-tight text-foreground">
           Game Lobby
         </h2>
-        <p className="text-xs text-zinc-500 font-medium">
+        <p className="text-xs text-foreground/40 font-medium">
           Invite friends by sharing the lobby code above
         </p>
         <button
           onClick={() => setShowInviteModal(true)}
-          className="mt-2 text-xs px-3.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-white/5 hover:border-white/10 rounded-xl text-zinc-300 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer font-bold shadow-md animate-fade-in"
+          className="mt-2 text-xs px-3.5 py-1.5 bg-surface-light hover:bg-surface-light border border-white/5 hover:border-white/10 rounded-xl text-foreground/80 hover:text-foreground transition-all flex items-center gap-1.5 cursor-pointer font-bold shadow-md animate-fade-in"
         >
           <svg className="w-3.5 h-3.5 text-[var(--primary)]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
@@ -782,9 +782,9 @@ function WaitingRoom({
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
-              <span className="text-sm font-semibold text-zinc-200">{t('players')}</span>
+              <span className="text-sm font-semibold text-foreground/90">{t('players')}</span>
             </div>
-            <span className="text-xs text-zinc-500 font-medium bg-white/5 px-2.5 py-1 rounded-full tabular-nums">
+            <span className="text-xs text-foreground/40 font-medium bg-white/5 px-2.5 py-1 rounded-full tabular-nums">
               {players.length} {players.length === 1 ? 'player' : 'players'}
             </span>
           </div>
@@ -808,15 +808,15 @@ function WaitingRoom({
                     />
                   ) : (
                     <div
-                      className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-md transition-all ${
-                        p.id === hostId ? 'ring-2 ring-primary ring-offset-2 ring-offset-[var(--surface)] bg-gradient-to-br from-primary to-accent' : 'bg-zinc-800 border border-white/10'
+                      className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-foreground shadow-md transition-all ${
+                        p.id === hostId ? 'ring-2 ring-primary ring-offset-2 ring-offset-[var(--surface)] bg-gradient-to-br from-primary to-accent' : 'bg-surface-light border border-white/10'
                       }`}
                     >
                       {p.name[0].toUpperCase()}
                     </div>
                   )}
                   {p.id === hostId && (
-                    <span className="absolute -top-1 -left-1 text-[10px] bg-[var(--primary)] text-white rounded-full p-0.5 shadow-md">
+                    <span className="absolute -top-1 -left-1 text-[10px] bg-[var(--primary)] text-foreground rounded-full p-0.5 shadow-md">
                       👑
                     </span>
                   )}
@@ -824,7 +824,7 @@ function WaitingRoom({
 
                 {/* Info */}
                 <div className="flex flex-col min-w-0">
-                  <span className="font-semibold text-zinc-200 text-sm truncate flex items-center gap-1.5">
+                  <span className="font-semibold text-foreground/90 text-sm truncate flex items-center gap-1.5">
                     {p.name}
                     {p.role === 'admin' && (
                       <span className="rounded-full bg-[#00cec9]/15 px-2 py-0.5 text-[9px] font-bold tracking-wider text-[#00cec9] border border-[#00cec9]/30">
@@ -832,7 +832,7 @@ function WaitingRoom({
                       </span>
                     )}
                   </span>
-                  <span className="text-[10px] text-zinc-500 font-medium">
+                  <span className="text-[10px] text-foreground/40 font-medium">
                     {p.id === playerId ? 'You' : p.id === hostId ? 'Host' : 'Ready'}
                   </span>
                 </div>
@@ -842,7 +842,7 @@ function WaitingRoom({
                   {p.id !== hostId && playerId === hostId && onTransferHost && (
                     <button
                       onClick={() => onTransferHost(p.id)}
-                      className="text-[10px] px-2.5 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-medium border border-white/5 transition-all cursor-pointer"
+                      className="text-[10px] px-2.5 py-1 rounded bg-surface-light hover:bg-surface-light text-foreground/80 font-medium border border-white/5 transition-all cursor-pointer"
                     >
                       Make Host
                     </button>
@@ -864,13 +864,13 @@ function WaitingRoom({
         {/* Right Column: Settings & Genres */}
         <div className="w-full bg-[var(--surface)] rounded-2xl p-5 border border-white/5 space-y-5 shadow-xl backdrop-blur-md">
           <div className="pb-2 border-b border-white/5">
-            <h3 className="text-sm font-semibold text-zinc-200">{t('settings')}</h3>
+            <h3 className="text-sm font-semibold text-foreground/90">{t('settings')}</h3>
           </div>
 
           <div className="space-y-4">
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-medium text-zinc-400">{t('genres')}</label>
+                <label className="text-xs font-medium text-foreground/60">{t('genres')}</label>
                 {isHost && genreGroups.length > 0 && (
                   <button
                     onClick={() => {
@@ -880,7 +880,7 @@ function WaitingRoom({
                         onGenresChange([...allGenreIds]);
                       }
                     }}
-                    className="text-[10px] px-2.5 py-1 rounded bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white transition-colors border border-white/5 cursor-pointer font-medium"
+                    className="text-[10px] px-2.5 py-1 rounded bg-white/5 text-foreground/60 hover:bg-white/10 hover:text-foreground transition-colors border border-white/5 cursor-pointer font-medium"
                   >
                     {genres.length === allGenreIds.length && allGenreIds.length > 0 ? t('clear_btn') : t('all_btn')}
                   </button>
@@ -897,8 +897,8 @@ function WaitingRoom({
                         onClick={() => isHost && toggleGenre(g.id)}
                         className={`px-2 py-1.5 rounded-full text-[11px] font-semibold transition-all border ${
                           selected
-                            ? 'bg-gradient-to-r from-primary to-accent text-white border-transparent shadow-md shadow-primary/10 scale-100 hover:brightness-110 active:scale-95'
-                            : 'bg-white/[0.02] text-zinc-400 border-white/5 hover:bg-white/[0.06] hover:text-zinc-200 hover:border-white/10 active:scale-95'
+                            ? 'bg-gradient-to-r from-primary to-accent text-foreground border-transparent shadow-md shadow-primary/10 scale-100 hover:brightness-110 active:scale-95'
+                            : 'bg-white/[0.02] text-foreground/60 border-white/5 hover:bg-white/[0.06] hover:text-foreground/90 hover:border-white/10 active:scale-95'
                         } ${!isHost ? 'opacity-80 cursor-default pointer-events-none' : 'cursor-pointer'}`}
                       >
                         {t(`genre_${g.id}`)}
@@ -918,10 +918,10 @@ function WaitingRoom({
                       <div key={group.id} className="border border-white/5 rounded-xl bg-white/[0.01] overflow-hidden transition-all duration-300 hover:border-white/10 hover:bg-white/[0.02]">
                         <button
                           onClick={() => toggleGroup(group.id)}
-                          className="w-full flex items-center justify-between px-3.5 py-2.5 text-xs font-semibold text-zinc-300 hover:text-white transition-colors cursor-pointer"
+                          className="w-full flex items-center justify-between px-3.5 py-2.5 text-xs font-semibold text-foreground/80 hover:text-foreground transition-colors cursor-pointer"
                         >
                           <span className="flex items-center gap-2">
-                            <span className={`w-1.5 h-1.5 rounded-full ${someSelected ? 'bg-[var(--primary)]' : 'bg-zinc-600'} transition-all`} />
+                            <span className={`w-1.5 h-1.5 rounded-full ${someSelected ? 'bg-[var(--primary)]' : 'bg-foreground/30'} transition-all`} />
                             {t(`group_${group.id}`)}
                           </span>
                           <div className="flex items-center gap-2.5">
@@ -932,15 +932,15 @@ function WaitingRoom({
                                   allSelected
                                     ? 'bg-[var(--primary)]/20 text-[var(--primary)] border border-[var(--primary)]/30 hover:bg-[var(--primary)]/35'
                                     : someSelected
-                                      ? 'bg-white/10 text-zinc-400 border border-white/10 hover:bg-white/20'
-                                      : 'bg-white/5 text-zinc-500 border border-transparent hover:bg-white/10'
+                                      ? 'bg-white/10 text-foreground/60 border border-white/10 hover:bg-white/20'
+                                      : 'bg-white/5 text-foreground/40 border border-transparent hover:bg-white/10'
                                 }`}
                               >
                                 {allSelected ? t('clear_btn') : t('all_btn')}
                               </span>
                             )}
                             <svg
-                              className={`w-3.5 h-3.5 text-zinc-500 transition-transform duration-300 ${isCollapsed ? '' : 'rotate-180'}`}
+                              className={`w-3.5 h-3.5 text-foreground/40 transition-transform duration-300 ${isCollapsed ? '' : 'rotate-180'}`}
                               fill="none" stroke="currentColor" viewBox="0 0 24 24"
                             >
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
@@ -964,8 +964,8 @@ function WaitingRoom({
                                     onClick={() => isHost && toggleGenre(g.id)}
                                     className={`px-2 py-1.5 rounded-full text-[11px] font-semibold transition-all border ${
                                       selected
-                                        ? 'bg-gradient-to-r from-primary to-accent text-white border-transparent shadow-md shadow-primary/10 scale-100 hover:brightness-110 active:scale-95'
-                                        : 'bg-white/[0.02] text-zinc-400 border-white/5 hover:bg-white/[0.06] hover:text-zinc-200 hover:border-white/10 active:scale-95'
+                                        ? 'bg-gradient-to-r from-primary to-accent text-foreground border-transparent shadow-md shadow-primary/10 scale-100 hover:brightness-110 active:scale-95'
+                                        : 'bg-white/[0.02] text-foreground/60 border-white/5 hover:bg-white/[0.06] hover:text-foreground/90 hover:border-white/10 active:scale-95'
                                     } ${!isHost ? 'opacity-80 cursor-default pointer-events-none' : 'cursor-pointer'}`}
                                   >
                                     {t(`genre_${g.id}`)}
@@ -988,7 +988,7 @@ function WaitingRoom({
                   <div className="space-y-3 pt-3.5 mt-3.5 border-t border-white/5">
                     {customSelectedGenres.length > 0 && (
                       <div className="space-y-1.5">
-                        <label className="text-[10px] font-semibold tracking-wider uppercase text-zinc-500">Custom Selected Genres</label>
+                        <label className="text-[10px] font-semibold tracking-wider uppercase text-foreground/40">Custom Selected Genres</label>
                         <div className="flex flex-wrap gap-1.5">
                           {customSelectedGenres.map(g => (
                             <div
@@ -1015,7 +1015,7 @@ function WaitingRoom({
 
                     {isHost && (
                       <div className="space-y-1.5">
-                        <label htmlFor="custom-genre-input" className="text-[10px] font-semibold tracking-wider uppercase text-zinc-500">Add Custom Genre</label>
+                        <label htmlFor="custom-genre-input" className="text-[10px] font-semibold tracking-wider uppercase text-foreground/40">Add Custom Genre</label>
                         <form
                           onSubmit={(e) => {
                             e.preventDefault();
@@ -1035,11 +1035,11 @@ function WaitingRoom({
                             type="text"
                             placeholder="e.g. synthwave, lofi, anime..."
                             maxLength={30}
-                            className="flex-1 px-3 py-2 bg-white/[0.02] border border-white/5 rounded-xl text-xs text-foreground placeholder-zinc-600 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors"
+                            className="flex-1 px-3 py-2 bg-white/[0.02] border border-white/5 rounded-xl text-xs text-foreground placeholder-foreground/30 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors"
                           />
                           <button
                             type="submit"
-                            className="px-3.5 py-2 bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white font-semibold rounded-xl border border-white/5 transition-all text-xs cursor-pointer active:scale-95 flex items-center justify-center shrink-0"
+                            className="px-3.5 py-2 bg-white/5 hover:bg-white/10 text-foreground/80 hover:text-foreground font-semibold rounded-xl border border-white/5 transition-all text-xs cursor-pointer active:scale-95 flex items-center justify-center shrink-0"
                           >
                             Add
                           </button>
@@ -1059,20 +1059,20 @@ function WaitingRoom({
               <div className="pt-2 border-t border-white/5">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <span className="text-xs font-semibold text-zinc-300">{t('auto_start')}</span>
-                    <p className="text-[10px] text-zinc-500 max-w-[200px] leading-relaxed">{t('auto_start_desc')}</p>
+                    <span className="text-xs font-semibold text-foreground/80">{t('auto_start')}</span>
+                    <p className="text-[10px] text-foreground/40 max-w-[200px] leading-relaxed">{t('auto_start_desc')}</p>
                   </div>
                   <button
                     onClick={() => onSettingsChange({ autoStart: !settings.autoStart })}
                     className={`relative w-11 h-6 rounded-full flex-shrink-0 transition-all duration-300 ease-out focus:outline-none cursor-pointer ${
                       settings.autoStart
                         ? 'bg-gradient-to-r from-primary to-accent shadow-md shadow-primary/10'
-                        : 'bg-zinc-800 border border-white/5'
+                        : 'bg-surface-light border border-white/5'
                     }`}
                   >
                     <span
                       className={`absolute top-[3px] w-4 h-4 rounded-full bg-white shadow transition-all duration-300 ease-out ${
-                        settings.autoStart ? 'left-[23px] scale-110' : 'left-[3px] scale-100 bg-zinc-400'
+                        settings.autoStart ? 'left-[23px] scale-110' : 'left-[3px] scale-100 bg-foreground/60'
                       }`}
                     />
                   </button>
@@ -1089,16 +1089,16 @@ function WaitingRoom({
           <button
             onClick={onStart}
             disabled={startLoading || !genres || genres.length === 0}
-            className={`px-12 py-4 text-white font-bold rounded-xl transition-all duration-300 shadow-lg cursor-pointer ${
+            className={`px-12 py-4 text-foreground font-bold rounded-xl transition-all duration-300 shadow-lg cursor-pointer ${
               genres && genres.length > 0 && !startLoading
                 ? 'bg-gradient-to-r from-primary to-accent hover:brightness-110 hover:shadow-primary/25 hover:scale-[1.03] active:scale-[0.98]'
-                : 'bg-zinc-800 text-zinc-500 border border-white/5 opacity-50 cursor-not-allowed'
+                : 'bg-surface-light text-foreground/40 border border-white/5 opacity-50 cursor-not-allowed'
             }`}
           >
             {startLoading ? 'Starting...' : genres && genres.length > 0 ? t('start_game') : t('select_genre_to_start')}
           </button>
         ) : (
-          <div className="flex items-center gap-2 text-zinc-400 text-sm font-medium bg-white/[0.02] border border-white/5 px-4 py-2.5 rounded-full shadow-inner animate-pulse">
+          <div className="flex items-center gap-2 text-foreground/60 text-sm font-medium bg-white/[0.02] border border-white/5 px-4 py-2.5 rounded-full shadow-inner animate-pulse">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--primary)] opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--primary)]"></span>
@@ -1115,13 +1115,13 @@ function WaitingRoom({
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-md bg-zinc-950 border border-white/10 rounded-3xl p-6 shadow-2xl flex flex-col gap-4 max-h-[80vh] text-zinc-100"
+              className="w-full max-w-md bg-background border border-white/10 rounded-3xl p-6 shadow-2xl flex flex-col gap-4 max-h-[80vh] text-foreground"
             >
               <div className="flex items-center justify-between border-b border-white/5 pb-3">
-                <h3 className="text-base font-bold text-zinc-200 uppercase tracking-wider">Invite Friends</h3>
+                <h3 className="text-base font-bold text-foreground/90 uppercase tracking-wider">Invite Friends</h3>
                 <button 
                   onClick={() => setShowInviteModal(false)}
-                  className="text-zinc-500 hover:text-white transition-colors cursor-pointer"
+                  className="text-foreground/40 hover:text-foreground transition-colors cursor-pointer"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -1132,14 +1132,14 @@ function WaitingRoom({
               {modalLoading ? (
                 <div className="flex flex-col items-center justify-center py-12 gap-2">
                   <div className="w-6 h-6 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin"></div>
-                  <p className="text-xs text-zinc-500 font-medium">Loading friends...</p>
+                  <p className="text-xs text-foreground/40 font-medium">Loading friends...</p>
                 </div>
               ) : (
                 <div className="flex-1 overflow-y-auto space-y-2 pr-1 max-h-[50vh]">
                   {friendsList.map(f => {
                     const presence = f.presence || { status: 'offline', roomCode: null };
                     let isOnline = presence.status !== 'offline';
-                    let statusColor = isOnline ? 'bg-emerald-500' : 'bg-zinc-650';
+                    let statusColor = isOnline ? 'bg-emerald-500' : 'bg-foreground/20';
                     let statusText = isOnline 
                       ? presence.status === 'lobby' ? 'In Lobby' : 'In Game' 
                       : 'Offline';
@@ -1149,18 +1149,18 @@ function WaitingRoom({
                       <div key={f.id} className="flex items-center justify-between p-3 bg-white/[0.02] border border-white/5 rounded-2xl shadow-sm hover:bg-white/[0.04] transition-all">
                         <div className="flex items-center gap-3">
                           <div className="relative">
-                            <div className="w-9 h-9 rounded-full bg-zinc-800 flex items-center justify-center font-bold border border-white/10 overflow-hidden relative shadow-inner">
+                            <div className="w-9 h-9 rounded-full bg-surface-light flex items-center justify-center font-bold border border-white/10 overflow-hidden relative shadow-inner">
                               {f.avatar_url ? (
                                 <img src={f.avatar_url} alt="" className="w-full h-full object-cover" />
                               ) : (
                                 f.username[0].toUpperCase()
                               )}
                             </div>
-                            <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-zinc-950 ${statusColor}`} />
+                            <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-background ${statusColor}`} />
                           </div>
                           <div className="space-y-0.5">
-                            <p className="font-bold text-xs text-zinc-200">{f.username}</p>
-                            <p className="text-[9px] text-zinc-500 font-semibold">{statusText}</p>
+                            <p className="font-bold text-xs text-foreground/90">{f.username}</p>
+                            <p className="text-[9px] text-foreground/40 font-semibold">{statusText}</p>
                           </div>
                         </div>
 
@@ -1170,7 +1170,7 @@ function WaitingRoom({
                           className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                             isInvited
                               ? 'bg-green-500/10 text-green-400 border border-green-500/20'
-                              : 'bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white shadow shadow-primary/20 active:scale-95'
+                              : 'bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-foreground shadow shadow-primary/20 active:scale-95'
                           }`}
                         >
                           {isInvited ? 'Invited!' : 'Invite'}
@@ -1181,7 +1181,7 @@ function WaitingRoom({
 
                   {friendsList.length === 0 && (
                     <div className="py-12 text-center flex flex-col items-center justify-center gap-3">
-                      <p className="text-zinc-650 text-xs">No friends found. Add friends in your profile first!</p>
+                      <p className="text-foreground/20 text-xs">No friends found. Add friends in your profile first!</p>
                     </div>
                   )}
                 </div>
@@ -1189,7 +1189,7 @@ function WaitingRoom({
 
               <button
                 onClick={() => setShowInviteModal(false)}
-                className="w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-zinc-300 hover:text-white rounded-xl text-xs font-bold transition-all cursor-pointer text-center"
+                className="w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-foreground/80 hover:text-foreground rounded-xl text-xs font-bold transition-all cursor-pointer text-center"
               >
                 Close
               </button>
@@ -1216,7 +1216,7 @@ function PreparingCountdown({ currentRound, totalRounds, players, playerId, onSk
     if (p.foundArtist && p.foundTitle) return { text: t('both_label'), cls: 'bg-green-500/20 text-green-400' };
     if (p.foundArtist) return { text: t('artist_label'), cls: 'bg-[#00cec9]/20 text-[#00cec9] text-[10px]' };
     if (p.foundTitle) return { text: t('title_label'), cls: 'bg-[#00cec9]/20 text-[#00cec9] text-[10px]' };
-    return { text: t('guessing_label'), cls: 'text-zinc-600' };
+    return { text: t('guessing_label'), cls: 'text-foreground/30' };
   };
 
   return (
@@ -1232,7 +1232,7 @@ function PreparingCountdown({ currentRound, totalRounds, players, playerId, onSk
       </motion.p>
 
       <div className="w-full max-w-xs space-y-1">
-        <p className="text-xs text-zinc-500 uppercase tracking-wider mb-2 text-center">{t('players')}</p>
+        <p className="text-xs text-foreground/40 uppercase tracking-wider mb-2 text-center">{t('players')}</p>
         {players.map(p => {
           const s = statusLabel(p);
           return (
@@ -1244,12 +1244,12 @@ function PreparingCountdown({ currentRound, totalRounds, players, playerId, onSk
         })}
       </div>
 
-      <p className="text-sm text-zinc-500">{t('round_x_of_y', { current: currentRound, total: totalRounds })}</p>
+      <p className="text-sm text-foreground/40">{t('round_x_of_y', { current: currentRound, total: totalRounds })}</p>
 
       {players.length > 0 && (
         <div className="flex items-center gap-2">
           {playerId === hostId ? (
-            <button onClick={onSkipVote} disabled={skipCooldown} className="px-3 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            <button onClick={onSkipVote} disabled={skipCooldown} className="px-3 py-1.5 text-xs bg-surface-light hover:bg-surface-light text-foreground/80 rounded-lg border border-surface-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
               {t('skip')}
             </button>
           ) : (
@@ -1258,8 +1258,8 @@ function PreparingCountdown({ currentRound, totalRounds, players, playerId, onSk
               disabled={hasVotedSkip || skipCooldown}
               className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
                 hasVotedSkip || skipCooldown
-                  ? 'bg-zinc-800 text-zinc-600 border-zinc-800 cursor-not-allowed'
-                  : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border-zinc-700'
+                  ? 'bg-surface-light text-foreground/30 border-surface-light cursor-not-allowed'
+                  : 'bg-surface-light hover:bg-surface-light text-foreground/80 border-surface-light'
               }`}
             >
               {hasVotedSkip ? `${t('voted')} ${skipVotes}/${skipVotesNeeded}` : `${t('vote_skip')} ${skipVotes}/${skipVotesNeeded}`}
@@ -1345,24 +1345,24 @@ function PlayingPhase({
 
   const pillStyle = (found: boolean) =>
     found
-      ? 'bg-[var(--primary)] text-white border-[var(--primary)]'
-      : 'bg-transparent text-zinc-600 border-zinc-700';
+      ? 'bg-[var(--primary)] text-foreground border-[var(--primary)]'
+      : 'bg-transparent text-foreground/30 border-surface-light';
 
   return (
     <div className="flex-1 flex flex-col gap-4 w-full max-w-lg mx-auto">
       <div className="flex items-center justify-between">
-        <span className="text-xs text-zinc-500 tabular-nums">{t('round_x_of_y', { current: currentRound, total: totalRounds })}</span>
+        <span className="text-xs text-foreground/40 tabular-nums">{t('round_x_of_y', { current: currentRound, total: totalRounds })}</span>
         <div className="flex items-center gap-3">
           <motion.span
             key={timeLeft}
             initial={{ scale: 1.3 }}
             animate={{ scale: 1 }}
-            className={`text-3xl font-bold tabular-nums ${timeLeft != null && timeLeft <= 5 ? 'text-red-400' : 'text-white'}`}
+            className={`text-3xl font-bold tabular-nums ${timeLeft != null && timeLeft <= 5 ? 'text-red-400' : 'text-foreground'}`}
           >
             {timeLeft ?? '--'}
           </motion.span>
           {isAdmin ? (
-            <button onClick={onSkipVote} disabled={skipCooldown} className="px-3 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            <button onClick={onSkipVote} disabled={skipCooldown} className="px-3 py-1.5 text-xs bg-surface-light hover:bg-surface-light text-foreground/80 rounded-lg border border-surface-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
               {t('skip')}
             </button>
           ) : (
@@ -1371,8 +1371,8 @@ function PlayingPhase({
               disabled={hasVotedSkip || skipCooldown}
               className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
                 hasVotedSkip || skipCooldown
-                  ? 'bg-zinc-800 text-zinc-600 border-zinc-800 cursor-not-allowed'
-                  : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border-zinc-700'
+                  ? 'bg-surface-light text-foreground/30 border-surface-light cursor-not-allowed'
+                  : 'bg-surface-light hover:bg-surface-light text-foreground/80 border-surface-light'
               }`}
             >
               {hasVotedSkip ? `${t('voted')} ${skipVotes}/${skipVotesNeeded}` : `${t('vote_skip')} ${skipVotes}/${skipVotesNeeded}`}
@@ -1383,7 +1383,7 @@ function PlayingPhase({
 
       <MiniViz progress={(smoothTime ?? 0) / (roundDuration || 15)} />
 
-      <div className="h-1 rounded-full bg-zinc-800 overflow-hidden">
+      <div className="h-1 rounded-full bg-surface-light overflow-hidden">
         <div
           className="h-full rounded-full bg-[var(--primary)] transition-none"
           style={{ width: `${roundDuration > 0 ? ((smoothTime ?? 0) / roundDuration) * 100 : 0}%` }}
@@ -1392,10 +1392,10 @@ function PlayingPhase({
 
       <div className="flex gap-2">
         <div className={`flex-1 text-center px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all ${pillStyle(artistFound)}`}>
-          Artist {!artistFound && <span className="text-zinc-600">?</span>}
+          Artist {!artistFound && <span className="text-foreground/30">?</span>}
         </div>
         <div className={`flex-1 text-center px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all ${pillStyle(titleFound)}`}>
-          Title {!titleFound && <span className="text-zinc-600">?</span>}
+          Title {!titleFound && <span className="text-foreground/30">?</span>}
         </div>
       </div>
 
@@ -1410,7 +1410,7 @@ function PlayingPhase({
           placeholder={placeholder}
           disabled={bothFound}
           autoComplete="off"
-          className={`relative w-full px-5 py-4 bg-[var(--surface)] border-2 rounded-2xl text-white text-lg text-center placeholder-zinc-500 focus:outline-none transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${
+          className={`relative w-full px-5 py-4 bg-[var(--surface)] border-2 rounded-2xl text-foreground text-lg text-center placeholder-foreground/40 focus:outline-none transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${
             bothFound
               ? 'border-green-500/50'
               : 'border-[var(--primary)]/30 focus:border-[var(--primary)]'
@@ -1433,13 +1433,13 @@ function PlayingPhase({
           >
             <span className="font-semibold">{succeeded ? `+${pts} pts` : 'Wrong!'}</span>
             {guessResult.artist_score != null && (
-              <span className="ml-2 text-zinc-500">A:{guessResult.artist_score}%</span>
+              <span className="ml-2 text-foreground/40">A:{guessResult.artist_score}%</span>
             )}
             {guessResult.title_score != null && (
-              <span className="ml-1 text-zinc-500">T:{guessResult.title_score}%</span>
+              <span className="ml-1 text-foreground/40">T:{guessResult.title_score}%</span>
             )}
             {guessResult.guessTimeMs != null && (
-              <span className="ml-2 text-zinc-600">{(guessResult.guessTimeMs / 1000).toFixed(1)}s</span>
+              <span className="ml-2 text-foreground/30">{(guessResult.guessTimeMs / 1000).toFixed(1)}s</span>
             )}
           </motion.div>
         );
@@ -1449,7 +1449,7 @@ function PlayingPhase({
           key={encouragement}
           initial={{ opacity: 0, x: -8 }}
           animate={{ opacity: 1, x: 0 }}
-          className="text-xs text-zinc-500 italic text-center"
+          className="text-xs text-foreground/40 italic text-center"
         >
           {encouragement}
         </motion.p>
@@ -1515,8 +1515,8 @@ function RoundResult({ data, players = [], pauseTimeLeft, trackHistory = [] }: {
           />
         )}
         <div className="text-center">
-          <h2 className="text-xl font-bold text-white">{data?.correctAnswer || 'Unknown Track'}</h2>
-          <p className="text-sm text-zinc-400 mt-1">{data?.artist || 'Unknown Artist'}</p>
+          <h2 className="text-xl font-bold text-foreground">{data?.correctAnswer || 'Unknown Track'}</h2>
+          <p className="text-sm text-foreground/60 mt-1">{data?.artist || 'Unknown Artist'}</p>
         </div>
       </motion.div>
 
@@ -1530,7 +1530,7 @@ function RoundResult({ data, players = [], pauseTimeLeft, trackHistory = [] }: {
             className="flex items-center justify-between px-4 py-2.5 bg-[var(--surface)] rounded-xl border border-white/5"
           >
             <div className="flex items-center gap-2">
-              <span className="text-xs text-zinc-600 w-4">{i + 1}</span>
+              <span className="text-xs text-foreground/30 w-4">{i + 1}</span>
               <span className="text-sm font-medium">{p.name}</span>
             </div>
             <span className="text-sm font-bold text-[var(--accent)]">{p.score} pts</span>
@@ -1539,7 +1539,7 @@ function RoundResult({ data, players = [], pauseTimeLeft, trackHistory = [] }: {
       </div>
 
       <div className="text-center">
-        <p className="text-xs text-zinc-500">{t('next_round_in')}</p>
+        <p className="text-xs text-foreground/40">{t('next_round_in')}</p>
         <motion.p
           key={pauseTimeLeft}
           initial={{ scale: 1.3, opacity: 0 }}

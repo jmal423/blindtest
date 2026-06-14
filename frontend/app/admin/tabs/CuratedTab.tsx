@@ -156,7 +156,7 @@ export function CuratedTab() {
     return (
       <div className="flex flex-col items-center gap-2 py-16">
         <div className="w-6 h-6 rounded-full border-2 border-[var(--primary)]/20 border-t-[var(--primary)] animate-spin" />
-        <p className="text-zinc-500 text-xs">Querying curated list...</p>
+        <p className="text-foreground/40 text-xs">Querying curated list...</p>
       </div>
     );
   }
@@ -179,7 +179,7 @@ export function CuratedTab() {
 
       <div className="bg-surface/20 backdrop-blur-md rounded-2xl border border-white/5 p-6 shadow-lg">
         <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/5">
-          <h3 className="font-bold text-white text-sm uppercase tracking-wider">Curated Songs by Genre</h3>
+          <h3 className="font-bold text-foreground text-sm uppercase tracking-wider">Curated Songs by Genre</h3>
           <button
             onClick={() => {
               setShowDiscovery(!showDiscovery);
@@ -196,17 +196,17 @@ export function CuratedTab() {
           <div className="mb-6 bg-white/[0.01] rounded-2xl p-4 border border-white/5 animate-slide-up">
             <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
               <div>
-                <h4 className="text-sm font-bold text-white">Discovery Queue</h4>
-                <p className="text-xs text-zinc-500 mt-1">Import songs fetched from Deezer editorial/charts into the curated database.</p>
+                <h4 className="text-sm font-bold text-foreground">Discovery Queue</h4>
+                <p className="text-xs text-foreground/40 mt-1">Import songs fetched from Deezer editorial/charts into the curated database.</p>
               </div>
 
               {/* Grouped Genre Selector */}
               <div className="flex items-center gap-2">
-                <label className="text-xs text-zinc-400 whitespace-nowrap font-medium">Import to Genre:</label>
+                <label className="text-xs text-foreground/60 whitespace-nowrap font-medium">Import to Genre:</label>
                 <select
                   value={importGenre}
                   onChange={e => setImportGenre(e.target.value)}
-                  className="bg-surface border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-[var(--primary)]"
+                  className="bg-surface border border-white/10 rounded-xl px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-[var(--primary)]"
                 >
                   <option value="">-- Active Folder / Auto --</option>
                   {Object.entries(groupedGenres).map(([groupKey, genres]) => (
@@ -223,18 +223,18 @@ export function CuratedTab() {
             </div>
 
             {discoveryLoading ? (
-              <p className="text-zinc-500 text-xs py-4">Scanning cache candidates...</p>
+              <p className="text-foreground/40 text-xs py-4">Scanning cache candidates...</p>
             ) : discoveryTracks.length === 0 ? (
-              <p className="text-zinc-600 text-xs py-4 text-center">No outstanding cache candidates found. Try running some Live API tests first.</p>
+              <p className="text-foreground/30 text-xs py-4 text-center">No outstanding cache candidates found. Try running some Live API tests first.</p>
             ) : (
               <div className="overflow-x-auto max-h-72 overflow-y-auto border border-white/5 rounded-xl">
                 <table className="w-full text-xs">
-                  <thead className="sticky top-0 bg-surface/80 backdrop-blur-md z-10 text-zinc-500 border-b border-white/5">
+                  <thead className="sticky top-0 bg-surface/80 backdrop-blur-md z-10 text-foreground/40 border-b border-white/5">
                     <tr>
                       <th className="text-left py-2 px-4 w-24">
                         <button
                           onClick={() => handleImport(discoveryTracks.map(t => t.id), importGenre || undefined)}
-                          className="text-[10px] text-[var(--accent)] hover:text-white transition-colors"
+                          className="text-[10px] text-[var(--accent)] hover:text-foreground transition-colors"
                           title="Import all displayed"
                         >
                           Import All
@@ -258,10 +258,10 @@ export function CuratedTab() {
                             {importing.has(t.id) ? '...' : 'Import'}
                           </button>
                         </td>
-                        <td className="py-2 px-2 font-medium text-zinc-200 truncate max-w-[180px]">{t.name}</td>
-                        <td className="py-2 px-2 text-zinc-400 truncate max-w-[140px]">{t.artist}</td>
-                        <td className="py-2 px-2 hidden sm:table-cell text-zinc-500">{t.genre || t.genres?.[0] || '-'}</td>
-                        <td className="py-2 px-4 text-right tabular-nums text-zinc-500 font-mono">#{t.rank?.toLocaleString() || '-'}</td>
+                        <td className="py-2 px-2 font-medium text-foreground/90 truncate max-w-[180px]">{t.name}</td>
+                        <td className="py-2 px-2 text-foreground/60 truncate max-w-[140px]">{t.artist}</td>
+                        <td className="py-2 px-2 hidden sm:table-cell text-foreground/40">{t.genre || t.genres?.[0] || '-'}</td>
+                        <td className="py-2 px-4 text-right tabular-nums text-foreground/40 font-mono">#{t.rank?.toLocaleString() || '-'}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -273,7 +273,7 @@ export function CuratedTab() {
 
         {/* Curated list */}
         {byGenre.length === 0 ? (
-          <p className="text-zinc-500 text-sm py-8 text-center italic">No curated songs. Use the discovery mode to import some!</p>
+          <p className="text-foreground/40 text-sm py-8 text-center italic">No curated songs. Use the discovery mode to import some!</p>
         ) : (
           <div className="space-y-2">
             {byGenre.map((g: any) => (
@@ -282,17 +282,17 @@ export function CuratedTab() {
                   onClick={() => loadGenreSongs(g.genre)}
                   className="w-full flex items-center gap-3 p-3 hover:bg-white/[0.02] transition-colors text-left"
                 >
-                  <span className="text-xs font-semibold text-white w-40 truncate">{g.genre.replace(/-/g, ' ')}</span>
+                  <span className="text-xs font-semibold text-foreground w-40 truncate">{g.genre.replace(/-/g, ' ')}</span>
                   <div className="flex-1 h-2 bg-white/5 rounded-full overflow-hidden hidden sm:block">
                     <div className="h-full bg-[var(--primary)] rounded-full" style={{ width: `${(g.total / stats.total) * 100}%` }} />
                   </div>
-                  <span className="text-xs text-zinc-400 tabular-nums w-12 text-right">{g.total}</span>
-                  <span className="text-[10px] text-zinc-500 w-24 text-right font-medium">
+                  <span className="text-xs text-foreground/60 tabular-nums w-12 text-right">{g.total}</span>
+                  <span className="text-[10px] text-foreground/40 w-24 text-right font-medium">
                     {g.verified} / {g.total} verified
                   </span>
-                  <span className="text-[10px] text-zinc-500 w-16 text-right tabular-nums">{g.total_plays} plays</span>
+                  <span className="text-[10px] text-foreground/40 w-16 text-right tabular-nums">{g.total_plays} plays</span>
                   <svg
-                    className={`w-3 h-3 text-zinc-500 transition-transform ${selectedGenre === g.genre ? 'rotate-90' : ''}`}
+                    className={`w-3 h-3 text-foreground/40 transition-transform ${selectedGenre === g.genre ? 'rotate-90' : ''}`}
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -305,23 +305,23 @@ export function CuratedTab() {
                   <div className="p-4 bg-black/20 border-t border-white/5 space-y-4">
                     {/* Search filter input */}
                     <div className="relative">
-                      <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500 text-xs">🔍</span>
+                      <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-foreground/40 text-xs">🔍</span>
                       <input
                         value={songsSearch}
                         onChange={e => setSongsSearch(e.target.value)}
                         placeholder={`Search within ${g.genre.replace(/-/g, ' ')}...`}
-                        className="w-full pl-8 pr-3 py-1.5 bg-black/30 border border-white/5 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-[var(--primary)] transition-all text-xs"
+                        className="w-full pl-8 pr-3 py-1.5 bg-black/30 border border-white/5 rounded-xl text-foreground placeholder-foreground/40 focus:outline-none focus:border-[var(--primary)] transition-all text-xs"
                       />
                     </div>
 
                     {songsLoading ? (
-                      <p className="text-zinc-500 text-xs py-2">Loading...</p>
+                      <p className="text-foreground/40 text-xs py-2">Loading...</p>
                     ) : filteredGenreSongs.length === 0 ? (
-                      <p className="text-zinc-600 text-xs py-2 italic text-center">No curated tracks found.</p>
+                      <p className="text-foreground/30 text-xs py-2 italic text-center">No curated tracks found.</p>
                     ) : (
                       <div className="overflow-x-auto max-h-96 overflow-y-auto border border-white/5 rounded-lg">
                         <table className="w-full text-xs">
-                          <thead className="sticky top-0 bg-surface/90 backdrop-blur-md z-10 text-zinc-500 border-b border-white/5">
+                          <thead className="sticky top-0 bg-surface/90 backdrop-blur-md z-10 text-foreground/40 border-b border-white/5">
                             <tr>
                               <th className="text-left py-2 px-4 w-12 text-center">Preview</th>
                               <th className="text-left py-2 px-2">Track</th>
@@ -344,24 +344,24 @@ export function CuratedTab() {
                                         className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${
                                           playingTrackId === s.id
                                             ? 'bg-[var(--accent)] text-black shadow-lg scale-105'
-                                            : 'bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white'
+                                            : 'bg-white/5 text-foreground/80 hover:bg-white/10 hover:text-foreground'
                                         }`}
                                         title={playingTrackId === s.id ? 'Pause Preview' : 'Play Preview'}
                                       >
                                         {playingTrackId === s.id ? '⏸' : '▶'}
                                       </button>
                                     ) : (
-                                      <span className="text-zinc-600 italic text-[10px]" title="No audio preview in cache">✗</span>
+                                      <span className="text-foreground/30 italic text-[10px]" title="No audio preview in cache">✗</span>
                                     )}
                                   </td>
-                                  <td className="py-2 px-2 font-semibold text-zinc-200 truncate max-w-[180px]">{s.name}</td>
-                                  <td className="py-2 px-2 text-zinc-400 truncate max-w-[140px]">{s.artist}</td>
+                                  <td className="py-2 px-2 font-semibold text-foreground/90 truncate max-w-[180px]">{s.name}</td>
+                                  <td className="py-2 px-2 text-foreground/60 truncate max-w-[140px]">{s.artist}</td>
                                   <td className="py-2 px-2">
                                     <select
                                       value={s.genre}
                                       onChange={e => changeGenre(s.id, e.target.value)}
                                       disabled={updatingGenre === s.id}
-                                      className="text-[10px] bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-zinc-300 focus:outline-none focus:border-[var(--primary)]"
+                                      className="text-[10px] bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-foreground/80 focus:outline-none focus:border-[var(--primary)]"
                                     >
                                       {Object.entries(groupedGenres).map(([groupKey, genres]) => (
                                         <optgroup key={groupKey} label={GROUP_LABELS[groupKey] || groupKey}>
@@ -372,14 +372,14 @@ export function CuratedTab() {
                                       ))}
                                     </select>
                                   </td>
-                                  <td className="py-2 px-2 text-right font-bold tabular-nums text-zinc-400 hidden sm:table-cell">{s.played_count}</td>
+                                  <td className="py-2 px-2 text-right font-bold tabular-nums text-foreground/60 hidden sm:table-cell">{s.played_count}</td>
                                   <td className="py-2 px-2 text-center">
                                     <button
                                       onClick={() => toggleVerify(s.id, s.verified)}
                                       className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border transition-all ${
                                         s.verified
                                           ? 'bg-green-500/15 text-green-400 border-green-500/20 hover:bg-green-500/35'
-                                          : 'bg-zinc-500/10 text-zinc-400 border-white/5 hover:bg-zinc-500/20'
+                                          : 'bg-foreground/10 text-foreground/60 border-white/5 hover:bg-foreground/20'
                                       }`}
                                     >
                                       {s.verified ? 'Verified' : 'Verify'}

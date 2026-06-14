@@ -56,14 +56,14 @@ export function UsersTab() {
   return (
     <div className="space-y-4">
       <div className="relative">
-        <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-zinc-500">
+        <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-foreground/40">
           🔍
         </span>
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search registered players by username or Discord ID..."
-          className="w-full pl-10 pr-4 py-3 bg-surface/20 backdrop-blur-md border border-white/5 rounded-2xl text-white placeholder-zinc-500 focus:outline-none focus:border-[var(--primary)] transition-all text-sm"
+          className="w-full pl-10 pr-4 py-3 bg-surface/20 backdrop-blur-md border border-white/5 rounded-2xl text-foreground placeholder-foreground/40 focus:outline-none focus:border-[var(--primary)] transition-all text-sm"
         />
       </div>
 
@@ -71,7 +71,7 @@ export function UsersTab() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-zinc-500 border-b border-white/5 text-xs uppercase tracking-wider">
+              <tr className="text-foreground/40 border-b border-white/5 text-xs uppercase tracking-wider">
                 <th className="text-left py-4 px-6">User Profile</th>
                 <th className="text-left py-4 px-4">Access Level</th>
                 <th className="text-left py-4 px-4 hidden sm:table-cell">Date Joined</th>
@@ -86,7 +86,7 @@ export function UsersTab() {
                 >
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-zinc-700 flex items-center justify-center text-sm font-bold overflow-hidden shrink-0 border border-white/10">
+                      <div className="w-10 h-10 rounded-full bg-surface-light flex items-center justify-center text-sm font-bold overflow-hidden shrink-0 border border-white/10">
                         {u.avatar_url ? (
                           <img
                             src={u.avatar_url}
@@ -99,8 +99,8 @@ export function UsersTab() {
                         )}
                       </div>
                       <div className="min-w-0">
-                        <p className="font-semibold text-white truncate text-sm">{u.username}</p>
-                        <p className="text-[10px] text-zinc-500 font-mono truncate">{u.id}</p>
+                        <p className="font-semibold text-foreground truncate text-sm">{u.username}</p>
+                        <p className="text-[10px] text-foreground/40 font-mono truncate">{u.id}</p>
                       </div>
                     </div>
                   </td>
@@ -109,13 +109,13 @@ export function UsersTab() {
                       className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                         u.role === 'admin'
                           ? 'bg-[var(--primary)]/20 text-[var(--primary)] border border-[var(--primary)]/30'
-                          : 'bg-zinc-500/10 text-zinc-400 border border-zinc-500/20'
+                          : 'bg-foreground/10 text-foreground/60 border border-foreground/10'
                       }`}
                     >
                       {u.role}
                     </span>
                   </td>
-                  <td className="py-4 px-4 text-zinc-400 text-xs hidden sm:table-cell">
+                  <td className="py-4 px-4 text-foreground/60 text-xs hidden sm:table-cell">
                     {new Date(u.created_at).toLocaleDateString(undefined, { dateStyle: 'medium' })}
                   </td>
                   <td className="py-4 px-6 text-right">
@@ -123,7 +123,7 @@ export function UsersTab() {
                       <select
                         value={u.role}
                         onChange={e => handleRole(u.id, e.target.value)}
-                        className="bg-surface border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-[var(--primary)]"
+                        className="bg-surface border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-foreground focus:outline-none focus:border-[var(--primary)]"
                       >
                         <option value="user">User</option>
                         <option value="admin">Admin</option>
@@ -145,11 +145,11 @@ export function UsersTab() {
         {loading && (
           <div className="flex flex-col items-center gap-2 py-16">
             <div className="w-6 h-6 rounded-full border-2 border-[var(--primary)]/20 border-t-[var(--primary)] animate-spin" />
-            <p className="text-zinc-500 text-xs">Querying database...</p>
+            <p className="text-foreground/40 text-xs">Querying database...</p>
           </div>
         )}
         {!loading && filtered.length === 0 && (
-          <p className="text-zinc-500 text-center py-16 text-sm">No players match the search criteria.</p>
+          <p className="text-foreground/40 text-center py-16 text-sm">No players match the search criteria.</p>
         )}
       </div>
     </div>

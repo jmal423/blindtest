@@ -54,7 +54,7 @@ export function LeaderboardTab() {
               >
                 <div className="absolute top-4 right-4 text-3xl">{colors.icon}</div>
                 <div className="flex flex-col items-center">
-                  <div className="w-16 h-16 rounded-full bg-zinc-700 border-2 border-white/10 overflow-hidden mb-3">
+                  <div className="w-16 h-16 rounded-full bg-surface-light border-2 border-white/10 overflow-hidden mb-3">
                     {e.avatar_url ? (
                       <img
                         src={e.avatar_url}
@@ -66,19 +66,19 @@ export function LeaderboardTab() {
                       (e.username || e.player_name || '?')[0].toUpperCase()
                     )}
                   </div>
-                  <h4 className="font-bold text-white text-lg">{e.username || e.player_name || 'Unknown'}</h4>
-                  <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold">
+                  <h4 className="font-bold text-foreground text-lg">{e.username || e.player_name || 'Unknown'}</h4>
+                  <span className="text-[10px] text-foreground/40 uppercase tracking-widest font-semibold">
                     {colors.label}
                   </span>
                 </div>
 
                 <div className="mt-4 w-full bg-black/20 rounded-xl p-3 grid grid-cols-2 text-xs border border-white/[0.02] gap-2">
                   <div>
-                    <span className="text-[9px] text-zinc-500 block">Games</span>
-                    <span className="font-bold text-zinc-300">{e.games_played}</span>
+                    <span className="text-[9px] text-foreground/40 block">Games</span>
+                    <span className="font-bold text-foreground/80">{e.games_played}</span>
                   </div>
                   <div>
-                    <span className="text-[9px] text-zinc-500 block">Total Points</span>
+                    <span className="text-[9px] text-foreground/40 block">Total Points</span>
                     <span className="font-bold text-[var(--accent)]">{e.total_score}</span>
                   </div>
                 </div>
@@ -99,8 +99,8 @@ export function LeaderboardTab() {
       {restList.length > 0 && (
         <div className="bg-surface/20 backdrop-blur-md rounded-2xl border border-white/5 overflow-hidden shadow-lg">
           <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">Remaining Ranks</h3>
-            <span className="text-xs text-zinc-500">{restList.length} players</span>
+            <h3 className="text-sm font-semibold text-foreground/60 uppercase tracking-wider">Remaining Ranks</h3>
+            <span className="text-xs text-foreground/40">{restList.length} players</span>
           </div>
           <div className="space-y-1 p-2 max-h-[400px] overflow-y-auto">
             {restList.map((e, idx) => {
@@ -110,8 +110,8 @@ export function LeaderboardTab() {
                   key={e.id || e.player_id}
                   className="flex items-center gap-3 px-4 py-3 bg-white/[0.01] hover:bg-white/[0.02] border border-white/[0.02] rounded-xl transition-all"
                 >
-                  <span className="w-8 text-center text-xs font-semibold text-zinc-500">{rank}</span>
-                  <div className="w-8 h-8 rounded-full overflow-hidden bg-zinc-700 flex items-center justify-center text-xs font-bold shrink-0 border border-white/10">
+                  <span className="w-8 text-center text-xs font-semibold text-foreground/40">{rank}</span>
+                  <div className="w-8 h-8 rounded-full overflow-hidden bg-surface-light flex items-center justify-center text-xs font-bold shrink-0 border border-white/10">
                     {e.avatar_url ? (
                       <img src={e.avatar_url} alt="" className="w-full h-full object-cover" />
                     ) : (
@@ -119,10 +119,10 @@ export function LeaderboardTab() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm text-zinc-200 truncate">
+                    <p className="font-semibold text-sm text-foreground/90 truncate">
                       {e.username || e.player_name || 'Unknown'}
                     </p>
-                    <p className="text-[10px] text-zinc-500">{e.games_played} games played</p>
+                    <p className="text-[10px] text-foreground/40">{e.games_played} games played</p>
                   </div>
                   <span className="text-sm font-bold text-[var(--accent)] tabular-nums">{e.total_score} pts</span>
                   <button
@@ -141,11 +141,11 @@ export function LeaderboardTab() {
       {loading && (
         <div className="flex flex-col items-center gap-2 py-16">
           <div className="w-6 h-6 rounded-full border-2 border-[var(--primary)]/20 border-t-[var(--primary)] animate-spin" />
-          <p className="text-zinc-500 text-xs">Querying leaderboard...</p>
+          <p className="text-foreground/40 text-xs">Querying leaderboard...</p>
         </div>
       )}
       {!loading && leaderboard.length === 0 && (
-        <p className="text-zinc-500 text-center py-16 text-sm">No historical scores in database yet.</p>
+        <p className="text-foreground/40 text-center py-16 text-sm">No historical scores in database yet.</p>
       )}
     </div>
   );

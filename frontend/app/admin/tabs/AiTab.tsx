@@ -92,7 +92,7 @@ export function AiTab() {
     return (
       <div className="flex flex-col items-center gap-2 py-16">
         <div className="w-6 h-6 rounded-full border-2 border-[var(--primary)]/20 border-t-[var(--primary)] animate-spin" />
-        <p className="text-zinc-500 text-xs">Querying AI stats...</p>
+        <p className="text-foreground/40 text-xs">Querying AI stats...</p>
       </div>
     );
   }
@@ -116,7 +116,7 @@ export function AiTab() {
         {/* Genre distribution */}
         <div className="bg-surface/20 backdrop-blur-md rounded-2xl border border-white/5 p-6 shadow-lg flex flex-col justify-between">
           <div>
-            <h3 className="font-bold text-white text-sm uppercase tracking-wider mb-6 flex items-center gap-2">
+            <h3 className="font-extrabold text-sm uppercase tracking-wider text-foreground mb-6 flex items-center gap-2">
               <span>📊</span> AI Genre Breakdown
             </h3>
             {stats?.distribution?.length > 0 ? (
@@ -124,8 +124,8 @@ export function AiTab() {
                 {stats.distribution.map((g: any) => (
                   <div key={g.genre} className="space-y-1">
                     <div className="flex justify-between text-xs font-semibold">
-                      <span className="text-zinc-400 truncate w-32">{g.genre}</span>
-                      <span className="text-zinc-300 font-mono text-[11px]">{g.count} ({pct(g.count)}%)</span>
+                      <span className="text-foreground/60 truncate w-32">{g.genre}</span>
+                      <span className="text-foreground/80 font-mono text-[11px]">{g.count} ({pct(g.count)}%)</span>
                     </div>
                     <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
                       <div className="h-full bg-[var(--accent)] rounded-full" style={{ width: `${(g.count / stats.total) * 100}%` }} />
@@ -134,34 +134,34 @@ export function AiTab() {
                 ))}
               </div>
             ) : (
-              <p className="text-zinc-600 text-xs italic">No classification data recorded.</p>
+              <p className="text-foreground/30 text-xs italic">No classification data recorded.</p>
             )}
           </div>
-          <div className="mt-6 pt-4 border-t border-white/5 text-[10px] text-zinc-500">
+          <div className="mt-6 pt-4 border-t border-white/5 text-[10px] text-foreground/40">
             Last model run: {stats?.last_processed ? new Date(stats.last_processed).toLocaleString() : 'Never'}
           </div>
         </div>
 
         {/* AI Tag Search Panel */}
         <div className="lg:col-span-2 bg-surface/20 backdrop-blur-md rounded-2xl border border-white/5 p-6 shadow-lg">
-          <h3 className="font-bold text-white text-sm uppercase tracking-wider mb-2 flex items-center gap-2">
+          <h3 className="font-bold text-foreground text-sm uppercase tracking-wider mb-2 flex items-center gap-2">
             <span>🔍</span> Search AI Taxonomy
           </h3>
-          <p className="text-xs text-zinc-500 mb-4">Query database cache using music descriptors, moods, beats, or tags.</p>
+          <p className="text-xs text-foreground/40 mb-4">Query database cache using music descriptors, moods, beats, or tags.</p>
 
           <input
             value={searchQ}
             onChange={e => handleSearchInput(e.target.value)}
             placeholder="Search e.g. 'synthwave', 'melancholic piano', 'upbeat'..."
-            className="w-full px-4 py-3 bg-black/25 border border-white/5 rounded-2xl text-white placeholder-zinc-500 focus:outline-none focus:border-[var(--accent)] transition-all text-sm mb-4"
+            className="w-full px-4 py-3 bg-black/25 border border-white/5 rounded-2xl text-foreground placeholder-foreground/40 focus:outline-none focus:border-[var(--accent)] transition-all text-sm mb-4"
           />
 
-          {searching && <p className="text-zinc-500 text-xs animate-pulse">Scanning taxonomy index...</p>}
+          {searching && <p className="text-foreground/40 text-xs animate-pulse">Scanning taxonomy index...</p>}
 
           {searchResults?.tracks?.length > 0 && (
             <div className="overflow-x-auto max-h-80 border border-white/5 rounded-xl">
               <table className="w-full text-xs">
-                <thead className="sticky top-0 bg-surface/90 backdrop-blur-md z-10 text-zinc-500 border-b border-white/5">
+                <thead className="sticky top-0 bg-surface/90 backdrop-blur-md z-10 text-foreground/40 border-b border-white/5">
                   <tr>
                     <th className="text-center py-2 px-4 w-12">Preview</th>
                     <th className="text-left py-2 px-2">Track</th>
@@ -183,18 +183,18 @@ export function AiTab() {
                               className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${
                                 playingTrackId === t.id
                                   ? 'bg-[var(--accent)] text-black shadow-lg scale-105'
-                                  : 'bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white'
+                                  : 'bg-white/5 text-foreground/80 hover:bg-white/10 hover:text-foreground'
                               }`}
                               title={playingTrackId === t.id ? 'Pause Preview' : 'Play Preview'}
                             >
                               {playingTrackId === t.id ? '⏸' : '▶'}
                             </button>
                           ) : (
-                            <span className="text-zinc-600 italic text-[10px]" title="No audio preview in cache">✗</span>
+                            <span className="text-foreground/30 italic text-[10px]" title="No audio preview in cache">✗</span>
                           )}
                         </td>
-                        <td className="py-2.5 px-2 font-semibold text-zinc-200 truncate max-w-[150px]">{t.name}</td>
-                        <td className="py-2.5 px-2 text-zinc-400 truncate max-w-[120px]">{t.artist}</td>
+                        <td className="py-2.5 px-2 font-semibold text-foreground/90 truncate max-w-[150px]">{t.name}</td>
+                        <td className="py-2.5 px-2 text-foreground/60 truncate max-w-[120px]">{t.artist}</td>
                         <td className="py-2.5 px-2">
                           <div className="flex gap-1 flex-wrap">
                             {(t.ai_genres || []).map((g: string) => (
@@ -205,7 +205,7 @@ export function AiTab() {
                         <td className="py-2.5 px-2">
                           <div className="flex gap-1 flex-wrap">
                             {(t.ai_tags || []).slice(0, 4).map((tag: string) => (
-                              <span key={tag} className="px-1.5 py-0.2 rounded bg-white/5 text-zinc-400 text-[9px] border border-white/[0.02]">{tag}</span>
+                              <span key={tag} className="px-1.5 py-0.2 rounded bg-white/5 text-foreground/60 text-[9px] border border-white/[0.02]">{tag}</span>
                             ))}
                           </div>
                         </td>
@@ -221,7 +221,7 @@ export function AiTab() {
                                 await handleImportTrack(t.id, val);
                                 e.target.value = "";
                               }}
-                              className="text-[10px] bg-black/40 border border-white/10 rounded-lg px-2.5 py-1 text-zinc-300 focus:outline-none focus:border-[var(--primary)] cursor-pointer"
+                              className="text-[10px] bg-black/40 border border-white/10 rounded-lg px-2.5 py-1 text-foreground/80 focus:outline-none focus:border-[var(--primary)] cursor-pointer"
                             >
                               <option value="">-- Import to --</option>
                               {Object.entries(groupedGenres).map(([groupKey, genres]) => (
@@ -242,7 +242,7 @@ export function AiTab() {
             </div>
           )}
           {searchQ && !searching && searchResults?.tracks?.length === 0 && (
-            <p className="text-zinc-500 text-xs italic py-4 text-center">No cached tracks match the descriptor query.</p>
+            <p className="text-foreground/40 text-xs italic py-4 text-center">No cached tracks match the descriptor query.</p>
           )}
         </div>
       </div>

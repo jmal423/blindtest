@@ -5,6 +5,8 @@
   "create_lobby": "Créer un Salon",
   "join_lobby": "Rejoindre le Salon",
   "join_placeholder": "Entrez le code du salon...",
+  "create_room_hint": "Crée un salon et invite des amis",
+  "join_room_hint": "Entre un code de salon de 4 caractères",
   "features_heading": "Pourquoi jouer à BlindTest ?",
   "feature_1_title": "29 Genres",
   "feature_1_desc": "Pop, Rock, Hip-Hop, Électro et bien plus encore. Choisissez votre style.",
