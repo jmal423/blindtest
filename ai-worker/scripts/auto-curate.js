@@ -70,7 +70,7 @@ async function autoCurate() {
             primaryGenre,
             JSON.stringify(s.genres || []),
             s.chart_source || null,
-            false // Curated as unverified so the admin can review/verify them
+            true // Auto-verified by default, can be flagged in-game
           ]
         );
         
@@ -81,7 +81,7 @@ async function autoCurate() {
       }
     }
     
-    console.log(`\n[Auto-Curate] Success! Imported ${imported} new songs to the curated playlist as "unverified" for review.`);
+    console.log(`\n[Auto-Curate] Success! Imported ${imported} new songs to the curated playlist automatically verified.`);
   } catch (err) {
     console.error(`[Auto-Curate] Curation run failed:`, err.message);
   } finally {

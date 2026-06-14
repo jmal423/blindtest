@@ -557,7 +557,7 @@ onSkipVote={handleSkipVote}
           )}
 
           {gameState.state === 'round_result' && (
-            <RoundResult data={gameState.roundResult} players={gameState.players} pauseTimeLeft={(gameState as any).pauseTimeLeft} trackHistory={(gameState as any).trackHistory} />
+            <RoundResult data={gameState.roundResult} players={gameState.players} pauseTimeLeft={(gameState as any).pauseTimeLeft} trackHistory={(gameState as any).trackHistory} onFlag={(id) => socketRef.current?.emit('flag_song', id)} />
           )}
 
           {gameState.state === 'game_over' && (
@@ -1602,8 +1602,10 @@ function MiniViz({ progress }: { progress: number }) {
   );
 }
 
-function RoundResult({ data, players = [], pauseTimeLeft, trackHistory = [] }: { data?: { correctAnswer?: string; artist?: string; albumImage?: string; skipped?: boolean } | null; players?: { name: string; score: number }[]; pauseTimeLeft: number; trackHistory?: { round: number; name: string; artist: string; albumImage?: string }[] }) {
+function RoundResult({ data, players = [], pauseTimeLeft, trackHistory = [], onFlag }: { data?: { id?: string; correctAnswer?: string; artist?: string; albumImage?: string; skipped?: boolean } | null; players?: { name: string; score: number }[]; pauseTimeLeft: number; trackHistory?: { round: number; name: string; artist: string; albumImage?: string }[]; onFlag?: (id: string) => void }) {
   const { t } = useTranslation();
+  const [flagged, setFlagged] = useState(false);
+
   return (
     <div className="flex-1 flex flex-col items-center gap-5 max-w-sm mx-auto w-full">
       <motion.div
@@ -1627,6 +1629,24 @@ function RoundResult({ data, players = [], pauseTimeLeft, trackHistory = [] }: {
         <div className="text-center">
           <h2 className="text-xl font-bold text-foreground">{data?.correctAnswer || 'Unknown Track'}</h2>
           <p className="text-sm text-foreground/60 mt-1">{data?.artist || 'Unknown Artist'}</p>
+          {data?.id && (
+            <button
+              onClick={() => {
+                if (onFlag && !flagged) {
+                  onFlag(data.id!);
+                  setFlagged(true);
+                }
+              }}
+              disabled={flagged}
+              className={`mt-3 text-xs px-3 py-1.5 rounded-full font-medium transition-all ${
+                flagged 
+                  ? 'bg-red-500/10 text-red-400 border border-red-500/20' 
+                  : 'bg-white/5 text-foreground/50 border border-white/10 hover:bg-white/10 hover:text-foreground/80'
+              }`}
+            >
+              {flagged ? '🚩 Flagged for review' : '🚩 Flag as Incorrect'}
+            </button>
+          )}
         </div>
       </motion.div>
 
