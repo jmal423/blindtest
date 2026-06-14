@@ -80,7 +80,8 @@ export class GameRoom {
   constructor(code, genres, io) {
     this.code = code;
     this.genres = genres;
-    this.settings = { rounds: 10, roundTime: 15, pauseTime: 4, autoStart: false, audioSource: 'deezer' };
+    this.artists = [];
+    this.settings = { rounds: 10, roundTime: 15, pauseTime: 4, autoStart: false, audioSource: 'deezer', gameMode: 'genre' };
     this.tracks = [];
     this.trackHistory = [];
     this.players = [];
@@ -126,6 +127,9 @@ export class GameRoom {
     if (updates.pauseTime !== undefined) this.settings.pauseTime = Math.max(2, Math.min(15, Math.round(updates.pauseTime)));
     if (updates.audioSource) {
       this.settings.audioSource = 'deezer';
+    }
+    if (updates.gameMode) {
+      this.settings.gameMode = updates.gameMode;
     }
     if (updates.autoStart !== undefined) {
       const wasAutoStart = this.settings.autoStart;
@@ -202,48 +206,75 @@ export class GameRoom {
   async startGame() {
     if (this.players.length === 0) return;
     if (this.state !== 'waiting') return;
-    console.log(`[Game] Starting game in room ${this.code} with ${this.players.length} players, genres: [${this.genres.join(', ')}]`);
+    console.log(`[Game] Starting game in room ${this.code} with ${this.players.length} players, mode: ${this.settings.gameMode}`);
 
     if (this.tracks.length === 0) {
       const allTracks = [];
       let lastError = '';
       const totalNeeded = Math.max(this.settings.rounds * 2, 20);
-      const shuffledGenres = shuffle([...this.genres]).slice(0, 10);
       const seenIds = new Set();
 
-      // Calculate how many tracks we target to get from each genre to be fair and balanced
-      const targetPerGenre = Math.ceil(totalNeeded / shuffledGenres.length);
-      // Fetch slightly more than needed per genre to account for duplicates/missing previews
-      const fetchLimitPerGenre = Math.max(targetPerGenre * 2, 10);
+      if (this.settings.gameMode === 'artist') {
+        const shuffledArtists = shuffle([...this.artists]).slice(0, 10);
+        const targetPerArtist = Math.ceil(totalNeeded / Math.max(shuffledArtists.length, 1));
+        const fetchLimitPerArtist = Math.max(targetPerArtist * 2, 10);
 
-      for (const genre of shuffledGenres) {
-        try {
-          const { getTracksByGenre } = await import('./deezer.js');
-          const tracks = await getTracksByGenre(genre, fetchLimitPerGenre);
-          let addedForThisGenre = 0;
-          for (const t of tracks) {
-            if (!seenIds.has(t.id) && t.previewUrl) {
-              if (!t.genre && t.genres && t.genres.length > 0) {
-                t.genre = t.genres[0];
-              } else if (!t.genre) {
-                t.genre = t.chartSource || genre;
+        for (const artist of shuffledArtists) {
+          try {
+            const { getTracksByArtist } = await import('./deezer.js');
+            const tracks = await getTracksByArtist(artist, fetchLimitPerArtist);
+            let addedForThisArtist = 0;
+            for (const t of tracks) {
+              if (!seenIds.has(t.id) && t.previewUrl) {
+                if (!t.genre && t.genres && t.genres.length > 0) t.genre = t.genres[0];
+                else if (!t.genre) t.genre = t.chartSource || 'artist_mode';
+                allTracks.push(t);
+                seenIds.add(t.id);
+                addedForThisArtist++;
+                if (addedForThisArtist >= fetchLimitPerArtist) break;
               }
-              allTracks.push(t);
-              seenIds.add(t.id);
-              addedForThisGenre++;
-              if (addedForThisGenre >= fetchLimitPerGenre) break;
             }
+            const { cacheSongs } = await import('./db.js');
+            await cacheSongs(tracks).catch(err => console.error('[Cache] Failed to cache tracks:', err.message));
+          } catch (err) {
+            lastError = err.message;
+            console.error(`[Deezer] Failed for artist "${artist}":`, err.message);
           }
-          const { cacheSongs } = await import('./db.js');
-          await cacheSongs(tracks).catch(err => console.error('[Cache] Failed to cache tracks:', err.message));
-        } catch (err) {
-          lastError = err.message;
-          console.error(`[Deezer] Failed for genre "${genre}":`, err.message);
+        }
+      } else {
+        const shuffledGenres = shuffle([...this.genres]).slice(0, 10);
+        const targetPerGenre = Math.ceil(totalNeeded / Math.max(shuffledGenres.length, 1));
+        const fetchLimitPerGenre = Math.max(targetPerGenre * 2, 10);
+
+        for (const genre of shuffledGenres) {
+          try {
+            const { getTracksByGenre } = await import('./deezer.js');
+            const tracks = await getTracksByGenre(genre, fetchLimitPerGenre);
+            let addedForThisGenre = 0;
+            for (const t of tracks) {
+              if (!seenIds.has(t.id) && t.previewUrl) {
+                if (!t.genre && t.genres && t.genres.length > 0) {
+                  t.genre = t.genres[0];
+                } else if (!t.genre) {
+                  t.genre = t.chartSource || genre;
+                }
+                allTracks.push(t);
+                seenIds.add(t.id);
+                addedForThisGenre++;
+                if (addedForThisGenre >= fetchLimitPerGenre) break;
+              }
+            }
+            const { cacheSongs } = await import('./db.js');
+            await cacheSongs(tracks).catch(err => console.error('[Cache] Failed to cache tracks:', err.message));
+          } catch (err) {
+            lastError = err.message;
+            console.error(`[Deezer] Failed for genre "${genre}":`, err.message);
+          }
         }
       }
 
       if (allTracks.length === 0) {
-        console.log(`[Game] No tracks from selected genres, fetching global top chart as fallback`);
+        console.log(`[Game] No tracks from selected ${this.settings.gameMode}s, fetching global top chart as fallback`);
         try {
           const { getTracksByGenre } = await import('./deezer.js');
           const fallback = await getTracksByGenre('pop', 50);
@@ -683,6 +714,7 @@ export class GameRoom {
       state: this.state,
       settings: this.getSettings(),
       genres: this.genres,
+      artists: this.artists,
       hostId: this.hostId,
       players: this.players.map(p => ({
         id: p.id, name: p.name, avatarUrl: p.avatarUrl, role: p.role, score: p.score,

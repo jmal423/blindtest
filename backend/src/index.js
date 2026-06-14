@@ -212,7 +212,7 @@ app.get('/api/genres', (req, res) => {
 
 // Rooms (auth required)
 app.post('/api/rooms', authenticate, async (req, res) => {
-  const { genres = [], rounds, roundTime } = req.body;
+  const { genres = [], artists = [], gameMode = 'genre', rounds, roundTime } = req.body;
 
   const user = await get('SELECT id, username, avatar_url, role FROM users WHERE id = ?', [req.user.userId]);
   if (!user) return res.status(401).json({ error: 'User not found' });
@@ -222,11 +222,13 @@ app.post('/api/rooms', authenticate, async (req, res) => {
 
   const code = generateCode();
   const room = new GameRoom(code, genres, io);
+  room.artists = artists;
+  room.updateSettings({ gameMode });
   if (rounds || roundTime) room.updateSettings({ rounds, roundTime });
   const playerId = room.addPlayer(user.username, user.avatar_url, user.role, user.id);
   rooms.set(code, room);
 
-  res.json({ code, playerId, settings: room.getSettings(), genres: room.genres });
+  res.json({ code, playerId, settings: room.getSettings(), genres: room.genres, artists: room.artists });
 });
 
 app.post('/api/rooms/join', authenticate, async (req, res) => {
@@ -262,6 +264,7 @@ app.get('/api/rooms/:code', (req, res) => {
   res.json({
     code: room.code,
     genres: room.genres,
+    artists: room.artists,
     state: room.state,
     playerCount: room.players.length,
   });
@@ -276,6 +279,9 @@ app.post('/api/game/:code/settings', (req, res) => {
 
   if (req.body.genres !== undefined && Array.isArray(req.body.genres)) {
     room.genres = req.body.genres;
+  }
+  if (req.body.artists !== undefined && Array.isArray(req.body.artists)) {
+    room.artists = req.body.artists;
   }
   room.updateSettings(req.body);
   broadcastState(room.code);

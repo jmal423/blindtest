@@ -12,10 +12,11 @@ export interface RoomSettings {
   pauseTime: number;
   autoStart: boolean;
   audioSource: 'deezer';
+  gameMode: 'genre' | 'artist';
 }
 
 export type GameState =
-  | { state: 'waiting'; hostId: string | null; genres: string[]; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number }
+  | { state: 'waiting'; hostId: string | null; genres: string[]; artists: string[]; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number }
   | { state: 'round_preparing'; hostId: string | null; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; roundTime: number; previewUrl: string | null; skipVotes: number; skipVotesNeeded: number }
   | { state: 'playing'; hostId: string | null; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; timeLeft: number; roundTime: number; trackId: string; skipVotes: number; skipVotesNeeded: number }
   | { state: 'round_result'; hostId: string | null; settings: RoomSettings; players: Player[]; currentRound: number; totalRounds: number; roundResult: RoundResult; pauseTimeLeft: number; trackHistory: TrackEntry[] }
@@ -44,17 +45,19 @@ export async function fetchGenreGroups(): Promise<{ genres: { id: string; label:
 
 export async function createRoom(
   genres?: string[],
-): Promise<{ code: string; playerId: string; settings: RoomSettings; genres: string[] }> {
+  artists?: string[],
+  gameMode?: 'genre' | 'artist'
+): Promise<{ code: string; playerId: string; settings: RoomSettings; genres: string[]; artists: string[] }> {
   const token = getToken();
   if (!token) throw new Error('Authentication required');
-  if (IS_MOCK) return { code: 'MOCK', playerId: 'mock-player-1', settings: { rounds: 10, roundTime: 15, pauseTime: 5, autoStart: false, audioSource: 'deezer' }, genres: genres || [] };
+  if (IS_MOCK) return { code: 'MOCK', playerId: 'mock-player-1', settings: { rounds: 10, roundTime: 15, pauseTime: 5, autoStart: false, audioSource: 'deezer', gameMode: gameMode || 'genre' }, genres: genres || [], artists: artists || [] };
   const res = await fetch(`${API_URL}/api/rooms`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ genres }),
+    body: JSON.stringify({ genres, artists, gameMode }),
   });
   if (!res.ok) {
     const data = await res.json();
@@ -94,7 +97,7 @@ export async function startGame(code: string, playerId: string): Promise<void> {
   }
 }
 
-export async function updateSettings(code: string, playerId: string, settings: Partial<RoomSettings> & { genres?: string[] }): Promise<RoomSettings> {
+export async function updateSettings(code: string, playerId: string, settings: Partial<RoomSettings> & { genres?: string[]; artists?: string[] }): Promise<RoomSettings> {
   const res = await fetch(`${API_URL}/api/game/${code}/settings`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

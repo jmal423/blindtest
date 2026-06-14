@@ -95,11 +95,80 @@ Return a JSON object with this exact format:
 
 const dryRun = process.argv.includes('--dry-run');
 
+async function getExistingTables(dbPool) {
+  const { rows } = await dbPool.query(`
+    SELECT table_name 
+    FROM information_schema.tables 
+    WHERE table_schema = 'public'
+  `);
+  return new Set(rows.map(r => r.table_name));
+}
+
+async function applyDeduplication(dbPool, tables, keepId, deleteIds) {
+  for (const delId of deleteIds) {
+    // 1. Update songs_played if it exists
+    if (tables.has('songs_played')) {
+      await dbPool.query('UPDATE songs_played SET song_id = $1 WHERE song_id = $2', [keepId, delId]);
+    }
+    
+    // 2. Update round_results if it exists
+    if (tables.has('round_results')) {
+      await dbPool.query('UPDATE round_results SET track_id = $1 WHERE track_id = $2', [keepId, delId]);
+    }
+    
+    // 3. Handle curated_songs if it exists
+    if (tables.has('curated_songs')) {
+      // Check if keepId exists in curated_songs
+      const { rows: keepRows } = await dbPool.query('SELECT 1 FROM curated_songs WHERE id = $1', [keepId]);
+      const keepExists = keepRows.length > 0;
+      
+      // Check if delId exists in curated_songs
+      const { rows: delRows } = await dbPool.query('SELECT 1 FROM curated_songs WHERE id = $1', [delId]);
+      const delExists = delRows.length > 0;
+      
+      if (delExists) {
+        if (!keepExists) {
+          // Rename delId to keepId
+          await dbPool.query('UPDATE curated_songs SET id = $1 WHERE id = $2', [keepId, delId]);
+          console.log(`   [DB] Updated curated_songs: ID ${delId} -> ${keepId}`);
+        } else {
+          // Delete delId since keepId already exists in curated_songs
+          await dbPool.query('DELETE FROM curated_songs WHERE id = $1', [delId]);
+          console.log(`   [DB] Deleted duplicate from curated_songs: ${delId}`);
+        }
+      }
+    }
+    
+    // 4. Delete from songs_cache
+    if (tables.has('songs_cache')) {
+      await dbPool.query('DELETE FROM songs_cache WHERE id = $1', [delId]);
+    }
+  }
+}
+
+const REMOTE_DATABASE_URL = process.env.REMOTE_DATABASE_URL || 'postgresql://blindtest_user:blindtest_pass@localhost:5433/blindtest';
+
 async function main() {
+  let remotePool = null;
   try {
     if (dryRun) {
       console.log('=== DRY-RUN MODE ACTIVE: No database modifications will be executed ===');
+    } else {
+      try {
+        const tempPool = new pg.Pool({
+          connectionString: REMOTE_DATABASE_URL,
+          max: 3,
+          connectionTimeoutMillis: 3000,
+        });
+        const client = await tempPool.connect();
+        client.release();
+        remotePool = tempPool;
+        console.log(`[DB] Connected to remote database: ${REMOTE_DATABASE_URL.replace(/\/\/.*@/, '//***@')}`);
+      } catch (err) {
+        console.warn(`[DB] Remote database not reachable (${err.message}). Skipping remote propagation.`);
+      }
     }
+
     console.log('[Start] Checking for duplicate tracks in songs_cache...');
     const duplicateGroups = await getDuplicateGroups();
     
@@ -109,7 +178,7 @@ async function main() {
       process.exit(0);
     }
     
-    const allDeletedIds = [];
+    const deduplicateActions = [];
     const idsToVerify = [];
     let processed = 0;
     
@@ -176,8 +245,9 @@ async function main() {
       for (const delId of deleteIds) {
         const trackName = group.tracks.find(t => t.id === delId)?.name;
         console.log(`   -> DELETE: "${trackName}" [ID: ${delId}]`);
-        allDeletedIds.push(delId);
       }
+      
+      deduplicateActions.push({ keepId, deleteIds });
       
       // If we used the LLM, we should mark the kept track as verified in the DB
       if (usedLLM) {
@@ -185,7 +255,7 @@ async function main() {
       }
     }
     
-    // Perform verification updates in DB
+    // Perform verification updates in DB (local only, since sync-push handles remote)
     if (idsToVerify.length > 0) {
       if (dryRun) {
         console.log(`[Dry-Run] Would mark ${idsToVerify.length} tracks as already_verified=true in database.`);
@@ -211,19 +281,28 @@ async function main() {
       }
     }
     
-    // Perform deletions in DB
-    if (allDeletedIds.length > 0) {
+    // Perform updates and deletions in DB
+    if (deduplicateActions.length > 0) {
       if (dryRun) {
-        console.log(`[Dry-Run] Would delete ${allDeletedIds.length} duplicate tracks from songs_cache.`);
+        console.log(`[Dry-Run] Would apply deduplication for ${deduplicateActions.length} groups.`);
       } else {
-        console.log(`[DB] Deleting ${allDeletedIds.length} duplicate tracks from songs_cache...`);
-        // Delete in batches of 50
-        const batchSize = 50;
-        for (let i = 0; i < allDeletedIds.length; i += batchSize) {
-          const batch = allDeletedIds.slice(i, i + batchSize);
-          await pool.query('DELETE FROM songs_cache WHERE id = ANY($1)', [batch]);
+        const localTables = await getExistingTables(pool);
+        let remoteTables = null;
+        if (remotePool) {
+          remoteTables = await getExistingTables(remotePool);
         }
-        console.log(`[DB] Successfully cleaned up ${allDeletedIds.length} duplicate tracks! ✓`);
+        
+        console.log(`[DB] Applying deduplication updates and deletions...`);
+        for (const action of deduplicateActions) {
+          // Apply locally
+          await applyDeduplication(pool, localTables, action.keepId, action.deleteIds);
+          
+          // Apply remotely if available
+          if (remotePool && remoteTables) {
+            await applyDeduplication(remotePool, remoteTables, action.keepId, action.deleteIds);
+          }
+        }
+        console.log(`[DB] Successfully cleaned up duplicate tracks! ✓`);
       }
     } else {
       console.log('[DB] No tracks marked for deletion.');
@@ -233,6 +312,9 @@ async function main() {
     console.error('[Error]', err);
   } finally {
     await pool.end();
+    if (remotePool) {
+      await remotePool.end();
+    }
   }
 }
 

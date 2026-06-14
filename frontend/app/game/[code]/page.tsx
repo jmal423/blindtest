@@ -333,6 +333,14 @@ export default function GamePage({
     }
   }, [code, playerId]);
 
+  const handleArtistsUpdate = useCallback(async (artists: string[]) => {
+    try {
+      await updateSettings(code, playerId, { artists });
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to update artists');
+    }
+  }, [code, playerId]);
+
   const handleSubmit = useCallback(() => {
     if (!guess.trim() || !socketRef.current) return;
     socketRef.current.emit('submit_guess', { input: guess.trim() });
@@ -506,11 +514,13 @@ export default function GamePage({
               players={gameState.players}
               settings={gameState.settings}
               genres={gameState.genres}
+              artists={'artists' in gameState ? gameState.artists : []}
               hostId={gameState.hostId}
               playerId={playerId}
               onStart={handleStart}
               onSettingsChange={handleSettingsUpdate}
               onGenresChange={handleGenresUpdate}
+              onArtistsChange={handleArtistsUpdate}
               onKickPlayer={(pid) => socketRef.current?.emit('kick_player', pid)}
               onTransferHost={(pid) => socketRef.current?.emit('transfer_host', pid)}
               startLoading={startLoading}
@@ -653,11 +663,13 @@ function WaitingRoom({
   players,
   settings,
   genres,
+  artists,
   hostId,
   playerId,
   onStart,
   onSettingsChange,
   onGenresChange,
+  onArtistsChange,
   onKickPlayer,
   onTransferHost,
   startLoading,
@@ -666,11 +678,13 @@ function WaitingRoom({
   players: { id: string; name: string; avatarUrl?: string | null; role?: string }[];
   settings: RoomSettings;
   genres: string[];
+  artists: string[];
   hostId?: string | null;
   playerId: string;
   onStart: () => void;
   onSettingsChange: (s: Partial<RoomSettings>) => void;
   onGenresChange: (g: string[]) => void;
+  onArtistsChange: (a: string[]) => void;
   onKickPlayer?: (playerId: string) => void;
   onTransferHost?: (playerId: string) => void;
   startLoading?: boolean;
@@ -730,6 +744,13 @@ function WaitingRoom({
     if (set.has(id)) set.delete(id);
     else set.add(id);
     onGenresChange(Array.from(set));
+  };
+
+  const toggleArtist = (name: string) => {
+    const set = new Set(artists);
+    if (set.has(name)) set.delete(name);
+    else set.add(name);
+    onArtistsChange(Array.from(set));
   };
 
   const toggleGroup = (groupId: string) => {
@@ -870,23 +891,48 @@ function WaitingRoom({
 
           <div className="space-y-4">
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-medium text-foreground/60">{t('genres')}</label>
-                {isHost && genreGroups.length > 0 && (
-                  <button
-                    onClick={() => {
-                      if (genres.length === allGenreIds.length && allGenreIds.length > 0) {
-                        onGenresChange([]);
-                      } else {
-                        onGenresChange([...allGenreIds]);
-                      }
-                    }}
-                    className="text-[10px] px-2.5 py-1 rounded bg-white/5 text-foreground/60 hover:bg-white/10 hover:text-foreground transition-colors border border-white/5 cursor-pointer font-medium"
-                  >
-                    {genres.length === allGenreIds.length && allGenreIds.length > 0 ? t('clear_btn') : t('all_btn')}
-                  </button>
-                )}
+              <div className="flex items-center justify-between mb-4 bg-white/5 p-1 rounded-xl">
+                <button
+                  onClick={() => isHost && onSettingsChange({ gameMode: 'genre' })}
+                  className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                    settings.gameMode === 'genre'
+                      ? 'bg-[var(--primary)] text-foreground shadow-md'
+                      : 'text-foreground/50 hover:text-foreground/80'
+                  } ${!isHost && 'pointer-events-none'}`}
+                >
+                  Genres
+                </button>
+                <button
+                  onClick={() => isHost && onSettingsChange({ gameMode: 'artist' })}
+                  className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                    settings.gameMode === 'artist'
+                      ? 'bg-[var(--primary)] text-foreground shadow-md'
+                      : 'text-foreground/50 hover:text-foreground/80'
+                  } ${!isHost && 'pointer-events-none'}`}
+                >
+                  Artists
+                </button>
               </div>
+
+              {settings.gameMode === 'genre' ? (
+                <>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-medium text-foreground/60">{t('genres')}</label>
+                    {isHost && genreGroups.length > 0 && (
+                      <button
+                        onClick={() => {
+                          if (genres.length === allGenreIds.length && allGenreIds.length > 0) {
+                            onGenresChange([]);
+                          } else {
+                            onGenresChange([...allGenreIds]);
+                          }
+                        }}
+                        className="text-[10px] px-2.5 py-1 rounded bg-white/5 text-foreground/60 hover:bg-white/10 hover:text-foreground transition-colors border border-white/5 cursor-pointer font-medium"
+                      >
+                        {genres.length === allGenreIds.length && allGenreIds.length > 0 ? t('clear_btn') : t('all_btn')}
+                      </button>
+                    )}
+                  </div>
 
               {genreGroups.length === 0 ? (
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-1.5">
@@ -1050,6 +1096,69 @@ function WaitingRoom({
                   </div>
                 );
               })()}
+              </>
+              ) : (
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-foreground/60">Selected Artists</label>
+                    <div className="flex flex-wrap gap-1.5 min-h-[32px]">
+                      {artists.length === 0 && <span className="text-xs text-foreground/30 italic">No artists selected...</span>}
+                      {artists.map(a => (
+                        <div
+                          key={a}
+                          className="flex items-center gap-1.5 px-3 py-1 bg-[var(--primary)]/20 text-[var(--primary)] border border-[var(--primary)]/30 rounded-full text-[11px] font-semibold animate-slide-up"
+                        >
+                          <span className="truncate max-w-[150px]">{a}</span>
+                          {isHost && (
+                            <button
+                              onClick={() => toggleArtist(a)}
+                              className="hover:text-red-400 p-0.5 rounded-full transition-colors cursor-pointer flex items-center justify-center"
+                              title="Remove artist"
+                            >
+                              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  {isHost && (
+                    <div className="space-y-1.5">
+                      <label htmlFor="artist-input" className="text-[10px] font-semibold tracking-wider uppercase text-foreground/40">Add Artist</label>
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          const form = e.currentTarget;
+                          const input = form.elements.namedItem('customArtist') as HTMLInputElement;
+                          const value = input?.value?.trim();
+                          if (value && !artists.some(a => a.toLowerCase() === value.toLowerCase())) {
+                            onArtistsChange([...artists, value]);
+                            input.value = '';
+                          }
+                        }}
+                        className="flex gap-2"
+                      >
+                        <input
+                          id="artist-input"
+                          name="customArtist"
+                          type="text"
+                          placeholder="e.g. Daft Punk, Taylor Swift..."
+                          maxLength={50}
+                          className="flex-1 px-3 py-2 bg-white/[0.02] border border-white/5 rounded-xl text-xs text-foreground placeholder-foreground/30 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors"
+                        />
+                        <button
+                          type="submit"
+                          className="px-3.5 py-2 bg-white/5 hover:bg-white/10 text-foreground/80 hover:text-foreground font-semibold rounded-xl border border-white/5 transition-all text-xs cursor-pointer active:scale-95 flex items-center justify-center shrink-0"
+                        >
+                          Add
+                        </button>
+                      </form>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <SliderSetting label={t('rounds')} value={settings.rounds} min={3} max={25} isHost={isHost} onChange={v => onSettingsChange({ rounds: v })} />
@@ -1089,14 +1198,14 @@ function WaitingRoom({
         {isHost ? (
           <button
             onClick={onStart}
-            disabled={startLoading || !genres || genres.length === 0}
+            disabled={startLoading || (settings.gameMode === 'genre' && (!genres || genres.length === 0)) || (settings.gameMode === 'artist' && (!artists || artists.length === 0))}
             className={`px-12 py-4 text-foreground font-bold rounded-xl transition-all duration-300 shadow-lg cursor-pointer ${
-              genres && genres.length > 0 && !startLoading
+              ((settings.gameMode === 'genre' && genres && genres.length > 0) || (settings.gameMode === 'artist' && artists && artists.length > 0)) && !startLoading
                 ? 'bg-gradient-to-r from-primary to-accent hover:brightness-110 hover:shadow-primary/25 hover:scale-[1.03] active:scale-[0.98]'
                 : 'bg-surface-light text-foreground/40 border border-white/5 opacity-50 cursor-not-allowed'
             }`}
           >
-            {startLoading ? 'Starting...' : genres && genres.length > 0 ? t('start_game') : t('select_genre_to_start')}
+            {startLoading ? 'Starting...' : ((settings.gameMode === 'genre' && genres && genres.length > 0) || (settings.gameMode === 'artist' && artists && artists.length > 0)) ? t('start_game') : 'Select to start'}
           </button>
         ) : (
           <div className="flex items-center gap-2 text-foreground/60 text-sm font-medium bg-white/[0.02] border border-white/5 px-4 py-2.5 rounded-full shadow-inner animate-pulse">
