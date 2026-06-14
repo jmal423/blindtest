@@ -1,9 +1,3 @@
-<!-- BEGIN:nextjs-agent-rules -->
-# This is NOT the Next.js you know
-
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
-<!-- END:nextjs-agent-rules -->
-
 <!-- BEGIN:agent-skills -->
 # Agent Skills Integration
 
@@ -12,7 +6,7 @@ This project uses production-grade engineering skills from [agent-skills](https:
 ## Core Rules
 
 - If a task matches a skill, you MUST invoke it via the `skill` tool
-- Skills are located in `../../agent-skills/skills/<skill-name>/SKILL.md`
+- Skills are located in `../agent-skills/skills/<skill-name>/SKILL.md`
 - Never implement directly if a skill applies
 - Always follow the skill instructions exactly
 
