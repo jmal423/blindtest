@@ -10,7 +10,7 @@ const LOCAL_URL = process.env.LOCAL_DATABASE_URL || process.env.DATABASE_URL || 
 const args = process.argv.slice(2);
 const useRemote = args.includes('--remote');
 const limitArg = args.find(a => a.startsWith('--limit='));
-const limit = limitArg ? parseInt(limitArg.split('=')[1], 10) : 100;
+const limit = limitArg ? parseInt(limitArg.split('=')[1], 10) : 100000;
 
 const DB_URL = useRemote ? REMOTE_URL : LOCAL_URL;
 console.log(`==========================================`);

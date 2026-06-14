@@ -388,6 +388,88 @@ async function getTracksByGenre(genre, count = 10) {
   return tracks;
 }
 
+async function getTracksByArtist(artistName, count = 10) {
+  console.log(`[Deezer] Fetching tracks for artist "${artistName}"`);
+  const tracks = [];
+  const seen = new Set();
+
+  const addTrack = (t) => {
+    if (!t.preview || seen.has(t.id)) return;
+    seen.add(t.id);
+    tracks.push(t);
+  };
+
+  try {
+    // 1. Search for the artist
+    const artistData = await deezerFetch(`/search/artist?q=${encodeURIComponent(artistName)}&limit=1`);
+    if (artistData?.data?.length > 0) {
+      const artistId = artistData.data[0].id;
+      // 2. Get top tracks
+      const topTracks = await deezerFetch(`/artist/${artistId}/top?limit=${count * 3}`);
+      if (topTracks?.data) {
+        for (const t of topTracks.data) {
+          if (tracks.length >= count) break;
+          addTrack(mapTrack(t, 'artist'));
+        }
+      }
+    }
+
+    // 3. Fallback: Search tracks by artist name if not enough top tracks
+    if (tracks.length < count) {
+      const searchData = await deezerFetch(`/search/track?q=artist:"${encodeURIComponent(artistName)}"&limit=${count * 3}`);
+      if (searchData?.data) {
+        for (const t of searchData.data) {
+          if (tracks.length >= count) break;
+          // Ensure it's roughly the right artist
+          if (t.artist?.name?.toLowerCase().includes(artistName.toLowerCase())) {
+            addTrack(mapTrack(t, 'artist'));
+          }
+        }
+      }
+    }
+
+    const batchSize = 5;
+    for (let i = 0; i < tracks.length; i += batchSize) {
+      const batch = tracks.slice(i, i + batchSize);
+      await Promise.all(batch.map(async (track) => {
+        if (track.albumId) {
+          try {
+            track.genres = await fetchAlbumGenres(track.albumId);
+          } catch {
+            track.genres = ['pop'];
+          }
+        } else {
+          track.genres = ['pop'];
+        }
+      }));
+    }
+
+    // Add fetched tracks to curated table for future use
+    if (tracks.length > 0) {
+      const { addCuratedSong } = await import('./db.js');
+      for (const t of tracks) {
+        await addCuratedSong({
+          id: t.id,
+          name: t.name,
+          artist: t.artist,
+          albumImage: t.albumImage,
+          previewUrl: t.previewUrl,
+          durationMs: t.durationMs,
+          genre: 'artist_mode',
+          albumGenres: t.genres || [],
+          chartSource: t.chartSource || 'artist',
+          verified: false,
+        }).catch(() => {});
+      }
+    }
+
+  } catch (err) {
+    console.error(`[Deezer] Failed to fetch tracks for artist "${artistName}":`, err.message);
+  }
+
+  return tracks.slice(0, count);
+}
+
 import { GENRES, GENRE_GROUPS } from './genres-config.js';
 
 function getGenreLabel(genre) {
@@ -438,4 +520,4 @@ function getGenreLabel(genre) {
   return labels[genre] || genre.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }
 
-export { getTracksByGenre, GENRES, getGenreLabel, GENRE_GROUPS };
+export { getTracksByGenre, getTracksByArtist, GENRES, getGenreLabel, GENRE_GROUPS };

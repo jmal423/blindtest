@@ -97,6 +97,59 @@ You must map the track to exactly ONE "region" and ONE matching "genre_id" from 
 #### STEP 3: LINGUISTIC TITLE ANALYSIS (Third Priority)
 - If the song title contains French words (e.g., "Seuls au monde", "L'assasymphonie", "J'ai vu", "Tu dors ?"), you MUST classify the region as "french". If the artist is a franchise (like "Miraculous"), map to genre_id: "pop_francaise".
 
+#### STEP 4: INTERNAL KNOWLEDGE (Fourth Priority)
+- If the artist is not explicitly listed above, use your internal knowledge about their origin and musical style.
+- For example, if they are a French Rapper/Hip-Hop artist (e.g., Werenoi, Cheu-B, Gambi, Genezio), map to region "french" and genre_id "rap_francais".
+- If they are an American Indie/Pop artist (e.g., Djo), map to region "united_states" and genre_id "rock_alternative_us" or "pop_us".
+- If they are a well-known Pop star from the US (e.g., Taylor Swift, Ariana Grande), map to region "united_states" and genre_id "pop_us".
+
+### EXAMPLES
+Here are some perfect examples of how you should respond:
+
+Example 1:
+Track Title: "Piano"
+Artist Name: "Werenoi"
+Output:
+{
+  "title": "Piano",
+  "artist": "Werenoi",
+  "mapped_region": "french",
+  "mapped_genre_id": "rap_francais"
+}
+
+Example 2:
+Track Title: "End of Beginning"
+Artist Name: "Djo"
+Output:
+{
+  "title": "End of Beginning",
+  "artist": "Djo",
+  "mapped_region": "united_states",
+  "mapped_genre_id": "rock_alternative_us"
+}
+
+Example 3:
+Track Title: "Argent Sale - A COLORS SHOW"
+Artist Name: "La Rvfleuze"
+Output:
+{
+  "title": "Argent Sale - A COLORS SHOW",
+  "artist": "La Rvfleuze",
+  "mapped_region": "french",
+  "mapped_genre_id": "rap_francais"
+}
+
+Example 4:
+Track Title: "The Fate of Ophelia"
+Artist Name: "Taylor Swift"
+Output:
+{
+  "title": "The Fate of Ophelia",
+  "artist": "Taylor Swift",
+  "mapped_region": "united_states",
+  "mapped_genre_id": "pop_us"
+}
+
 ### OUTPUT FORMAT
 You must respond with ONLY a JSON object. Do not include markdown code blocks, conversational text, intro, or outro.
 
