@@ -1,0 +1,721 @@
+id,name,artist,deezer_genre,ai_genre,confidence,chart_source,fetched_at,rank,has_preview
+deezer:4070114711,"Chérie coco","Leto",PT_hip_hop_tuga,UNCLASSIFIED,0,chart_PT_hip_hop_tuga,2026-06-15T16:42:17.913Z,992737,yes
+deezer:3412611901,"Gabriela","KATSEYE",pop,UNCLASSIFIED,0,GL_kpop,2026-06-15T19:25:32.017Z,991587,yes
+deezer:3862691491,"Save Me Tonight","Jennifer Lopez",dance,UNCLASSIFIED,0,dance,2026-06-15T16:42:18.079Z,990284,no
+deezer:664107,"Take on Me","a-ha",pop,UNCLASSIFIED,0,pop,2026-06-09T21:57:32.358Z,988080,no
+deezer:144389048,"Lush Life","Zara Larsson",pop,UNCLASSIFIED,0,pop,2026-06-15T16:41:58.739Z,987028,yes
+deezer:3898999851,"LET ME BE","The Second Voice",dance,UNCLASSIFIED,0,dance,2026-06-15T16:41:54.330Z,986187,yes
+deezer:3410229851,"No Broke Boys","Disco Lines",dance,UNCLASSIFIED,0,dance,2026-06-15T16:41:54.341Z,984982,yes
+deezer:1426733732,"C'est la cité","Jul",PT_hip_hop_tuga,UNCLASSIFIED,0,chart_PT_hip_hop_tuga,2026-06-15T16:42:17.769Z,984463,yes
+deezer:3818963601,"Dracula (JENNIE Remix)","Tame Impala",UK_uk_garage_dnb,UNCLASSIFIED,0,GL_kpop,2026-06-15T19:25:32.028Z,982905,yes
+deezer:3045169941,"CIEL","GIMS",PT_hip_hop_tuga,UNCLASSIFIED,0,chart_PT_hip_hop_tuga,2026-06-15T16:41:51.150Z,982484,yes
+deezer:75867418,"J'oublie tout","Jul",PT_hip_hop_tuga,UNCLASSIFIED,0,chart_PT_hip_hop_tuga,2026-06-15T16:42:18.057Z,978409,yes
+deezer:3784998222,"Ghosts","Mosimann",dance,UNCLASSIFIED,0,dance,2026-06-15T16:41:54.241Z,974971,yes
+deezer:410780162,"Parfum quartier","Jul",PT_hip_hop_tuga,UNCLASSIFIED,0,chart_PT_hip_hop_tuga,2026-06-15T16:42:17.669Z,971559,yes
+deezer:3635951612,"Turn The Lights Off","Justė",dance,UNCLASSIFIED,0,dance,2026-06-15T16:41:54.274Z,970362,yes
+deezer:3677123262,"Unfaithful","BlasterJaxx",dance,UNCLASSIFIED,0,dance,2026-06-15T16:41:54.230Z,969486,yes
+deezer:3580188661,"Gone Gone Gone","David Guetta",pop,UNCLASSIFIED,0,pop_us,2026-06-15T16:41:58.783Z,968456,yes
+deezer:3784724892,"Talk To You (ft. 54 Ultra)","ANOTR",electro,UNCLASSIFIED,0,dance,2026-06-15T16:42:17.603Z,968286,yes
+deezer:3330178491,"KYKY2BONDY","Hamza",,UNCLASSIFIED,0,global_top,2026-06-15T16:42:18.113Z,968136,yes
+deezer:9997018,"Bohemian Rhapsody (Remastered 2011)","Queen",PT_pop_rock_tuga,UNCLASSIFIED,0,chart_PT_pop_rock_tuga,2026-06-15T16:41:45.455Z,959624,yes
+deezer:3857549521,"Madan","Trinix",dance,UNCLASSIFIED,0,dance,2026-06-15T16:41:54.352Z,957435,no
+deezer:540175,"...Baby One More Time","Britney Spears",PT_pop_rock_tuga,UNCLASSIFIED,0,chart_PT_pop_rock_tuga,2026-06-15T16:41:45.532Z,956742,yes
+deezer:62847142,"Titanium (feat. Sia)","David Guetta",dance,UNCLASSIFIED,0,dance,2026-06-15T16:41:54.208Z,956365,no
+deezer:983238,"J't'emmène au vent","Louise Attaque",PT_pop_rock_tuga,UNCLASSIFIED,0,chart_PT_pop_rock_tuga,2026-06-15T16:41:45.377Z,956347,yes
+deezer:673165762,"Sexy Bitch (feat. Akon)","David Guetta",dance,UNCLASSIFIED,0,dance,2026-06-15T16:41:54.219Z,954716,no
+deezer:66609426,"Get Lucky (Radio Edit - feat. Pharrell Williams and Nile Rodgers)","Daft Punk",dance,UNCLASSIFIED,0,dance,2026-06-15T16:42:17.647Z,954234,no
+deezer:3806024652,"Upside Down","Jaden Bojsen",dance,UNCLASSIFIED,0,dance,2026-06-15T16:41:54.252Z,953555,no
+deezer:6297555,"Alors on danse (Radio Edit)","Stromae",dance,UNCLASSIFIED,0,dance,2026-06-15T16:41:54.397Z,952441,no
+deezer:3157972,"Viva La Vida","Coldplay",PT_pop_rock_tuga,UNCLASSIFIED,0,chart_PT_pop_rock_tuga,2026-06-15T16:41:45.422Z,951268,yes
+deezer:129632340,"Let Me Love You","DJ Snake",dance,UNCLASSIFIED,0,dance,2026-06-15T16:41:54.485Z,950091,no
+deezer:4033909541,"Four To The Floor","Ofenbach",UK_uk_garage_dnb,UNCLASSIFIED,0,chart_UK_uk_garage_dnb,2026-06-15T16:41:54.263Z,949905,yes
+deezer:14299463,"Still Loving You","Scorpions",PT_pop_rock_tuga,UNCLASSIFIED,0,chart_PT_pop_rock_tuga,2026-06-15T16:42:10.711Z,949727,yes
+deezer:3434402411,"Together","David Guetta",dance,UNCLASSIFIED,0,dance,2026-06-15T16:41:54.285Z,945587,yes
+deezer:113876568,"Lean On","Major Lazer",FR_french_touch_electro,UNCLASSIFIED,0,chart_FR_french_touch_electro,2026-06-15T16:41:49.266Z,945278,yes
+deezer:3843457421,"Magnetic","The Bausa",dance,UNCLASSIFIED,0,dance,2026-06-09T22:04:36.375Z,940974,yes
+deezer:3401554271,"Midnight Sun","Zara Larsson",pop,UNCLASSIFIED,0,,2026-06-08T17:08:05.386Z,940006,yes
+deezer:5400243,"Memories (feat. Kid Cudi)","David Guetta",dance,UNCLASSIFIED,0,dance,2026-06-15T16:41:54.197Z,939702,yes
+deezer:79587580,"Chandelier","Sia",PT_pop_rock_tuga,UNCLASSIFIED,0,chart_PT_pop_rock_tuga,2026-06-15T16:41:45.621Z,937345,yes
+deezer:3502053411,"QUE CE SOIT CLAIR","Paul Kalkbrenner",dance,UNCLASSIFIED,0,dance,2026-06-15T16:41:54.440Z,936194,yes
+deezer:5119642,"Turn The Lights Off (Radio Edit)","Kato",dance,UNCLASSIFIED,0,dance,2026-06-15T16:41:49.554Z,935915,yes
+deezer:88936747,"Summer","Calvin Harris",dance,UNCLASSIFIED,0,dance,2026-06-15T16:41:54.595Z,935779,yes
+deezer:4046207801,"Sad Girls","Bebe Rexha",UK_uk_garage_dnb,UNCLASSIFIED,0,chart_UK_uk_garage_dnb,2026-06-15T16:41:54.319Z,935063,yes
+deezer:3087828,"Love Don't Let Me Go","David Guetta",UK_uk_garage_dnb,UNCLASSIFIED,0,chart_UK_uk_garage_dnb,2026-06-15T16:41:54.307Z,934903,yes
+deezer:123883254,"This Is What You Came For","Calvin Harris",electro,UNCLASSIFIED,0,dance,2026-06-15T16:41:49.344Z,934729,yes
+deezer:2887264442,"I Adore You","HUGEL",dance,UNCLASSIFIED,0,dance,2026-06-15T16:41:54.551Z,934047,yes
+deezer:1411181832,"Pepas","Farruko",latin,UNCLASSIFIED,0,latin,2026-06-15T16:42:17.902Z,933803,yes
+deezer:2992806421,"Nightcall","Kavinsky",FR_french_touch_electro,UNCLASSIFIED,0,chart_FR_french_touch_electro,2026-06-15T16:41:49.255Z,932687,yes
+deezer:4026050591,"Skyline","3robi",musique-africaine,UNCLASSIFIED,0,african,2026-06-15T16:41:55.404Z,929975,yes
+deezer:1951821737,"THE LONELIEST","Måneskin",PT_pop_rock_tuga,UNCLASSIFIED,0,chart_PT_pop_rock_tuga,2026-06-15T16:41:45.665Z,929829,yes
+deezer:71403230,"Timber","Pitbull",hip-hop,UNCLASSIFIED,0,dance,2026-06-15T16:42:17.836Z,929166,yes
+deezer:54420921,"I Love It (feat. Charli XCX) (Original Version)","Icona Pop",FR_french_touch_electro,UNCLASSIFIED,0,chart_FR_french_touch_electro,2026-06-15T16:41:49.333Z,928609,yes
+deezer:62847150,"Where Them Girls At (feat. Nicki Minaj & Flo Rida)","David Guetta",UK_uk_garage_dnb,UNCLASSIFIED,0,chart_UK_uk_garage_dnb,2026-06-15T16:41:54.463Z,927237,yes
+deezer:15586286,"Rock with You (Single Version)","Michael Jackson",PT_kizomba_palop,UNCLASSIFIED,0,chart_PT_kizomba_palop,2026-06-15T16:41:34.814Z,925116,yes
+deezer:3412534621,"Free","Rumi",musique-asiatique,UNCLASSIFIED,0,asian,2026-06-15T16:41:53.410Z,923902,no
+deezer:1713175757,"Moth To A Flame","Swedish House Mafia",dance,UNCLASSIFIED,0,dance,2026-06-09T22:04:36.475Z,923662,no
+deezer:3665304322,"Miles Away","Ofenbach",electro,UNCLASSIFIED,0,dance,2026-06-15T16:41:49.433Z,923406,no
+deezer:482990352,"One Kiss","Calvin Harris",dance,UNCLASSIFIED,0,dance,2026-06-09T22:04:36.497Z,921268,no
+deezer:124433692,"This One's for You (feat. Zara Larsson) (Official Song UEFA EURO 2016)","David Guetta",UK_uk_garage_dnb,UNCLASSIFIED,0,chart_UK_uk_garage_dnb,2026-06-15T16:41:54.474Z,921265,yes
+deezer:70266756,"Wake Me Up","Avicii",dance,UNCLASSIFIED,0,dance,2026-06-10T21:46:23.305Z,921155,no
+deezer:73982869,"Rather Be (feat. Jess Glynne)","Clean Bandit",dance,UNCLASSIFIED,0,dance,2026-06-09T22:04:36.531Z,918405,no
+deezer:798382542,"Baianá","Bakermat",dance,UNCLASSIFIED,0,dance,2026-06-15T16:41:54.451Z,916259,no
+deezer:6907156,"Freed From Desire","Gala",dance,UNCLASSIFIED,0,dance,2026-06-15T16:41:54.584Z,914860,no
+deezer:103996098,"How Deep Is Your Love","Calvin Harris",electro,UNCLASSIFIED,0,dance,2026-06-15T16:42:18.091Z,911900,yes
+deezer:3930376831,"Awake Tonight","AFROJACK",UK_uk_garage_dnb,UNCLASSIFIED,0,chart_UK_uk_garage_dnb,2026-06-15T16:41:54.529Z,911833,yes
+deezer:1874467717,"I'm Good (Blue)","David Guetta",dance,UNCLASSIFIED,0,dance,2026-06-09T22:04:36.597Z,911318,yes
+deezer:10308117,"Give Me Everything (feat. Nayer)","Pitbull",hip-hop,UNCLASSIFIED,0,dance,2026-06-09T22:04:36.608Z,909086,yes
+deezer:12206946,"Another One Bites The Dust (Remastered 2011)","Queen",PT_pop_rock_tuga,UNCLASSIFIED,0,chart_PT_pop_rock_tuga,2026-06-15T16:41:45.743Z,908534,yes
+deezer:3837322301,"Famoso Ímã | O poderoso chatão","Mc Lele JP",soul,UNCLASSIFIED,0,funk_brasileiro,2026-06-11T18:27:54.783Z,904844,yes
+deezer:81661460,"Amazing","Inna",electro,UNCLASSIFIED,0,dance,2026-06-15T16:41:49.611Z,903588,yes
+deezer:2537448451,"Stumblin' In","Cyril",dance,UNCLASSIFIED,0,dance,2026-06-09T22:04:36.663Z,901014,yes
+deezer:3412534551,"How It’s Done","HUNTR/X",musique-asiatique,UNCLASSIFIED,0,asian,2026-06-15T16:41:53.421Z,900075,yes
+deezer:64920072,"Nightcall","Kavinsky",FR_french_touch_electro,UNCLASSIFIED,0,chart_FR_french_touch_electro,2026-06-15T16:41:49.444Z,898985,yes
+deezer:716383902,"Loco Contigo","DJ Snake",UK_uk_garage_dnb,UNCLASSIFIED,0,chart_UK_uk_garage_dnb,2026-06-15T16:41:54.407Z,890949,yes
+deezer:870090,"J'ai demandé à la lune","Indochine",PT_pop_rock_tuga,UNCLASSIFIED,0,chart_PT_pop_rock_tuga,2026-06-15T16:41:45.599Z,888689,yes
+deezer:2387406055,"Vois sur ton chemin (Techno Mix)","BENNETT",FR_french_touch_electro,UNCLASSIFIED,0,chart_FR_french_touch_electro,2026-06-15T16:41:49.666Z,886895,yes
+deezer:134527024,"Rockabye (feat. Sean Paul & Anne-Marie)","Clean Bandit",FR_french_touch_electro,UNCLASSIFIED,0,chart_FR_french_touch_electro,2026-06-15T16:41:49.566Z,886265,yes
+deezer:79976878,"Everytime We Touch","Cascada",PT_kizomba_palop,UNCLASSIFIED,0,chart_PT_kizomba_palop,2026-06-15T16:41:49.655Z,883498,yes
+deezer:2238153377,"From The Start","Laufey",jazz,UNCLASSIFIED,0,,2026-06-15T16:41:57.786Z,881648,no
+deezer:23712561,"Einaudi: Una Mattina","Ludovico Einaudi",PT_classica_tuga,UNCLASSIFIED,0,chart_PT_classica_tuga,2026-06-15T16:41:33.927Z,879722,yes
+deezer:78098991,"Cheerleader (Felix Jaehn Remix) (Radio Edit)","OMI",FR_french_touch_electro,UNCLASSIFIED,0,chart_FR_french_touch_electro,2026-06-15T16:41:49.410Z,873039,yes
+deezer:3896706281,"Beauty","Sofiane Pamart",PT_classica_tuga,UNCLASSIFIED,0,chart_PT_classica_tuga,2026-06-15T16:41:33.949Z,869671,yes
+deezer:2107937657,"I'm Good (Blue)","David Guetta",UK_uk_garage_dnb,UNCLASSIFIED,0,chart_UK_uk_garage_dnb,2026-06-15T16:41:54.296Z,866896,yes
+deezer:64699122,"Experience","Ludovico Einaudi",PT_classica_tuga,UNCLASSIFIED,0,chart_PT_classica_tuga,2026-06-15T16:41:33.873Z,862941,yes
+deezer:975366,"I Will Survive (Rerecorded)","Gloria Gaynor",PT_kizomba_palop,UNCLASSIFIED,0,chart_PT_kizomba_palop,2026-06-15T16:41:34.836Z,861223,yes
+deezer:79223833,"Prayer in C (Robin Schulz Remix) [Radio Edit]","Lilly Wood And The Prick",FR_french_touch_electro,UNCLASSIFIED,0,chart_FR_french_touch_electro,2026-06-15T16:41:49.622Z,858696,yes
+deezer:3990324661,"Palme d'or","Vulax",PT_classica_tuga,UNCLASSIFIED,0,chart_PT_classica_tuga,2026-06-15T16:41:34.049Z,856973,yes
+deezer:714554,"Dis-moi","BB Brunes",PT_pop_rock_tuga,UNCLASSIFIED,0,chart_PT_pop_rock_tuga,2026-06-15T16:41:45.588Z,855118,yes
+deezer:3996999231,"Grateful","Alexis Ffrench",PT_classica_tuga,UNCLASSIFIED,0,chart_PT_classica_tuga,2026-06-15T16:41:34.171Z,847712,yes
+deezer:74196011,"Caliente (Radio Edit)","Inna",PT_kizomba_palop,UNCLASSIFIED,0,chart_PT_kizomba_palop,2026-06-15T16:41:34.880Z,845687,yes
+deezer:142748736,"SUBEME LA RADIO","Enrique Iglesias",latin,UNCLASSIFIED,0,latin,2026-06-15T16:41:49.499Z,840045,yes
+deezer:4016353611,"do i clench my fists?","ridgeclub",GL_jazz_lounge,UNCLASSIFIED,0,chart_GL_jazz_lounge,2026-06-15T16:41:57.797Z,837576,yes
+deezer:2181330357,"Back On 74","Jungle",PT_kizomba_palop,UNCLASSIFIED,0,chart_PT_kizomba_palop,2026-06-15T16:41:34.914Z,836279,yes
+deezer:3386759271,"Butterfly","Superbus",,UNCLASSIFIED,0,FR_pop_francaise,2026-06-15T15:06:45.779Z,833349,yes
+deezer:102671422,"Locked Away (feat. Adam Levine)","R. City",dance,UNCLASSIFIED,0,reggae,2026-06-15T16:41:52.711Z,822301,no
+deezer:3821992,"Just the Two of Us","Grover Washington, Jr.",GL_jazz_lounge,UNCLASSIFIED,0,chart_GL_jazz_lounge,2026-06-15T16:41:57.712Z,820911,yes
+deezer:15586317,"Off the Wall","Michael Jackson",PT_kizomba_palop,UNCLASSIFIED,0,chart_PT_kizomba_palop,2026-06-15T16:41:35.024Z,818709,yes
+deezer:81661454,"Hot (Play & Win Radio Version)","Inna",PT_kizomba_palop,UNCLASSIFIED,0,chart_PT_kizomba_palop,2026-06-15T16:41:34.947Z,818689,yes
+deezer:4004100121,"Celebrate Me","ingarose",GL_jazz_lounge,UNCLASSIFIED,0,chart_GL_jazz_lounge,2026-06-15T16:41:57.974Z,812178,yes
+deezer:68985416,"Sun Is Up (Play & Win Radio Version)","Inna",PT_kizomba_palop,UNCLASSIFIED,0,chart_PT_kizomba_palop,2026-06-15T16:41:34.902Z,812006,yes
+deezer:61686264,"Infinity 2008 (Klaas Vocal Edit)","Guru Josh Project",PT_kizomba_palop,UNCLASSIFIED,0,chart_PT_kizomba_palop,2026-06-15T16:41:35.069Z,805673,yes
+deezer:593690882,"I Put A Spell On You","Nina Simone",GL_jazz_lounge,UNCLASSIFIED,0,chart_GL_jazz_lounge,2026-06-15T16:41:57.886Z,800192,yes
+deezer:602454222,"The Girl From Ipanema","Stan Getz",GL_jazz_lounge,UNCLASSIFIED,0,chart_GL_jazz_lounge,2026-06-15T16:41:57.859Z,796668,yes
+deezer:15586310,"Workin' Day and Night","Michael Jackson",PT_kizomba_palop,UNCLASSIFIED,0,chart_PT_kizomba_palop,2026-06-15T16:41:35.002Z,793715,yes
+deezer:3819632441,"pApillons","Vulax",PT_classica_tuga,UNCLASSIFIED,0,chart_PT_classica_tuga,2026-06-15T16:41:34.326Z,792528,yes
+deezer:4064418861,"Me and You","Bonobo",,UNCLASSIFIED,0,FR_french_touch_electro,2026-06-14T18:42:08.799Z,791679,yes
+deezer:4028971531,"A Fated Crossing","ALVED",GL_jazz_lounge,UNCLASSIFIED,0,chart_GL_jazz_lounge,2026-06-15T16:41:58.052Z,789439,yes
+deezer:1918194557,"KJF 4","LESTEF KJF BOYZ",GL_jazz_lounge,UNCLASSIFIED,0,chart_GL_jazz_lounge,2026-06-15T16:41:57.808Z,789356,yes
+deezer:3966813341,"Kawakami","Akira Kosemura",PT_classica_tuga,UNCLASSIFIED,0,chart_PT_classica_tuga,2026-06-15T16:41:34.293Z,787111,yes
+deezer:3862611041,"Fanatismo (Ao Vivo)","Yasmin Sensação",PT_fado,UNCLASSIFIED,0,chart_PT_fado,2026-06-15T16:41:51.980Z,784021,yes
+deezer:1386411742,"Fly","Ludovico Einaudi",PT_classica_tuga,UNCLASSIFIED,0,chart_PT_classica_tuga,2026-06-15T16:41:33.961Z,783057,yes
+deezer:717675152,"Ma Chérie (DJ Antoine & Mad Mark 2K12 Radio Edit)","DJ Antoine",PT_kizomba_palop,UNCLASSIFIED,0,chart_PT_kizomba_palop,2026-06-15T16:41:34.925Z,781704,yes
+deezer:1853534317,"Miss You","Oliver Tree",UK_uk_garage_dnb,UNCLASSIFIED,0,chart_UK_uk_garage_dnb,2026-06-15T16:41:54.507Z,779566,yes
+deezer:595453762,"Où est la vraie vie? (De ""Raiponce""/Bande Originale Française du Film)","Maeva Méline",GL_soundtracks,UNCLASSIFIED,0,playlist_GL_soundtracks,2026-06-15T16:42:13.271Z,779501,yes
+deezer:81661462,"Deja Vu (Play & Win Radio Edit)","Inna",PT_kizomba_palop,UNCLASSIFIED,0,chart_PT_kizomba_palop,2026-06-15T16:41:34.969Z,778478,yes
+deezer:3751347562,"Memory One","Ludovico Einaudi",PT_classica_tuga,UNCLASSIFIED,0,chart_PT_classica_tuga,2026-06-15T16:41:34.260Z,774982,yes
+deezer:4060881211,"Shine","Jon Batiste",PT_classica_tuga,UNCLASSIFIED,0,chart_PT_classica_tuga,2026-06-15T16:41:33.972Z,774132,yes
+deezer:3919125471,"Ashitaka (feat. Lushe)","Vulax",PT_classica_tuga,UNCLASSIFIED,0,chart_PT_classica_tuga,2026-06-15T16:41:34.027Z,771951,yes
+deezer:3085246,"Just the Two of Us (feat. Bill Withers)","Grover Washington, Jr.",jazz,UNCLASSIFIED,0,,2026-06-10T21:46:23.538Z,768803,no
+deezer:1547320772,"DEAR","Sofiane Pamart",PT_classica_tuga,UNCLASSIFIED,0,chart_PT_classica_tuga,2026-06-15T16:41:34.038Z,768674,yes
+deezer:646715112,"Mayonaka no Door / Stay With Me","Miki Matsubara",musique-asiatique,UNCLASSIFIED,0,asian,2026-06-10T21:46:23.560Z,765849,no
+deezer:3977102181,"Alcova","Olivia Belli",PT_classica_tuga,UNCLASSIFIED,0,chart_PT_classica_tuga,2026-06-15T16:41:34.016Z,762821,yes
+deezer:3994187931,"ACAI","CORTIS",musique-asiatique,UNCLASSIFIED,0,asian,2026-06-09T22:26:32.419Z,761133,no
+deezer:84363781,"Histoire éternelle (De ""La Belle et la Bête""/Bande Originale Française du Film)","Lucie Dolène",GL_soundtracks,UNCLASSIFIED,0,playlist_GL_soundtracks,2026-06-15T16:42:13.138Z,754749,yes
+deezer:95987682,"Na Sua Estante","Pitty",pop-rock-portugues,UNCLASSIFIED,0,pop-rock-portugues,2026-06-10T11:41:11.332Z,754071,no
+deezer:4029124351,"Porcelain","Monoraum",PT_classica_tuga,UNCLASSIFIED,0,chart_PT_classica_tuga,2026-06-15T16:41:34.096Z,753091,yes
+deezer:95987830,"Equalize","Pitty",pop-rock-portugues,UNCLASSIFIED,0,pop-rock-portugues,2026-06-10T11:41:11.343Z,753050,no
+deezer:1436238632,"T'es OK, T'es Bath, T'es In (Version single)","Ottawan",PT_kizomba_palop,UNCLASSIFIED,0,chart_PT_kizomba_palop,2026-06-15T16:41:35.013Z,752228,yes
+deezer:13393735,"Evacuate The Dancefloor (Radio Edit)","Cascada",PT_kizomba_palop,UNCLASSIFIED,0,chart_PT_kizomba_palop,2026-06-15T16:41:35.102Z,750124,yes
+deezer:1547320802,"LOVE","Sofiane Pamart",PT_classica_tuga,UNCLASSIFIED,0,chart_PT_classica_tuga,2026-06-15T16:41:34.005Z,749301,yes
+deezer:81661458,"Love","Inna",PT_kizomba_palop,UNCLASSIFIED,0,chart_PT_kizomba_palop,2026-06-15T16:41:35.124Z,746047,yes
+deezer:4029124431,"La Chambre Orange","Antonio Ministeri",PT_classica_tuga,UNCLASSIFIED,0,chart_PT_classica_tuga,2026-06-15T16:41:34.182Z,745785,yes
+deezer:10240182,"The Bay","Metronomy",,UNCLASSIFIED,0,FR_french_touch_electro,2026-06-15T19:15:45.075Z,745013,yes
+deezer:2798271222,"RATATATA","BABYMETAL",GL_metal,UNCLASSIFIED,0,chart_GL_metal,2026-06-15T16:42:10.790Z,739052,yes
+deezer:69261831,"Divenire","Ludovico Einaudi",PT_classica_tuga,UNCLASSIFIED,0,chart_PT_classica_tuga,2026-06-15T16:41:34.160Z,738428,yes
+deezer:1627634952,"What You Won't Do for Love","Bobby Caldwell",jazz,UNCLASSIFIED,0,,2026-06-15T16:41:58.019Z,737595,no
+deezer:1161654902,"Dance Monkey","Bossa Nova Covers",musique-brésilienne,UNCLASSIFIED,0,brazilian,2026-06-09T22:27:20.941Z,735076,no
+deezer:709830092,"Feeling Good","Nina Simone",jazz,UNCLASSIFIED,0,,2026-06-15T16:41:58.174Z,733221,no
+deezer:3856158821,"Jay","Ludovico Einaudi",PT_classica_tuga,UNCLASSIFIED,0,chart_PT_classica_tuga,2026-06-15T16:41:33.983Z,733075,yes
+deezer:13305103,"Epitáfio","Titãs",pop-rock-portugues,UNCLASSIFIED,0,pop-rock-portugues,2026-06-10T11:41:11.377Z,730196,no
+deezer:3097275,"Bach, JS: Cello Suite No. 1 in G Major, BWV 1007: I. Prelude","Mstislav Rostropovich",PT_classica_tuga,UNCLASSIFIED,0,chart_PT_classica_tuga,2026-06-15T16:41:34.215Z,729615,yes
+deezer:69261838,"Primavera","Ludovico Einaudi",PT_classica_tuga,UNCLASSIFIED,0,chart_PT_classica_tuga,2026-06-15T16:41:34.238Z,727999,yes
+deezer:76278115,"Prince Ali (De ""Aladdin""/Bande Originale Française du Film)","Richard Darbois",GL_soundtracks,UNCLASSIFIED,0,playlist_GL_soundtracks,2026-06-15T16:42:13.182Z,726081,yes
+deezer:1031007,"Take Five","Dave Brubeck",GL_jazz_lounge,UNCLASSIFIED,0,chart_GL_jazz_lounge,2026-06-15T16:42:15.077Z,724711,yes
+deezer:3686588792,"Mi Swing Es Tropical","Quantic",GL_jazz_lounge,UNCLASSIFIED,0,chart_GL_jazz_lounge,2026-06-15T16:41:58.063Z,722584,yes
+deezer:3434133501,"Dia De Fiesta (Slowed)","qaraqshy",musique-brésilienne,UNCLASSIFIED,0,brazilian,2026-06-10T23:02:29.578Z,721622,no
+deezer:707201682,"Porto","Worakls",,UNCLASSIFIED,0,FR_french_touch_electro,2026-06-15T19:15:45.086Z,720279,yes
+deezer:68301402,"Eine kleine Nachtmusik, K. 525 : Mozart: Eine kleine Nachtmusik, K. 525: I. Allegro","Wiener Philharmoniker",PT_classica_tuga,UNCLASSIFIED,0,chart_PT_classica_tuga,2026-06-15T16:41:34.393Z,719150,yes
+deezer:1421635422,"I Will Survive (Original 7"" Version)","Gloria Gaynor",PT_kizomba_palop,UNCLASSIFIED,0,chart_PT_kizomba_palop,2026-06-15T16:41:35.113Z,715973,yes
+deezer:595453812,"Je veux y croire (De ""Raiponce""/Bande Originale Française du Film)","Maeva Méline",GL_soundtracks,UNCLASSIFIED,0,playlist_GL_soundtracks,2026-06-15T16:42:13.393Z,712908,yes
+deezer:1013210122,"Supernature","Cerrone",PT_kizomba_palop,UNCLASSIFIED,0,chart_PT_kizomba_palop,2026-06-15T16:41:35.047Z,708200,yes
+deezer:2789439,"My Baby Just Cares for Me","Nina Simone",GL_jazz_lounge,UNCLASSIFIED,0,chart_GL_jazz_lounge,2026-06-15T16:41:58.107Z,706824,yes
+deezer:1898921297,"Falling Behind","Laufey",GL_jazz_lounge,UNCLASSIFIED,0,chart_GL_jazz_lounge,2026-06-15T16:41:58.163Z,706333,yes
+deezer:1086622472,"3 Gymnopédies: No. 1, Lent et douloureux","Khatia Buniatishvili",PT_classica_tuga,UNCLASSIFIED,0,chart_PT_classica_tuga,2026-06-15T16:41:34.360Z,706063,yes
+deezer:3783107532,"Aline","Christophe",GL_jazz_lounge,UNCLASSIFIED,0,chart_GL_jazz_lounge,2026-06-15T16:41:57.941Z,704593,yes
+deezer:13310165,"Infinita Highway","Engenheiros do Hawaii",pop-rock-portugues,UNCLASSIFIED,0,BR_pop_rock_brasileiro,2026-06-15T18:35:38.608Z,704533,yes
+deezer:4063096581,"Rose Bay (Live at the Royal Albert Hall)","Ludovico Einaudi",PT_classica_tuga,UNCLASSIFIED,0,chart_PT_classica_tuga,2026-06-15T16:41:34.337Z,704320,yes
+deezer:3112517281,"Solas","Jamie Duffy",PT_classica_tuga,UNCLASSIFIED,0,chart_PT_classica_tuga,2026-06-15T16:41:34.204Z,703430,yes
+deezer:1228436532,"Sweet Child O' Mine","Bossa Nova Covers",musique-brésilienne,UNCLASSIFIED,0,brazilian,2026-06-09T22:27:21.052Z,703332,no
+deezer:717542,"Roots Bloody Roots","Sepultura",BR_pop_rock_brasileiro,UNCLASSIFIED,0,playlist_BR_pop_rock_brasileiro,2026-06-15T16:42:07.864Z,700524,yes
+deezer:1603263762,"Rolling in the Deep","Bossa Nova Covers",musique-brésilienne,UNCLASSIFIED,0,brazilian,2026-06-09T22:27:21.096Z,700376,no
+deezer:15781392,"Bangarang (feat. Sirah)","Skrillex",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:06.180Z,699102,yes
+deezer:3896706221,"There'll Be A Day","Sofiane Pamart",PT_classica_tuga,UNCLASSIFIED,0,chart_PT_classica_tuga,2026-06-15T16:41:34.316Z,698548,yes
+deezer:95987728,"Me Adora","Pitty",pop-rock-portugues,UNCLASSIFIED,0,pop-rock-portugues,2026-06-10T18:47:57.812Z,697268,no
+deezer:3968014651,"Brasil","M4IA",dance,UNCLASSIFIED,0,portugal,2026-06-10T23:25:36.262Z,697019,yes
+deezer:1132016,"Canary Bay","Indochine",PT_kizomba_palop,UNCLASSIFIED,0,chart_PT_kizomba_palop,2026-06-15T16:41:35.058Z,696652,yes
+deezer:521606762,"Ai No Corrida","Quincy Jones",GL_jazz_lounge,UNCLASSIFIED,0,chart_GL_jazz_lounge,2026-06-15T16:41:58.118Z,695152,yes
+deezer:3896706231,"Watching You","Sofiane Pamart",PT_classica_tuga,UNCLASSIFIED,0,chart_PT_classica_tuga,2026-06-15T16:41:34.348Z,692256,yes
+deezer:709830252,"Sinnerman","Nina Simone",GL_jazz_lounge,UNCLASSIFIED,0,chart_GL_jazz_lounge,2026-06-15T16:41:58.207Z,689038,yes
+deezer:3896706271,"Moviestar","Sofiane Pamart",PT_classica_tuga,UNCLASSIFIED,0,chart_PT_classica_tuga,2026-06-15T16:41:34.404Z,685999,yes
+deezer:84363853,"Partir là-bas (De ""La Petite Sirène""/Bande Originale Française du Film)","Claire Guyot",GL_soundtracks,UNCLASSIFIED,0,playlist_GL_soundtracks,2026-06-15T16:42:13.338Z,685021,yes
+deezer:1509496722,"Sinnerman (Sofi Tukker Remix)","Nina Simone",GL_jazz_lounge,UNCLASSIFIED,0,chart_GL_jazz_lounge,2026-06-15T16:41:58.196Z,683462,yes
+deezer:95987826,"Admirável Chip Novo","Pitty",pop-rock-portugues,UNCLASSIFIED,0,pop-rock-portugues,2026-06-10T11:41:11.498Z,683292,no
+deezer:911085,"In A Sentimental Mood","Duke Ellington",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:14.904Z,681987,yes
+deezer:3656706392,"Voilà (Live)","André Rieu",PT_classica_tuga,UNCLASSIFIED,0,chart_PT_classica_tuga,2026-06-15T16:41:34.382Z,681071,yes
+deezer:3989537441,"Fior Di Macchia","NTO",,UNCLASSIFIED,0,FR_french_touch_electro,2026-06-14T18:42:08.821Z,679579,yes
+deezer:1844670757,"Il Mio Rifugio (Original Motion Picture Soundtrack from Tandem)","Richard Cocciante",PT_classica_tuga,UNCLASSIFIED,0,chart_PT_classica_tuga,2026-06-15T16:41:34.249Z,674882,yes
+deezer:71927345,"True Sorry","Ibrahim Maalouf",GL_jazz_lounge,UNCLASSIFIED,0,chart_GL_jazz_lounge,2026-06-15T16:41:58.130Z,672837,yes
+deezer:602454252,"Desafinado","Stan Getz",GL_jazz_lounge,UNCLASSIFIED,0,chart_GL_jazz_lounge,2026-06-15T16:41:58.229Z,671769,yes
+deezer:73704169,"I Feel Good (I Got You)","James Brown",GL_jazz_lounge,UNCLASSIFIED,0,chart_GL_jazz_lounge,2026-06-15T16:41:58.074Z,669075,yes
+deezer:3144730,"It's A Small World (Disneyland Paris version)","Cast – Disneyland Paris",GL_soundtracks,UNCLASSIFIED,0,playlist_GL_soundtracks,2026-06-15T16:42:13.327Z,661946,yes
+deezer:931207382,"Été","Antonio Vivaldi",PT_classica_tuga,UNCLASSIFIED,0,chart_PT_classica_tuga,2026-06-15T16:41:34.415Z,660885,yes
+deezer:611346,"Boogie Wonderland (with The Emotions Album Version)","Earth, Wind & Fire",PT_kizomba_palop,UNCLASSIFIED,0,chart_PT_kizomba_palop,2026-06-15T16:41:34.991Z,659124,yes
+deezer:2376304835,"Baddadan","Chase & Status",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.111Z,656821,yes
+deezer:3885076851,"Meow Meow (Super Slowed)","heapper",musique-brésilienne,UNCLASSIFIED,0,brazilian,2026-06-10T21:46:23.671Z,654070,no
+deezer:2144435437,"Don't Let Me Be Misunderstood","Nina Simone",GL_jazz_lounge,UNCLASSIFIED,0,chart_GL_jazz_lounge,2026-06-15T16:41:58.141Z,650000,yes
+deezer:2831985852,"Doigts de Metal","Ultra Vomit",GL_metal,UNCLASSIFIED,0,chart_GL_metal,2026-06-15T16:41:56.479Z,643809,yes
+deezer:16988518,"O Astronauta de Mármore (Starman)","Nenhum De Nós",pop,UNCLASSIFIED,0,pop-rock-portugues,2026-06-15T16:42:07.764Z,639056,no
+deezer:668944902,"Nuits d'Arabie","Bernard Alane",GL_soundtracks,UNCLASSIFIED,0,playlist_GL_soundtracks,2026-06-15T16:42:13.426Z,638252,yes
+deezer:390099141,"On My Mind (Jorja Smith X Preditah)","Jorja Smith",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.655Z,636214,yes
+deezer:85268732,"Réflexion (De ""Mulan""/Bande Originale Française du Film)","Marie Galey",GL_soundtracks,UNCLASSIFIED,0,playlist_GL_soundtracks,2026-06-15T16:42:13.559Z,634279,yes
+deezer:13265455,"Olhar 43","RPM",pop-rock-portugues,UNCLASSIFIED,0,pop-rock-portugues,2026-06-15T16:42:07.886Z,633210,no
+deezer:12493507,"First of the Year (Equinox)","Skrillex",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:06.202Z,628305,yes
+deezer:72318749,"O Girassol (Versão Acústica)","Ira!",pop-rock-portugues,UNCLASSIFIED,0,pop-rock-portugues,2026-06-10T11:41:11.742Z,626058,no
+deezer:3256923831,"PASSO BEM SOLTO (Extreme Slowed)","ATLXS",PT_classica_tuga,UNCLASSIFIED,0,chart_PT_classica_tuga,2026-06-15T16:41:34.226Z,623782,yes
+deezer:4005592611,"Power In Numbers","HO99O9",GL_metal,UNCLASSIFIED,0,playlist_GL_metal,2026-06-15T16:42:09.459Z,610865,yes
+deezer:72318756,"Eu Quero Sempre Mais (feat. Pitty) (Versão Acústica)","Ira!",pop-rock-portugues,UNCLASSIFIED,0,pop-rock-portugues,2026-06-10T11:41:11.787Z,608949,no
+deezer:350038551,"A Mais Pedida (Ao Vivo | Acústico)","Raimundos",pop-rock-portugues,UNCLASSIFIED,0,pop-rock-portugues,2026-06-10T11:41:11.798Z,602755,no
+deezer:143246746,"Too Late","Youn Sun Nah",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.133Z,602185,yes
+deezer:128949480,"Purple Lamborghini","Skrillex",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:06.191Z,600325,yes
+deezer:3408789741,"Cê Deve Tá Linda","Orochi",hip-hop-rap,UNCLASSIFIED,0,portugal,2026-06-10T18:14:59.769Z,600086,no
+deezer:1123828,"Below The Bassline","Ernest Ranglin",jazz,UNCLASSIFIED,0,reggae,2026-06-11T18:02:16.696Z,599518,yes
+deezer:549279042,"Everybody Loves The Sunshine","Roy Ayers",jazz,UNCLASSIFIED,0,,2026-06-10T21:46:23.693Z,597770,no
+deezer:144735112,"Mantenha o Respeito","Planet Hemp",BR_pop_rock_brasileiro,UNCLASSIFIED,0,playlist_BR_pop_rock_brasileiro,2026-06-15T16:42:08.052Z,597253,yes
+deezer:1084242152,"I Wished On The Moon","Diana Krall",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:14.744Z,596839,yes
+deezer:3972067871,"Voicetrack Generation","Anetha",,UNCLASSIFIED,0,FR_french_touch_electro,2026-06-14T18:42:08.899Z,596439,yes
+deezer:6430916,"Jackie Tequila","Skank",pop,UNCLASSIFIED,0,pop-rock-portugues,2026-06-10T11:41:11.842Z,591532,no
+deezer:1226151922,"Home","SE-Quartet",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:14.789Z,585233,yes
+deezer:1444366372,"You Must Believe In Spring","Bill Evans",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:14.844Z,583101,yes
+deezer:3256750,"My Kinda Blues","Teddy Edwards",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:14.801Z,576292,yes
+deezer:401682762,"New Waltz","Fred Nardin",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:14.778Z,575715,yes
+deezer:570239,"Moonlight Serenade","Glenn Miller",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:14.955Z,574345,yes
+deezer:540485,"Where or When","Wynton Marsalis",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:14.811Z,574249,yes
+deezer:3983481001,"Yasmine Alsham","Acid Arab",,UNCLASSIFIED,0,FR_french_touch_electro,2026-06-14T18:42:08.921Z,573976,yes
+deezer:1745840597,"Disco Arranhado (Funk Remix)","Malu ",PT_fado,UNCLASSIFIED,0,chart_PT_fado,2026-06-15T16:41:51.737Z,568627,yes
+deezer:1064775022,"Rise","Herb Alpert",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.029Z,568051,no
+deezer:578513132,"Sifflez en travaillant (De ""Blanche Neige et les Septs Nains""/Bande Originale Française du Film)","Rachel Pignot",GL_soundtracks,UNCLASSIFIED,0,playlist_GL_soundtracks,2026-06-15T16:42:13.526Z,568026,yes
+deezer:598063722,"Supercalifragilistic (De ""Mary Poppins"")","Eliane Thibault",GL_soundtracks,UNCLASSIFIED,0,playlist_GL_soundtracks,2026-06-15T16:42:13.515Z,567514,yes
+deezer:598063632,"Tu t'envoles (De ""Peter Pan"")","Chœurs - Peter Pan",GL_soundtracks,UNCLASSIFIED,0,playlist_GL_soundtracks,2026-06-15T16:42:13.471Z,566137,yes
+deezer:543098922,"O Grande Amor","Stan Getz",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:14.911Z,560267,yes
+deezer:598063692,"Cruella De Ville (De ""Les 101 Dalmatiens"")","Chœurs - Les 101 Dalmatiens",GL_soundtracks,UNCLASSIFIED,0,playlist_GL_soundtracks,2026-06-15T16:42:13.316Z,557230,yes
+deezer:76278124,"Joyeux non-anniversaire","Cast of Alice in Wonderland",GL_soundtracks,UNCLASSIFIED,0,playlist_GL_soundtracks,2026-06-15T16:42:13.493Z,546766,yes
+deezer:3124606,"Pannonica","Chick Corea",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.708Z,545868,yes
+deezer:1073809402,"Chopin: Prelude Op. 28 #4 (Live in Paris / 2018)","Chick Corea",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:14.878Z,543963,yes
+deezer:1060917602,"Reminiscence","ESPEN ERIKSEN TRIO",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:14.922Z,539679,yes
+deezer:599991,"Dirge","Death in Vegas",,UNCLASSIFIED,0,FR_french_touch_electro,2026-06-15T19:15:45.177Z,538961,yes
+deezer:2015051537,"Barney's","The Groove Trio",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.657Z,538869,yes
+deezer:598063952,"Nuits d'Arabie (De ""Aladdin"")","Bernard Alane",GL_soundtracks,UNCLASSIFIED,0,playlist_GL_soundtracks,2026-06-15T16:42:13.537Z,537246,yes
+deezer:606129202,"Just One Of Those Things","Oscar Peterson",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.719Z,535777,yes
+deezer:11495726,"Rapture (feat.Nadia Ali)","iiO",french-touch-electro,UNCLASSIFIED,0,rap tuga,2026-06-10T01:20:24.505Z,527714,no
+deezer:1073818772,"If It's Magic","ARTEMIS",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:14.988Z,525721,yes
+deezer:2019074747,"I Saw The Sun","Nick Osman Trio",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.786Z,525504,yes
+deezer:2466125835,"JOY (I Did You Wrong)","Joy Anonymous",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.961Z,524165,yes
+deezer:563842092,"Homegrown","Rymden",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.177Z,514648,yes
+deezer:76278139,"La chanson de la pluie (De ""Bambi""/Bande Originale Française du Film)","Chœurs - Bambi",GL_soundtracks,UNCLASSIFIED,0,playlist_GL_soundtracks,2026-06-15T16:42:13.548Z,514616,yes
+deezer:2018988407,"Willow","More Than Jazz",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.808Z,514476,yes
+deezer:1522739122,"I'll Know","Bill Charlap Trio",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.731Z,510922,yes
+deezer:549326752,"Moonlight In Vermont","Stan Getz",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.110Z,507169,yes
+deezer:3149562,"Blue Skies","Art Tatum",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.875Z,506171,yes
+deezer:1922181237,"Autumn In New York","Mayfare Trio",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.830Z,505881,yes
+deezer:2019074797,"Imagination","The North Sea Trio",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.797Z,505005,yes
+deezer:2019077217,"I Concentrate On You","The Blue Green",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.775Z,503591,yes
+deezer:1765393197,"Counting Stars","Rainy Days Trio",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.753Z,501940,yes
+deezer:552385922,"Hello","The Count Basie Orchestra",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.000Z,499981,yes
+deezer:589789082,"The Windmills of Your Mind","Paolo Fresu",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.088Z,499578,yes
+deezer:681554692,"Sambacara","Tropical Jazz Trio",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.055Z,499514,yes
+deezer:1176303,"You've Changed","Keith Jarrett Trio",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.841Z,496841,yes
+deezer:606467242,"Still Awake","Yaron Herman Trio",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.033Z,496156,yes
+deezer:654735962,"Come What May","Joshua Redman Quartet",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.199Z,494954,yes
+deezer:3989655111,"BRING THE LIGHT","Ibrahim Maalouf",GL_jazz_lounge,UNCLASSIFIED,0,chart_GL_jazz_lounge,2026-06-15T16:41:57.874Z,494567,yes
+deezer:714369342,"Hi-Diddle Di Di (De ""Pinocchio""/Bande Originale Française du Film)","Jean Lussac",GL_soundtracks,UNCLASSIFIED,0,playlist_GL_soundtracks,2026-06-15T16:42:13.482Z,489747,yes
+deezer:932473,"Someday My Prince Will Come","Bill Evans",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.210Z,488150,yes
+deezer:2193348,"Kiss From A Rose","Julia Hülsmann Trio",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.121Z,485986,yes
+deezer:670530512,"Influencia do Jazz","Paula Morelenbaum",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.144Z,485017,yes
+deezer:909129662,"trigger (André Manoukian Piano Version)","FORM",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.919Z,483913,yes
+deezer:7077135,"Body and Soul","Erroll Garner",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.908Z,480817,yes
+deezer:3105576,"Lullaby Of The Leaves (1998 Digital Remaster)","Gerry Mulligan",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.155Z,480714,yes
+deezer:74529519,"Ahmad's Blues","Ahmad Jamal",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.930Z,479868,yes
+deezer:13275100,"Garota de Berlim","Tokyo",BR_pop_rock_brasileiro,UNCLASSIFIED,0,playlist_BR_pop_rock_brasileiro,2026-06-15T16:42:07.144Z,475180,yes
+deezer:1060900252,"Old Maps (feat. Varduhi Art School Children's Choir)","Tigran Hamasyan",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.897Z,474514,yes
+deezer:2495216,"Stars Fell On Alabama","Stan Getz",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.221Z,473098,yes
+deezer:2525830831,"Rapture","Sander van doorn",dance,UNCLASSIFIED,0,rap tuga,2026-06-10T01:20:24.550Z,472432,no
+deezer:1910560637,"Thoughtful Proposal","James Jackson Jazz Trio",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.952Z,471781,yes
+deezer:1272358272,"God Bless The Child","Ola W Jansson",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.941Z,471445,yes
+deezer:2603390,"I Thought About You","Keith Jarrett Trio",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.886Z,469763,yes
+deezer:2649677682,"Rebel","FindMyName",,UNCLASSIFIED,0,UK_uk_garage_dnb,2026-06-15T21:10:20.029Z,469263,yes
+deezer:4481741,"Incredible","M-Beat",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:05.105Z,469162,yes
+deezer:714369312,"Sifflez vite vite (De ""Pinocchio""/Bande Originale Française du Film)","Christiane Legrand",GL_soundtracks,UNCLASSIFIED,0,playlist_GL_soundtracks,2026-06-15T16:42:13.582Z,466914,yes
+deezer:1558882982,"Change of Heart","Turtleneck Trio",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.986Z,466865,yes
+deezer:3112680181,"Nostalgica","I Hate Models",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.055Z,465455,yes
+deezer:1836732597,"Maze of Tranquility","Martin Landström",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.963Z,461315,yes
+deezer:1668164732,"Balling","Vibe Chemistry",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.078Z,458100,yes
+deezer:349721961,"No Moon at All","Lorez Alexandria",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.188Z,457635,yes
+deezer:2119676227,"Beautiful Sunrise","Arta Porting",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.285Z,455001,yes
+deezer:2566195592,"A Poetic City","Kristian Hart Trio",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.218Z,449900,yes
+deezer:14615941,"Kill EVERYBODY","Skrillex",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:06.302Z,449769,yes
+deezer:3470588,"The Mood Is Mellow","George Shearing Trio",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.063Z,448592,yes
+deezer:2255536597,"Everybody Loves The Sunshine","Netsky",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.873Z,448508,yes
+deezer:1800888857,"Evening Silence","Three Four Trio",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.008Z,447098,yes
+deezer:1625167822,"Comme Il Faut","Lia Riggs Trio",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:15.997Z,446935,yes
+deezer:3100151851,"Twin Souls","I Hate Models",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.067Z,446935,yes
+deezer:2298587,"Gotta Get Thru This (D'N'D Radio Edit)","Daniel Bedingfield",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:05.604Z,445893,yes
+deezer:3364851531,"Slow Burner","Interplanetary Criminal",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.710Z,444136,yes
+deezer:3170386591,"Mawa","Chelsea Dinorath",soul,UNCLASSIFIED,0,kizomba_palop,2026-06-11T18:17:39.865Z,443685,yes
+deezer:2548597702,"Out of Nowhere","Alec Taylor Trio",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.196Z,440951,yes
+deezer:711923582,"Slide","Hara Noda",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.207Z,440549,yes
+deezer:4042890021,"Soon (feat. Gaëtan Roussel)","Mosimann",UK_uk_garage_dnb,UNCLASSIFIED,0,chart_UK_uk_garage_dnb,2026-06-15T16:41:54.606Z,440286,yes
+deezer:1963190167,"Winter in Munich","James Jackson Jazz Trio",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.030Z,439595,yes
+deezer:2009244617,"Fleet Street","Marc Henley Trio",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.019Z,439384,yes
+deezer:1625234782,"Birds Down South","Jasmine Patterson",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.118Z,438779,yes
+deezer:3910363121,"Phoenix","Marshmello",dance,UNCLASSIFIED,0,portugal,2026-06-10T01:31:37.802Z,437551,no
+deezer:1912660177,"The Masquerade Is Over","Mark Roswell Trio",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.052Z,437350,yes
+deezer:4679943,"Amanhã De Manhã","Doce",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:02.040Z,436249,yes
+deezer:2285438267,"Sentir Saudade","Kura",dance,UNCLASSIFIED,0,pop_urbano_nova_pop,2026-06-13T19:38:18.690Z,436076,yes
+deezer:1152338,"Fly Me To The Moon (Live)","Diana Krall",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.694Z,433935,yes
+deezer:2266530267,"Loucamente","D.a.M.A",pop,UNCLASSIFIED,0,pop_urbano_nova_pop,2026-06-13T19:38:18.713Z,432459,yes
+deezer:2302607445,"Behind The Counter","Astoria Three",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.229Z,431826,yes
+deezer:1782116957,"Nuages Creux","Lydia Baskow Trio",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.256Z,430125,yes
+deezer:4009902581,"Rapture","Gaullin",french-touch-electro,UNCLASSIFIED,0,rap tuga,2026-06-10T01:20:24.616Z,428388,no
+deezer:3619920092,"Chinesa","MC HK DA 7",soul,UNCLASSIFIED,0,funk-brasileiro,2026-06-10T00:52:41.059Z,426570,no
+deezer:1043640,"Forever in Love","Kenny G",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.033Z,421990,no
+deezer:4024324421,"Raga of Revenge (From ""DC"")","Anirudh Ravichander",asian,UNCLASSIFIED,0,indian,2026-06-09T22:41:41.582Z,420313,no
+deezer:128341795,"A Portuguesa É a Mais Linda","Jorge Ferreira",classica-portuguesa,UNCLASSIFIED,0,PT_classica_tuga,2026-06-15T16:41:59.536Z,417524,yes
+deezer:2255643517,"Come Together","Urbandawn",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:05.150Z,409908,yes
+deezer:432057162,"A Little Bit Of Luck","DJ Luck & MC Neat",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:05.515Z,407863,yes
+deezer:12020956,"Raga Jhinjhoti","Hariprasad Chaurasia",asian,UNCLASSIFIED,0,indian,2026-06-09T22:41:41.593Z,407745,no
+deezer:3642995152,"Planos","Cubita",pop,UNCLASSIFIED,0,kizomba_palop,2026-06-11T18:17:39.976Z,406749,yes
+deezer:144535600,"Do You Really Like It? (Radio Edit)","DJ Pied Piper & The Masters Of Ceremonies",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:05.582Z,405937,yes
+deezer:2019304597,"CASA","D.a.M.A",pop,UNCLASSIFIED,0,pop_urbano_nova_pop,2026-06-14T12:44:37.291Z,405237,yes
+deezer:1181535,"My Foolish Heart (Live)","Bill Evans",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.983Z,404096,yes
+deezer:2367062475,"Free","Emz",,UNCLASSIFIED,0,UK_uk_garage_dnb,2026-06-15T21:10:20.039Z,403263,yes
+deezer:85156032,"Eu Sei, Tu És ...","Santamaria",classica-portuguesa,UNCLASSIFIED,0,PT_classica_tuga,2026-06-15T16:41:59.469Z,398689,yes
+deezer:3321505341,"WASTING TIME","In Parallel",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.753Z,397619,yes
+deezer:36216221,"Tiro Liro À Minha Maneira","Jorge Ferreira",pop,UNCLASSIFIED,0,PT_classica_tuga,2026-06-15T16:42:02.328Z,397039,yes
+deezer:2186093,"Body Groove (Mix Mc Version)","Architechs",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:05.615Z,395096,yes
+deezer:946746,"Sweet Harmony","Liquid",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:05.659Z,394972,yes
+deezer:17841373,"Menina Estás à Janela","UHF",pop_tuga,UNCLASSIFIED,0,PT_pop_rock_tuga,2026-06-15T11:40:35.949Z,394422,yes
+deezer:720605782,"Dusk Train To Doha (Live)","Jon Batiste",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.683Z,392199,yes
+deezer:3003034881,"WAKE AND BREAK","Oppidan",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.917Z,392092,yes
+deezer:2097041307,"BACK PACK","SamRecks",,UNCLASSIFIED,0,UK_uk_garage_dnb,2026-06-15T21:10:20.050Z,389513,yes
+deezer:1693217457,"A Gift For Edwina (From the Netflix Series “Bridgerton Season Two”)","Kris Bowers",GL_soundtracks,UNCLASSIFIED,0,playlist_GL_soundtracks,2026-06-15T16:42:12.473Z,384294,yes
+deezer:2412652025,"BADDERS","Peekaboo",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.995Z,383054,yes
+deezer:2172217427,"Rapture","Jalen Ngonda",r-n-b,UNCLASSIFIED,0,rap tuga,2026-06-10T01:20:24.694Z,377353,no
+deezer:561133252,"Nature Boy (Live At The Royal Albert Hall / 02 April 2018)","Gregory Porter",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.706Z,375847,yes
+deezer:3376894521,"Raw","MPH",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.787Z,374393,yes
+deezer:2214088847,"Mash up the Dance","Watch the Ride",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.674Z,374132,yes
+deezer:1768978967,"IFTK (Vibe Chemistry Remix)","Tion Wayne",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.255Z,371790,yes
+deezer:1932057,"Fado Boémio e vadio","Piedade Fernandes",pop,UNCLASSIFIED,0,fado,2026-06-14T15:01:59.586Z,369600,yes
+deezer:102453212,"Caillou Theme","Caillou",children,UNCLASSIFIED,0,portugal,2026-06-10T01:29:20.644Z,363175,no
+deezer:1468937452,"A Love Supreme, Pt. IV - Psalm (Live)","John Coltrane",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.672Z,359556,yes
+deezer:2511052491,"Rapture","Klaas",dance,UNCLASSIFIED,0,rap tuga,2026-06-10T01:20:24.727Z,356179,no
+deezer:1734232777,"I Think I'll Call It Morning","Gil Scott-Heron",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.035Z,354910,no
+deezer:1546365542,"Minor Swing","Adrien Moignard",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.739Z,346675,yes
+deezer:5821064,"As beatas","Jorge Ferreira",pop,UNCLASSIFIED,0,PT_classica_tuga,2026-06-15T16:42:02.217Z,345262,yes
+deezer:944632,"Sorry! (I Didn't Know) (Original Radio Edit)","Monsta Boy",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:05.593Z,343220,yes
+deezer:2698757292,"Armed & Dangerous","Oppidan",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.222Z,340959,yes
+deezer:1073809452,"Blue Monk (Live in Berlin / 2018)","Chick Corea",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.728Z,340403,yes
+deezer:64177339,"Tu Me Enganas","Jorge Ferreira",classica-portuguesa,UNCLASSIFIED,0,PT_classica_tuga,2026-06-15T16:41:59.547Z,338670,yes
+deezer:49785711,"Dá Cá Dá Cá Dá Cá","Diapasão",classica-portuguesa,UNCLASSIFIED,0,PT_classica_tuga,2026-06-15T16:42:01.862Z,336599,yes
+deezer:531484611,"Cafeína","Dj Dadda",rap/hip-hop,UNCLASSIFIED,0,pop_rock_tuga,2026-06-11T20:51:45.641Z,336599,yes
+deezer:1051466462,"The Shell (Live at Cité de la Musique - Philharmonie de Paris, 15/06/2019)","Anne Paceo",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.750Z,336354,yes
+deezer:2655012362,"Sister Saviour (DFA Vocal Remix)","The Rapture",french-touch-electro,UNCLASSIFIED,0,rap tuga,2026-06-10T01:20:24.782Z,335964,no
+deezer:662352422,"We Can Hide Out","Ofenbach",french-touch-electro,UNCLASSIFIED,0,portugal,2026-06-10T01:31:38.035Z,331930,no
+deezer:3136497351,"Sahiba","Aditya Rikhari",indian,UNCLASSIFIED,0,indian,2026-06-09T22:41:41.648Z,331366,no
+deezer:3770991832,"Rapture","Ram",dance,UNCLASSIFIED,0,rap tuga,2026-06-10T01:20:24.805Z,329174,no
+deezer:72323296,"Chega De Saudhade","Andrea Motis",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.950Z,327678,yes
+deezer:2166995,"Jardins Proibídos (Versão'06)","Paulo Gonzo",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:00.234Z,327447,yes
+deezer:3821989,"Let It Flow (For ""DR. J"")","Grover Washington, Jr.",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.038Z,327366,no
+deezer:3745018832,"Follow The Vibe","Portugal Sunset",french-touch-electro,UNCLASSIFIED,0,portugal,2026-06-11T09:31:57.237Z,327171,yes
+deezer:3074847181,"Give Thanks, Give Praise","Young Franco",,UNCLASSIFIED,0,UK_uk_garage_dnb,2026-06-15T21:10:20.062Z,326891,yes
+deezer:2840246912,"Bittersweet","LP Giobbi",french-touch-electro,UNCLASSIFIED,0,portugal,2026-06-10T22:35:38.816Z,326040,no
+deezer:1231342622,"One Take (Live at Studio Sextan)","Biréli Lagrène",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.772Z,323143,yes
+deezer:1801676117,"Thaai Kelavi (From ""Thiruchitrambalam"")","Dhanush ",asian,UNCLASSIFIED,0,indian,2026-06-09T22:41:41.660Z,322922,no
+deezer:3352250911,"Portugal Saint Germain","Diego Coronas",hip-hop-rap,UNCLASSIFIED,0,portugal,2026-06-10T22:14:08.535Z,322222,no
+deezer:10238529,"Nightlife","Amon Tobin",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:06.257Z,318916,yes
+deezer:3156725211,"Chaudhary","Jubin Nautiyal",indian,UNCLASSIFIED,0,indian,2026-06-09T22:41:41.693Z,317438,no
+deezer:2850716262,"Rapture","DANZANTES (ofc)",french-touch-electro,UNCLASSIFIED,0,rap tuga,2026-06-10T01:20:24.849Z,316957,no
+deezer:2332596975,"Mahiye Jinna Sohna","Darshan Raval",indian,UNCLASSIFIED,0,indian,2026-06-09T22:41:41.704Z,316406,no
+deezer:39595061,"Baby, És uma Bomba","Emanuel",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:02.006Z,315956,yes
+deezer:3358040561,"Mann Mera","Gajendra Verma",indian,UNCLASSIFIED,0,indian,2026-06-09T22:41:41.715Z,315253,no
+deezer:2836111252,"Is What It Is","Bru-C",,UNCLASSIFIED,0,UK_uk_garage_dnb,2026-06-15T21:10:20.073Z,313747,yes
+deezer:2183774417,"Rapture","Vortek's",french-touch-electro,UNCLASSIFIED,0,rap tuga,2026-06-10T01:20:24.882Z,312515,no
+deezer:1181537,"Waltz For Debby (Live / Take 1)","Bill Evans",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.783Z,311612,yes
+deezer:2992104161,"Buddha's Flute","Buddha's Lounge",indian,UNCLASSIFIED,0,indian,2026-06-09T22:41:41.793Z,310156,no
+deezer:5726106,"Poinciana (Single Version)","Ahmad Jamal",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.761Z,309954,yes
+deezer:3427933,"Re-tratamento","Da Weasel",hip-hop-rap,UNCLASSIFIED,0,classica_tuga,2026-06-15T16:42:00.245Z,307532,yes
+deezer:1444366302,"All I Do","Kirk Whalum",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.040Z,307386,no
+deezer:2255409257,"Buss The Red","P Money",,UNCLASSIFIED,0,UK_uk_garage_dnb,2026-06-15T21:10:20.084Z,299388,yes
+deezer:765799792,"Work (Live)","Chick Corea",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.816Z,297553,yes
+deezer:948402472,"Desde Que Te Vi","Odarion",pop,UNCLASSIFIED,0,portugal,2026-06-09T22:43:13.564Z,294633,no
+deezer:75722272,"A Night In Tunisia","Sonny Rollins",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.883Z,294259,yes
+deezer:2738165721,"Forbidden Feelingz","Nia Archives",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.721Z,291625,yes
+deezer:505201972,"Nota 100","No Maka",pop,UNCLASSIFIED,0,portugal,2026-06-10T23:24:39.345Z,291132,yes
+deezer:693392502,"It's All Right With Me (Live At The Village Gate, 1961)","The Stan Getz Quartet",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.850Z,286447,yes
+deezer:394126712,"Tantra Flute (Indian Flute Meditation Music)","Meditative Mind",indian,UNCLASSIFIED,0,indian,2026-06-09T22:41:41.904Z,285839,no
+deezer:3264450231,"Badder","Shermanology",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.886Z,285683,yes
+deezer:1398346782,"Manike Mage Hithe","Chamath Sangeeth",indian,UNCLASSIFIED,0,indian,2026-06-09T22:41:41.915Z,283930,no
+deezer:7634834,"Songbird","Kenny G",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.042Z,283752,no
+deezer:1772853217,"Lively (feat. Jaykae & Blair Muir) (Alcemist Remix)","Double Lz",,UNCLASSIFIED,0,UK_uk_garage_dnb,2026-06-15T21:10:20.106Z,280980,yes
+deezer:701033162,"#Sextou","No Maka",pop,UNCLASSIFIED,0,portugal,2026-06-09T22:43:13.664Z,280958,no
+deezer:3378561751,"over you","Oppidan",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.809Z,279724,yes
+deezer:3475498,"Dunas","GNR",,UNCLASSIFIED,0,PT_pop_rock_tuga,2026-06-15T11:40:35.958Z,279668,yes
+deezer:639677842,"Yesterdays","Art Blakey's Jazz Messengers",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.794Z,277677,yes
+deezer:13233873,"Evidence (Live)","Thelonious Monk",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.861Z,274823,yes
+deezer:1566714,"Wave (Live At The London House)","Oscar Peterson Trio",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.916Z,274681,yes
+deezer:93842216,"Here's That Rainy Day","Michel Petrucciani",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.961Z,274653,yes
+deezer:6632093,"Morning Magic","Larry Carlton",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.045Z,273600,no
+deezer:93842212,"Face's Face","Michel Petrucciani",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.839Z,273381,yes
+deezer:3821991,"Take Me There","Grover Washington, Jr.",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.051Z,272857,no
+deezer:1110433162,"Blue Lou (Live)","Eddie ""Lockjaw"" Davis",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.805Z,272814,yes
+deezer:2180206077,"I Need Your Loving (Bladerunner Rmx)","Dope Ammo",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:05.061Z,271971,yes
+deezer:57721781,"A Chupeta de Agora","Jorge Ferreira",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:02.250Z,271418,yes
+deezer:36216241,"Desgarrada Quadras Soltas À Jorge Ferreira","Jorge Ferreira",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:01.209Z,269141,yes
+deezer:639677972,"Stop Time","The Horace Silver Quintet",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.828Z,269065,yes
+deezer:5472592,"I'll Be Seeing You (Live)","Brad Mehldau",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.927Z,268300,yes
+deezer:3382501601,"Afters (feat. Scrufizzer)","Badger",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.842Z,267223,yes
+deezer:81406056,"Ao Passar a Ribeirinha","Jorge Ferreira",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:00.356Z,266887,yes
+deezer:1785773307,"Higher Ground","Vibe Chemistry",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.288Z,266628,yes
+deezer:1831465737,"Sober","Alcemist",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.122Z,265606,yes
+deezer:3228941851,"Tik Tik","DYSTINCT",indian,UNCLASSIFIED,0,indian,2026-06-09T22:41:41.981Z,263175,no
+deezer:2988633781,"A Little Closer (Oppidan Remix)","Diffrent",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.200Z,261770,yes
+deezer:2009314007,"So Tell Me…","Nia Archives",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.695Z,261272,yes
+deezer:1883676927,"Emotions","T95",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.322Z,260686,yes
+deezer:2184667297,"Perdoa","GNTK",pop_urbano_nova_pop,UNCLASSIFIED,0,pop_urbano_nova_pop,2026-06-13T19:38:19.035Z,257523,yes
+deezer:2645699092,"Counting (Taiki Nulight Remix)","Hamdi",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:05.128Z,256640,yes
+deezer:3371384051,"Piece Of My Soul","Diffrent",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.798Z,254956,yes
+deezer:3024162231,"Chop Dat","Becking",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.044Z,254026,yes
+deezer:2763261861,"Breathe","Milson",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.155Z,252377,yes
+deezer:61352720,"Crossroads (Radio Edit)","Blazin' Squad",pop,UNCLASSIFIED,0,pop_uk,2026-06-14T02:58:05.703Z,251697,yes
+deezer:3418858,"My Funny Valentine (Live)","Chucho Valdés",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:17.027Z,249535,yes
+deezer:5619863,"No Rhyme, No Reason","George Duke",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.053Z,249066,no
+deezer:137687715,"The Song Lives On","Joe Sample",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.056Z,246666,no
+deezer:9439390,"Crepuscule With Nellie","John Coltrane",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.938Z,246415,yes
+deezer:75722273,"I Can't Get Started","Sonny Rollins",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:17.071Z,245827,yes
+deezer:446562282,"We See","Fred Hersch Trio",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.905Z,243935,yes
+deezer:786488,"For Once in My Life (Live)","Michael Bublé",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:17.016Z,243268,yes
+deezer:1658991262,"18 & Over","Nia Archives",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.762Z,242222,yes
+deezer:2122528287,"More and More","Document One",,UNCLASSIFIED,0,UK_uk_garage_dnb,2026-06-15T21:10:20.128Z,240051,yes
+deezer:133871704,"Não Sou o Único (Ao Vivo)","Resistência",classica-portuguesa,UNCLASSIFIED,0,classica_tuga,2026-06-15T16:42:00.190Z,238789,yes
+deezer:1296817102,"Playback","Carlos Paião",classica-portuguesa,UNCLASSIFIED,0,classica_tuga,2026-06-15T16:42:00.378Z,238758,yes
+deezer:2822707742,"Sinner","Charlotte Haining",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.100Z,237451,yes
+deezer:5323928,"Stop, Look, Listen To Your Heart","Will Downing",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.058Z,236045,no
+deezer:1926094,"Ao Passar A Ribeirinha","Jorge Ferreira",pop,UNCLASSIFIED,0,classica_tuga,2026-06-15T16:42:00.433Z,235124,yes
+deezer:1181542,"Some Other Time (Live)","Bill Evans",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:17.060Z,233582,yes
+deezer:1093378,"A Little Bumpin'","Lee Ritenour",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.060Z,233566,no
+deezer:3392979431,"Rain","Sensu",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.853Z,233081,yes
+deezer:2192735177,"Elijah","Virgul",pop,UNCLASSIFIED,0,pop_urbano_nova_pop,2026-06-13T19:38:19.102Z,232573,yes
+deezer:626319,"Who's That Lady","Peter White",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.064Z,232003,no
+deezer:2157929627,"Ten Ton","Sustance",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:05.006Z,231810,yes
+deezer:1586975422,"What a Fool Believes","Spyro Gyra",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.067Z,231648,no
+deezer:92829282,"Autumn In New York (Set 1 / Live At Cafe Bohemia, May 31, 1956)","Kenny Dorham",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.994Z,230887,yes
+deezer:1296733622,"Eu Tenho Dois Amores","Marco Paulo",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:02.195Z,230846,yes
+deezer:3282329031,"Alone","MPH",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.897Z,229490,yes
+deezer:1883676937,"Touch The Sky","T95",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.311Z,226518,yes
+deezer:2622360222,"Butterflies","Gardna",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.144Z,226408,yes
+deezer:640682832,"Steezing","Conducta",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:05.172Z,224505,yes
+deezer:1967586277,"Tongue Tied","Document One",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.266Z,224188,yes
+deezer:1697942667,"Time (feat. Potent & Paranoid)","Burt Cope",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.277Z,218787,yes
+deezer:3407910,"Big ""P"" (Live)","Cannonball Adderley Quintet",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:17.094Z,217723,yes
+deezer:2316734095,"Send It","Oppidan",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.211Z,216956,yes
+deezer:49785701,"A Bela Portuguesa","Diapasão",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:01.851Z,216020,yes
+deezer:1043303,"Havana","Kenny G",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.069Z,213386,no
+deezer:60690853,"Carro Preto","Jorge Ferreira",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:02.339Z,211598,yes
+deezer:659707542,"Atrevido","Djodje",pop,UNCLASSIFIED,0,portugal,2026-06-10T22:25:25.448Z,209067,no
+deezer:8066393,"Solar System","Crystal Fighters",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:06.268Z,206830,yes
+deezer:2693917252,"Vienas","Free Finga",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:05.183Z,206117,yes
+deezer:3333698,"Lady Bird (Live / Remastered)","Miles Davis",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:16.972Z,204960,yes
+deezer:5622108,"Surrender (feat. Boney James)","Jonathan Butler",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.072Z,204910,no
+deezer:622840,"Cherokee (Live at Village Vanguard, New York, NY - December 1993)","Wynton Marsalis",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:17.038Z,204650,yes
+deezer:3366556261,"Blessings","p-rallel",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.964Z,204050,yes
+deezer:1366215032,"Now That The Summer's Here","Michael Franks",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.074Z,203239,no
+deezer:1036491872,"Ipanema","Linearwave",pop,UNCLASSIFIED,0,bossa_nova,2026-06-11T18:02:21.337Z,201123,yes
+deezer:3348184351,"Straight From The Underground","Riordan",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.953Z,200863,yes
+deezer:1017695002,"Subaru Impreza","Tommy Holohan",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.817Z,200271,yes
+deezer:2954565,"Send One Your Love","Boney James",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.076Z,200027,no
+deezer:1586983082,"Freetime","Spyro Gyra",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.078Z,199841,no
+deezer:1453771182,"River Flows","flowanastasia",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.983Z,199554,yes
+deezer:2272244457,"Everything Is Possible","Solah",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.928Z,199272,yes
+deezer:3409857161,"Lyrically Ill","Zero",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.864Z,194574,yes
+deezer:2167000,"Dei-Te Quase Tudo (2006)","Paulo Gonzo",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:00.345Z,194543,yes
+deezer:2290253215,"Hush Hush","T95",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.299Z,193049,yes
+deezer:421183192,"Caillou s'endort","Caillou",children,UNCLASSIFIED,0,portugal,2026-06-10T01:29:20.854Z,192937,no
+deezer:1444370522,"I'll Always Love You","Boney James",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.081Z,192765,no
+deezer:2516290291,"Kanjiru","Kasra",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:05.161Z,192365,yes
+deezer:3308837101,"LOVELOVE","Lucky Luke",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.820Z,191152,yes
+deezer:3291827,"A fisga","Rio Grande",pop,UNCLASSIFIED,0,classica_tuga,2026-06-15T16:42:00.134Z,189717,yes
+deezer:2296068,"Morocco (Album Version)","The Rippingtons",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.083Z,189513,no
+deezer:2703584982,"where is your pride?","Moby",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.806Z,189129,yes
+deezer:686139,"Sometimes It Snows in April (Dreem House Dub Radio Edit)","Amar",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:05.637Z,188318,yes
+deezer:2079669947,"X-Rated","Cheetah",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.861Z,186642,yes
+deezer:421183092,"Caillou au zoo","Caillou",children,UNCLASSIFIED,0,portugal,2026-06-10T01:29:20.876Z,185857,no
+deezer:3419540081,"Better Me","Lug",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.875Z,185561,yes
+deezer:2847226452,"Tuff Breaks","Toby Ross",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.795Z,185336,yes
+deezer:66024483,"Ocean Blue","Earl Klugh",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.087Z,184286,no
+deezer:1948416397,"Swing My Way","Kleu",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.188Z,182593,yes
+deezer:10339711,"Everyday (Netsky Remix)","Rusko",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:06.313Z,181439,yes
+deezer:12891257,"Eu Sei, Tu És ...","Santamaria",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:02.051Z,178241,yes
+deezer:421183162,"Caillou fait un tour","Caillou",children,UNCLASSIFIED,0,portugal,2026-06-10T01:29:20.909Z,173049,no
+deezer:1722183,"What's New","McCoy Tyner",GL_jazz_lounge,UNCLASSIFIED,0,playlist_GL_jazz_lounge,2026-06-15T16:42:17.083Z,172215,yes
+deezer:2582722082,"Friday Nights (efan Remix)","EV",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:02.826Z,171872,yes
+deezer:68616112,"Anjo da Guarda (Olha por Mim)","Monica Sintra",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:01.364Z,170135,yes
+deezer:626001,"Just My Imagination","Peter White",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.090Z,167983,no
+deezer:2641550462,"WORRIES","Lzee",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:02.870Z,167158,yes
+deezer:421183102,"Cours, papa!","Caillou",children,UNCLASSIFIED,0,portugal,2026-06-10T18:47:57.956Z,165873,no
+deezer:648981502,"Just One Thing","Bob James",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.093Z,165472,no
+deezer:3358047451,"Speedy Sax","Ken Spieker",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.986Z,164963,yes
+deezer:3315463561,"Burna","Club Angel",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.997Z,164136,yes
+deezer:89365873,"Never Let You Go (Blu Mar Ten Remix) (Original Mix)","Seba",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:06.357Z,164103,yes
+deezer:3370005,"Loucos de Lisboa","Ala Dos Namorados",pop,UNCLASSIFIED,0,classica_tuga,2026-06-15T16:42:00.079Z,163777,yes
+deezer:3366621991,"Bad Vibe","JKAY",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.920Z,162366,yes
+deezer:1064775032,"Behind The Rain","Herb Alpert",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.095Z,161998,no
+deezer:15434328,"Good Morning Heartache (feat. Jill Scott) (Live Audio from The Wilshire Theatre)","Chris Botti",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.097Z,161030,no
+deezer:138629723,"Creepin'","The Crusaders",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.100Z,160572,no
+deezer:2526447,"Catalina Kiss","Acoustic Alchemy",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.102Z,159184,no
+deezer:501760712,"Fingerprints","Larry Carlton",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.104Z,158683,no
+deezer:137687737,"The Pecan Tree","Joe Sample",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.107Z,158152,no
+deezer:2193769587,"MASSIVE","Gardna",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:02.882Z,157159,yes
+deezer:75946085,"Sir Duke","Nathan East",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.109Z,156360,no
+deezer:71701231,"Inner Guidance","LTJ Bukem",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:06.213Z,155454,yes
+deezer:108702856,"Câlins, bizous de Caillou","Caillou",children,UNCLASSIFIED,0,portugal,2026-06-10T01:29:20.942Z,155441,no
+deezer:2463051715,"Come Down","EV",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:02.774Z,155343,yes
+deezer:2556373862,"Tender Lullaby","Kenny G",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.111Z,154126,no
+deezer:3578066,"Cosmic Monkey","Paul Brown",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.116Z,154099,no
+deezer:2293339,"Lucy's","Mindi Abair",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.119Z,150860,no
+deezer:2706944932,"Can't Be Said!","Caillou",r-n-b,UNCLASSIFIED,0,portugal,2026-06-10T01:29:20.987Z,149060,no
+deezer:3380322721,"Back to Back","Acoustic Alchemy",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.121Z,146909,no
+deezer:3286860,"Lado lunar","Rui Veloso",classica-portuguesa,UNCLASSIFIED,0,classica_tuga,2026-06-15T16:42:00.467Z,146642,yes
+deezer:2503060391,"Hypnotist","YoungJakeyy",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:02.926Z,146348,yes
+deezer:3504939,"Chopsticks","Jeff Lorber",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.123Z,144480,no
+deezer:3121062,"Não há estrelas no céu (Live)","Rui Veloso",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:00.090Z,144440,yes
+deezer:3390152351,"drift (burnforyou)","Sebastian Wibe",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.019Z,142868,yes
+deezer:2751595371,"Races (feat. Blanco) (Extended)","Interplanetary Criminal",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:05.094Z,140423,yes
+deezer:2763648211,"Balance","T95",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.133Z,139899,yes
+deezer:5663114,"Dá-me Um Abraço","Miguel Gameiro",pop,UNCLASSIFIED,0,classica_tuga,2026-06-15T16:42:00.256Z,139871,yes
+deezer:1138813012,"Life","Bru-C",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:02.904Z,137698,yes
+deezer:1639171292,"Back At Ya","Norman Brown",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.126Z,137153,no
+deezer:85156036,"Não Dá P'ra Viver Sem Ti","Santamaria",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:41:59.480Z,136367,yes
+deezer:3509403511,"Wake Up","Robert Glasper",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.128Z,135443,no
+deezer:3346795951,"Over & Over","Clarcq",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.053Z,132764,yes
+deezer:2255629377,"Siren","Hugh Hardie",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.906Z,131472,yes
+deezer:3454067111,"Lost","Gabriel Munoz",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.042Z,130253,yes
+deezer:90011557,"Long Night out (feat. Candy Dulfer)","Brian Culbertson",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.130Z,125656,no
+deezer:3661207,"Kisses in the Rain","Rick Braun",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.132Z,125111,no
+deezer:352185541,"Do You Love Me","Jonathan Butler",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.135Z,124998,no
+deezer:74631379,"A Portuguesa É a Mais Linda","Jorge Ferreira",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:02.184Z,123243,yes
+deezer:68145051,"Telefone (Do Amor), Pede Mais","Luís Filipe Reis",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:01.409Z,123198,yes
+deezer:3461589941,"Take Me Away","R2R",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.008Z,122170,yes
+deezer:1012923522,"Fluid","Lin Rountree",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.138Z,120498,no
+deezer:4155396,"Não Sou O Único","Xutos & Pontapés",pop,UNCLASSIFIED,0,pop_rock_tuga,2026-06-11T20:51:46.063Z,120021,yes
+deezer:1471347262,"Take It Back","Azifm",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.884Z,119977,yes
+deezer:3328179,"Betcha Don't Know","Najee",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.140Z,119656,no
+deezer:16848538,"No Love","Allen Halloween",hip-hop-rap,UNCLASSIFIED,0,PT_hip_hop_tuga,2026-06-15T15:00:44.781Z,118211,yes
+deezer:486200062,"(Everybody's Got To Learn Sometime) I Need Your Loving (Original Mix)","Baby D",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:05.670Z,116666,yes
+deezer:3148890,"Mine To Give","Photek",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:06.157Z,115283,yes
+deezer:549330462,"The Unwritten Letter","Spyro Gyra",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.142Z,113990,no
+deezer:3186556091,"Ethereal","Yuko Mabuchi",jazz,UNCLASSIFIED,0,,2026-06-08T16:50:11.144Z,113700,no
+deezer:16940232,"Azymuth (mixed)","Photek",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:06.169Z,112558,yes
+deezer:10238530,"Escape","Amon Tobin",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:06.224Z,111884,yes
+deezer:1754197967,"Little Girl","Rafau Etamski",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.828Z,110925,yes
+deezer:16324841,"Falar de Amor (Eu Preciso)","Miguel e André",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:00.489Z,109521,yes
+deezer:1296771622,"Ninguém é de ninguém","João Pedro Pais",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:00.178Z,108981,yes
+deezer:56446781,"Baby Tell Me","jeremy sylvester",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.275Z,108666,yes
+deezer:2499421,"Sextos Sentidos","Silence 4",pop,UNCLASSIFIED,0,pop_rock_tuga,2026-06-11T20:51:46.097Z,106575,yes
+deezer:596941182,"Divine","Sphere",,UNCLASSIFIED,0,PT_kizomba_palop,2026-06-15T15:00:28.803Z,105236,yes
+deezer:3248220271,"Live Your Life","Gardna",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.089Z,100520,yes
+deezer:2280357,"Aprender A Ser Feliz","Pólo Norte",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:00.223Z,99390,yes
+deezer:2873724482,"Sirens","Kloke",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.784Z,96475,yes
+deezer:6770998,"Kickstarts (BAR9 Remix)","Example",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:06.324Z,94216,yes
+deezer:2255629307,"Raindrops","Cimone",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:05.050Z,93373,yes
+deezer:1494453912,"Complicated","Azifm",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.895Z,92150,yes
+deezer:502745522,"Oh My Heart","David Fonseca",pop,UNCLASSIFIED,0,pop_rock_tuga,2026-06-11T20:51:46.142Z,91695,yes
+deezer:66769568,"Meu Nome É Rebeca","Rebeca",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:02.128Z,87566,yes
+deezer:2953067241,"Oldskool Massive","Mark XTC",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.773Z,82904,yes
+deezer:3451972901,"MOT","Frazer Ray",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.909Z,78714,yes
+deezer:16324878,"Mar Deserto","Miguel e André",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:00.500Z,75814,yes
+deezer:6764186,"Só uma noite contigo","Santamaria",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:02.306Z,72793,yes
+deezer:3122344991,"Fine Art (Toby Ross Remix)","Gardna",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:02.998Z,70410,yes
+deezer:490543722,"The Sirens","Mefjus",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:06.335Z,67639,yes
+deezer:3443782451,"Too Late","hiRobbie",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.130Z,67509,yes
+deezer:5150303,"Strobe (DJ Marky & S.P.Y Remix)","Deadmau5",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:06.290Z,66803,yes
+deezer:3443782441,"Don't Tell Me","Tiffany Quinn",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.198Z,66077,yes
+deezer:3377814521,"Drunk Candy","Blake Cake",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.108Z,64576,yes
+deezer:3435013551,"Coast2Coast","Luke Dean",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.030Z,56720,yes
+deezer:3411284271,"Emotional","NLMT",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.241Z,55877,yes
+deezer:97232192,"Secret Teqnique","Grooverider",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:06.078Z,55860,yes
+deezer:12915310,"Dá Cá o Teu Beijinho","Emanuel",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:00.943Z,55284,yes
+deezer:13022697,"Castelos Na Areia (Funny Game)","Santamaria",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:02.295Z,55040,yes
+deezer:3376127301,"Whip It","Ozzie Guven",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.064Z,54606,yes
+deezer:596725872,"Sinful Innocence Interlude","Cory Lee",,UNCLASSIFIED,0,PT_kizomba_palop,2026-06-15T15:00:28.903Z,50461,yes
+deezer:2745063381,"Know Dis","ODF",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:05.083Z,45938,yes
+deezer:16866212,"Eu Nasci Para te Amar (Sempre)","Os Bons",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:01.309Z,43220,yes
+deezer:72320209,"Eu Sei, Tu És ...","Santamaria",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:01.009Z,42927,yes
+deezer:3450919401,"Running","Grace Bones",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.230Z,42358,yes
+deezer:2828848042,"Gorgon Donnetes","Cheetah",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.684Z,41895,yes
+deezer:3375496551,"Injure The Mic","Ashdunn",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.119Z,41422,yes
+deezer:1701524347,"The Sequel","Gardna",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.244Z,41235,yes
+deezer:89107129,"Um Corpo Molhado","Toy",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:01.153Z,40386,yes
+deezer:3390309941,"CLUB BOOF 2","Sempa",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.152Z,40347,yes
+deezer:1971031,"Royalistick ""Hiphop Não Sou Eu Nem És Tu""","Royalistick",hip-hop-rap,UNCLASSIFIED,0,PT_hip_hop_tuga,2026-06-15T15:00:44.825Z,38394,yes
+deezer:1985444,"Cancelem o Apocalipse","MatoZoo",hip-hop-rap,UNCLASSIFIED,0,hip_hop_tuga,2026-06-11T20:43:03.351Z,37606,yes
+deezer:2255629317,"Evening Red","Hugh Hardie",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:05.039Z,37028,yes
+deezer:3427268671,"WELSH NOISE","Sempa",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.975Z,34274,yes
+deezer:3381759371,"Subbed Up","FooR",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.086Z,33272,yes
+deezer:3437632941,"Smoke","Lash",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.164Z,33149,yes
+deezer:3443782421,"Everything","Oscar Gabriel",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.075Z,33087,yes
+deezer:3747973792,"Over With You","Declan Knapp",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.166Z,32414,yes
+deezer:16324847,"Mar Deserto","Miguel e André",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:00.511Z,32251,yes
+deezer:3327468241,"Fine Art","Gardna",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:02.950Z,32227,yes
+deezer:3148893,"Solaris","Photek",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:06.135Z,31549,yes
+deezer:3411608111,"Bad Boy","Azumai",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.219Z,31163,yes
+deezer:3480913151,"Live Your Life (Declan Knapp Remix)","Gardna",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:03.177Z,30966,yes
+deezer:1971036,"Regula ""Mantém-Te""","Regula",hip-hop-rap,UNCLASSIFIED,0,PT_hip_hop_tuga,2026-06-15T15:00:44.847Z,30226,yes
+deezer:11349881,"Com Atitude","Royalistick",hip-hop-rap,UNCLASSIFIED,0,PT_hip_hop_tuga,2026-06-15T15:00:44.858Z,26753,yes
+deezer:2975846991,"Nice It Up","Trex",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:05.017Z,26719,yes
+deezer:2255629347,"Resistance","Hugh Hardie",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:05.028Z,26629,yes
+deezer:64552049,"Amor Tens Que Me Ouvir","Fernando Santana",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:01.353Z,26252,yes
+deezer:104560506,"Coração de Emigrante","Expresso 86",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:00.976Z,25845,yes
+deezer:1353386,"Juntos Como Um Só","Fuse",hip-hop-rap,UNCLASSIFIED,0,PT_hip_hop_tuga,2026-06-15T15:00:44.869Z,25803,yes
+deezer:3370303611,"RED LINE (Original Mix)","ShaKinG",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.208Z,25692,yes
+deezer:3463348971,"Tripping","London Planes",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.263Z,25252,yes
+deezer:3388959261,"Drone","Theo Kottis",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.141Z,25058,yes
+deezer:3440764911,"Disconnected","Daffy",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.097Z,24511,yes
+deezer:104560514,"Há Festa Toda a Noite","Enzo Silva",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:01.131Z,22761,yes
+deezer:11541397,"As Velhas Portuguesas","Starlight",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:01.242Z,22633,yes
+deezer:16121039,"És um Anjo","Various Artist",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:01.120Z,22384,yes
+deezer:3411415871,"Everybody Over","Lu.Re",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.175Z,22191,yes
+deezer:75372874,"Chegou a Hora","5-30",hip-hop-rap,UNCLASSIFIED,0,hip_hop_tuga,2026-06-10T23:24:13.071Z,21377,yes
+deezer:3375496561,"FMJ","hiRobbie",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.186Z,21316,yes
+deezer:130855344,"Rampage","MJ Cole",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:06.246Z,18512,yes
+deezer:136802826,"Rampage","MJ Cole",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:06.235Z,17123,yes
+deezer:1353392,"Nada Muda","Bonus",hip-hop-rap,UNCLASSIFIED,0,PT_hip_hop_tuga,2026-06-15T15:00:44.880Z,15402,yes
+deezer:3390139361,"Y'all Ready","R2R",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:04.252Z,11650,yes
+deezer:1625030,"A Conspiração dos Moskitos Inofensivos","Ikonoklasta",hip-hop-rap,UNCLASSIFIED,0,hip_hop_tuga,2026-06-10T23:24:13.204Z,11588,yes
+deezer:2159580667,"Catch Me Ravin","Michel Ange",UK_uk_garage_dnb,UNCLASSIFIED,0,playlist_UK_uk_garage_dnb,2026-06-15T16:42:05.072Z,11389,yes
+deezer:11541417,"Sinto-me Sexy","Ana Malhoa",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:01.142Z,10788,yes
+deezer:1439810,"Gajas","Clã da Matarroa Feat. Fidbek (MatoZoo)",hip-hop-rap,UNCLASSIFIED,0,hip_hop_tuga,2026-06-10T23:24:54.025Z,9180,yes
+deezer:104327428,"Encaixa Baby Encaixa","Ana Malhoa",PT_classica_tuga,UNCLASSIFIED,0,playlist_PT_classica_tuga,2026-06-15T16:42:00.932Z,8918,yes
+deezer:740374062,"Vira do Senhor da Pedra","GRUPO FOLCLORICO ALMEIDA GARRETT",folk,UNCLASSIFIED,0,traditional-folclore,2026-06-10T20:18:59.154Z,2756,no
+deezer:3016411391,"Let's Go","Jaden Bojsen",dance,UNCLASSIFIED,0,dance,2026-06-15T23:07:05.587Z,,yes
+deezer:2577486222,"Black Butterfly","Nelson Freitas",soul,UNCLASSIFIED,0,kizomba_palop,2026-06-15T21:50:50.930Z,,yes
+deezer:3320185341,"Vou continuar","Bispo",hip-hop-rap,UNCLASSIFIED,0,pop_urbano_nova_pop,2026-06-15T21:50:50.504Z,,yes
+deezer:1353396,"Motivação","Sam The Kid & Daddy-O-Pop",hip-hop-rap,UNCLASSIFIED,0,hip_hop_tuga,2026-06-15T21:42:42.648Z,,yes
+deezer:11349879,"Rualigião","Royalistick",hip-hop-rap,UNCLASSIFIED,0,hip_hop_tuga,2026-06-15T21:42:42.615Z,,yes
+deezer:3651885972,"Soirée mondaine","Oria",pop,UNCLASSIFIED,0,pop,2026-06-15T21:11:15.657Z,,yes
+deezer:3919177501,"WAGWAN","Central Cee",hip-hop-rap,UNCLASSIFIED,0,uk_drill_grime,2026-06-15T21:10:14.099Z,,yes
+deezer:4038249241,"LOCKED IN FREESTYLE","Nemzzz",hip-hop-rap,UNCLASSIFIED,0,uk_drill_grime,2026-06-15T21:10:14.087Z,,yes
+deezer:4043906101,"Mazzaleen","Fredo",hip-hop-rap,UNCLASSIFIED,0,uk_drill_grime,2026-06-15T21:10:14.076Z,,yes
+deezer:2290961145,"Pertinho de Você (Just for You)","middt",bossa_nova,UNCLASSIFIED,0,bossa_nova,2026-06-15T20:33:59.792Z,,yes
+deezer:1155001,"La Camisa Negra","Juanes",latin,UNCLASSIFIED,0,latin,2026-06-15T20:33:59.215Z,,yes
+deezer:108414456,"Te Gosto","Grupo Fundo De Quintal",bossa-nova,UNCLASSIFIED,0,samba-pagode,2026-06-15T20:33:59.204Z,,yes
+deezer:86032603,"Que Bonita Es Mi Niña","Perlita de Huelva",flamenco,UNCLASSIFIED,0,flamenco,2026-06-15T20:33:59.193Z,,yes
+deezer:16104157,"Mirala Cara a Cara","Requiebros",reggaeton-urbano,UNCLASSIFIED,0,fado,2026-06-15T20:33:59.159Z,,yes
+deezer:457605542,"El Niño Del Mentidero (Alegrías)","David Palomar",flamenco,UNCLASSIFIED,0,flamenco,2026-06-15T20:33:59.133Z,,yes
+deezer:1625051,"Yoko Vs IP","Yoko-Zoona & Inspectos Mórbido",hip-hop-rap,UNCLASSIFIED,0,hip_hop_tuga,2026-06-15T20:33:58.523Z,,yes
+deezer:136334560,"Losing My Religion","R.E.M.",alternative,UNCLASSIFIED,0,rock_alternative_us,2026-06-15T19:52:33.562Z,,yes
+deezer:1148283182,"Fazer O Que Ainda Não Foi Feito","Pedro Abrunhosa",pop,UNCLASSIFIED,0,classica_tuga,2026-06-15T19:36:40.059Z,,yes
+deezer:1763531127,"passo a passo","Nena",pop,UNCLASSIFIED,0,pop_urbano_nova_pop,2026-06-15T19:36:40.037Z,,yes
+deezer:101186346,"Estou Na Lua","Os Lunáticos",classica-portuguesa,UNCLASSIFIED,0,classica_tuga,2026-06-15T19:36:40.014Z,,yes
+deezer:3354116,"O Pastor","Madredeus",pop,UNCLASSIFIED,0,fado,2026-06-15T19:36:39.760Z,,yes
+deezer:18111894,"O anzol","Rádio Macau",pop,UNCLASSIFIED,0,pop_rock_tuga,2026-06-15T19:36:39.737Z,,yes
+deezer:78588895,"Morena","Tiago Bettencourt",rock,UNCLASSIFIED,0,pop_rock_tuga,2026-06-15T19:36:39.715Z,,yes
+deezer:62000741,"Ana Lee","GNR",rock,UNCLASSIFIED,0,pop_rock_tuga,2026-06-15T19:36:39.693Z,,yes
+deezer:62000746,"Quero Que Vá Tudo Pró Inferno","GNR",rock,UNCLASSIFIED,0,classica_tuga,2026-06-15T19:36:39.681Z,,yes
+deezer:2601690812,"Praise Jah In The Moonlight","YG Marley",reggae,UNCLASSIFIED,0,reggae,2026-06-15T19:27:08.595Z,,yes
+deezer:3951692531,"San Francisco","Sound Of Legend",dance,UNCLASSIFIED,0,dance,2026-06-15T19:25:27.986Z,,yes
+deezer:3412534631,"What It Sounds Like","HUNTR/X",musique-asiatique,UNCLASSIFIED,0,asian,2026-06-15T18:52:44.636Z,,yes
+deezer:3590974062,"La Cheyenne","El De Las R's",latin,UNCLASSIFIED,0,,2026-06-15T18:28:40.283Z,,yes
+deezer:1923537527,"santos (pa parara pa)","apollw",hip-hop-rap,UNCLASSIFIED,0,bossa_nova,2026-06-15T18:19:35.819Z,,yes
+deezer:2617848532,"Sunset","Hbeat",bossa_nova,UNCLASSIFIED,0,bossa_nova,2026-06-15T18:19:35.808Z,,yes
+deezer:1123876,"Swing Easy","The Skatalites",rock,UNCLASSIFIED,0,reggae,2026-06-15T18:19:35.797Z,,yes
+deezer:11562334,"Inner City Blues","Sly Dunbar",reggae,UNCLASSIFIED,0,reggae,2026-06-15T18:19:35.786Z,,yes
+deezer:1457057342,"Arpoador","Geezmo",hip-hop-rap,UNCLASSIFIED,0,bossa_nova,2026-06-15T18:19:35.775Z,,yes
+deezer:1950611967,"Zero - lofi","FaOut",bossa_nova,UNCLASSIFIED,0,bossa_nova,2026-06-15T18:19:35.763Z,,yes
+deezer:1926069317,"Muito Louco","Lofi Land",hip-hop-rap,UNCLASSIFIED,0,bossa_nova,2026-06-15T18:19:35.752Z,,yes
+deezer:924610432,"Outside","FaOut",hip-hop-rap,UNCLASSIFIED,0,bossa_nova,2026-06-15T18:19:35.741Z,,yes
+deezer:1940753957,"Sunrise","Epifania",bossa_nova,UNCLASSIFIED,0,bossa_nova,2026-06-15T18:19:35.730Z,,yes
+deezer:2439428965,"Prece","Ricardo Schneider",bossa_nova,UNCLASSIFIED,0,bossa_nova,2026-06-15T18:19:35.719Z,,yes
+deezer:3424456781,"FAMOUS","ALLDAY PROJECT",asian,UNCLASSIFIED,0,kpop,2026-06-15T15:06:47.552Z,,yes
+deezer:3989395981,"Repeat It","Martin Garrix",dance,UNCLASSIFIED,0,pop_us,2026-06-15T15:06:47.508Z,,yes
+deezer:3410703621,"Edge of Desire","Jonas Blue",dance,UNCLASSIFIED,0,dance,2026-06-15T15:06:47.486Z,,yes
+deezer:88936743,"Outside (feat. Ellie Goulding)","Calvin Harris",dance,UNCLASSIFIED,0,dance,2026-06-15T15:06:47.433Z,,yes
+deezer:3718872,"Aprender A Ser Feliz","Pólo Norte",pop,UNCLASSIFIED,0,pop_rock_tuga,2026-06-15T15:06:40.388Z,,yes
+deezer:3490684,"Quero é viver","Humanos",pop,UNCLASSIFIED,0,pop_rock_tuga,2026-06-15T15:06:40.377Z,,yes
+deezer:3285243,"Não há estrelas no céu","Rui Veloso",pop,UNCLASSIFIED,0,pop_rock_tuga,2026-06-15T15:06:40.354Z,,yes
+deezer:3717635,"A Minha Música","José Cid",pop,UNCLASSIFIED,0,pop_rock_tuga,2026-06-15T15:06:40.321Z,,yes
+deezer:3475370,"Morte ao sol","GNR",pop,UNCLASSIFIED,0,pop_rock_tuga,2026-06-15T15:06:40.310Z,,yes
+deezer:134025792,"Chuva Dissolvente (Ao Vivo)","Xutos & Pontapés",pop,UNCLASSIFIED,0,pop_rock_tuga,2026-06-15T15:06:40.299Z,,yes
+deezer:4154545,"Mata-Me Outra Vez","Ornatos Violeta",rock,UNCLASSIFIED,0,pop_rock_tuga,2026-06-15T15:06:40.280Z,,yes
+deezer:1489168912,"Alma","Epifania",pop,UNCLASSIFIED,0,bossa_nova,2026-06-15T15:05:51.455Z,,yes
+deezer:510973872,"When It Rains","Saib",hip-hop-rap,UNCLASSIFIED,0,bossa_nova,2026-06-15T15:05:51.429Z,,yes
+deezer:2638098942,"Xote Hop","Seuab",bossa_nova,UNCLASSIFIED,0,bossa_nova,2026-06-15T15:05:51.388Z,,yes
+deezer:2451260465,"Rio State of Mind","wavvzz",bossa_nova,UNCLASSIFIED,0,bossa_nova,2026-06-15T15:05:51.377Z,,yes
+deezer:2436965695,"Açaí","FaOut",bossa_nova,UNCLASSIFIED,0,bossa_nova,2026-06-15T15:05:51.355Z,,yes
+deezer:1923425807,"Trindade","Ricardo Schneider",hip-hop-rap,UNCLASSIFIED,0,bossa_nova,2026-06-15T15:05:51.333Z,,yes
+deezer:1723522737,"Night Cafe","Kind Puppy",hip-hop-rap,UNCLASSIFIED,0,bossa_nova,2026-06-15T15:05:51.283Z,,yes
+deezer:68895638,"O Inventor (Versão Single)","Heróis Do Mar",rock,UNCLASSIFIED,0,pop_rock_tuga,2026-06-15T15:00:41.946Z,,yes
+deezer:2337765965,"os croquetes acabam","Nena",pop,UNCLASSIFIED,0,pop_urbano_nova_pop,2026-06-15T15:00:41.934Z,,yes
+deezer:585268672,"A Terra Gira","Os Quatro e Meia",pop,UNCLASSIFIED,0,pop_urbano_nova_pop,2026-06-15T15:00:41.923Z,,yes
+deezer:1427203352,"Medo","Terno Rei",rock,UNCLASSIFIED,0,pop_rock_tuga,2026-06-15T15:00:41.913Z,,yes
+deezer:3275046411,"Meu Amor, Dorme Bem","Os Quatro E Meia",pop,UNCLASSIFIED,0,pop_urbano_nova_pop,2026-06-15T15:00:41.901Z,,yes
+deezer:1439781,"Cafeína","Clã da Matarroa",hip-hop-rap,UNCLASSIFIED,0,hip_hop_tuga,2026-06-15T15:00:41.879Z,,yes
+deezer:1042382,"Jardins Proibídos","Paulo Gonzo",pop,UNCLASSIFIED,0,pop_rock_tuga,2026-06-15T15:00:25.646Z,,yes
+deezer:1438742,"NBCioso","NBC",hip-hop-rap,UNCLASSIFIED,0,hip_hop_tuga,2026-06-15T15:00:25.601Z,,yes
+deezer:4154642,"O Homem Do Leme (Live)","Xutos & Pontapés",pop,UNCLASSIFIED,0,pop_rock_tuga,2026-06-15T15:00:25.552Z,,yes
+deezer:4155391,"Contentores","Xutos & Pontapés",pop,UNCLASSIFIED,0,tradicional_folklore_pimba,2026-06-15T14:56:42.774Z,,yes
+deezer:2138734707,"Já Tás Com Ela","Rebeca",pop,UNCLASSIFIED,0,pop_urbano_nova_pop,2026-06-15T14:56:42.740Z,,yes
+deezer:3354793,"Haja o que houver","Madredeus",pop,UNCLASSIFIED,0,fado,2026-06-15T14:56:42.707Z,,yes
+deezer:81294664,"Boa Sorte / Good Luck","Kizomba Brasil",kizomba,UNCLASSIFIED,0,kizomba_palop,2026-06-15T14:56:29.138Z,,yes
+deezer:2638098932,"Alumiar","Seuab",bossa_nova,UNCLASSIFIED,0,bossa_nova,2026-06-15T14:48:51.899Z,,yes
+deezer:1489169122,"Capoeira","Ricardo Schneider",pop,UNCLASSIFIED,0,bossa_nova,2026-06-15T14:48:51.865Z,,yes
+deezer:1755502747,"endless","Rebecca Mardal",bossa_nova,UNCLASSIFIED,0,bossa_nova,2026-06-15T14:48:51.843Z,,yes
+deezer:2439429875,"Serenata","Seuab",bossa_nova,UNCLASSIFIED,0,bossa_nova,2026-06-15T14:48:51.832Z,,yes
+deezer:1430752102,"Ginga","Lofi Land",bossa_nova,UNCLASSIFIED,0,bossa_nova,2026-06-15T14:48:51.821Z,,yes
+deezer:3931761821,"MONTAGEM FEARLESS (Ultra Slowed)","lirvie",musique-brésilienne,UNCLASSIFIED,0,brazilian,2026-06-15T14:48:51.112Z,,yes
+deezer:3114257,"Sangue oculto","GNR",pop,UNCLASSIFIED,0,pop_rock_tuga,2026-06-15T14:48:47.519Z,,yes
+deezer:1439832,"Fósforos","Clã da Matarroa",hip-hop-rap,UNCLASSIFIED,0,hip_hop_tuga,2026-06-15T14:48:47.484Z,,yes
+deezer:4160415,"Dia Mau","Ornatos Violeta",rock,UNCLASSIFIED,0,pop_rock_tuga,2026-06-15T14:48:47.473Z,,yes
+deezer:62000756,"Sub-16","GNR",rock,UNCLASSIFIED,0,pop_rock_tuga,2026-06-15T14:48:47.450Z,,yes
+deezer:1218545552,"Beira Mar","Leo Franciozi",bossa_nova,UNCLASSIFIED,0,bossa_nova,2026-06-15T11:16:01.958Z,,yes
+deezer:2617848542,"Palm Springs","Cozy",bossa_nova,UNCLASSIFIED,0,bossa_nova,2026-06-15T11:16:01.925Z,,yes
+deezer:1921322987,"Amanhã Eu Faço Festa","IzaBeats",hip-hop-rap,UNCLASSIFIED,0,bossa_nova,2026-06-15T11:16:01.914Z,,yes
+deezer:1780689417,"Água de beber (Lofi)","Ricardo Schneider",bossa_nova,UNCLASSIFIED,0,bossa_nova,2026-06-15T11:16:01.891Z,,yes
+deezer:1005326492,"Vendo Ela Sambar","Pecun",bossa_nova,UNCLASSIFIED,0,bossa_nova,2026-06-15T11:16:01.880Z,,yes
+deezer:2451260575,"gaviota","kanves",bossa_nova,UNCLASSIFIED,0,bossa_nova,2026-06-15T11:16:01.846Z,,yes
+deezer:1818828167,"Samba da benção (Lofi)","IzaBeats",bossa_nova,UNCLASSIFIED,0,bossa_nova,2026-06-15T11:16:01.835Z,,yes
+deezer:1923163227,"Caipirinha","DJ Lagoa",hip-hop-rap,UNCLASSIFIED,0,bossa_nova,2026-06-15T11:16:01.813Z,,yes
+deezer:2638098952,"Lamento","Seuab",bossa_nova,UNCLASSIFIED,0,bossa_nova,2026-06-15T11:16:01.801Z,,yes
+deezer:1918953057,"Pra Gringo é Mais Caro","Geezmo",hip-hop-rap,UNCLASSIFIED,0,bossa_nova,2026-06-15T11:16:01.734Z,,yes
+deezer:1540996852,"Samba de Fim de Tarde","Mu'gambi",pop,UNCLASSIFIED,0,bossa_nova,2026-06-15T11:16:01.723Z,,yes
+deezer:1488243512,"Saudade de Ver as Ondas do Mar de Pertinho","apollw",pop,UNCLASSIFIED,0,bossa_nova,2026-06-15T11:16:01.712Z,,yes
+deezer:1916146387,"Obrigada","Yellow Lime",hip-hop-rap,UNCLASSIFIED,0,bossa_nova,2026-06-15T11:16:01.656Z,,yes
+deezer:1097297682,"it's all about the journey","Pelícano",pop,UNCLASSIFIED,0,bossa_nova,2026-06-15T11:16:01.645Z,,yes
+deezer:74263546,"Redemption","Al Marconi",alternative,UNCLASSIFIED,0,flamenco,2026-06-15T11:16:01.611Z,,yes
+deezer:1710226097,"cozy night","Beaumont",bossa_nova,UNCLASSIFIED,0,bossa_nova,2026-06-15T11:16:01.553Z,,yes
+deezer:2638098962,"Corrupião","Seuab",bossa_nova,UNCLASSIFIED,0,bossa_nova,2026-06-15T11:16:01.542Z,,yes
+deezer:2297888155,"Africa","Rio Branco",musique-brésilienne,UNCLASSIFIED,0,brazilian,2026-06-15T11:16:01.531Z,,yes
+deezer:1081737492,"sunshiny","middt",pop,UNCLASSIFIED,0,bossa_nova,2026-06-15T11:16:01.484Z,,yes
+deezer:3977825141,"Portugal (La Seleccion Llego)","ROSE BEAT",pop,UNCLASSIFIED,0,portugal,2026-06-15T09:59:57.331Z,,yes
+deezer:16848543,"Dia de Um Dread de 16 Anos","Allen Halloween",hip-hop-rap,UNCLASSIFIED,0,hip_hop_tuga,2026-06-15T09:36:16.547Z,,yes
+deezer:76542216,"A dúvida","5-30",hip-hop-rap,UNCLASSIFIED,0,hip_hop_tuga,2026-06-15T09:36:16.492Z,,yes
+deezer:1924604,"O que Foi, Foi","MatoZoo",hip-hop-rap,UNCLASSIFIED,0,hip_hop_tuga,2026-06-15T09:36:16.324Z,,yes
+deezer:7766297,"A Caneta, o Papel e o Microfone","Each",hip-hop-rap,UNCLASSIFIED,0,hip_hop_tuga,2026-06-15T09:36:16.268Z,,yes
