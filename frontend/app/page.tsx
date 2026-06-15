@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'motion/react';
 import { useAuth } from '@/app/context/AuthContext';
-import { getDiscordAuthUrl, createRoom, joinRoom, getLeaderboard } from '@/lib/api';
+import { getDiscordAuthUrl, createRoom, joinRoom, getLeaderboard, fetchGenres, fetchGenreGroups } from '@/lib/api';
 import { useTranslation } from '@/lib/useTranslation';
 import LanguageSwitcher from '@/app/components/LanguageSwitcher';
 import { isDiscordActivity, getConnectedParticipants, getChannelName, getChannelInfo, subscribeToParticipants, getChannelId } from '@/lib/discordActivity';
@@ -227,20 +227,32 @@ function Dashboard() {
     setError('');
     try {
       const channelId = getChannelId();
+      // Fetch all genre IDs to auto-configure the room
+      let allGenreIds: string[] = [];
+      try {
+        const groups = await fetchGenreGroups();
+        allGenreIds = groups.genres.map(g => g.id);
+      } catch {
+        try {
+          const genres = await fetchGenres();
+          allGenreIds = genres.map(g => g.id);
+        } catch {}
+      }
+
       // Try to find existing room for this channel
       if (channelId) {
         const existing = await findRoomByChannelId(channelId);
         if (existing?.code) {
           const { code: roomCode, playerId } = await (await import('@/lib/api')).joinRoom(existing.code);
           localStorage.setItem(`blindtest_player_${roomCode}`, playerId);
-          router.push(`/game/${roomCode}`);
+          router.push(`/game/${roomCode}?autoStart=1`);
           return;
         }
       }
-      // Create new room linked to this channel
-      const { code, playerId } = await createRoom([], undefined, undefined, channelId || undefined);
+      // Create new room linked to this channel with all genres pre-selected
+      const { code, playerId } = await createRoom(allGenreIds, undefined, undefined, channelId || undefined);
       localStorage.setItem(`blindtest_player_${code}`, playerId);
-      router.push(`/game/${code}`);
+      router.push(`/game/${code}?autoStart=1`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t('something_went_wrong'));
       setLoading(false);

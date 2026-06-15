@@ -309,6 +309,21 @@ export default function GamePage({
     };
   }, [code, playerId, applyGameState, router]);
 
+  const autoStartedRef = useRef(false);
+
+  useEffect(() => {
+    if (autoStartedRef.current || !gameState || !playerId || gameState.state !== 'waiting') return;
+    const isHost = playerId === gameState.hostId;
+    if (!isHost) return;
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has('autoStart')) return;
+    autoStartedRef.current = true;
+    const timer = setTimeout(() => {
+      startGame(code, playerId).catch(() => {});
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [gameState, playerId, code]);
+
   useEffect(() => {
     if (!isDiscordActivity()) return;
     const sdk = getDiscordSdk();
@@ -773,21 +788,19 @@ function WaitingRoom({
   };
 
   const handleDiscordInvite = async (userId: string) => {
-    const ok = await inviteDiscordUser(userId, `Join me in BlindTest! Room code: ${gameCode}`);
-    if (ok) {
+    await inviteDiscordUser(userId, `Join me in BlindTest! Room code: ${gameCode}`);
+    setDiscordInvitedIds(prev => {
+      const next = new Set(prev);
+      next.add(userId);
+      return next;
+    });
+    setTimeout(() => {
       setDiscordInvitedIds(prev => {
         const next = new Set(prev);
-        next.add(userId);
+        next.delete(userId);
         return next;
       });
-      setTimeout(() => {
-        setDiscordInvitedIds(prev => {
-          const next = new Set(prev);
-          next.delete(userId);
-          return next;
-        });
-      }, 3000);
-    }
+    }, 3000);
   };
 
   useEffect(() => {
