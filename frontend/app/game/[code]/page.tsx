@@ -89,20 +89,7 @@ export default function GamePage({
     if (d && d > 0) setDuration(d);
   }, []);
 
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if ((e.key === 'm' || e.key === 'M') && document.activeElement?.tagName !== 'INPUT') {
-        if (userSettings.masterVolume >= 0.06) {
-          prevVolumeRef.current = userSettings.masterVolume;
-          updateLocalSettings({ masterVolume: 0.05 });
-        } else {
-          updateLocalSettings({ masterVolume: prevVolumeRef.current || 1 });
-        }
-      }
-    };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [userSettings.masterVolume, updateLocalSettings]);
+
 
   useEffect(() => {
     if (gameState?.state === 'playing' && !bothFound && userSettings.autoFocusInput) {
