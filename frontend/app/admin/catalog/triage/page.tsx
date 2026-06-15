@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { getUnclassifiedTracks, updateAiGenre, deleteAiTrack, fetchGenres } from '@/lib/api';
 import { getProxiedUrl } from '@/lib/proxy';
+import { useSettings } from '@/app/context/SettingsContext';
 import { DataTable } from '../../components/DataTable';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 
@@ -16,6 +17,7 @@ interface Track {
 }
 
 export default function TriagePage() {
+  const { settings } = useSettings();
   const [tracks, setTracks] = useState<Track[]>([]);
   const [genres, setGenres] = useState<{ id: string; label: string; group?: string }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,7 +51,7 @@ export default function TriagePage() {
     if (audioRef.current) audioRef.current.pause();
     if (audioPlayingId === track.id) { setAudioPlayingId(null); return; }
     const audio = new Audio(url);
-    audio.volume = 0.5;
+    audio.volume = settings.masterVolume ?? 0.5;
     audio.play().catch(() => {});
     audio.addEventListener('ended', () => setAudioPlayingId(null));
     audioRef.current = audio;
