@@ -1,6 +1,7 @@
 export default {
   name: '016_ai_genre_check_constraint',
   up: `
+    ALTER TABLE songs_cache DROP CONSTRAINT IF EXISTS ai_genre_valid;
     ALTER TABLE songs_cache
     ADD CONSTRAINT ai_genre_valid
     CHECK (
