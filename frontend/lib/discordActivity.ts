@@ -1,7 +1,7 @@
 'use client';
 
 import { API_URL } from './api';
-import { IS_MOCK, MOCK_TOKEN, MOCK_USER } from './mock';
+import { IS_MOCK, IS_MOCK_DISCORD, MOCK_TOKEN, MOCK_USER, MOCK_DISCORD_PARTICIPANTS, MOCK_CHANNEL_NAME } from './mock';
 
 let _sdk: any = null;
 let _identity: any = null;
@@ -12,6 +12,7 @@ let _guildId: string | null = null;
 
 export function isDiscordActivity(): boolean {
   if (typeof window === 'undefined') return false;
+  if (IS_MOCK_DISCORD) return true;
   try {
     return window.parent !== window;
   } catch {
@@ -54,12 +55,24 @@ export interface DiscordParticipant {
 export type ParticipantUpdateCallback = (participants: DiscordParticipant[]) => void;
 
 export async function getConnectedParticipants(): Promise<DiscordParticipant[]> {
+  if (IS_MOCK_DISCORD) return MOCK_DISCORD_PARTICIPANTS;
   if (!_sdk) return [];
   try {
     const result = await _sdk.commands.getActivityInstanceConnectedParticipants();
     return result?.participants ?? [];
   } catch {
     return [];
+  }
+}
+
+export async function getChannelName(): Promise<string | null> {
+  if (IS_MOCK_DISCORD) return MOCK_CHANNEL_NAME;
+  if (!_sdk || !_channelId) return null;
+  try {
+    const result = await _sdk.commands.getChannel({ channel_id: _channelId });
+    return result?.name ?? null;
+  } catch {
+    return null;
   }
 }
 

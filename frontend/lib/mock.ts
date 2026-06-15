@@ -3,7 +3,18 @@
 export const IS_MOCK = typeof window !== 'undefined' &&
   process.env.NEXT_PUBLIC_MOCK === 'true';
 
+export const IS_MOCK_DISCORD = typeof window !== 'undefined' &&
+  process.env.NEXT_PUBLIC_MOCK_DISCORD === 'true';
+
 export const MOCK_TOKEN = 'mock_token_abc123';
+
+export const MOCK_DISCORD_PARTICIPANTS = [
+  { id: 'discord-1', username: 'PlayerOne', global_name: 'PlayerOne', avatar: null, discriminator: '0' },
+  { id: 'discord-2', username: 'VinylQueen', global_name: 'VinylQueen', avatar: null, discriminator: '0' },
+  { id: 'discord-3', username: 'BeatMaster', global_name: 'BeatMaster', avatar: null, discriminator: '0' },
+];
+
+export const MOCK_CHANNEL_NAME = 'Music Quiz 🎵';
 
 export const MOCK_USER = {
   id: 'mock-user-1',

@@ -8,6 +8,8 @@ import { useAuth } from '@/app/context/AuthContext';
 import { getDiscordAuthUrl, createRoom, joinRoom, getLeaderboard } from '@/lib/api';
 import { useTranslation } from '@/lib/useTranslation';
 import LanguageSwitcher from '@/app/components/LanguageSwitcher';
+import { isDiscordActivity, getConnectedParticipants, getChannelName, subscribeToParticipants } from '@/lib/discordActivity';
+import type { DiscordParticipant } from '@/lib/discordActivity';
 
 function MusicVisualizer() {
   return (
@@ -182,6 +184,17 @@ function Dashboard() {
   const [error, setError] = useState('');
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [lbLoading, setLbLoading] = useState(true);
+  const [discordChannel, setDiscordChannel] = useState<string | null>(null);
+  const [discordParticipants, setDiscordParticipants] = useState<DiscordParticipant[]>([]);
+  const discordContext = isDiscordActivity();
+
+  useEffect(() => {
+    if (!discordContext) return;
+    getChannelName().then(setDiscordChannel);
+    getConnectedParticipants().then(setDiscordParticipants);
+    const unsub = subscribeToParticipants(setDiscordParticipants);
+    return unsub;
+  }, [discordContext]);
 
   useEffect(() => {
     getLeaderboard()
@@ -240,56 +253,79 @@ function Dashboard() {
           <p className="text-foreground/40 text-sm font-semibold tracking-wide uppercase leading-relaxed">{t('subtitle')}</p>
         </div>
 
-        <div className="bg-white/[0.01] backdrop-blur-xl border border-white/5 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[var(--primary)] to-[var(--accent)]" />
+        {discordContext ? (
+          <DiscordLobbyCard
+            channelName={discordChannel}
+            participants={discordParticipants}
+            loading={loading}
+            error={error}
+            onClearError={() => setError('')}
+            onCreate={() => {
+              setLoading(true);
+              setError('');
+              createRoom([])
+                .then(({ code, playerId }) => {
+                  localStorage.setItem(`blindtest_player_${code}`, playerId);
+                  router.push(`/game/${code}`);
+                })
+                .catch((err: unknown) => {
+                  setError(err instanceof Error ? err.message : t('something_went_wrong'));
+                  setLoading(false);
+                });
+            }}
+          />
+        ) : (
+          <div className="bg-white/[0.01] backdrop-blur-xl border border-white/5 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[var(--primary)] to-[var(--accent)]" />
 
-          <div className="flex flex-col md:flex-row gap-4 items-stretch">
-            <div className="flex-1">
-              <button
-                onClick={handleCreate}
-                disabled={loading}
-                className="w-full py-4 bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] hover:brightness-110 text-foreground font-black text-sm rounded-2xl transition-all disabled:opacity-50 hover:scale-[1.01] active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
-                {loading ? t('creating') : t('create_lobby')}
-              </button>
-              <p className="text-[10px] text-foreground/40 font-semibold text-center mt-2">{t('create_room_hint')}</p>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <div className="hidden md:block w-px h-12 bg-white/5" />
-              <span className="text-[10px] font-black uppercase text-foreground/30">OR</span>
-              <div className="hidden md:block w-px h-12 bg-white/5" />
-            </div>
-
-            <div className="flex-1">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={joinCode}
-                  onChange={e => setJoinCode(e.target.value.toUpperCase())}
-                  placeholder="CODE"
-                  maxLength={4}
-                  className="flex-1 px-4 py-3 bg-background/50 border border-white/5 rounded-2xl text-center text-lg font-black tracking-[0.2em] text-[var(--accent)] placeholder-foreground/20 focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]/30 transition-all uppercase"
-                />
+            <div className="flex flex-col md:flex-row gap-4 items-stretch">
+              <div className="flex-1">
                 <button
-                  onClick={handleJoin}
-                  disabled={loading || !joinCode.trim()}
-                  className="px-6 py-3 bg-white/5 hover:bg-white/10 disabled:opacity-50 text-foreground hover:text-foreground font-bold rounded-2xl border border-white/5 transition-all text-xs cursor-pointer active:scale-[0.99]"
+                  onClick={handleCreate}
+                  disabled={loading}
+                  className="w-full py-4 bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] hover:brightness-110 text-foreground font-black text-sm rounded-2xl transition-all disabled:opacity-50 hover:scale-[1.01] active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
                 >
-                  {loading ? t('joining') : t('join_lobby')}
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+                  {loading ? t('creating') : t('create_lobby')}
                 </button>
+                <p className="text-[10px] text-foreground/40 font-semibold text-center mt-2">{t('create_room_hint')}</p>
               </div>
-              <p className="text-[10px] text-foreground/40 font-semibold text-center mt-2">{t('join_room_hint')}</p>
-            </div>
-          </div>
 
-          {error && (
-            <p className="text-red-400 text-[11px] text-center font-medium bg-red-500/5 border-t border-red-500/10 px-5 py-3">
-              {error}
-            </p>
-          )}
-        </div>
+              <div className="flex items-center gap-4">
+                <div className="hidden md:block w-px h-12 bg-white/5" />
+                <span className="text-[10px] font-black uppercase text-foreground/30">OR</span>
+                <div className="hidden md:block w-px h-12 bg-white/5" />
+              </div>
+
+              <div className="flex-1">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={joinCode}
+                    onChange={e => setJoinCode(e.target.value.toUpperCase())}
+                    placeholder="CODE"
+                    maxLength={4}
+                    className="flex-1 px-4 py-3 bg-background/50 border border-white/5 rounded-2xl text-center text-lg font-black tracking-[0.2em] text-[var(--accent)] placeholder-foreground/20 focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]/30 transition-all uppercase"
+                  />
+                  <button
+                    onClick={handleJoin}
+                    disabled={loading || !joinCode.trim()}
+                    className="px-6 py-3 bg-white/5 hover:bg-white/10 disabled:opacity-50 text-foreground hover:text-foreground font-bold rounded-2xl border border-white/5 transition-all text-xs cursor-pointer active:scale-[0.99]"
+                  >
+                    {loading ? t('joining') : t('join_lobby')}
+                  </button>
+                </div>
+                <p className="text-[10px] text-foreground/40 font-semibold text-center mt-2">{t('join_room_hint')}</p>
+              </div>
+            </div>
+
+            {error && (
+              <p className="text-red-400 text-[11px] text-center font-medium bg-red-500/5 border-t border-red-500/10 px-5 py-3">
+                {error}
+              </p>
+            )}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-2xl">
           <motion.div
@@ -412,6 +448,70 @@ function Dashboard() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function DiscordLobbyCard({ channelName, participants, loading, error, onClearError, onCreate }: {
+  channelName: string | null;
+  participants: DiscordParticipant[];
+  loading: boolean;
+  error: string;
+  onClearError: () => void;
+  onCreate: () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <div className="bg-white/[0.01] backdrop-blur-xl border border-white/5 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden w-full max-w-lg">
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#5865F2] to-[var(--accent)]" />
+
+      <div className="flex items-center gap-2.5 mb-4 pb-4 border-b border-white/5">
+        <div className="w-10 h-10 rounded-xl bg-[#5865F2]/15 flex items-center justify-center shrink-0 border border-[#5865F2]/20">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#5865F2">
+            <path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189z"/>
+          </svg>
+        </div>
+        <div className="min-w-0">
+          <h3 className="text-sm font-bold text-foreground/90 truncate">
+            {channelName || 'Voice Channel'}
+          </h3>
+          <p className="text-[10px] text-foreground/40 font-semibold">
+            {participants.length} connected
+          </p>
+        </div>
+      </div>
+
+      {participants.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mb-4">
+          {participants.map(p => (
+            <div key={p.id} className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#5865F2]/10 border border-[#5865F2]/20 rounded-xl text-[11px] text-foreground/80">
+              <span className="w-5 h-5 rounded-full bg-[#5865F2]/20 flex items-center justify-center text-[9px] font-bold shrink-0">
+                {p.global_name?.[0] || p.username[0]?.toUpperCase() || '?'}
+              </span>
+              <span className="truncate max-w-[120px] font-medium">{p.global_name || p.username}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {error && (
+        <p className="text-red-400 text-[11px] text-center font-medium bg-red-500/5 rounded-xl px-4 py-2.5 mb-3">
+          {error}
+        </p>
+      )}
+
+      <button
+        onClick={() => { onClearError(); onCreate(); }}
+        disabled={loading}
+        className="w-full py-4 bg-gradient-to-r from-[#5865F2] to-[var(--accent)] hover:brightness-110 text-foreground font-black text-sm rounded-2xl transition-all disabled:opacity-50 hover:scale-[1.01] active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2 shadow-lg shadow-[#5865F2]/15"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3" /></svg>
+        {loading ? 'Creating...' : 'Play with Voice Channel'}
+      </button>
+
+      <p className="text-[10px] text-foreground/40 font-semibold text-center mt-2">
+        Start a game with everyone in this voice channel
+      </p>
     </div>
   );
 }
