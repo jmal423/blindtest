@@ -14,7 +14,7 @@ import Podium from './Podium';
 import DebugOverlay from './DebugOverlay';
 import { useSound } from '@/lib/useSound';
 import { getProxiedUrl } from '@/lib/proxy';
-import { isDiscordActivity, getDiscordSdk, subscribeToParticipants, getConnectedParticipants, getInstanceId } from '@/lib/discordActivity';
+import { isDiscordActivity, getDiscordSdk, subscribeToParticipants, getConnectedParticipants, getInstanceId, openDiscordInviteDialog } from '@/lib/discordActivity';
 import type { DiscordParticipant } from '@/lib/discordActivity';
 import { updateRichPresence, clearRichPresence } from '@/lib/discordRichPresence';
 
@@ -425,6 +425,14 @@ export default function GamePage({
           >
             {t('copy')}
           </button>
+          {isDiscordActivity() && (
+            <button
+              onClick={() => openDiscordInviteDialog()}
+              className="text-[10px] px-2.5 py-0.5 rounded bg-blurple/20 text-blurple hover:bg-blurple/30 transition-colors font-semibold"
+            >
+              Invite to Activity
+            </button>
+          )}
           {gameState.state === 'waiting' && (
             <div className="hidden md:flex items-center gap-2 text-[11px] text-foreground/40">
               {(gameState as any).genres?.length > 0 && (
