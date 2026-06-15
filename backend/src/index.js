@@ -530,6 +530,8 @@ app.get('/api/games/recent', async (req, res) => {
     // Parse genres JSON
     const parsed = games.map(g => ({ ...g, genres: g.genres ? JSON.parse(g.genres) : [] }));
     res.json(parsed);
+  } catch (err) {
+    console.error('[DB] Recent games failed:', err.message);
     res.json([]);
   }
 });
