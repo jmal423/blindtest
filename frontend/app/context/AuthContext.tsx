@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { getMe, getToken } from '@/lib/api';
-import { isDiscordEmbedded, authenticateDiscordActivity } from '@/lib/discordActivity';
+import { isDiscordActivity, authenticateDiscordActivity } from '@/lib/discordActivity';
 
 export interface User {
   id: string;
@@ -45,12 +45,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
 
     async function init() {
-      if (isDiscordEmbedded()) {
+      if (isDiscordActivity()) {
         setLoading(true);
-        const result = await Promise.race([
-          authenticateDiscordActivity(),
-          new Promise<null>((resolve) => setTimeout(() => resolve(null), 15000)),
-        ]);
+        const result = await authenticateDiscordActivity();
         if (cancelled) return;
         if (result) {
           localStorage.setItem('blindtest_token', result.token);
