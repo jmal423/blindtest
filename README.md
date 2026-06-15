@@ -111,7 +111,6 @@ For admin users, a real-time developer overlay is available in the game lobby.
 |----------|----------|-------------|
 | `DISCORD_CLIENT_ID` | Yes | Discord OAuth2 application ID |
 | `DISCORD_CLIENT_SECRET` | Yes | Discord OAuth2 secret |
-| `DISCORD_ALLOWED_GUILD_ID` | Yes | Discord server ID to gate access |
 | `ADMIN_DISCORD_IDS` | No | Comma-separated Discord IDs for admin role |
 | `JWT_SECRET` | Yes | Token signing secret |
 | `DATABASE_URL` | Yes | PostgreSQL connection string |

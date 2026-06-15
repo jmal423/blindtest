@@ -54,21 +54,6 @@ async function handleDiscordCallback(code, host, state) {
 
   const discordUser = await userRes.json();
 
-  // Guild gating — check user is in allowed server
-  const allowedGuildId = process.env.DISCORD_ALLOWED_GUILD_ID;
-  if (allowedGuildId) {
-    const guildsRes = await fetch('https://discord.com/api/users/@me/guilds', {
-      headers: { Authorization: `Bearer ${tokenData.access_token}` },
-    });
-    if (guildsRes.ok) {
-      const guilds = await guildsRes.json();
-      const member = guilds.find(g => g.id === allowedGuildId);
-      if (!member) {
-        throw new Error('Access denied. You must be in the private Discord server to play.');
-      }
-    }
-  }
-
   return await upsertDiscordUser(discordUser, state);
 }
 
