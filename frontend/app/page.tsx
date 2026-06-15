@@ -190,7 +190,7 @@ function Dashboard() {
   const redirectingRef = useRef(false);
 
   useEffect(() => {
-    if (!discordContext || authLoading || !user || redirectingRef.current) return;
+    if (!discordContext || authLoading || redirectingRef.current) return;
     redirectingRef.current = true;
     const channelId = getChannelId();
     (async () => {
