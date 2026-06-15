@@ -104,9 +104,51 @@ export async function classifyTrack(track) {
   const artist = track.artist || '';
   const existingGenres = track.genres || [];
 
+  // Use simple prompt for fine-tuned classifier model
+  if (config.ollamaModel === 'blindtest-classifier' || config.ollamaModel.includes('classifier')) {
+    return classifyWithFineTuned(trackName, artist);
+  }
+
   const prompt = buildGenrePrompt(trackName, artist, existingGenres);
   const raw = await ollamaGenerate(prompt);
   const result = parseResponse(raw);
 
   return result;
+}
+
+async function classifyWithFineTuned(name, artist) {
+  const prompt = `Track: "${name}" by ${artist}\nGenre:`;
+  const res = await fetch(`${config.ollamaUrl}/api/generate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: config.ollamaModel,
+      prompt,
+      stream: false,
+      options: { temperature: 0.0 },
+    }),
+  });
+  if (!res.ok) throw new Error(`Ollama ${res.status}`);
+  const data = await res.json();
+  const raw = (data.response || '').trim();
+
+  let genreId = 'other';
+  let confidence = 0.5;
+
+  for (const g of VALID_GENRES) {
+    if (raw.startsWith(g)) {
+      genreId = g;
+      confidence = 0.95;
+      break;
+    }
+  }
+
+  const region = GENRE_TO_REGION[genreId] || 'global_other';
+  return {
+    genres: [genreId],
+    tags: [region],
+    primary: genreId,
+    confidence: { [genreId]: confidence },
+    confidenceScore: confidence,
+  };
 }
