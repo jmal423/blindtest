@@ -46,7 +46,8 @@ export default function TriagePage() {
   }, []);
 
   const playPreview = (track: Track) => {
-    const url = getProxiedUrl(track.preview_url);
+    const cleanUrl = track.preview_url?.replace(/\.+$/, '');
+    const url = getProxiedUrl(cleanUrl);
     if (!url) return;
     if (audioRef.current) audioRef.current.pause();
     if (audioPlayingId === track.id) { setAudioPlayingId(null); return; }
