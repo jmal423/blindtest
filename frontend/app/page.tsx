@@ -227,7 +227,14 @@ function Dashboard() {
     setLoading(true);
     setError('');
     try {
-      const { code, playerId } = await createRoom([]);
+      let allGenreIds: string[] = [];
+      try {
+        const groups = await fetchGenreGroups();
+        allGenreIds = groups.genres.map(g => g.id);
+      } catch {
+        try { allGenreIds = (await fetchGenres()).map(g => g.id); } catch {}
+      }
+      const { code, playerId } = await createRoom(allGenreIds);
       localStorage.setItem(`blindtest_player_${code}`, playerId);
       router.push(`/game/${code}`);
     } catch (err: unknown) {
