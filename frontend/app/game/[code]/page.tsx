@@ -12,6 +12,7 @@ import { useTranslation } from '@/lib/useTranslation';
 import Chat from './Chat';
 import Podium from './Podium';
 import DebugOverlay from './DebugOverlay';
+import ResponsiveMinimized from './ResponsiveMinimized';
 import { useSound } from '@/lib/useSound';
 import { getProxiedUrl } from '@/lib/proxy';
 import { isDiscordActivity, getDiscordSdk, subscribeToParticipants, getConnectedParticipants, getInstanceId } from '@/lib/discordActivity';
@@ -415,6 +416,7 @@ export default function GamePage({
   }
 
   return (
+    <ResponsiveMinimized>
     <div className="flex-1 flex flex-col p-3 md:p-6 max-w-6xl mx-auto w-full gap-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -595,8 +597,8 @@ onSkipVote={handleSkipVote}
         </div>
 
         {gameState.state !== 'waiting' && gameState.state !== 'game_over' && (
-          <div className={`${chatOpen ? 'fixed inset-0 z-40 bg-black/80 md:bg-transparent md:static flex items-end md:block' : 'hidden md:block'} w-64 shrink-0`}>
-            <div className="w-full md:w-64 bg-[var(--surface)] md:bg-transparent rounded-t-2xl md:rounded-none md:h-auto max-h-[60vh] md:max-h-none overflow-y-auto">
+          <div className={`${chatOpen ? 'fixed inset-0 z-40 bg-black/80 md:bg-transparent md:static flex items-center md:block pb-4' : 'hidden md:block'} w-64 shrink-0`}>
+            <div className="w-full md:w-64 bg-[var(--surface)] md:bg-transparent rounded-2xl md:rounded-none md:h-auto max-h-[70vh] md:max-h-none overflow-y-auto mx-4 md:mx-0">
               {chatOpen && (
                 <button onClick={() => setChatOpen(false)} className="md:hidden w-full text-center py-2 text-xs text-foreground/40 border-b border-white/5">
                   Close
@@ -650,6 +652,7 @@ onSkipVote={handleSkipVote}
         </div>
       )}
     </div>
+    </ResponsiveMinimized>
   );
 }
 
