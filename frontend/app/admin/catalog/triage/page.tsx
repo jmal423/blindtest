@@ -46,24 +46,25 @@ export default function TriagePage() {
   }, []);
 
   const playPreview = (track: Track) => {
-    const cleanUrl = track.preview_url?.replace(/\.+$/, '');
-    const url = getProxiedUrl(cleanUrl);
-    if (!url) { console.warn('[Triage] No playable URL for', track.name); return; }
+    const rawUrl = track.preview_url?.replace(/\.+$/, '');
+    if (!rawUrl) { console.warn('[Triage] No preview_url for', track.name); return; }
     if (audioRef.current) audioRef.current.pause();
     if (audioPlayingId === track.id) { setAudioPlayingId(null); return; }
-    const audio = new Audio(url);
+    const audio = new Audio(rawUrl);
     audio.crossOrigin = 'anonymous';
     audio.volume = settings.masterVolume ?? 0.5;
-    audio.addEventListener('error', (e) => {
-      console.error('[Triage] Audio error:', audio.error?.code, audio.error?.message, 'for url:', url);
+    audio.addEventListener('error', () => {
+      console.error('[Triage] Audio load failed:', audio.error?.code, audio.error?.message, 'url:', rawUrl);
       setAudioPlayingId(null);
     });
-    audio.addEventListener('canplay', () => {
-      audio.play().catch(err => console.error('[Triage] Play failed:', err));
-    });
     audio.addEventListener('ended', () => setAudioPlayingId(null));
-    audioRef.current = audio;
-    setAudioPlayingId(track.id);
+    audio.play().then(() => {
+      audioRef.current = audio;
+      setAudioPlayingId(track.id);
+    }).catch(err => {
+      console.error('[Triage] Play rejected:', err.message || err, 'url:', rawUrl);
+      setAudioPlayingId(null);
+    });
   };
 
   const handleSave = async (trackId: string) => {
