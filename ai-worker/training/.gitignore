@@ -1,0 +1,15 @@
+# Training artifacts (large generated files)
+lora-adapter/merged/
+lora-adapter/adapter_model.safetensors
+lora-adapter/checkpoint-*/
+lora-adapter/README.md
+lora-adapter/adapter_config.json
+lora-adapter/added_tokens.json
+lora-adapter/merges.txt
+lora-adapter/special_tokens_map.json
+lora-adapter/tokenizer.json
+lora-adapter/tokenizer_config.json
+lora-adapter/vocab.json
+
+# Unsloth cache
+unsloth_compiled_cache/
