@@ -221,3 +221,34 @@ export async function authenticateDiscordActivity(): Promise<{ token: string; us
     return null;
   }
 }
+
+export async function isDiscordMobile(): Promise<boolean> {
+  if (IS_MOCK_DISCORD) return false;
+  if (!_sdk) return false;
+  return _sdk.platform === 'mobile';
+}
+
+export type LayoutMode = -1 | 0 | 1 | 2;
+
+export function subscribeToLayoutMode(callback: (mode: LayoutMode) => void): () => void {
+  if (IS_MOCK_DISCORD) {
+    callback(0);
+    return () => {};
+  }
+  if (!_sdk) {
+    callback(-1);
+    return () => {};
+  }
+
+  let unsubscribed = false;
+
+  _sdk.subscribe('ACTIVITY_LAYOUT_MODE_UPDATE', (data: any) => {
+    if (!unsubscribed) {
+      callback(data.layout_mode ?? -1);
+    }
+  }).catch(() => {});
+
+  return () => {
+    unsubscribed = true;
+  };
+}

@@ -9,6 +9,8 @@ import { useAuth } from '@/app/context/AuthContext';
 import { isDebugMode, setDebugMode } from '@/lib/debug-context';
 import { useTranslation } from '@/lib/useTranslation';
 import { useSound } from '@/lib/useSound';
+import { isDiscordActivity, isDiscordMobile, subscribeToLayoutMode } from '@/lib/discordActivity';
+import type { LayoutMode } from '@/lib/discordActivity';
 import SettingsModal from './SettingsModal';
 import LanguageSwitcher from './LanguageSwitcher';
 
@@ -33,6 +35,28 @@ export default function Header() {
       getMyStats().then(setStats).catch(() => {});
     }
   }, [open, user]);
+
+  const [discordTopInset, setDiscordTopInset] = useState(0);
+  const cleanupRef = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    if (!isDiscordActivity()) return;
+    isDiscordMobile().then(mobile => {
+      if (!mobile) return;
+      setDiscordTopInset(44);
+      document.documentElement.style.setProperty('--discord-top-inset', '44px');
+      const unsub = subscribeToLayoutMode((mode: LayoutMode) => {
+        const inset = mode === 2 ? 88 : 44;
+        setDiscordTopInset(inset);
+        document.documentElement.style.setProperty('--discord-top-inset', `${inset}px`);
+      });
+      cleanupRef.current = () => {
+        unsub();
+        document.documentElement.style.removeProperty('--discord-top-inset');
+      };
+    });
+    return () => cleanupRef.current?.();
+  }, []);
 
   const [activeInvite, setActiveInvite] = useState<any>(null);
   const dismissedInviteIdsRef = useRef<Set<string>>(new Set());
@@ -132,7 +156,7 @@ export default function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-foreground/5 flex items-center justify-between px-4 md:px-6 py-3.5 shadow-sm">
+      <header className="sticky z-40 border-b border-foreground/5 flex items-center justify-between px-4 md:px-6 py-3.5 shadow-sm" style={{ top: discordTopInset || 0 }}>
         {/* Background layer for blur & opacity that doesn't create a containing block for fixed descendants */}
         <div className="absolute inset-0 bg-background/60 backdrop-blur-xl -z-10 pointer-events-none" />
 
