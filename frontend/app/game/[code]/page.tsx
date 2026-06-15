@@ -561,16 +561,17 @@ export default function GamePage({
               bothFound={bothFound}
               players={gameState.players}
               playerId={playerId}
-encouragement={encouragement}
-               roundTime={(gameState as any).settings?.roundTime || 15}
-onSkipVote={handleSkipVote}
-                hasVotedSkip={hasVotedSkip}
-                skipCooldown={skipCooldown}
-                skipVotes={gameState.state === 'playing' || gameState.state === 'round_preparing' ? (gameState as any).skipVotes ?? 0 : 0}
-               skipVotesNeeded={gameState.state === 'playing' || gameState.state === 'round_preparing' ? (gameState as any).skipVotesNeeded ?? 1 : 1}
-               hostId={gameState.hostId}
-               currentTrackId={gameState.state === 'playing' ? (gameState as any).trackId : null}
-                onFlagSong={(id) => socketRef.current?.emit('flag_song', { songId: id, reason: 'wrong_song' })}
+              encouragement={encouragement}
+              roundTime={(gameState as any).settings?.roundTime || 15}
+              onSkipVote={handleSkipVote}
+              hasVotedSkip={hasVotedSkip}
+              skipCooldown={skipCooldown}
+              skipVotes={gameState.state === 'playing' || gameState.state === 'round_preparing' ? (gameState as any).skipVotes ?? 0 : 0}
+              skipVotesNeeded={gameState.state === 'playing' || gameState.state === 'round_preparing' ? (gameState as any).skipVotesNeeded ?? 1 : 1}
+              hostId={gameState.hostId}
+              currentTrackId={gameState.state === 'playing' ? (gameState as any).trackId : null}
+              onFlagSong={(id) => socketRef.current?.emit('flag_song', { songId: id, reason: 'wrong_song' })}
+              gameMode={(gameState as any).settings?.gameMode}
             />
           )}
 
@@ -1424,6 +1425,7 @@ function PlayingPhase({
   hostId,
   currentTrackId,
   onFlagSong,
+  gameMode = '',
 }: {
   state: string;
   currentRound: number;
@@ -1451,8 +1453,10 @@ function PlayingPhase({
   hostId?: string | null;
   currentTrackId?: string | null;
   onFlagSong?: (id: string) => void;
+  gameMode?: string;
 }) {
   const { t } = useTranslation();
+  const isArtistMode = gameMode === 'artist';
   const roundDuration = roundTime || 15;
   const [showSkipReasons, setShowSkipReasons] = useState(false);
   const placeholder = bothFound
@@ -1568,12 +1572,20 @@ function PlayingPhase({
       </div>
 
       <div className="flex gap-2">
-        <div className={`flex-1 text-center px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all ${pillStyle(artistFound)}`}>
-          Artist {!artistFound && <span className="text-foreground/30">?</span>}
-        </div>
-        <div className={`flex-1 text-center px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all ${pillStyle(titleFound)}`}>
-          Title {!titleFound && <span className="text-foreground/30">?</span>}
-        </div>
+        {!isArtistMode ? (
+          <>
+            <div className={`flex-1 text-center px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all ${pillStyle(artistFound)}`}>
+              Artist {!artistFound && <span className="text-foreground/30">?</span>}
+            </div>
+            <div className={`flex-1 text-center px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all ${pillStyle(titleFound)}`}>
+              Title {!titleFound && <span className="text-foreground/30">?</span>}
+            </div>
+          </>
+        ) : (
+          <div className={`flex-1 text-center px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all ${pillStyle(artistFound)}`}>
+            {artistFound ? 'Found!' : <span className="text-foreground/30">Guess the artist...</span>}
+          </div>
+        )}
       </div>
 
       <div className="relative">
