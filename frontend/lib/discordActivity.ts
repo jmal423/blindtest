@@ -10,14 +10,22 @@ let _instanceId: string | null = null;
 let _channelId: string | null = null;
 let _guildId: string | null = null;
 
-export function isDiscordActivity(): boolean {
+// Returns true if we're inside Discord's in-app browser or embedded activity
+// Used for initial detection BEFORE SDK init
+export function isDiscordEmbedded(): boolean {
   if (typeof window === 'undefined') return false;
-  if (IS_MOCK_DISCORD) return true;
   try {
     return window.parent !== window;
   } catch {
     return true;
   }
+}
+
+// Returns true only after SDK is fully initialized (real Discord activity)
+export function isDiscordActivity(): boolean {
+  if (typeof window === 'undefined') return false;
+  if (IS_MOCK_DISCORD) return true;
+  return _sdk !== null;
 }
 
 export function getDiscordIdentity() {

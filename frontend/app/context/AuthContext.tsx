@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { getMe, getToken } from '@/lib/api';
-import { isDiscordActivity, authenticateDiscordActivity } from '@/lib/discordActivity';
+import { isDiscordEmbedded, authenticateDiscordActivity } from '@/lib/discordActivity';
 
 export interface User {
   id: string;
@@ -45,7 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
 
     async function init() {
-      if (isDiscordActivity()) {
+      if (isDiscordEmbedded()) {
         setLoading(true);
         const result = await authenticateDiscordActivity();
         if (cancelled) return;

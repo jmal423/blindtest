@@ -8,7 +8,7 @@ import { useAuth } from '@/app/context/AuthContext';
 import { getDiscordAuthUrl, createRoom, joinRoom, getLeaderboard, fetchGenres, fetchGenreGroups } from '@/lib/api';
 import { useTranslation } from '@/lib/useTranslation';
 import LanguageSwitcher from '@/app/components/LanguageSwitcher';
-import { isDiscordActivity, getChannelId } from '@/lib/discordActivity';
+import { isDiscordEmbedded, getChannelId } from '@/lib/discordActivity';
 import { findRoomByChannelId } from '@/lib/api';
 
 function MusicVisualizer() {
@@ -184,7 +184,7 @@ function Dashboard() {
   const [error, setError] = useState('');
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [lbLoading, setLbLoading] = useState(true);
-  const discordContext = isDiscordActivity();
+  const discordContext = isDiscordEmbedded();
 
   const { user, loading: authLoading } = useAuth();
   const redirectingRef = useRef(false);
