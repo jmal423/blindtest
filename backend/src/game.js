@@ -425,8 +425,9 @@ export class GameRoom {
 
     this.foundOrder = [];
     this.playersReady = new Set();
+    const isArtistMode = this.settings.gameMode === 'artist';
     this.players.forEach(p => {
-      p.foundArtist = false;
+      p.foundArtist = isArtistMode;
       p.foundTitle = false;
       p.foundBoth = false;
     });
@@ -462,9 +463,12 @@ export class GameRoom {
 
     const guessTimeMs = this.roundStartTime ? Date.now() - this.roundStartTime : 0;
 
-    const artistCheck = !player.foundArtist ? evaluateAnswer(answer, track.artist) : { matched: false, score: 100 };
+    const isArtistMode = this.settings.gameMode === 'artist';
+    const artistNeeded = !isArtistMode;
+
+    const artistCheck = artistNeeded && !player.foundArtist ? evaluateAnswer(answer, track.artist) : { matched: false, score: 100 };
     const titleCheck = !player.foundTitle ? evaluateAnswer(answer, track.name) : { matched: false, score: 100 };
-    const artistCorrect = artistCheck.matched;
+    const artistCorrect = artistNeeded && artistCheck.matched;
     const titleCorrect = titleCheck.matched;
 
     let pointsThisGuess = 0;
@@ -479,7 +483,7 @@ export class GameRoom {
       pointsThisGuess += 3;
     }
 
-    const bothNow = this.settings.gameMode === 'artist' ? player.foundArtist : (player.foundArtist && player.foundTitle);
+    const bothNow = player.foundTitle && player.foundArtist;
     if (bothNow && !player.foundBoth) {
       player.foundBoth = true;
       pointsThisGuess += 4;
@@ -789,7 +793,7 @@ export class GameRoom {
         id: p.id, name: p.name, avatarUrl: p.avatarUrl, role: p.role, score: p.score,
         foundArtist: !!p.foundArtist,
         foundTitle: !!p.foundTitle,
-        foundBoth: this.settings.gameMode === 'artist' ? !!p.foundArtist : !!p.foundBoth,
+        foundBoth: !!p.foundBoth,
       })),
       currentRound: this.tracksPlayed + 1,
       totalRounds: this.totalRounds,
@@ -835,6 +839,8 @@ export class GameRoom {
         roundTime: this.settings.roundTime,
         previewUrl: track.previewUrl,
         trackId: track.id,
+        trackArtist: track.artist,
+        gameMode: this.settings.gameMode,
       };
     }
 

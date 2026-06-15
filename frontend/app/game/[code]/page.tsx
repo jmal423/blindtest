@@ -572,6 +572,7 @@ export default function GamePage({
               currentTrackId={gameState.state === 'playing' ? (gameState as any).trackId : null}
               onFlagSong={(id) => socketRef.current?.emit('flag_song', { songId: id, reason: 'wrong_song' })}
               gameMode={(gameState as any).settings?.gameMode}
+              trackArtist={(gameState as any).trackArtist}
             />
           )}
 
@@ -1426,6 +1427,7 @@ function PlayingPhase({
   currentTrackId,
   onFlagSong,
   gameMode = '',
+  trackArtist = '',
 }: {
   state: string;
   currentRound: number;
@@ -1454,6 +1456,7 @@ function PlayingPhase({
   currentTrackId?: string | null;
   onFlagSong?: (id: string) => void;
   gameMode?: string;
+  trackArtist?: string;
 }) {
   const { t } = useTranslation();
   const isArtistMode = gameMode === 'artist';
@@ -1572,7 +1575,16 @@ function PlayingPhase({
       </div>
 
       <div className="flex gap-2">
-        {!isArtistMode ? (
+        {isArtistMode ? (
+          <>
+            <div className="flex-1 text-center px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border border-[var(--accent)]/30 bg-[var(--accent)]/10 text-[var(--accent)] truncate">
+              {trackArtist || 'Artist'}
+            </div>
+            <div className={`flex-1 text-center px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all ${pillStyle(titleFound)}`}>
+              Title {!titleFound && <span className="text-foreground/30">?</span>}
+            </div>
+          </>
+        ) : (
           <>
             <div className={`flex-1 text-center px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all ${pillStyle(artistFound)}`}>
               Artist {!artistFound && <span className="text-foreground/30">?</span>}
@@ -1581,10 +1593,6 @@ function PlayingPhase({
               Title {!titleFound && <span className="text-foreground/30">?</span>}
             </div>
           </>
-        ) : (
-          <div className={`flex-1 text-center px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all ${pillStyle(artistFound)}`}>
-            {artistFound ? 'Found!' : <span className="text-foreground/30">Guess the artist...</span>}
-          </div>
         )}
       </div>
 
