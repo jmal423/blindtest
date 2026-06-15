@@ -48,12 +48,19 @@ export default function TriagePage() {
   const playPreview = (track: Track) => {
     const cleanUrl = track.preview_url?.replace(/\.+$/, '');
     const url = getProxiedUrl(cleanUrl);
-    if (!url) return;
+    if (!url) { console.warn('[Triage] No playable URL for', track.name); return; }
     if (audioRef.current) audioRef.current.pause();
     if (audioPlayingId === track.id) { setAudioPlayingId(null); return; }
     const audio = new Audio(url);
+    audio.crossOrigin = 'anonymous';
     audio.volume = settings.masterVolume ?? 0.5;
-    audio.play().catch(() => {});
+    audio.addEventListener('error', (e) => {
+      console.error('[Triage] Audio error:', audio.error?.code, audio.error?.message, 'for url:', url);
+      setAudioPlayingId(null);
+    });
+    audio.addEventListener('canplay', () => {
+      audio.play().catch(err => console.error('[Triage] Play failed:', err));
+    });
     audio.addEventListener('ended', () => setAudioPlayingId(null));
     audioRef.current = audio;
     setAudioPlayingId(track.id);

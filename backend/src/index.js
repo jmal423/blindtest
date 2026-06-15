@@ -761,6 +761,33 @@ app.delete('/api/friends/:userId', authenticate, async (req, res) => {
   res.json({ ok: true });
 });
 
+// Audio proxy (bypass CORS for Deezer previews)
+app.get('/api/proxy/audio', async (req, res) => {
+  const url = req.query.url;
+  if (!url) return res.status(400).json({ error: 'Missing url' });
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Referer': 'https://www.deezer.com/',
+        'Accept': 'audio/mpeg, audio/*, */*',
+      },
+    });
+    if (!response.ok) {
+      const text = await response.text().catch(() => '');
+      return res.status(response.status).json({ error: response.statusText, body: text.slice(0, 200) });
+    }
+    const contentType = response.headers.get('content-type') || 'audio/mpeg';
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Cache-Control', 'public, max-age=31536000');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    const buffer = Buffer.from(await response.arrayBuffer());
+    res.send(buffer);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Admin — genre test (Deezer only)
 app.post('/api/admin/test/genre', requireAdmin, async (req, res) => {
   const { genre, count } = req.body;

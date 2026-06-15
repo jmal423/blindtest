@@ -2,8 +2,9 @@ export function getProxiedUrl(url: string | null | undefined): string | undefine
   if (!url) return undefined;
   if (url.startsWith('/')) return url;
   if (url.includes('cdn.discordapp.com')) return url;
-  if (url.includes('/proxy')) return url; // Already proxied
+  if (url.includes('/proxy')) return url;
 
-  // Return the proxy URL
-  return `/proxy?url=${encodeURIComponent(url)}`;
+  // Use backend proxy for audio files
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || '';
+  return `${backendUrl}/api/proxy/audio?url=${encodeURIComponent(url)}`;
 }
