@@ -414,6 +414,7 @@ export async function getUnclassifiedTracks(): Promise<{
 export async function updateAiGenre(id: string, genre: string): Promise<{ ok: boolean; error?: string }> {
   return fetchWithAuth(`${API_URL}/api/admin/ai/update-genre`, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ id, genre }),
   });
 }
