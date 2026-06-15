@@ -92,9 +92,9 @@ export default function GamePage({
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if ((e.key === 'm' || e.key === 'M') && document.activeElement?.tagName !== 'INPUT') {
-        if (userSettings.masterVolume > 0) {
+        if (userSettings.masterVolume >= 0.06) {
           prevVolumeRef.current = userSettings.masterVolume;
-          updateLocalSettings({ masterVolume: 0 });
+          updateLocalSettings({ masterVolume: 0.05 });
         } else {
           updateLocalSettings({ masterVolume: prevVolumeRef.current || 1 });
         }
@@ -448,17 +448,17 @@ export default function GamePage({
               <div className="hidden md:flex items-center gap-1.5">
                 <button
                   onClick={() => {
-                    if (userSettings.masterVolume > 0) {
+                    if (userSettings.masterVolume >= 0.06) {
                       prevVolumeRef.current = userSettings.masterVolume;
-                      updateLocalSettings({ masterVolume: 0 });
+                      updateLocalSettings({ masterVolume: 0.05 });
                     } else {
                       updateLocalSettings({ masterVolume: prevVolumeRef.current || 1 });
                     }
                   }}
                   className="text-foreground/60 hover:text-foreground/90 transition-colors p-1"
-                  title={userSettings.masterVolume === 0 ? 'Unmute (M)' : 'Mute (M)'}
+                  title={userSettings.masterVolume <= 0.05 ? 'Unmute (M)' : 'Mute (M)'}
                 >
-                  {userSettings.masterVolume === 0 ? (
+                  {userSettings.masterVolume <= 0.05 ? (
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
                   ) : userSettings.masterVolume < 0.5 ? (
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
@@ -467,7 +467,7 @@ export default function GamePage({
                   )}
                 </button>
                 <input
-                  type="range" min={0} max={1} step={0.05}
+                  type="range" min={0.05} max={1} step={0.05}
                   value={userSettings.masterVolume}
                   onChange={e => updateLocalSettings({ masterVolume: Number(e.target.value) })}
                   className="w-14 accent-[var(--primary)] h-1 cursor-pointer"
