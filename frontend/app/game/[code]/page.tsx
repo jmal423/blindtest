@@ -309,21 +309,6 @@ export default function GamePage({
     };
   }, [code, playerId, applyGameState, router]);
 
-  const autoStartedRef = useRef(false);
-
-  useEffect(() => {
-    if (autoStartedRef.current || !gameState || !playerId || gameState.state !== 'waiting') return;
-    const isHost = playerId === gameState.hostId;
-    if (!isHost) return;
-    const params = new URLSearchParams(window.location.search);
-    if (!params.has('autoStart')) return;
-    autoStartedRef.current = true;
-    const timer = setTimeout(() => {
-      startGame(code, playerId).catch(() => {});
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [gameState, playerId, code]);
-
   useEffect(() => {
     if (!isDiscordActivity()) return;
     const sdk = getDiscordSdk();

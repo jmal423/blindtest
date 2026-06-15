@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'motion/react';
@@ -191,6 +191,36 @@ function Dashboard() {
   const discordContext = isDiscordActivity();
   const isVoice = discordChannelType === null || discordChannelType === 2;
 
+  const { user, loading: authLoading } = useAuth();
+  const redirectingRef = useRef(false);
+
+  useEffect(() => {
+    if (!discordContext || authLoading || !user || redirectingRef.current) return;
+    redirectingRef.current = true;
+    const channelId = getChannelId();
+    (async () => {
+      if (channelId) {
+        const existing = await findRoomByChannelId(channelId);
+        if (existing?.code) {
+          const { code: roomCode, playerId } = await joinRoom(existing.code);
+          localStorage.setItem(`blindtest_player_${roomCode}`, playerId);
+          router.replace(`/game/${roomCode}`);
+          return;
+        }
+      }
+      let allGenreIds: string[] = [];
+      try {
+        const groups = await fetchGenreGroups();
+        allGenreIds = groups.genres.map(g => g.id);
+      } catch {
+        try { allGenreIds = (await fetchGenres()).map(g => g.id); } catch {}
+      }
+      const { code, playerId } = await createRoom(allGenreIds, undefined, undefined, channelId || undefined);
+      localStorage.setItem(`blindtest_player_${code}`, playerId);
+      router.replace(`/game/${code}`);
+    })();
+  }, [discordContext, authLoading, user, router]);
+
   useEffect(() => {
     if (!discordContext) return;
     getChannelInfo().then(info => {
@@ -245,14 +275,14 @@ function Dashboard() {
         if (existing?.code) {
           const { code: roomCode, playerId } = await (await import('@/lib/api')).joinRoom(existing.code);
           localStorage.setItem(`blindtest_player_${roomCode}`, playerId);
-          router.push(`/game/${roomCode}?autoStart=1`);
+          router.push(`/game/${roomCode}`);
           return;
         }
       }
       // Create new room linked to this channel with all genres pre-selected
       const { code, playerId } = await createRoom(allGenreIds, undefined, undefined, channelId || undefined);
       localStorage.setItem(`blindtest_player_${code}`, playerId);
-      router.push(`/game/${code}?autoStart=1`);
+      router.push(`/game/${code}`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t('something_went_wrong'));
       setLoading(false);
