@@ -105,6 +105,7 @@ export class GameRoom {
     this.io = io;
     this.playerSockets = {};
     this.gameId = null;
+    this.discordChannelId = null;
   }
 
   setPlayerSocket(playerId, socketId) {

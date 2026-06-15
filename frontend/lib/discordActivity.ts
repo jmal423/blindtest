@@ -1,7 +1,7 @@
 'use client';
 
 import { API_URL } from './api';
-import { IS_MOCK, IS_MOCK_DISCORD, MOCK_TOKEN, MOCK_USER, MOCK_DISCORD_PARTICIPANTS, MOCK_CHANNEL_NAME } from './mock';
+import { IS_MOCK, IS_MOCK_DISCORD, MOCK_TOKEN, MOCK_USER, MOCK_DISCORD_PARTICIPANTS, MOCK_CHANNEL_NAME, MOCK_DISCORD_RELATIONSHIPS } from './mock';
 
 let _sdk: any = null;
 let _identity: any = null;
@@ -54,6 +54,54 @@ export interface DiscordParticipant {
 
 export type ParticipantUpdateCallback = (participants: DiscordParticipant[]) => void;
 
+export interface DiscordRelationship {
+  type: number;
+  user: {
+    id: string;
+    username: string;
+    global_name?: string | null;
+    avatar?: string | null;
+    discriminator?: string;
+    bot?: boolean;
+  };
+  presence?: {
+    status: string;
+  } | null;
+}
+
+export async function getDiscordRelationships(): Promise<DiscordRelationship[]> {
+  if (IS_MOCK_DISCORD) return MOCK_DISCORD_RELATIONSHIPS as any;
+  if (!_sdk) return [];
+  try {
+    const result = await _sdk.commands.getRelationships();
+    return result?.relationships?.filter((r: any) => r.type === 1) ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export async function inviteDiscordUser(userId: string, content?: string): Promise<boolean> {
+  if (IS_MOCK_DISCORD) return true;
+  if (!_sdk) return false;
+  try {
+    await _sdk.commands.inviteUserEmbedded({ user_id: userId, content });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function openDiscordInviteDialog(): Promise<boolean> {
+  if (IS_MOCK_DISCORD) return true;
+  if (!_sdk) return false;
+  try {
+    await _sdk.commands.openInviteDialog();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function getConnectedParticipants(): Promise<DiscordParticipant[]> {
   if (IS_MOCK_DISCORD) return MOCK_DISCORD_PARTICIPANTS;
   if (!_sdk) return [];
@@ -65,12 +113,37 @@ export async function getConnectedParticipants(): Promise<DiscordParticipant[]> 
   }
 }
 
+let _channelType: number | null = null;
+
+export function getChannelType(): number | null {
+  return _channelType;
+}
+
+export async function isVoiceChannel(): Promise<boolean> {
+  if (IS_MOCK_DISCORD) return true;
+  if (_channelType !== null) return _channelType === 2;
+  await getChannelInfo();
+  return _channelType === 2;
+}
+
 export async function getChannelName(): Promise<string | null> {
   if (IS_MOCK_DISCORD) return MOCK_CHANNEL_NAME;
   if (!_sdk || !_channelId) return null;
   try {
     const result = await _sdk.commands.getChannel({ channel_id: _channelId });
+    _channelType = result?.type ?? null;
     return result?.name ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function getChannelInfo(): Promise<{ name: string | null; type: number | null } | null> {
+  if (!_sdk || !_channelId) return null;
+  try {
+    const result = await _sdk.commands.getChannel({ channel_id: _channelId });
+    _channelType = result?.type ?? null;
+    return { name: result?.name ?? null, type: result?.type ?? null };
   } catch {
     return null;
   }

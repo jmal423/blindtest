@@ -222,10 +222,26 @@ app.get('/api/genres', (req, res) => {
 
 // Rooms (auth required)
 app.post('/api/rooms', authenticate, async (req, res) => {
-  const { genres = [], artists = [], gameMode = 'genre', rounds, roundTime } = req.body;
+  const { genres = [], artists = [], gameMode = 'genre', rounds, roundTime, discordChannelId } = req.body;
 
   const user = await get('SELECT id, username, avatar_url, role FROM users WHERE id = ?', [req.user.userId]);
   if (!user) return res.status(401).json({ error: 'User not found' });
+
+  // If discordChannelId provided, check if there's already a room for this channel
+  if (discordChannelId) {
+    for (const room of rooms.values()) {
+      if (room.discordChannelId === discordChannelId && room.state === 'waiting') {
+        const existing = room.players.find(p => p.userId === user.id);
+        if (existing) {
+          broadcastState(room.code);
+          return res.json({ code: room.code, playerId: existing.id, settings: room.getSettings(), genres: room.genres, artists: room.artists });
+        }
+        const playerId = room.addPlayer(user.username, user.avatar_url, user.role, user.id);
+        broadcastState(room.code);
+        return res.json({ code: room.code, playerId, settings: room.getSettings(), genres: room.genres, artists: room.artists });
+      }
+    }
+  }
 
   const existing = findRoomByUserId(user.id);
   if (existing) existing.removePlayer(existing.players.find(p => p.userId === user.id)?.id);
@@ -233,12 +249,23 @@ app.post('/api/rooms', authenticate, async (req, res) => {
   const code = generateCode();
   const room = new GameRoom(code, genres, io);
   room.artists = artists;
+  room.discordChannelId = discordChannelId || null;
   room.updateSettings({ gameMode });
   if (rounds || roundTime) room.updateSettings({ rounds, roundTime });
   const playerId = room.addPlayer(user.username, user.avatar_url, user.role, user.id);
   rooms.set(code, room);
 
   res.json({ code, playerId, settings: room.getSettings(), genres: room.genres, artists: room.artists });
+});
+
+app.get('/api/rooms/by-channel/:channelId', authenticate, (req, res) => {
+  const { channelId } = req.params;
+  for (const room of rooms.values()) {
+    if (room.discordChannelId === channelId && room.state === 'waiting') {
+      return res.json({ code: room.code, state: room.state, playerCount: room.players.length });
+    }
+  }
+  res.json({ code: null });
 });
 
 app.post('/api/rooms/join', authenticate, async (req, res) => {

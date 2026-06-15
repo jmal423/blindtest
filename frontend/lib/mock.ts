@@ -16,6 +16,24 @@ export const MOCK_DISCORD_PARTICIPANTS = [
 
 export const MOCK_CHANNEL_NAME = 'Music Quiz 🎵';
 
+export const MOCK_DISCORD_RELATIONSHIPS = [
+  {
+    type: 1,
+    user: { id: 'discord-rel-1', username: 'FriendOne', global_name: 'FriendOne', discriminator: '0', avatar: null, bot: false, flags: 0 },
+    presence: { status: 'online' },
+  },
+  {
+    type: 1,
+    user: { id: 'discord-rel-2', username: 'JazzFan', global_name: 'JazzFan', discriminator: '0', avatar: null, bot: false, flags: 0 },
+    presence: { status: 'idle' },
+  },
+  {
+    type: 1,
+    user: { id: 'discord-rel-3', username: 'RockGod', global_name: 'RockGod', discriminator: '0', avatar: null, bot: false, flags: 0 },
+    presence: { status: 'offline' },
+  },
+];
+
 export const MOCK_USER = {
   id: 'mock-user-1',
   username: 'PlayerOne',

@@ -14,8 +14,8 @@ import Podium from './Podium';
 import DebugOverlay from './DebugOverlay';
 import { useSound } from '@/lib/useSound';
 import { getProxiedUrl } from '@/lib/proxy';
-import { isDiscordActivity, getDiscordSdk, subscribeToParticipants, getConnectedParticipants, getInstanceId } from '@/lib/discordActivity';
-import type { DiscordParticipant } from '@/lib/discordActivity';
+import { isDiscordActivity, getDiscordSdk, subscribeToParticipants, getConnectedParticipants, getInstanceId, getDiscordRelationships, inviteDiscordUser, openDiscordInviteDialog } from '@/lib/discordActivity';
+import type { DiscordParticipant, DiscordRelationship } from '@/lib/discordActivity';
 import { updateRichPresence, clearRichPresence } from '@/lib/discordRichPresence';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005';
@@ -723,6 +723,7 @@ function WaitingRoom({
   const [allGenres, setAllGenres] = useState<{ id: string; label: string; group?: string }[]>([]);
   const [genreGroups, setGenreGroups] = useState<{ id: string; genreIds: string[] }[]>([]);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const [expandedArtistGroups, setExpandedArtistGroups] = useState<Set<string>>(new Set());
   const [artistGroups, setArtistGroups] = useState<{ id: string; name: string; artists: string[] }[]>([]);
 
   useEffect(() => {
@@ -735,14 +736,17 @@ function WaitingRoom({
   const [friendsList, setFriendsList] = useState<any[]>([]);
   const [invitedIds, setInvitedIds] = useState<Set<string>>(new Set());
   const [modalLoading, setModalLoading] = useState(false);
+  const [discordRelationships, setDiscordRelationships] = useState<DiscordRelationship[]>([]);
+  const [discordInvitedIds, setDiscordInvitedIds] = useState<Set<string>>(new Set());
+  const discordCtx = isDiscordActivity();
 
   useEffect(() => {
     if (showInviteModal) {
       setModalLoading(true);
-      getFriends()
-        .then(data => setFriendsList(data.friends || []))
-        .catch(() => {})
-        .finally(() => setModalLoading(false));
+      Promise.all([
+        getFriends().then(d => setFriendsList(d.friends || [])).catch(() => {}),
+        discordCtx ? getDiscordRelationships().then(setDiscordRelationships).catch(() => {}) : Promise.resolve(),
+      ]).finally(() => setModalLoading(false));
     }
   }, [showInviteModal]);
 
@@ -763,6 +767,24 @@ function WaitingRoom({
       }, 3000);
     } catch (err) {
       console.error('Failed to send invite:', err);
+    }
+  };
+
+  const handleDiscordInvite = async (userId: string) => {
+    const ok = await inviteDiscordUser(userId, `Join me in BlindTest! Room code: ${gameCode}`);
+    if (ok) {
+      setDiscordInvitedIds(prev => {
+        const next = new Set(prev);
+        next.add(userId);
+        return next;
+      });
+      setTimeout(() => {
+        setDiscordInvitedIds(prev => {
+          const next = new Set(prev);
+          next.delete(userId);
+          return next;
+        });
+      }, 3000);
     }
   };
 
@@ -791,6 +813,15 @@ function WaitingRoom({
 
   const toggleGroup = (groupId: string) => {
     setExpandedGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(groupId)) next.delete(groupId);
+      else next.add(groupId);
+      return next;
+    });
+  };
+
+  const toggleArtistGroup = (groupId: string) => {
+    setExpandedArtistGroups(prev => {
       const next = new Set(prev);
       if (next.has(groupId)) next.delete(groupId);
       else next.add(groupId);
@@ -1162,91 +1193,167 @@ function WaitingRoom({
               </>
               ) : (
                 <div className="space-y-4">
-                  <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
                     <label className="text-xs font-medium text-foreground/60">Selected Artists</label>
-                    <div className="flex flex-wrap gap-1.5 min-h-[32px]">
-                      {artists.length === 0 && <span className="text-xs text-foreground/30 italic">No artists selected...</span>}
-                      {artists.map(a => (
-                        <div
-                          key={a}
-                          className="flex items-center gap-1.5 px-3 py-1 bg-[var(--primary)]/20 text-[var(--primary)] border border-[var(--primary)]/30 rounded-full text-[11px] font-semibold animate-slide-up"
-                        >
-                          <span className="truncate max-w-[150px]">{a}</span>
-                          {isHost && (
-                            <button
-                              onClick={() => toggleArtist(a)}
-                              className="hover:text-red-400 p-0.5 rounded-full transition-colors cursor-pointer flex items-center justify-center"
-                              title="Remove artist"
-                            >
-                              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  {isHost && (
-                    <div className="space-y-4">
-                      {artistGroups.length > 0 && (
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] font-semibold tracking-wider uppercase text-foreground/40">AI Playlists</label>
-                          <select
-                            onChange={(e) => {
-                              if (!e.target.value) return;
-                              const group = artistGroups.find(g => g.id === e.target.value);
-                              if (group) {
-                                const newArtists = Array.from(new Set([...artists, ...group.artists]));
-                                onArtistsChange(newArtists);
-                              }
-                              e.target.value = "";
-                            }}
-                            className="w-full px-3 py-2 bg-white/[0.02] border border-white/5 rounded-xl text-xs text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors cursor-pointer"
-                          >
-                            <option value="" className="bg-[var(--background)] text-foreground/50">-- Select an AI Playlist --</option>
-                            {artistGroups.map(g => (
-                              <option key={g.id} value={g.id} className="bg-[var(--background)] text-foreground">
-                                {g.name} ({g.artists.length} artists)
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      )}
-                      
-                      <div className="space-y-1.5">
-                      <label htmlFor="artist-input" className="text-[10px] font-semibold tracking-wider uppercase text-foreground/40">Add Artist</label>
-                      <form
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                          const form = e.currentTarget;
-                          const input = form.elements.namedItem('customArtist') as HTMLInputElement;
-                          const value = input?.value?.trim();
-                          if (value && !artists.some(a => a.toLowerCase() === value.toLowerCase())) {
-                            onArtistsChange([...artists, value]);
-                            input.value = '';
-                          }
-                        }}
-                        className="flex gap-2"
+                    {isHost && artists.length > 0 && (
+                      <button
+                        onClick={() => onArtistsChange([])}
+                        className="text-[9px] font-bold uppercase tracking-wider text-foreground/40 hover:text-red-400 transition-colors px-2 py-0.5 rounded cursor-pointer"
                       >
-                        <input
-                          id="artist-input"
-                          name="customArtist"
-                          type="text"
-                          placeholder="e.g. Daft Punk, Taylor Swift..."
-                          maxLength={50}
-                          className="flex-1 px-3 py-2 bg-white/[0.02] border border-white/5 rounded-xl text-xs text-foreground placeholder-foreground/30 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors"
-                        />
-                        <button
-                          type="submit"
-                          className="px-3.5 py-2 bg-white/5 hover:bg-white/10 text-foreground/80 hover:text-foreground font-semibold rounded-xl border border-white/5 transition-all text-xs cursor-pointer active:scale-95 flex items-center justify-center shrink-0"
-                        >
-                          Add
-                        </button>
-                      </form>
+                        Clear All
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 min-h-[32px]">
+                    {artists.length === 0 && <span className="text-xs text-foreground/30 italic">No artists selected...</span>}
+                    {artists.map(a => (
+                      <div
+                        key={a}
+                        className="flex items-center gap-1.5 px-3 py-1 bg-[var(--primary)]/20 text-[var(--primary)] border border-[var(--primary)]/30 rounded-full text-[11px] font-semibold animate-slide-up"
+                      >
+                        <span className="truncate max-w-[150px]">{a}</span>
+                        {isHost && (
+                          <button
+                            onClick={() => toggleArtist(a)}
+                            className="hover:text-red-400 p-0.5 rounded-full transition-colors cursor-pointer flex items-center justify-center"
+                            title="Remove artist"
+                          >
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        )}
                       </div>
+                    ))}
+                  </div>
+
+                  {isHost && (
+                    <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
+                      {artistGroups.map(group => {
+                        if (group.artists.length === 0) return null;
+                        const isCollapsed = !expandedArtistGroups.has(group.id);
+                        const allSelected = group.artists.every(a => artists.includes(a));
+                        const someSelected = group.artists.some(a => artists.includes(a));
+                        return (
+                          <div key={group.id} className="border border-white/5 rounded-xl bg-white/[0.01] overflow-hidden transition-all duration-300 hover:border-white/10 hover:bg-white/[0.02]">
+                            <button
+                              onClick={() => toggleArtistGroup(group.id)}
+                              className="w-full flex items-center justify-between px-3.5 py-2.5 text-xs font-semibold text-foreground/80 hover:text-foreground transition-colors cursor-pointer"
+                            >
+                              <span className="flex items-center gap-2">
+                                <span className={`w-1.5 h-1.5 rounded-full ${someSelected ? 'bg-[var(--primary)]' : 'bg-foreground/30'} transition-all`} />
+                                {group.name}
+                              </span>
+                              <div className="flex items-center gap-2.5">
+                                {isHost && (
+                                  <span
+                                    onClick={(e) => { e.stopPropagation(); onArtistsChange(allSelected ? artists.filter(a => !group.artists.includes(a)) : Array.from(new Set([...artists, ...group.artists]))); }}
+                                    className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded transition-all cursor-pointer ${
+                                      allSelected
+                                        ? 'bg-[var(--primary)]/20 text-[var(--primary)] border border-[var(--primary)]/30 hover:bg-[var(--primary)]/35'
+                                        : someSelected
+                                          ? 'bg-white/10 text-foreground/60 border border-white/10 hover:bg-white/20'
+                                          : 'bg-white/5 text-foreground/40 border border-transparent hover:bg-white/10'
+                                    }`}
+                                  >
+                                    {allSelected ? 'Clear' : 'All'}
+                                  </span>
+                                )}
+                                <svg
+                                  className={`w-3.5 h-3.5 text-foreground/40 transition-transform duration-300 ${isCollapsed ? '' : 'rotate-180'}`}
+                                  fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                >
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                                </svg>
+                              </div>
+                            </button>
+
+                            <motion.div
+                              initial={false}
+                              animate={{ height: isCollapsed ? 0 : 'auto', opacity: isCollapsed ? 0 : 1 }}
+                              transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+                              className="overflow-hidden"
+                            >
+                              <div className="px-3.5 pb-3.5 pt-1 border-t border-white/[0.03]">
+                                <div className="flex flex-wrap gap-1.5">
+                                  {group.artists.map(artist => {
+                                    const selected = artists.includes(artist);
+                                    return (
+                                      <button
+                                        key={artist}
+                                        onClick={() => toggleArtist(artist)}
+                                        className={`px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all border ${
+                                          selected
+                                            ? 'bg-gradient-to-r from-primary to-accent text-foreground border-transparent shadow-md shadow-primary/10 scale-100 hover:brightness-110 active:scale-95'
+                                            : 'bg-white/[0.02] text-foreground/60 border-white/5 hover:bg-white/[0.06] hover:text-foreground/90 hover:border-white/10 active:scale-95'
+                                        } cursor-pointer`}
+                                      >
+                                        {artist}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            </motion.div>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
+
+                  <div className="space-y-3 pt-3.5 mt-3.5 border-t border-white/5">
+                    {(() => {
+                      const allArtistList = artistGroups.flatMap(g => g.artists);
+                      const customSelectedArtists = artists.filter(a => !allArtistList.includes(a));
+                      return (
+                        <>
+                          {customSelectedArtists.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5">
+                              {customSelectedArtists.map(a => (
+                                <div
+                                  key={a}
+                                  className="flex items-center gap-1.5 px-3 py-1 bg-white/[0.03] border border-dashed border-white/10 rounded-full text-[11px] font-semibold text-foreground/70"
+                                >
+                                  <span>{a}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {isHost && (
+                            <div className="space-y-1.5">
+                              <form
+                                onSubmit={(e) => {
+                                  e.preventDefault();
+                                  const form = e.currentTarget;
+                                  const input = form.elements.namedItem('customArtist') as HTMLInputElement;
+                                  const value = input?.value?.trim();
+                                  if (value && !artists.some(a => a.toLowerCase() === value.toLowerCase())) {
+                                    onArtistsChange([...artists, value]);
+                                    input.value = '';
+                                  }
+                                }}
+                                className="flex gap-2"
+                              >
+                                <input
+                                  name="customArtist"
+                                  type="text"
+                                  placeholder="e.g. Daft Punk, Taylor Swift..."
+                                  maxLength={50}
+                                  className="flex-1 px-3 py-2 bg-white/[0.02] border border-white/5 rounded-xl text-xs text-foreground placeholder-foreground/30 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors"
+                                />
+                                <button
+                                  type="submit"
+                                  className="px-3.5 py-2 bg-white/5 hover:bg-white/10 text-foreground/80 hover:text-foreground font-semibold rounded-xl border border-white/5 transition-all text-xs cursor-pointer active:scale-95 flex items-center justify-center shrink-0"
+                                >
+                                  Add
+                                </button>
+                              </form>
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
                 </div>
               )}
             </div>
@@ -1318,7 +1425,7 @@ function WaitingRoom({
               className="w-full max-w-md bg-background border border-white/10 rounded-3xl p-6 shadow-2xl flex flex-col gap-4 max-h-[80vh] text-foreground"
             >
               <div className="flex items-center justify-between border-b border-white/5 pb-3">
-                <h3 className="text-base font-bold text-foreground/90 uppercase tracking-wider">Invite Friends</h3>
+                <h3 className="text-base font-bold text-foreground/90 uppercase tracking-wider">Add Players</h3>
                 <button 
                   onClick={() => setShowInviteModal(false)}
                   className="text-foreground/40 hover:text-foreground transition-colors cursor-pointer"
@@ -1332,56 +1439,134 @@ function WaitingRoom({
               {modalLoading ? (
                 <div className="flex flex-col items-center justify-center py-12 gap-2">
                   <div className="w-6 h-6 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin"></div>
-                  <p className="text-xs text-foreground/40 font-medium">Loading friends...</p>
+                  <p className="text-xs text-foreground/40 font-medium">Loading...</p>
                 </div>
               ) : (
                 <div className="flex-1 overflow-y-auto space-y-2 pr-1 max-h-[50vh]">
-                  {friendsList.map(f => {
-                    const presence = f.presence || { status: 'offline', roomCode: null };
-                    let isOnline = presence.status !== 'offline';
-                    let statusColor = isOnline ? 'bg-emerald-500' : 'bg-foreground/20';
-                    let statusText = isOnline 
-                      ? presence.status === 'lobby' ? 'In Lobby' : 'In Game' 
-                      : 'Offline';
-                    const isInvited = invitedIds.has(f.id);
+                  {discordCtx && (
+                    <button
+                      onClick={() => { openDiscordInviteDialog(); }}
+                      className="w-full flex items-center justify-center gap-2 p-3 bg-blurple/10 hover:bg-blurple/20 border border-blurple/20 hover:border-blurple/30 rounded-2xl text-xs font-bold text-blurple transition-all cursor-pointer mb-3"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0778.0778 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189z"/>
+                      </svg>
+                      Share Invite Link
+                    </button>
+                  )}
 
-                    return (
-                      <div key={f.id} className="flex items-center justify-between p-3 bg-white/[0.02] border border-white/5 rounded-2xl shadow-sm hover:bg-white/[0.04] transition-all">
-                        <div className="flex items-center gap-3">
-                          <div className="relative">
-                            <div className="w-9 h-9 rounded-full bg-surface-light flex items-center justify-center font-bold border border-white/10 overflow-hidden relative shadow-inner">
-                              {f.avatar_url ? (
-                                <img src={f.avatar_url} alt="" className="w-full h-full object-cover" />
-                              ) : (
-                                f.username[0].toUpperCase()
-                              )}
+                  {players.length > 0 && (
+                    <>
+                      <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest px-1">In This Room ({players.length})</p>
+                      {players.map(p => (
+                        <div key={p.id} className="flex items-center justify-between p-3 bg-white/[0.02] border border-white/5 rounded-2xl shadow-sm">
+                          <div className="flex items-center gap-3">
+                            <div className="relative">
+                              <div className="w-9 h-9 rounded-full bg-surface-light flex items-center justify-center font-bold border border-white/10 overflow-hidden shadow-inner text-xs">
+                                {p.avatarUrl ? <img src={p.avatarUrl} alt="" className="w-full h-full object-cover" /> : p.name[0].toUpperCase()}
+                              </div>
+                              <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-background bg-emerald-500" />
                             </div>
-                            <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-background ${statusColor}`} />
-                          </div>
-                          <div className="space-y-0.5">
-                            <p className="font-bold text-xs text-foreground/90">{f.username}</p>
-                            <p className="text-[9px] text-foreground/40 font-semibold">{statusText}</p>
+                            <div className="space-y-0.5">
+                              <p className="font-bold text-xs text-foreground/90">{p.name}</p>
+                              <p className="text-[9px] text-emerald-400 font-semibold">In Room</p>
+                            </div>
                           </div>
                         </div>
+                      ))}
+                    </>
+                  )}
 
-                        <button
-                          disabled={isInvited}
-                          onClick={() => handleSendInvite(f.id)}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                            isInvited
-                              ? 'bg-green-500/10 text-green-400 border border-green-500/20'
-                              : 'bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-foreground shadow shadow-primary/20 active:scale-95'
-                          }`}
-                        >
-                          {isInvited ? 'Invited!' : 'Invite'}
-                        </button>
-                      </div>
-                    );
-                  })}
+                  {discordRelationships.length > 0 && (
+                    <>
+                      <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest px-1 pt-2">Discord Friends</p>
+                      {discordRelationships.map(r => {
+                        const name = r.user.global_name || r.user.username;
+                        const isInRoom = players.some(p => p.name === name || p.name === r.user.username);
+                        const isInvited = discordInvitedIds.has(r.user.id);
+                        const status = r.presence?.status || 'offline';
+                        const isOnline = status !== 'offline';
+                        return (
+                          <div key={r.user.id} className="flex items-center justify-between p-3 bg-white/[0.02] border border-white/5 rounded-2xl shadow-sm hover:bg-white/[0.04] transition-all">
+                            <div className="flex items-center gap-3">
+                              <div className="relative">
+                                <div className="w-9 h-9 rounded-full bg-blurple/20 flex items-center justify-center font-bold border border-blurple/20 overflow-hidden shadow-inner text-xs text-blurple">
+                                  {name[0].toUpperCase()}
+                                </div>
+                                <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-background ${isOnline ? 'bg-emerald-500' : 'bg-foreground/20'}`} />
+                              </div>
+                              <div className="space-y-0.5">
+                                <p className="font-bold text-xs text-foreground/90">{name}</p>
+                                <p className="text-[9px] text-foreground/40 font-semibold capitalize">{status}</p>
+                              </div>
+                            </div>
+                            {isInRoom ? (
+                              <span className="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">In Room</span>
+                            ) : (
+                              <button
+                                disabled={isInvited}
+                                onClick={() => handleDiscordInvite(r.user.id)}
+                                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                                  isInvited
+                                    ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                                    : 'bg-blurple hover:bg-blurple/80 text-white shadow shadow-blurple/20 active:scale-95'
+                                }`}
+                              >
+                                {isInvited ? 'Invited!' : 'Add to Activity'}
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </>
+                  )}
 
-                  {friendsList.length === 0 && (
+                  {friendsList.length > 0 && (
+                    <>
+                      <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest px-1 pt-2">Friends</p>
+                      {friendsList.map(f => {
+                        const presence = f.presence || { status: 'offline', roomCode: null };
+                        const isOnline = presence.status !== 'offline';
+                        const statusText = isOnline ? (presence.status === 'lobby' ? 'In Lobby' : 'In Game') : 'Offline';
+                        const isInvited = invitedIds.has(f.id);
+                        const alreadyInRoom = players.some(p => p.name === f.username || p.name === f.display_name || p.id === f.id);
+
+                        if (alreadyInRoom) return null;
+
+                        return (
+                          <div key={f.id} className="flex items-center justify-between p-3 bg-white/[0.02] border border-white/5 rounded-2xl shadow-sm hover:bg-white/[0.04] transition-all">
+                            <div className="flex items-center gap-3">
+                              <div className="relative">
+                                <div className="w-9 h-9 rounded-full bg-surface-light flex items-center justify-center font-bold border border-white/10 overflow-hidden shadow-inner text-xs">
+                                  {f.avatar_url ? <img src={f.avatar_url} alt="" className="w-full h-full object-cover" /> : f.username[0].toUpperCase()}
+                                </div>
+                                <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-background ${isOnline ? 'bg-emerald-500' : 'bg-foreground/20'}`} />
+                              </div>
+                              <div className="space-y-0.5">
+                                <p className="font-bold text-xs text-foreground/90">{f.username}</p>
+                                <p className="text-[9px] text-foreground/40 font-semibold">{statusText}</p>
+                              </div>
+                            </div>
+                            <button
+                              disabled={isInvited}
+                              onClick={() => handleSendInvite(f.id)}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                                isInvited
+                                  ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                                  : 'bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-foreground shadow shadow-primary/20 active:scale-95'
+                              }`}
+                            >
+                              {isInvited ? 'Invited!' : 'Invite'}
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </>
+                  )}
+
+                  {discordRelationships.length === 0 && friendsList.length === 0 && players.length === 0 && (
                     <div className="py-12 text-center flex flex-col items-center justify-center gap-3">
-                      <p className="text-foreground/20 text-xs">No friends found. Add friends in your profile first!</p>
+                      <p className="text-foreground/20 text-xs">No players or friends yet.</p>
                     </div>
                   )}
                 </div>

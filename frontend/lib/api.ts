@@ -43,10 +43,26 @@ export async function fetchGenreGroups(): Promise<{ genres: { id: string; label:
   return data;
 }
 
+export async function findRoomByChannelId(channelId: string): Promise<{ code: string | null; state?: string; playerCount?: number }> {
+  const token = getToken();
+  if (!token) return { code: null };
+  if (IS_MOCK) return { code: 'MOCK', state: 'waiting', playerCount: 3 };
+  try {
+    const res = await fetch(`${API_URL}/api/rooms/by-channel/${channelId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return { code: null };
+    return res.json();
+  } catch {
+    return { code: null };
+  }
+}
+
 export async function createRoom(
   genres?: string[],
   artists?: string[],
-  gameMode?: 'genre' | 'artist'
+  gameMode?: 'genre' | 'artist',
+  discordChannelId?: string
 ): Promise<{ code: string; playerId: string; settings: RoomSettings; genres: string[]; artists: string[] }> {
   const token = getToken();
   if (!token) throw new Error('Authentication required');
@@ -57,7 +73,7 @@ export async function createRoom(
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ genres, artists, gameMode }),
+    body: JSON.stringify({ genres, artists, gameMode, discordChannelId }),
   });
   if (!res.ok) {
     const data = await res.json();

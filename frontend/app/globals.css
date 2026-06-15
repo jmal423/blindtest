@@ -8,9 +8,11 @@
   --accent: #f0c040;
   --surface: #121010;
   --surface-light: #1e1818;
+  --blurple: #5865F2;
 }
 
 @theme inline {
+  --color-blurple: var(--blurple);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);

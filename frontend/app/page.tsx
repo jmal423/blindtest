@@ -8,8 +8,9 @@ import { useAuth } from '@/app/context/AuthContext';
 import { getDiscordAuthUrl, createRoom, joinRoom, getLeaderboard } from '@/lib/api';
 import { useTranslation } from '@/lib/useTranslation';
 import LanguageSwitcher from '@/app/components/LanguageSwitcher';
-import { isDiscordActivity, getConnectedParticipants, getChannelName, subscribeToParticipants } from '@/lib/discordActivity';
+import { isDiscordActivity, getConnectedParticipants, getChannelName, getChannelInfo, subscribeToParticipants, getChannelId } from '@/lib/discordActivity';
 import type { DiscordParticipant } from '@/lib/discordActivity';
+import { findRoomByChannelId } from '@/lib/api';
 
 function MusicVisualizer() {
   return (
@@ -185,12 +186,17 @@ function Dashboard() {
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [lbLoading, setLbLoading] = useState(true);
   const [discordChannel, setDiscordChannel] = useState<string | null>(null);
+  const [discordChannelType, setDiscordChannelType] = useState<number | null>(null);
   const [discordParticipants, setDiscordParticipants] = useState<DiscordParticipant[]>([]);
   const discordContext = isDiscordActivity();
+  const isVoice = discordChannelType === null || discordChannelType === 2;
 
   useEffect(() => {
     if (!discordContext) return;
-    getChannelName().then(setDiscordChannel);
+    getChannelInfo().then(info => {
+      setDiscordChannel(info?.name ?? null);
+      setDiscordChannelType(info?.type ?? null);
+    });
     getConnectedParticipants().then(setDiscordParticipants);
     const unsub = subscribeToParticipants(setDiscordParticipants);
     return unsub;
@@ -208,6 +214,31 @@ function Dashboard() {
     setError('');
     try {
       const { code, playerId } = await createRoom([]);
+      localStorage.setItem(`blindtest_player_${code}`, playerId);
+      router.push(`/game/${code}`);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : t('something_went_wrong'));
+      setLoading(false);
+    }
+  };
+
+  const handleDiscordPlay = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const channelId = getChannelId();
+      // Try to find existing room for this channel
+      if (channelId) {
+        const existing = await findRoomByChannelId(channelId);
+        if (existing?.code) {
+          const { code: roomCode, playerId } = await (await import('@/lib/api')).joinRoom(existing.code);
+          localStorage.setItem(`blindtest_player_${roomCode}`, playerId);
+          router.push(`/game/${roomCode}`);
+          return;
+        }
+      }
+      // Create new room linked to this channel
+      const { code, playerId } = await createRoom([], undefined, undefined, channelId || undefined);
       localStorage.setItem(`blindtest_player_${code}`, playerId);
       router.push(`/game/${code}`);
     } catch (err: unknown) {
@@ -259,20 +290,9 @@ function Dashboard() {
             participants={discordParticipants}
             loading={loading}
             error={error}
+            isVoice={isVoice}
             onClearError={() => setError('')}
-            onCreate={() => {
-              setLoading(true);
-              setError('');
-              createRoom([])
-                .then(({ code, playerId }) => {
-                  localStorage.setItem(`blindtest_player_${code}`, playerId);
-                  router.push(`/game/${code}`);
-                })
-                .catch((err: unknown) => {
-                  setError(err instanceof Error ? err.message : t('something_went_wrong'));
-                  setLoading(false);
-                });
-            }}
+            onCreate={handleDiscordPlay}
           />
         ) : (
           <div className="bg-white/[0.01] backdrop-blur-xl border border-white/5 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
@@ -452,15 +472,19 @@ function Dashboard() {
   );
 }
 
-function DiscordLobbyCard({ channelName, participants, loading, error, onClearError, onCreate }: {
+function DiscordLobbyCard({ channelName, participants, loading, error, isVoice, onClearError, onCreate }: {
   channelName: string | null;
   participants: DiscordParticipant[];
   loading: boolean;
   error: string;
+  isVoice: boolean;
   onClearError: () => void;
   onCreate: () => void;
 }) {
   const { t } = useTranslation();
+  const subtitle = isVoice
+    ? participants.length > 0 ? `with ${participants.length} in voice` : 'No one in voice yet'
+    : 'Share the room code in chat';
   return (
     <div className="bg-white/[0.01] backdrop-blur-xl border border-white/5 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden w-full max-w-lg">
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#5865F2] to-[var(--accent)]" />
@@ -473,15 +497,15 @@ function DiscordLobbyCard({ channelName, participants, loading, error, onClearEr
         </div>
         <div className="min-w-0">
           <h3 className="text-sm font-bold text-foreground/90 truncate">
-            {channelName || 'Voice Channel'}
+            {channelName || (isVoice ? 'Voice Channel' : 'Text Channel')}
           </h3>
           <p className="text-[10px] text-foreground/40 font-semibold">
-            {participants.length} connected
+            {isVoice ? `${participants.length} connected` : 'Chat channel'}
           </p>
         </div>
       </div>
 
-      {participants.length > 0 && (
+      {isVoice && participants.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mb-4">
           {participants.map(p => (
             <div key={p.id} className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#5865F2]/10 border border-[#5865F2]/20 rounded-xl text-[11px] text-foreground/80">
@@ -506,11 +530,11 @@ function DiscordLobbyCard({ channelName, participants, loading, error, onClearEr
         className="w-full py-4 bg-gradient-to-r from-[#5865F2] to-[var(--accent)] hover:brightness-110 text-foreground font-black text-sm rounded-2xl transition-all disabled:opacity-50 hover:scale-[1.01] active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2 shadow-lg shadow-[#5865F2]/15"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3" /></svg>
-        {loading ? 'Creating...' : 'Play with Voice Channel'}
+        {loading ? 'Creating...' : isVoice ? 'Play with Voice Channel' : 'Start a Game'}
       </button>
 
       <p className="text-[10px] text-foreground/40 font-semibold text-center mt-2">
-        Start a game with everyone in this voice channel
+        {subtitle}
       </p>
     </div>
   );
