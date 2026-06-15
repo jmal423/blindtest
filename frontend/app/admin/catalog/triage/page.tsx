@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { getUnclassifiedTracks, updateAiGenre, deleteAiTrack, fetchGenres } from '@/lib/api';
-import { getProxiedUrl } from '@/lib/proxy';
 import { useSettings } from '@/app/context/SettingsContext';
 import { DataTable } from '../../components/DataTable';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
@@ -12,7 +11,6 @@ interface Track {
   name: string;
   artist: string;
   album_image: string | null;
-  preview_url: string | null;
   rank: number;
 }
 
@@ -99,7 +97,7 @@ export default function TriagePage() {
       render: (track: Track) => (
         <button
           onClick={() => playPreview(track)}
-          disabled={!track.preview_url}
+          disabled={!track.id?.startsWith('deezer:')}
           className="w-8 h-8 rounded-lg flex items-center justify-center text-xs shrink-0 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
           style={{ backgroundColor: audioPlayingId === track.id ? 'color-mix(in srgb, var(--primary) 20%, transparent)' : 'color-mix(in srgb, var(--foreground) 5%, transparent)' }}
         >
