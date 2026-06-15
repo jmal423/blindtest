@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { getMe } from '@/lib/api';
 
 import { SystemTab } from './tabs/SystemTab';
@@ -180,24 +180,21 @@ export default function AdminPage() {
         </div>
 
         <main className="flex-1 p-6 md:p-8 max-w-6xl w-full mx-auto space-y-6">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.15 }}
-            >
-              {activeTab === 'system' && <SystemTab />}
-              {activeTab === 'users' && <UsersTab />}
-              {activeTab === 'rooms' && <RoomsTab />}
-              {activeTab === 'leaderboard' && <LeaderboardTab />}
-              {activeTab === 'music' && <MusicTab />}
-              {activeTab === 'curated' && <CuratedTab />}
-              {activeTab === 'ai' && <AiTab />}
-              {activeTab === 'api' && <ApiTab />}
-            </motion.div>
-          </AnimatePresence>
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.15 }}
+          >
+            {activeTab === 'system' && <SystemTab />}
+            {activeTab === 'users' && <UsersTab />}
+            {activeTab === 'rooms' && <RoomsTab />}
+            {activeTab === 'leaderboard' && <LeaderboardTab />}
+            {activeTab === 'music' && <MusicTab />}
+            {activeTab === 'curated' && <CuratedTab />}
+            {activeTab === 'ai' && <AiTab />}
+            {activeTab === 'api' && <ApiTab />}
+          </motion.div>
         </main>
       </div>
     </div>
