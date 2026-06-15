@@ -244,8 +244,8 @@ export async function getUnclassifiedTracks() {
 export async function updateSongGenre(id, genre) {
   await run(
     `UPDATE songs_cache
-     SET ai_genres = jsonb_build_array(?),
-         ai_confidence = jsonb_build_object(?, 0.95),
+     SET ai_genres = jsonb_build_array(?::text),
+         ai_confidence = jsonb_build_object(?::text, 0.95),
          ai_processed_at = NOW(),
          ai_version = 'manual-v1'
      WHERE id = ?`,
