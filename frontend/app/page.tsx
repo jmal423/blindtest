@@ -203,14 +203,7 @@ function Dashboard() {
           return;
         }
       }
-      let allGenreIds: string[] = [];
-      try {
-        const groups = await fetchGenreGroups();
-        allGenreIds = groups.genres.map(g => g.id);
-      } catch {
-        try { allGenreIds = (await fetchGenres()).map(g => g.id); } catch {}
-      }
-      const { code, playerId } = await createRoom(allGenreIds, undefined, undefined, channelId || undefined);
+      const { code, playerId } = await createRoom([], undefined, undefined, channelId || undefined);
       localStorage.setItem(`blindtest_player_${code}`, playerId);
       router.replace(`/game/${code}`);
     })();
