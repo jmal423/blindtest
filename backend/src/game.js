@@ -76,10 +76,41 @@ function shuffle(array) {
   return arr;
 }
 
+function weightedShuffle(tracks, difficulty = 0) {
+  const maxRank = 1000000;
+  const weights = tracks.map(t => {
+    const rank = t.rank || 0;
+    const base = Math.max(rank / maxRank, 0.05);
+    return base + (1 - base) * difficulty;
+  });
+  const totalWeight = weights.reduce((a, b) => a + b, 0);
+  if (totalWeight <= 0) return shuffle(tracks);
+
+  const result = [];
+  const indices = tracks.map((_, i) => i);
+  const remainingWeights = [...weights];
+
+  while (indices.length > 0) {
+    const total = remainingWeights.reduce((a, b) => a + b, 0);
+    let r = Math.random() * total;
+    let pick = 0;
+    for (let i = 0; i < remainingWeights.length; i++) {
+      r -= remainingWeights[i];
+      if (r <= 0) { pick = i; break; }
+    }
+    result.push(tracks[indices[pick]]);
+    indices.splice(pick, 1);
+    remainingWeights.splice(pick, 1);
+  }
+  return result;
+}
+
 export class GameRoom {
   constructor(code, genres, io) {
     this.code = code;
     this.genres = genres;
+    this.difficulty = 0;
+    this.roundFoundRates = [];
     this.artists = [];
     this.settings = { rounds: 10, roundTime: 15, pauseTime: 4, autoStart: false, audioSource: 'deezer', gameMode: 'genre' };
     this.tracks = [];
@@ -310,7 +341,10 @@ export class GameRoom {
       }
 
       if (allTracks.length === 0) {
-        console.log(`[Game] No tracks from selected ${this.settings.gameMode}s, fetching global top chart as fallback`);
+        if (this.settings.gameMode === 'artist') {
+          return `No tracks found for the selected artists. Check that the artist names are correct or select different artists.`;
+        }
+        console.log(`[Game] No tracks from selected genres, fetching global top chart as fallback`);
         try {
           const { getTracksByGenre } = await import('./deezer.js');
           const fallback = await getTracksByGenre('pop', 50);
@@ -328,20 +362,20 @@ export class GameRoom {
       }
 
       if (allTracks.length === 0) {
-        return (lastError || 'No tracks found. Try different genres.');
+        return (lastError || `No tracks found. Try different ${this.settings.gameMode === 'artist' ? 'artists' : 'genres'}.`);
       }
 
-      this.tracks = shuffle(allTracks.filter(t => !!t.previewUrl));
+      this.tracks = weightedShuffle(allTracks.filter(t => !!t.previewUrl));
       this.totalRounds = Math.min(this.settings.rounds, this.tracks.length);
 
       console.log(`[Game] Room ${this.code}: ${this.tracks.length} tracks available (target: ${this.totalRounds} rounds)`);
 
       if (this.tracks.length === 0) {
-        return 'No tracks with previews found for these genres. Try different genres.';
+        return `No tracks with previews found for these ${this.settings.gameMode === 'artist' ? 'artists' : 'genres'}. Try different selections.`;
       }
 
       if (this.tracks.length < 3) {
-        return `Only ${this.tracks.length} tracks available. Need at least 3. Try more genres.`;
+        return `Only ${this.tracks.length} tracks available. Need at least 3. Try ${this.settings.gameMode === 'artist' ? 'more artists' : 'more genres'}.`;
       }
     }
 

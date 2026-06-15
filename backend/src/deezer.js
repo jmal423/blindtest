@@ -61,9 +61,16 @@ const CUSTOM_GENRE_PLAYLISTS = {
   ES_flamenco: [777756285, 3582568026, 13941285401, 15148096583, 6177686164],
   ES_reggaeton_urbano: [178699142, 3803398766, 1273315391, 11120289724, 925131455],
   ES_musica_regional_latina: [9003957462, 10629918582, 10630090322, 10630096622, 10630104822],
+  // Brazilian
+  BR_pop_rock_brasileiro: [9268293682, 11532710604, 11271619264],
   // Global
   GL_kpop: [4096400722, 12244134951, 7482846624],
   GL_reggae: [2448918882, 1295485847, 1503415633, 2042023484],
+  GL_edm_dance: [687945565, 12134756071, 1495242491],
+  GL_afrobeats_african: [12673058961, 1257036831, 1440933255],
+  GL_metal: [1050179021, 8322139862, 7752014202],
+  GL_soundtracks: [12729422541, 613860315, 1501014451],
+  GL_jazz_lounge: [1311336155, 4040233102, 5898527324],
 };
 
 const SEARCH_QUERY_MAP = {
@@ -385,7 +392,7 @@ async function getTracksByArtist(artistName, count = 10) {
   const seen = new Set();
 
   const addTrack = (t) => {
-    if (!t.preview || seen.has(t.id)) return;
+    if (!t.previewUrl || seen.has(t.id)) return;
     seen.add(t.id);
     tracks.push(t);
   };
@@ -411,7 +418,6 @@ async function getTracksByArtist(artistName, count = 10) {
       if (searchData?.data) {
         for (const t of searchData.data) {
           if (tracks.length >= count) break;
-          // Ensure it's roughly the right artist
           if (t.artist?.name?.toLowerCase().includes(artistName.toLowerCase())) {
             addTrack(mapTrack(t, 'artist'));
           }
@@ -433,25 +439,6 @@ async function getTracksByArtist(artistName, count = 10) {
           track.genres = ['pop'];
         }
       }));
-    }
-
-    // Add fetched tracks to curated table for future use
-    if (tracks.length > 0) {
-      const { addCuratedSong } = await import('./db.js');
-      for (const t of tracks) {
-        await addCuratedSong({
-          id: t.id,
-          name: t.name,
-          artist: t.artist,
-          albumImage: t.albumImage,
-          previewUrl: t.previewUrl,
-          durationMs: t.durationMs,
-          genre: 'artist_mode',
-          albumGenres: t.genres || [],
-          chartSource: t.chartSource || 'artist',
-          verified: false,
-        }).catch(() => {});
-      }
     }
 
   } catch (err) {

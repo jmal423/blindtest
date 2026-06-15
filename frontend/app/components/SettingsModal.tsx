@@ -145,12 +145,13 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
         <section className="space-y-3">
           <h3 className="text-[10px] font-black text-foreground/40 uppercase tracking-widest">{t('appearance_section')}</h3>
           <div className="grid grid-cols-2 gap-2">
-            {(['dark', 'light', 'synthwave', 'terminal'] as const).map(theme => {
+            {(['dark', 'light', 'noir', 'synthwave', 'terminal'] as const).map(theme => {
               const active = settings.theme === theme;
 
               let label = '';
               if (theme === 'dark') label = `🌙 ${t('dark_theme')}`;
               else if (theme === 'light') label = `☀️ ${t('light_theme')}`;
+              else if (theme === 'noir') label = '🎸 Neon Noir';
               else if (theme === 'synthwave') label = '🌴 Retro';
               else if (theme === 'terminal') label = '💻 Terminal';
 

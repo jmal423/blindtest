@@ -168,7 +168,7 @@ export function subscribeToParticipants(callback: ParticipantUpdateCallback): ()
   }
 }
 
-const SCOPES = ['identify', 'rpc.activities.write'] as const;
+const SCOPES = ['identify', 'rpc.activities.write', 'activities.write', 'relationships.read'] as const;
 
 export async function authenticateDiscordActivity(): Promise<{ token: string; user: any } | null> {
   if (IS_MOCK) {

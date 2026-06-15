@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import { Server } from 'socket.io';
 import { GameRoom } from './game.js';
 import { GENRES, getGenreLabel, GENRE_GROUPS } from './deezer.js';
-import { generateId, get, all, run, ping, getTableCounts, createGame, finishGame, addGamePlayer, addRoundResultV2, getGameHistory, getPlayerStats, getLeaderboardV2, getRecentGames, getGameDetails, getSongCacheCounts, getSongCacheByGenre, getPlayedSongs, getAiEnrichmentStats, getAiGenreDistribution, getUnprocessedTracks, getCuratedSongsStats, getCuratedSongsByGenreGrouped, getDiscoveryCandidates, addCuratedSong, setCuratedVerified, pool } from './db.js';
+import { generateId, get, all, run, ping, getTableCounts, createGame, finishGame, addGamePlayer, addRoundResultV2, getGameHistory, getPlayerStats, getLeaderboardV2, getRecentGames, getGameDetails, getSongCacheCounts, getSongCacheByGenre, getPlayedSongs, getAiEnrichmentStats, getAiGenreDistribution, getUnprocessedTracks, getCuratedSongsStats, getCuratedSongsByGenreGrouped, getCuratedSongsByGenreRaw, getUnverifiedCuratedSongs, updateCuratedSongGenre, addCuratedSong, setCuratedVerified, getDiscoveryCandidates, getDiscoveryCandidatesAll, searchAiEnrichedTracks, getRecentAiEnrichedTracks, getSongById } from './db.js';
 import { getAuthUrl, handleDiscordCallback, exchangeDiscordCode, exchangeDiscordAccessToken, authenticate, requireAdmin, tryDecodeToken } from './auth.js';
 
 dotenv.config();
@@ -21,6 +21,7 @@ const io = new Server(server, {
 
 const rooms = new Map();
 const socketPlayerMap = new Map();
+const flagCounts = new Map();
 
 io.on('connection', (socket) => {
   socket.on('join_room', (roomCode, playerId) => {
@@ -113,13 +114,38 @@ io.on('connection', (socket) => {
     room.resetGame();
   });
 
-  socket.on('flag_song', async (songId) => {
-    if (!songId) return;
+  socket.on('flag_song', async ({ songId, reason }) => {
+    if (!songId || !reason) return;
+    const info = socketPlayerMap.get(socket.id);
+    if (!info || !info.roomCode) return;
+
+    const roomFlags = flagCounts.get(info.roomCode);
+    const playerFlags = roomFlags?.get(info.playerId) || 0;
+    if (playerFlags >= 5) {
+      return socket.emit('flag_result', { ok: false, error: 'Max 5 flags per game' });
+    }
+
     try {
-      await setCuratedVerified(songId, false);
-      console.log(`[Flag] Player flagged song ${songId} as incorrect. Set verified=false.`);
+      const { addSongFlag, getFlagCount } = await import('./db.js');
+      await addSongFlag(generateId(), songId, info.playerId, info.roomCode, reason);
+
+      if (!flagCounts.has(info.roomCode)) flagCounts.set(info.roomCode, new Map());
+      flagCounts.get(info.roomCode).set(info.playerId, playerFlags + 1);
+
+      const cnt = await getFlagCount(songId);
+      console.log(`[Flag] ${info.playerId} flagged ${songId} (${reason}) — ${cnt} unique flags`);
+
+      if (cnt >= 3) {
+        await setCuratedVerified(songId, false);
+        console.log(`[Flag] ${songId} demoted (${cnt} unique flags)`);
+        socket.emit('flag_result', { ok: true, demoted: true, flags: cnt });
+      } else {
+        const needed = 3 - cnt;
+        socket.emit('flag_result', { ok: true, demoted: false, flags: cnt, needed });
+      }
     } catch (err) {
-      console.error(`[Flag] Error flagging song ${songId}:`, err);
+      console.error(`[Flag] Error:`, err);
+      socket.emit('flag_result', { ok: false, error: 'Failed to flag' });
     }
   });
 
@@ -165,6 +191,7 @@ function cleanupRoom(code) {
   if (room.players.length === 0 && room.state !== 'playing') {
     room.destroy();
     rooms.delete(code);
+    flagCounts.delete(code);
   }
 }
 
@@ -852,21 +879,8 @@ app.get('/api/admin/ai/search', requireAdmin, async (req, res) => {
 
   const pattern = `%${q}%`;
   try {
-    const { rows } = await pool.query(`
-      SELECT id, name, artist, genre, preview_url, ai_genres, ai_tags, ai_confidence, ai_processed_at
-      FROM songs_cache
-      WHERE ai_processed_at IS NOT NULL
-        AND ai_version NOT LIKE 'error:%'
-        AND (
-          EXISTS (SELECT 1 FROM jsonb_array_elements_text(ai_tags) tag WHERE tag ILIKE $1)
-          OR EXISTS (SELECT 1 FROM jsonb_array_elements_text(ai_genres) g WHERE g ILIKE $1)
-          OR name ILIKE $1
-          OR artist ILIKE $1
-        )
-      ORDER BY ai_processed_at DESC
-      LIMIT $2
-    `, [pattern, limit]);
-    res.json({ ok: true, tracks: rows });
+    const tracks = await searchAiEnrichedTracks(pattern, limit);
+    res.json({ ok: true, tracks });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message, tracks: [] });
   }
@@ -875,14 +889,8 @@ app.get('/api/admin/ai/search', requireAdmin, async (req, res) => {
 app.get('/api/admin/ai/recent', requireAdmin, async (req, res) => {
   const limit = Math.min(parseInt(req.query.limit) || 50, 200);
   try {
-    const { rows } = await pool.query(`
-      SELECT id, name, artist, genre, ai_genres, ai_tags, ai_processed_at
-      FROM songs_cache
-      WHERE ai_processed_at IS NOT NULL AND ai_version NOT LIKE 'error:%'
-      ORDER BY ai_processed_at DESC
-      LIMIT $1
-    `, [limit]);
-    res.json({ ok: true, tracks: rows });
+    const tracks = await getRecentAiEnrichedTracks(limit);
+    res.json({ ok: true, tracks });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message, tracks: [] });
   }
@@ -944,14 +952,7 @@ app.get('/api/admin/curated/stats', requireAdmin, async (req, res) => {
 
 app.get('/api/admin/curated/by-genre', requireAdmin, async (req, res) => {
   try {
-    const genre = req.query.genre;
-    const { rows } = await pool.query(
-      `SELECT id, name, artist, genre, played_count, verified, curated_at, last_played_at, preview_url, preview_url IS NOT NULL as has_preview
-       FROM curated_songs
-       WHERE genre = $1
-       ORDER BY played_count DESC, curated_at DESC`,
-      [genre]
-    );
+    const rows = await getCuratedSongsByGenreRaw(req.query.genre);
     res.json(rows);
   } catch (err) {
     res.json([]);
@@ -962,29 +963,9 @@ app.get('/api/admin/curated/unverified', requireAdmin, async (req, res) => {
   try {
     const limit = Math.min(parseInt(req.query.limit) || 50, 200);
     const offset = parseInt(req.query.offset) || 0;
-    const search = req.query.search ? `%${req.query.search}%` : null;
-
-    const whereClause = search
-      ? `WHERE verified = FALSE AND (name ILIKE $3 OR artist ILIKE $3)`
-      : `WHERE verified = FALSE`;
-    const params = search ? [limit, offset, search] : [limit, offset];
-
-    const { rows } = await pool.query(
-      `SELECT id, name, artist, genre, played_count, verified, curated_at, last_played_at, preview_url,
-              preview_url IS NOT NULL as has_preview
-       FROM curated_songs
-       ${whereClause}
-       ORDER BY curated_at DESC
-       LIMIT $1 OFFSET $2`,
-      params
-    );
-
-    const { rows: countRows } = await pool.query(
-      `SELECT COUNT(*) as total FROM curated_songs ${whereClause.replace('$3', '$1')}`,
-      search ? [search] : []
-    );
-
-    res.json({ songs: rows, total: parseInt(countRows[0].total) });
+    const search = req.query.search || null;
+    const result = await getUnverifiedCuratedSongs(limit, offset, search);
+    res.json(result);
   } catch (err) {
     console.error('[Admin] Unverified fetch error:', err);
     res.json({ songs: [], total: 0 });
@@ -998,15 +979,7 @@ app.get('/api/admin/curated/discovery', requireAdmin, async (req, res) => {
     const genre = req.query.genre || null;
     const tracks = genre
       ? await getDiscoveryCandidates(genre, 50)
-      : await all(
-          `SELECT sc.id, sc.name, sc.artist, sc.genre, sc.genres, sc.chart_source, sc.rank
-           FROM songs_cache sc
-           LEFT JOIN curated_songs cs ON cs.id = sc.id
-           WHERE cs.id IS NULL AND sc.preview_url IS NOT NULL
-           ORDER BY sc.rank DESC
-           LIMIT 100`,
-          []
-        );
+      : await getDiscoveryCandidatesAll(100);
     res.json(tracks);
   } catch (err) {
     res.json([]);
@@ -1019,9 +992,8 @@ app.post('/api/admin/curated/import', requireAdmin, async (req, res) => {
     if (!songIds?.length) return res.json({ ok: false, error: 'No song IDs' });
     let imported = 0;
     for (const id of songIds) {
-      const { rows } = await pool.query('SELECT * FROM songs_cache WHERE id = $1', [id]);
-      if (rows.length === 0) continue;
-      const s = rows[0];
+      const s = await getSongById(id);
+      if (!s) continue;
       await addCuratedSong({
         id: s.id, name: s.name, artist: s.artist,
         previewUrl: s.preview_url, durationMs: s.duration_ms,
@@ -1050,7 +1022,7 @@ app.post('/api/admin/curated/verify', requireAdmin, async (req, res) => {
 app.post('/api/admin/curated/update-genre', requireAdmin, async (req, res) => {
   try {
     const { songId, genre } = req.body;
-    await pool.query('UPDATE curated_songs SET genre = $2 WHERE id = $1', [songId, genre]);
+    await updateCuratedSongGenre(songId, genre);
     res.json({ ok: true });
   } catch (err) {
     res.json({ ok: false, error: err.message });

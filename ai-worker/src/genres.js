@@ -152,6 +152,15 @@ Output:
   "mapped_genre_id": "US_pop_us"
 }
 
+### CONFIDENCE SCORE
+Add a "confidence" field (0.0 to 1.0) indicating how sure you are about the genre assignment.
+- 0.9-1.0: Very sure (clear match, artist is well-known in this genre)
+- 0.7-0.9: Fairly sure (good match, genre fits the sound/style)
+- 0.5-0.7: Moderate (could fit multiple genres, or artist info is limited)
+- 0.0-0.5: Unsure (data is ambiguous, default fallback)
+
+Base your confidence on: how well the artist, track, and album genres match the genre definition.
+
 ### OUTPUT FORMAT
 You must respond with ONLY a JSON object. Do not include markdown code blocks, conversational text, intro, or outro.
 
@@ -160,7 +169,8 @@ Output Schema:
   "title": "${trackName.replace(/"/g, '\\"')}",
   "artist": "${artist.replace(/"/g, '\\"')}",
   "mapped_region": "region_id_here",
-  "mapped_genre_id": "genre_id_here"
+  "mapped_genre_id": "genre_id_here",
+  "confidence": 0.95
 }
 
 Track Title: "${trackName}"

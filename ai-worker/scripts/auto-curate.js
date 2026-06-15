@@ -26,7 +26,7 @@ async function autoCurate() {
     // 1. Fetch AI-processed candidates from songs_cache that do not exist in curated_songs
     const query = `
       SELECT sc.id, sc.name, sc.artist, sc.album_image, sc.preview_url, sc.duration_ms, 
-             sc.genres, sc.chart_source, sc.ai_genres, sc.rank
+             sc.genres, sc.chart_source, sc.ai_genres, sc.ai_confidence, sc.rank
       FROM songs_cache sc
       LEFT JOIN curated_songs cs ON cs.id = sc.id
       WHERE cs.id IS NULL
@@ -51,10 +51,23 @@ async function autoCurate() {
     let imported = 0;
     
     for (const s of candidates) {
-      // Get the primary genre from the AI-generated genres array
       const aiGenres = s.ai_genres;
       const primaryGenre = Array.isArray(aiGenres) && aiGenres.length > 0 ? aiGenres[0] : 'other';
-      
+
+      // Read confidence from ai_confidence field
+      let confidence = 0;
+      if (s.ai_confidence && typeof s.ai_confidence === 'object') {
+        const vals = Object.values(s.ai_confidence);
+        confidence = vals.length > 0 ? Number(vals[0]) || 0 : 0;
+      }
+
+      // Threshold: >= 0.85 auto-verified, >= 0.5 unverified (admin review), < 0.5 skip
+      const autoVerify = confidence >= 0.85;
+      if (confidence < 0.5) {
+        console.log(`  ~ Skipped: "${s.name}" by ${s.artist} [${primaryGenre}] (confidence ${(confidence * 100).toFixed(0)}%)`);
+        continue;
+      }
+
       try {
         await pool.query(
           `INSERT INTO curated_songs (id, name, artist, album_image, preview_url, duration_ms, genre, album_genres, chart_source, verified)
@@ -70,11 +83,12 @@ async function autoCurate() {
             primaryGenre,
             JSON.stringify(s.genres || []),
             s.chart_source || null,
-            true // Auto-verified by default, can be flagged in-game
+            autoVerify // High confidence = verified, medium = needs review
           ]
         );
         
-        console.log(`  -> Imported: "${s.name}" by ${s.artist} [Genre: ${primaryGenre}]`);
+        const status = autoVerify ? '✅ auto-verified' : '⏳ needs review';
+        console.log(`  ${status}: "${s.name}" by ${s.artist} [${primaryGenre}] (${(confidence * 100).toFixed(0)}%)`);
         imported++;
       } catch (err) {
         console.error(`  -> Failed to import "${s.name}" (${s.id}):`, err.message);

@@ -16,7 +16,10 @@
     "clean-genres": "node scripts/clean-genres.js",
     "deduplicate": "node scripts/deduplicate.js",
     "auto-curate": "node scripts/auto-curate.js",
-    "auto-curate:remote": "node scripts/auto-curate.js --remote"
+    "auto-curate:remote": "node scripts/auto-curate.js --remote",
+    "populate-artists": "node scripts/populate-artists.js",
+    "fill-cache": "node scripts/fill-cache-from-charts.js",
+    "pipeline": "node scripts/fill-cache-from-charts.js && node src/index.js && node scripts/auto-curate.js"
   },
   "dependencies": {
     "dotenv": "^16.4.7",

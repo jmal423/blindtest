@@ -2,9 +2,9 @@
 
 import { useEffect, useState, useRef, use, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { io as socketIo, Socket } from 'socket.io-client';
-import { getToken, GameState, Player, RoomSettings, startGame, updateSettings, fetchGenres, fetchGenreGroups, joinRoom, getFriends, sendInvite } from '@/lib/api';
+import { getToken, GameState, Player, RoomSettings, startGame, updateSettings, fetchGenres, fetchGenreGroups, joinRoom } from '@/lib/api';
 import { isDebugMode } from '@/lib/debug-context';
 import AudioPlayer, { AudioPlayerHandle } from '@/app/components/AudioPlayer';
 import { useSettings } from '@/app/context/SettingsContext';
@@ -14,8 +14,8 @@ import Podium from './Podium';
 import DebugOverlay from './DebugOverlay';
 import { useSound } from '@/lib/useSound';
 import { getProxiedUrl } from '@/lib/proxy';
-import { isDiscordActivity, getDiscordSdk, subscribeToParticipants, getConnectedParticipants, getInstanceId, getDiscordRelationships, inviteDiscordUser, openDiscordInviteDialog } from '@/lib/discordActivity';
-import type { DiscordParticipant, DiscordRelationship } from '@/lib/discordActivity';
+import { isDiscordActivity, getDiscordSdk, subscribeToParticipants, getConnectedParticipants, getInstanceId } from '@/lib/discordActivity';
+import type { DiscordParticipant } from '@/lib/discordActivity';
 import { updateRichPresence, clearRichPresence } from '@/lib/discordRichPresence';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005';
@@ -312,7 +312,7 @@ export default function GamePage({
   useEffect(() => {
     if (!isDiscordActivity()) return;
     const sdk = getDiscordSdk();
-    updateRichPresence(sdk, gameState, playerId);
+    updateRichPresence(sdk, gameState, playerId, code);
   }, [gameState, playerId]);
 
   useEffect(() => {
@@ -581,7 +581,7 @@ onSkipVote={handleSkipVote}
                skipVotesNeeded={gameState.state === 'playing' || gameState.state === 'round_preparing' ? (gameState as any).skipVotesNeeded ?? 1 : 1}
                hostId={gameState.hostId}
                currentTrackId={gameState.state === 'playing' ? (gameState as any).trackId : null}
-               onFlagSong={(id) => socketRef.current?.emit('flag_song', id)}
+                onFlagSong={(id) => socketRef.current?.emit('flag_song', { songId: id, reason: 'wrong_song' })}
             />
           )}
 
@@ -734,60 +734,6 @@ function WaitingRoom({
     });
   }, []);
 
-  const [showInviteModal, setShowInviteModal] = useState(false);
-  const [friendsList, setFriendsList] = useState<any[]>([]);
-  const [invitedIds, setInvitedIds] = useState<Set<string>>(new Set());
-  const [modalLoading, setModalLoading] = useState(false);
-  const [discordRelationships, setDiscordRelationships] = useState<DiscordRelationship[]>([]);
-  const [discordInvitedIds, setDiscordInvitedIds] = useState<Set<string>>(new Set());
-  const discordCtx = isDiscordActivity();
-
-  useEffect(() => {
-    if (showInviteModal) {
-      setModalLoading(true);
-      Promise.all([
-        getFriends().then(d => setFriendsList(d.friends || [])).catch(() => {}),
-        discordCtx ? getDiscordRelationships().then(setDiscordRelationships).catch(() => {}) : Promise.resolve(),
-      ]).finally(() => setModalLoading(false));
-    }
-  }, [showInviteModal]);
-
-  const handleSendInvite = async (friendId: string) => {
-    try {
-      await sendInvite(gameCode, friendId);
-      setInvitedIds(prev => {
-        const next = new Set(prev);
-        next.add(friendId);
-        return next;
-      });
-      setTimeout(() => {
-        setInvitedIds(prev => {
-          const next = new Set(prev);
-          next.delete(friendId);
-          return next;
-        });
-      }, 3000);
-    } catch (err) {
-      console.error('Failed to send invite:', err);
-    }
-  };
-
-  const handleDiscordInvite = async (userId: string) => {
-    await inviteDiscordUser(userId, `Join me in BlindTest! Room code: ${gameCode}`);
-    setDiscordInvitedIds(prev => {
-      const next = new Set(prev);
-      next.add(userId);
-      return next;
-    });
-    setTimeout(() => {
-      setDiscordInvitedIds(prev => {
-        const next = new Set(prev);
-        next.delete(userId);
-        return next;
-      });
-    }, 3000);
-  };
-
   useEffect(() => {
     fetchGenreGroups().then(data => {
       setGenreGroups(data?.groups || []);
@@ -848,18 +794,7 @@ function WaitingRoom({
         <h2 className="text-2xl font-bold tracking-tight text-foreground">
           Game Lobby
         </h2>
-        <p className="text-xs text-foreground/40 font-medium">
-          Invite friends by sharing the lobby code above
-        </p>
-        <button
-          onClick={() => setShowInviteModal(true)}
-          className="mt-2 text-xs px-3.5 py-1.5 bg-surface-light hover:bg-surface-light border border-white/5 hover:border-white/10 rounded-xl text-foreground/80 hover:text-foreground transition-all flex items-center gap-1.5 cursor-pointer font-bold shadow-md animate-fade-in"
-        >
-          <svg className="w-3.5 h-3.5 text-[var(--primary)]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-          </svg>
-          Invite Friends
-        </button>
+
       </div>
 
       <div className="w-full grid grid-cols-1 md:grid-cols-[1fr_1.3fr] gap-6 md:gap-8 items-start">
@@ -1390,173 +1325,7 @@ function WaitingRoom({
         )}
       </div>
 
-      <AnimatePresence>
-        {showInviteModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-fade-in">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-md bg-background border border-white/10 rounded-3xl p-6 shadow-2xl flex flex-col gap-4 max-h-[80vh] text-foreground"
-            >
-              <div className="flex items-center justify-between border-b border-white/5 pb-3">
-                <h3 className="text-base font-bold text-foreground/90 uppercase tracking-wider">Add Players</h3>
-                <button 
-                  onClick={() => setShowInviteModal(false)}
-                  className="text-foreground/40 hover:text-foreground transition-colors cursor-pointer"
-                >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
 
-              {modalLoading ? (
-                <div className="flex flex-col items-center justify-center py-12 gap-2">
-                  <div className="w-6 h-6 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin"></div>
-                  <p className="text-xs text-foreground/40 font-medium">Loading...</p>
-                </div>
-              ) : (
-                <div className="flex-1 overflow-y-auto space-y-2 pr-1 max-h-[50vh]">
-                  {discordCtx && (
-                    <button
-                      onClick={() => { openDiscordInviteDialog(); }}
-                      className="w-full flex items-center justify-center gap-2 p-3 bg-blurple/10 hover:bg-blurple/20 border border-blurple/20 hover:border-blurple/30 rounded-2xl text-xs font-bold text-blurple transition-all cursor-pointer mb-3"
-                    >
-                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0778.0778 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189z"/>
-                      </svg>
-                      Share Invite Link
-                    </button>
-                  )}
-
-                  {players.length > 0 && (
-                    <>
-                      <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest px-1">In This Room ({players.length})</p>
-                      {players.map(p => (
-                        <div key={p.id} className="flex items-center justify-between p-3 bg-white/[0.02] border border-white/5 rounded-2xl shadow-sm">
-                          <div className="flex items-center gap-3">
-                            <div className="relative">
-                              <div className="w-9 h-9 rounded-full bg-surface-light flex items-center justify-center font-bold border border-white/10 overflow-hidden shadow-inner text-xs">
-                                {p.avatarUrl ? <img src={p.avatarUrl} alt="" className="w-full h-full object-cover" /> : p.name[0].toUpperCase()}
-                              </div>
-                              <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-background bg-emerald-500" />
-                            </div>
-                            <div className="space-y-0.5">
-                              <p className="font-bold text-xs text-foreground/90">{p.name}</p>
-                              <p className="text-[9px] text-emerald-400 font-semibold">In Room</p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </>
-                  )}
-
-                  {discordRelationships.length > 0 && (
-                    <>
-                      <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest px-1 pt-2">Discord Friends</p>
-                      {discordRelationships.map(r => {
-                        const name = r.user.global_name || r.user.username;
-                        const isInRoom = players.some(p => p.name === name || p.name === r.user.username);
-                        const isInvited = discordInvitedIds.has(r.user.id);
-                        const status = r.presence?.status || 'offline';
-                        const isOnline = status !== 'offline';
-                        return (
-                          <div key={r.user.id} className="flex items-center justify-between p-3 bg-white/[0.02] border border-white/5 rounded-2xl shadow-sm hover:bg-white/[0.04] transition-all">
-                            <div className="flex items-center gap-3">
-                              <div className="relative">
-                                <div className="w-9 h-9 rounded-full bg-blurple/20 flex items-center justify-center font-bold border border-blurple/20 overflow-hidden shadow-inner text-xs text-blurple">
-                                  {name[0].toUpperCase()}
-                                </div>
-                                <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-background ${isOnline ? 'bg-emerald-500' : 'bg-foreground/20'}`} />
-                              </div>
-                              <div className="space-y-0.5">
-                                <p className="font-bold text-xs text-foreground/90">{name}</p>
-                                <p className="text-[9px] text-foreground/40 font-semibold capitalize">{status}</p>
-                              </div>
-                            </div>
-                            {isInRoom ? (
-                              <span className="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">In Room</span>
-                            ) : (
-                              <button
-                                disabled={isInvited}
-                                onClick={() => handleDiscordInvite(r.user.id)}
-                                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                                  isInvited
-                                    ? 'bg-green-500/10 text-green-400 border border-green-500/20'
-                                    : 'bg-blurple hover:bg-blurple/80 text-white shadow shadow-blurple/20 active:scale-95'
-                                }`}
-                              >
-                                {isInvited ? 'Invited!' : 'Add to Activity'}
-                              </button>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </>
-                  )}
-
-                  {friendsList.length > 0 && (
-                    <>
-                      <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest px-1 pt-2">Friends</p>
-                      {friendsList.map(f => {
-                        const presence = f.presence || { status: 'offline', roomCode: null };
-                        const isOnline = presence.status !== 'offline';
-                        const statusText = isOnline ? (presence.status === 'lobby' ? 'In Lobby' : 'In Game') : 'Offline';
-                        const isInvited = invitedIds.has(f.id);
-                        const alreadyInRoom = players.some(p => p.name === f.username || p.name === f.display_name || p.id === f.id);
-
-                        if (alreadyInRoom) return null;
-
-                        return (
-                          <div key={f.id} className="flex items-center justify-between p-3 bg-white/[0.02] border border-white/5 rounded-2xl shadow-sm hover:bg-white/[0.04] transition-all">
-                            <div className="flex items-center gap-3">
-                              <div className="relative">
-                                <div className="w-9 h-9 rounded-full bg-surface-light flex items-center justify-center font-bold border border-white/10 overflow-hidden shadow-inner text-xs">
-                                  {f.avatar_url ? <img src={f.avatar_url} alt="" className="w-full h-full object-cover" /> : f.username[0].toUpperCase()}
-                                </div>
-                                <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-background ${isOnline ? 'bg-emerald-500' : 'bg-foreground/20'}`} />
-                              </div>
-                              <div className="space-y-0.5">
-                                <p className="font-bold text-xs text-foreground/90">{f.username}</p>
-                                <p className="text-[9px] text-foreground/40 font-semibold">{statusText}</p>
-                              </div>
-                            </div>
-                            <button
-                              disabled={isInvited}
-                              onClick={() => handleSendInvite(f.id)}
-                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                                isInvited
-                                  ? 'bg-green-500/10 text-green-400 border border-green-500/20'
-                                  : 'bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-foreground shadow shadow-primary/20 active:scale-95'
-                              }`}
-                            >
-                              {isInvited ? 'Invited!' : 'Invite'}
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </>
-                  )}
-
-                  {discordRelationships.length === 0 && friendsList.length === 0 && players.length === 0 && (
-                    <div className="py-12 text-center flex flex-col items-center justify-center gap-3">
-                      <p className="text-foreground/20 text-xs">No players or friends yet.</p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <button
-                onClick={() => setShowInviteModal(false)}
-                className="w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-foreground/80 hover:text-foreground rounded-xl text-xs font-bold transition-all cursor-pointer text-center"
-              >
-                Close
-              </button>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
@@ -1905,7 +1674,36 @@ function MiniViz({ progress }: { progress: number }) {
 
 function RoundResult({ data, players = [], pauseTimeLeft, trackHistory = [], onFlag }: { data?: { id?: string; correctAnswer?: string; artist?: string; albumImage?: string; skipped?: boolean } | null; players?: { name: string; score: number }[]; pauseTimeLeft: number; trackHistory?: { round: number; name: string; artist: string; albumImage?: string }[]; onFlag?: (id: string) => void }) {
   const { t } = useTranslation();
-  const [flagged, setFlagged] = useState(false);
+  const [flagState, setFlagState] = useState<'idle' | 'choosing' | 'done'>('idle');
+  const [flagMessage, setFlagMessage] = useState('');
+
+  const handleFlag = async (reason: string) => {
+    if (!data?.id) return;
+    setFlagState('done');
+    setFlagMessage('Sending...');
+    const socket = (window as any).__gameSocket;
+    if (socket) {
+      socket.emit('flag_song', { songId: data.id, reason });
+      socket.once('flag_result', (res: any) => {
+        if (res.demoted) {
+          setFlagMessage(`🚩 Demoted (${res.flags} reports)`);
+        } else if (res.needed) {
+          setFlagMessage(`🚩 Reported (${res.needed} more needed)`);
+        } else {
+          setFlagMessage('🚩 Reported');
+        }
+      });
+    } else if (onFlag) {
+      onFlag(data.id);
+      setFlagMessage('🚩 Flagged for review');
+    }
+  };
+
+  const FLAG_REASONS = [
+    { id: 'wrong_genre', label: 'Wrong Genre', desc: 'Song does not fit this genre' },
+    { id: 'wrong_song', label: 'Wrong Song', desc: 'Track or artist is incorrect' },
+    { id: 'audio_issue', label: 'Audio Issue', desc: 'No preview or broken audio' },
+  ];
 
   return (
     <div className="flex-1 flex flex-col items-center gap-5 max-w-sm mx-auto w-full">
@@ -1930,23 +1728,36 @@ function RoundResult({ data, players = [], pauseTimeLeft, trackHistory = [], onF
         <div className="text-center">
           <h2 className="text-xl font-bold text-foreground">{data?.correctAnswer || 'Unknown Track'}</h2>
           <p className="text-sm text-foreground/60 mt-1">{data?.artist || 'Unknown Artist'}</p>
-          {data?.id && (
+          {data?.id && flagState === 'idle' && (
             <button
-              onClick={() => {
-                if (onFlag && !flagged) {
-                  onFlag(data.id!);
-                  setFlagged(true);
-                }
-              }}
-              disabled={flagged}
-              className={`mt-3 text-xs px-3 py-1.5 rounded-full font-medium transition-all ${
-                flagged 
-                  ? 'bg-red-500/10 text-red-400 border border-red-500/20' 
-                  : 'bg-white/5 text-foreground/50 border border-white/10 hover:bg-white/10 hover:text-foreground/80'
-              }`}
+              onClick={() => setFlagState('choosing')}
+              className="mt-3 text-xs px-3 py-1.5 rounded-full font-medium bg-white/5 text-foreground/50 border border-white/10 hover:bg-white/10 hover:text-foreground/80 transition-all"
             >
-              {flagged ? '🚩 Flagged for review' : '🚩 Flag as Incorrect'}
+              🚩 Flag
             </button>
+          )}
+          {data?.id && flagState === 'choosing' && (
+            <div className="mt-3 flex flex-col gap-1.5 min-w-[200px]">
+              {FLAG_REASONS.map(r => (
+                <button
+                  key={r.id}
+                  onClick={() => handleFlag(r.id)}
+                  className="text-xs px-3 py-2 rounded-xl bg-white/[0.03] hover:bg-white/10 border border-white/5 hover:border-white/20 text-foreground/70 hover:text-foreground transition-all text-left"
+                >
+                  <span className="block font-semibold">{r.label}</span>
+                  <span className="text-[10px] text-foreground/40">{r.desc}</span>
+                </button>
+              ))}
+              <button
+                onClick={() => setFlagState('idle')}
+                className="text-[10px] text-foreground/30 hover:text-foreground/60 transition-colors pt-1"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+          {data?.id && flagState === 'done' && (
+            <p className="mt-3 text-xs text-red-400/80 font-medium">{flagMessage}</p>
           )}
         </div>
       </motion.div>

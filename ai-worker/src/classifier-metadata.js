@@ -58,33 +58,44 @@ function parseResponse(raw) {
     try { parsed = JSON.parse(stripped); } catch {}
   }
 
-  if (!parsed || !parsed.mapped_genre_id) {
+  if (!parsed) {
     throw new Error(`Failed to parse LLM response: ${raw.slice(0, 200)}`);
   }
 
-  let genreId = parsed.mapped_genre_id.trim();
-  
-  // Fix casing if it was lowercased by LLM (since prefixes are uppercase)
+  let genreId = null;
+  let confidence = 0;
+
+  if (parsed.mapped_genre_id) {
+    genreId = parsed.mapped_genre_id.trim();
+    confidence = typeof parsed.confidence === 'number' ? Math.max(0, Math.min(1, parsed.confidence)) : 0.5;
+  } else if (parsed.genre) {
+    genreId = parsed.genre.trim();
+    confidence = typeof parsed.confidence === 'number' ? Math.max(0, Math.min(1, parsed.confidence)) : 0.5;
+  } else {
+    throw new Error(`No genre in response: ${raw.slice(0, 200)}`);
+  }
+
+  // Fix casing
   if (genreId.length > 3 && genreId[2] === '_') {
     genreId = genreId.substring(0, 2).toUpperCase() + genreId.substring(2).toLowerCase();
   } else {
     genreId = genreId.toLowerCase();
   }
 
-  // Validate genre
   if (!VALID_GENRES.has(genreId)) {
-    console.warn(`[AI] LLM returned invalid genre_id "${genreId}". Falling back to "other".`);
+    console.warn(`[AI] LLM returned invalid genre_id "${genreId}" (conf: ${confidence}). Falling back to "other".`);
     genreId = 'other';
+    confidence = Math.min(confidence, 0.3);
   }
 
-  // Enforce region matches genre (bulletproof alignment guard)
   const region = GENRE_TO_REGION[genreId] || 'global_other';
 
   return {
     genres: [genreId],
     tags: [region],
     primary: genreId,
-    confidence: { [genreId]: 1.0 },
+    confidence: { [genreId]: confidence },
+    confidenceScore: confidence,
   };
 }
 

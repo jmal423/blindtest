@@ -5,9 +5,9 @@ import { runMigrations } from './db/migrationRunner.js';
 await connectWithRetry();
 await runMigrations();
 
-// Re-export all database helper functions and domain repositories for backward compatibility
 export * from './db/connection.js';
 export * from './db/repositories/userRepository.js';
 export * from './db/repositories/gameRepository.js';
 export * from './db/repositories/songRepository.js';
 export * from './db/repositories/curatedRepository.js';
+export * from './db/repositories/flagRepository.js';

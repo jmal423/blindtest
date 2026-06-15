@@ -14,7 +14,7 @@ interface ActivityPayload {
   instance?: boolean;
 }
 
-export function updateRichPresence(sdk: DiscordSDK | null, gameState: GameState | null, playerId?: string) {
+export function updateRichPresence(sdk: DiscordSDK | null, gameState: GameState | null, playerId?: string, roomCode?: string) {
   if (!sdk || !gameState) return;
 
   const payload: ActivityPayload = {
@@ -28,6 +28,7 @@ export function updateRichPresence(sdk: DiscordSDK | null, gameState: GameState 
 
   const partySize = gameState.players?.length ?? 0;
   payload.party = {
+    id: roomCode || undefined,
     size: [partySize, 8],
   };
 
