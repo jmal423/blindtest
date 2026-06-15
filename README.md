@@ -56,12 +56,12 @@
 ## Architecture
 
 ```
-┌──────────────┐             ┌──────────────────────┐
-│  Next.js 16  │  HTTP/JSON  │   Express 5           │
-│  Frontend    │ ◄────────► │   Backend              │
-│  (Port 3000) │  Socket.io  │   (Port 3005)          │
-└──────────────┘ ─────────── └───────┬───────────────┘
-                                ┌─────┴─────┐
+┌──────────────┐             ┌──────────────┐
+│  Next.js 16  │  HTTP/JSON  │  Express 5   │
+│  Frontend    │ ◄────────►  │  Backend     │
+│  (Port 3000) │  Socket.io  │  (Port 3005) │
+└──────────────┘ ─────────── └───────┬──────┘
+                                ┌────┴──────┐
                                 ▼           ▼
                               Deezer     PostgreSQL
                               (audio)    (games, stats,
