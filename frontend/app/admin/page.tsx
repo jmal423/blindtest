@@ -1,202 +1,133 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { motion } from 'motion/react';
-import { getMe } from '@/lib/api';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { getAdminStats, getDbStatus, getAiStats, getSongCache } from '@/lib/api';
+import { StatCard } from './components/StatCard';
 
-import { SystemTab } from './tabs/SystemTab';
-import { UsersTab } from './tabs/UsersTab';
-import { RoomsTab } from './tabs/RoomsTab';
-import { LeaderboardTab } from './tabs/LeaderboardTab';
-import { MusicTab } from './tabs/MusicTab';
-import { CuratedTab } from './tabs/CuratedTab';
-import { AiTab } from './tabs/AiTab';
-import { ApiTab } from './tabs/ApiTab';
-
-type Tab = 'system' | 'users' | 'rooms' | 'leaderboard' | 'music' | 'curated' | 'ai' | 'api';
-
-const tabs: { id: Tab; label: string; icon: string }[] = [
-  { id: 'system', label: 'System', icon: '📊' },
-  { id: 'users', label: 'Users', icon: '👥' },
-  { id: 'rooms', label: 'Rooms', icon: '🎮' },
-  { id: 'leaderboard', label: 'Leaderboard', icon: '🏆' },
-  { id: 'music', label: 'Music Cache', icon: '💾' },
-  { id: 'curated', label: 'Curated', icon: '✨' },
-  { id: 'ai', label: 'AI Tags', icon: '🧠' },
-  { id: 'api', label: 'API & Tester', icon: '⚡' },
-];
-
-export default function AdminPage() {
-  const router = useRouter();
-  const [activeTab, setActiveTab] = useState<Tab>('system');
-  const [authorized, setAuthorized] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [loadingUser, setLoadingUser] = useState(true);
+export default function AdminOverview() {
+  const [stats, setStats] = useState<any>(null);
+  const [aiStats, setAiStats] = useState<any>(null);
+  const [dbStatus, setDbStatus] = useState<any>(null);
+  const [songCache, setSongCache] = useState<any>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('blindtest_token');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
+    Promise.all([
+      getAdminStats().then(setStats).catch(() => {}),
+      getAiStats().then(setAiStats).catch(() => {}),
+      getDbStatus().then(setDbStatus).catch(() => {}),
+      getSongCache().then(setSongCache).catch(() => {}),
+    ]);
+  }, []);
 
-    getMe()
-      .then(u => {
-        if (u.role !== 'admin') {
-          router.push('/');
-          return;
-        }
-        setAuthorized(true);
-      })
-      .catch(() => {
-        localStorage.removeItem('blindtest_token');
-        router.push('/login');
-      })
-      .finally(() => {
-        setLoadingUser(false);
-      });
-  }, [router]);
-
-  if (loadingUser) {
-    return (
-      <div className="flex-1 flex items-center justify-center min-h-screen" style={{ backgroundColor: 'var(--background)' }}>
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 rounded-full border-2 border-[var(--primary)]/20 border-t-[var(--primary)] animate-spin" />
-          <p className="text-foreground/40 text-sm animate-pulse">Checking credentials...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!authorized) return null;
+  const unclassifiedCount = aiStats?.unprocessed ?? 0;
 
   return (
-    <div className="flex-1 flex min-h-screen" style={{ backgroundColor: 'var(--background)', color: 'var(--foreground)' }}>
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 flex flex-col transition-all duration-300 ${
-          sidebarOpen ? 'w-64' : 'w-20'
-        } hidden md:flex`}
-        style={{ backgroundColor: 'color-mix(in srgb, var(--surface) 60%, transparent)', backdropFilter: 'blur(24px)', borderRight: '1px solid color-mix(in srgb, var(--foreground) 5%, transparent)' }}
-      >
-        <div className="h-16 flex items-center justify-between px-6" style={{ borderBottom: '1px solid color-mix(in srgb, var(--foreground) 5%, transparent)' }}>
-          <div className={`flex items-center gap-3 ${!sidebarOpen && 'justify-center w-full'}`}>
-            <span className="text-xl">🎵</span>
-            {sidebarOpen && (
-              <span className="font-bold text-sm tracking-wide" style={{ background: 'linear-gradient(to right, var(--primary), var(--accent))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                BlindTest Admin
-              </span>
-            )}
-          </div>
-        </div>
-
-        <nav className="flex-1 py-6 px-3 space-y-1">
-          {tabs.map(tab => {
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all relative group ${
-                  isActive ? 'text-foreground' : 'text-foreground/40 hover:text-foreground/60'
-                }`}
-                style={isActive ? { backgroundColor: 'color-mix(in srgb, var(--foreground) 5%, transparent)' } : {}}
-              >
-                {isActive && (
-                  <motion.div
-                    layoutId="sidebar-active"
-                    className="absolute inset-0 rounded-xl"
-                    style={{ border: '1px solid color-mix(in srgb, var(--foreground) 10%, transparent)' }}
-                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                  />
-                )}
-                <span className="text-base relative z-10">{tab.icon}</span>
-                {sidebarOpen && <span className="relative z-10 text-xs font-extrabold uppercase tracking-wider">{tab.label}</span>}
-                {!sidebarOpen && (
-                  <div className="absolute left-full ml-4 px-2 py-1 rounded text-xs text-foreground opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50"
-                    style={{ backgroundColor: 'var(--surface)', border: '1px solid color-mix(in srgb, var(--foreground) 10%, transparent)' }}
-                  >
-                    {tab.label}
-                  </div>
-                )}
-              </button>
-            );
-          })}
-        </nav>
-
-        <div className="p-4" style={{ borderTop: '1px solid color-mix(in srgb, var(--foreground) 5%, transparent)' }}>
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="w-full flex items-center justify-center p-2 rounded-xl transition-colors text-foreground/40 hover:text-foreground cursor-pointer text-xs font-extrabold uppercase tracking-wider"
-            style={{ backgroundColor: 'color-mix(in srgb, var(--foreground) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--foreground) 10%, transparent)' }}
-          >
-            {sidebarOpen ? '◀ Collapse' : '▶'}
-          </button>
-        </div>
-      </aside>
-
-      <div className={`flex-1 flex flex-col ${sidebarOpen ? 'md:pl-64' : 'md:pl-20'} transition-all duration-300 min-w-0`}>
-        <header className="h-16 flex items-center justify-between px-6 sticky top-0 z-30"
-          style={{ backgroundColor: 'color-mix(in srgb, var(--surface) 40%, transparent)', backdropFilter: 'blur(12px)', borderBottom: '1px solid color-mix(in srgb, var(--foreground) 5%, transparent)' }}
+    <div className="space-y-6">
+      {/* Quick Action Alerts */}
+      {unclassifiedCount > 0 && (
+        <Link
+          href="/admin/catalog/triage"
+          className="block rounded-2xl p-5 transition-all hover:scale-[1.005]"
+          style={{
+            backgroundColor: 'color-mix(in srgb, #f59e0b 10%, transparent)',
+            border: '1px solid color-mix(in srgb, #f59e0b 20%, transparent)',
+          }}
         >
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="md:hidden p-2 rounded-lg text-foreground/40 cursor-pointer"
-              style={{ backgroundColor: 'color-mix(in srgb, var(--foreground) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--foreground) 10%, transparent)' }}
-            >
-              ☰
-            </button>
-            <h2 className="font-extrabold text-sm uppercase tracking-wider text-foreground">
-              {tabs.find(t => t.id === activeTab)?.label}
-              <span className="text-foreground/30 font-bold ml-1.5">Dashboard</span>
-            </h2>
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">⚠️</span>
+            <div>
+              <p className="font-bold text-sm text-foreground/90">
+                {unclassifiedCount} Unclassified Song{unclassifiedCount !== 1 ? 's' : ''} Pending Triage
+              </p>
+              <p className="text-xs text-foreground/50 mt-0.5">
+                Review and assign genres to automatically classify these tracks
+              </p>
+            </div>
+            <span className="ml-auto text-xs font-extrabold uppercase tracking-wider text-foreground/40">
+              Review →
+            </span>
           </div>
-          <button
-            onClick={() => router.push('/')}
-            className="px-4 py-1.5 rounded-xl text-xs font-extrabold uppercase tracking-wider text-foreground/40 hover:text-foreground transition-all cursor-pointer"
-            style={{ backgroundColor: 'color-mix(in srgb, var(--foreground) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--foreground) 10%, transparent)' }}
-          >
-            ← Back
-          </button>
-        </header>
+        </Link>
+      )}
 
-        <div className="flex md:hidden p-2 gap-1 overflow-x-auto scrollbar-none"
-          style={{ backgroundColor: 'color-mix(in srgb, var(--surface) 40%, transparent)', backdropFilter: 'blur(12px)', borderBottom: '1px solid color-mix(in srgb, var(--foreground) 5%, transparent)' }}
-        >
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-3 py-1.5 text-xs font-extrabold uppercase tracking-wider rounded-lg whitespace-nowrap transition-colors flex items-center gap-1.5 ${
-                activeTab === tab.id ? 'text-[var(--background)]' : 'text-foreground/40 hover:text-foreground/60'
-              }`}
-              style={activeTab === tab.id ? { backgroundColor: 'var(--primary)' } : {}}
-            >
-              <span>{tab.icon}</span>
-              <span>{tab.label}</span>
-            </button>
-          ))}
-        </div>
-
-        <main className="flex-1 p-6 md:p-8 max-w-6xl w-full mx-auto space-y-6">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.15 }}
-          >
-            {activeTab === 'system' && <SystemTab />}
-            {activeTab === 'users' && <UsersTab />}
-            {activeTab === 'rooms' && <RoomsTab />}
-            {activeTab === 'leaderboard' && <LeaderboardTab />}
-            {activeTab === 'music' && <MusicTab />}
-            {activeTab === 'curated' && <CuratedTab />}
-            {activeTab === 'ai' && <AiTab />}
-            {activeTab === 'api' && <ApiTab />}
-          </motion.div>
-        </main>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard value={stats?.totalUsers ?? '-'} label="Registered Users" color="var(--primary)" glowColor="rgba(255,45,120,0.15)" icon="👥" />
+        <StatCard value={stats?.totalRounds ?? '-'} label="Rounds Played" color="var(--accent)" glowColor="rgba(240,192,64,0.15)" icon="🎵" />
+        <StatCard value={stats?.totalGames ?? '-'} label="Games Completed" color="#a29bfe" glowColor="rgba(162,155,254,0.15)" icon="🏆" />
+        <StatCard value={stats?.activeRooms ?? '-'} label="Active Lobbies" color="#00b894" glowColor="rgba(0,184,148,0.15)" icon="🎮" />
       </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* DB Status */}
+        <div className="lg:col-span-2 rounded-2xl p-6" style={{ backgroundColor: 'color-mix(in srgb, var(--surface) 60%, transparent)', backdropFilter: 'blur(12px)', border: '1px solid color-mix(in srgb, var(--foreground) 5%, transparent)' }}>
+          <h3 className="font-extrabold text-sm uppercase tracking-wider mb-4 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
+            <span className="text-lg">🐘</span> System Health
+          </h3>
+          {dbStatus ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <span className={`w-2.5 h-2.5 rounded-full ${dbStatus.ok ? 'bg-green-500 animate-ping' : 'bg-red-500'} `} />
+                <span className="text-sm font-semibold" style={{ color: 'color-mix(in srgb, var(--foreground) 80%, transparent)' }}>
+                  {dbStatus.ok ? 'Database connected & online' : 'Database error'}
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-3 text-center">
+                {dbStatus.tables && Object.entries(dbStatus.tables).map(([table, count]) => (
+                  <div key={table} className="p-3 rounded-lg" style={{ backgroundColor: 'color-mix(in srgb, var(--foreground) 3%, transparent)' }}>
+                    <p className="text-xl font-bold">{count as number}</p>
+                    <p className="text-[10px] font-extrabold uppercase tracking-wider text-foreground/40">{table.replace(/_/g, ' ')}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-foreground/40">Loading...</div>
+          )}
+        </div>
+
+        {/* Quick Links */}
+        <div className="rounded-2xl p-6 space-y-3" style={{ backgroundColor: 'color-mix(in srgb, var(--surface) 60%, transparent)', backdropFilter: 'blur(12px)', border: '1px solid color-mix(in srgb, var(--foreground) 5%, transparent)' }}>
+          <h3 className="font-extrabold text-sm uppercase tracking-wider mb-4" style={{ color: 'var(--foreground)' }}>Quick Actions</h3>
+          <Link href="/admin/catalog/triage" className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-foreground/70 hover:text-foreground transition-all" style={{ backgroundColor: 'color-mix(in srgb, var(--foreground) 3%, transparent)' }}>
+            <span>🔍</span> Triage Queue {unclassifiedCount > 0 && <span className="ml-auto text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">{unclassifiedCount}</span>}
+          </Link>
+          <Link href="/admin/catalog/curated" className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-foreground/70 hover:text-foreground transition-all" style={{ backgroundColor: 'color-mix(in srgb, var(--foreground) 3%, transparent)' }}>
+            <span>✨</span> Curated Library
+          </Link>
+          <Link href="/admin/game/rooms" className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-foreground/70 hover:text-foreground transition-all" style={{ backgroundColor: 'color-mix(in srgb, var(--foreground) 3%, transparent)' }}>
+            <span>🎮</span> Active Rooms
+          </Link>
+          <Link href="/admin/system/metrics" className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-foreground/70 hover:text-foreground transition-all" style={{ backgroundColor: 'color-mix(in srgb, var(--foreground) 3%, transparent)' }}>
+            <span>📈</span> System Metrics
+          </Link>
+        </div>
+      </div>
+
+      {/* Song Cache Overview */}
+      {songCache && (
+        <div className="rounded-2xl p-6" style={{ backgroundColor: 'color-mix(in srgb, var(--surface) 60%, transparent)', backdropFilter: 'blur(12px)', border: '1px solid color-mix(in srgb, var(--foreground) 5%, transparent)' }}>
+          <h3 className="font-extrabold text-sm uppercase tracking-wider mb-4" style={{ color: 'var(--foreground)' }}>Song Cache</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-3 rounded-lg text-center" style={{ backgroundColor: 'color-mix(in srgb, var(--foreground) 3%, transparent)' }}>
+              <p className="text-xl font-bold">{songCache.total ?? '-'}</p>
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-foreground/40">Total Tracks</p>
+            </div>
+            <div className="p-3 rounded-lg text-center" style={{ backgroundColor: 'color-mix(in srgb, var(--foreground) 3%, transparent)' }}>
+              <p className="text-xl font-bold">{songCache.genreCount ?? '-'}</p>
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-foreground/40">Genres</p>
+            </div>
+            <div className="p-3 rounded-lg text-center" style={{ backgroundColor: 'color-mix(in srgb, var(--foreground) 3%, transparent)' }}>
+              <p className="text-xl font-bold">{songCache.plays ?? '-'}</p>
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-foreground/40">Total Plays</p>
+            </div>
+            <div className="p-3 rounded-lg text-center" style={{ backgroundColor: 'color-mix(in srgb, var(--foreground) 3%, transparent)' }}>
+              <p className="text-xl font-bold">{unclassifiedCount}</p>
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-foreground/40">Unclassified</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

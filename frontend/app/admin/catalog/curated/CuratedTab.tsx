@@ -12,8 +12,8 @@ import {
   importToCurated,
   getUnverifiedSongs,
 } from '@/lib/api';
-import { useAdminAudio } from '../hooks/useAdminAudio';
-import { StatCard } from '../components/StatCard';
+import { useAdminAudio } from '../../hooks/useAdminAudio';
+import { StatCard } from '../../components/StatCard';
 
 const GROUP_LABELS: Record<string, string> = {
   portuguese: 'Português',

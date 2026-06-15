@@ -7,3 +7,6 @@ node_modules/
 backend/data.db-shm
 backend/data.db-wal
 .DS_Store
+unsloth_compiled_cache/
+ai-worker/songs_cache_export*.csv
+scratch/

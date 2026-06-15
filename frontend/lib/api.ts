@@ -403,6 +403,27 @@ export async function getAiRecent(limit = 50): Promise<{
   return fetchWithAuth(`${API_URL}/api/admin/ai/recent?limit=${limit}`);
 }
 
+export async function getUnclassifiedTracks(): Promise<{
+  ok: boolean;
+  tracks: { id: string; name: string; artist: string; album_image: string | null; genre: string; ai_genres: string[]; ai_confidence: any; rank: number; preview_url: string | null }[];
+  error?: string;
+}> {
+  return fetchWithAuth(`${API_URL}/api/admin/ai/unclassified`);
+}
+
+export async function updateAiGenre(id: string, genre: string): Promise<{ ok: boolean; error?: string }> {
+  return fetchWithAuth(`${API_URL}/api/admin/ai/update-genre`, {
+    method: 'POST',
+    body: JSON.stringify({ id, genre }),
+  });
+}
+
+export async function deleteAiTrack(id: string): Promise<{ ok: boolean; error?: string }> {
+  return fetchWithAuth(`${API_URL}/api/admin/ai/track/${id}`, {
+    method: 'DELETE',
+  });
+}
+
 export async function getCuratedStats(): Promise<{
   total: number; verified: number; unverified: number; total_plays: number; genres: number;
   byGenre: { genre: string; total: number; verified: number; total_plays: number }[];

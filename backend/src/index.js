@@ -67,6 +67,8 @@ io.on('connection', (socket) => {
     if (!room) return;
     const player = room.getPlayer(info.playerId);
     if (!player || (player.role !== 'admin' && info.playerId !== room.hostId)) return;
+    const target = room.getPlayer(targetPlayerId);
+    if (target?.role === 'admin') return;
     room.kickPlayer(targetPlayerId);
   });
 
@@ -886,6 +888,38 @@ app.get('/api/admin/ai/search', requireAdmin, async (req, res) => {
   }
 });
 
+app.get('/api/admin/ai/unclassified', requireAdmin, async (req, res) => {
+  try {
+    const { getUnclassifiedTracks } = await import('./db/repositories/songRepository.js');
+    const tracks = await getUnclassifiedTracks();
+    res.json({ ok: true, tracks });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message, tracks: [] });
+  }
+});
+
+app.post('/api/admin/ai/update-genre', requireAdmin, async (req, res) => {
+  try {
+    const { id, genre } = req.body;
+    if (!id || !genre) return res.status(400).json({ ok: false, error: 'Missing id or genre' });
+    const { updateSongGenre } = await import('./db/repositories/songRepository.js');
+    await updateSongGenre(id, genre);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.delete('/api/admin/ai/track/:id', requireAdmin, async (req, res) => {
+  try {
+    const { run } = await import('./db/connection.js');
+    await run('DELETE FROM songs_cache WHERE id = ?', [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 app.get('/api/admin/ai/recent', requireAdmin, async (req, res) => {
   const limit = Math.min(parseInt(req.query.limit) || 50, 200);
   try {
@@ -1089,6 +1123,8 @@ app.post('/api/admin/rooms/:code/start', requireAdmin, async (req, res) => {
 app.post('/api/admin/rooms/:code/kick/:playerId', requireAdmin, (req, res) => {
   const room = rooms.get(req.params.code.toUpperCase());
   if (!room) return res.status(404).json({ ok: false, error: 'Room not found' });
+  const target = room.getPlayer(req.params.playerId);
+  if (target?.role === 'admin') return res.status(403).json({ ok: false, error: 'Cannot kick another admin' });
   const removed = room.kickPlayer(req.params.playerId);
   if (!removed) return res.status(404).json({ ok: false, error: 'Player not found' });
   res.json({ ok: true });

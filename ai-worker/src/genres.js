@@ -1,4 +1,5 @@
 export const GENRES = [
+  "UNCLASSIFIED",
   "PT_fado", "PT_tradicional_folklore_pimba", "PT_pop_tuga", "PT_pop_rock_tuga", "PT_hip_hop_tuga", "PT_classica_tuga", "PT_kizomba_palop", "PT_pop_urbano_nova_pop",
   "BR_samba_pagode", "BR_bossa_nova", "BR_funk_brasileiro", "BR_pop_rock_brasileiro", "BR_pop",
   "US_pop_us", "US_hip_hop_trap_us", "US_country_americana_us", "US_rock_alternative_us",
@@ -160,6 +161,16 @@ Add a "confidence" field (0.0 to 1.0) indicating how sure you are about the genr
 - 0.0-0.5: Unsure (data is ambiguous, default fallback)
 
 Base your confidence on: how well the artist, track, and album genres match the genre definition.
+
+### CULTURAL CONTEXT RULES (CRITICAL - Follow these to avoid false cognates)
+- "Funk" from US/UK artists (James Brown style groove/soul) → "US_pop_us" or "US_rock_alternative_us". NEVER "BR_funk_brasileiro".
+- "Funk" from Brazilian artists (Funk Carioca, Baile Funk) → MUST be "BR_funk_brasileiro". NEVER US/UK genres.
+- Artists singing in European Portuguese with traditional/party sound → "PT_tradicional_folklore_pimba" or "PT_pop_urbano_nova_pop"
+- K-Pop artists (BTS, BLACKPINK, Stray Kids, etc.) → MUST be "GL_kpop". Even if they sound like pop.
+- If the artist's nationality and language conflict with the genre, prefer the nationality.
+
+### UNCLASSIFIED FALLBACK
+If your confidence is below 0.60 (moderate certainty), or if the track is obscure, a cover, spoken word, or does not fit any genre, you MUST set "mapped_genre_id": "UNCLASSIFIED". Do not guess.
 
 ### OUTPUT FORMAT
 You must respond with ONLY a JSON object. Do not include markdown code blocks, conversational text, intro, or outro.

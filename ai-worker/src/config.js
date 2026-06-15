@@ -9,6 +9,6 @@ export const config = {
   pollIntervalMs: parseInt(process.env.POLL_INTERVAL_MS || '60000', 10),
   audioEnabled: process.env.AUDIO_CLASSIFICATION_ENABLED === 'true',
   audioModelPath: process.env.AUDIO_MODEL_PATH || './models/musicnn.onnx',
-  aiVersion: process.env.AI_VERSION || 'llama3.2-v1',
+  aiVersion: process.env.AI_VERSION || 'blindtest-classifier-v3',
   deezerApiBase: 'https://api.deezer.com',
 };

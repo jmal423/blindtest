@@ -1366,7 +1366,14 @@ function PreparingCountdown({ currentRound, totalRounds, players, playerId, onSk
           const s = statusLabel(p);
           return (
             <div key={p.id} className={`flex items-center gap-2 px-3 py-2 rounded-lg ${p.id === playerId ? 'bg-white/5 ring-1 ring-white/20' : ''}`}>
-              <span className="text-sm flex-1 truncate">{p.name}</span>
+              <span className="text-sm flex-1 truncate flex items-center gap-1.5">
+                {p.name}
+                {p.role === 'admin' && (
+                  <span className="rounded-full bg-[#00cec9]/15 px-2 py-0.5 text-[9px] font-bold tracking-wider text-[#00cec9] border border-[#00cec9]/30">
+                    ADMIN
+                  </span>
+                )}
+              </span>
               <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${s.cls}`}>{s.text}</span>
             </div>
           );

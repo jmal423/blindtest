@@ -226,6 +226,8 @@ export class GameRoom {
   }
 
   kickPlayer(targetPlayerId) {
+    const target = this.getPlayer(targetPlayerId);
+    if (target?.role === 'admin') return null;
     const socketId = this.playerSockets[targetPlayerId];
     const removed = this.removePlayer(targetPlayerId);
     if (!removed) return null;

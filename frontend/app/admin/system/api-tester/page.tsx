@@ -8,13 +8,13 @@ import {
   testDeezerGenre,
   testGenre
 } from '@/lib/api';
-import { useAdminAudio } from '../hooks/useAdminAudio';
+import { useAdminAudio } from '../../hooks/useAdminAudio';
 
 const API_SOURCES = [
   { id: 'deezer', label: 'Deezer Core API', desc: 'Queries official charts and searches.' },
 ];
 
-export function ApiTab() {
+export default function ApiTesterPage() {
   const [deezerResult, setDeezerResult] = useState<any>(null);
   const [deezerLoading, setDeezerLoading] = useState(false);
   const [dbStatus, setDbStatus] = useState<any>(null);

@@ -231,6 +231,28 @@ export async function getRecentAiEnrichedTracks(limit) {
   );
 }
 
+export async function getUnclassifiedTracks() {
+  return all(
+    `SELECT id, name, artist, album_image, genre, ai_genres, ai_confidence, rank, preview_url
+     FROM songs_cache
+     WHERE ai_genres->>0 = 'UNCLASSIFIED'
+     ORDER BY rank DESC NULLS LAST
+     LIMIT 200`
+  );
+}
+
+export async function updateSongGenre(id, genre) {
+  await run(
+    `UPDATE songs_cache
+     SET ai_genres = jsonb_build_array(?),
+         ai_confidence = jsonb_build_object(?, 0.95),
+         ai_processed_at = NOW(),
+         ai_version = 'manual-v1'
+     WHERE id = ?`,
+    [genre, genre, id]
+  );
+}
+
 export async function getSongById(id) {
   const [row] = await all('SELECT * FROM songs_cache WHERE id = ?', [id]);
   return row || null;
