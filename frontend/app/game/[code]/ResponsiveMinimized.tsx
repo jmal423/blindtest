@@ -19,7 +19,7 @@ export default function ResponsiveMinimized({ children }: { children: ReactNode 
 
   if (tooSmall) {
     return (
-      <div className="flex-1 flex items-center justify-center min-h-screen" style={{ backgroundColor: 'var(--background)' }}>
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center" style={{ backgroundColor: 'var(--background)' }}>
         <div className="flex flex-col items-center gap-4 animate-pulse">
           <span className="text-5xl">🎵</span>
           <h1 className="text-2xl font-black tracking-tight uppercase">

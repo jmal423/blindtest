@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { getUnclassifiedTracks, updateAiGenre, deleteAiTrack, fetchGenres } from '@/lib/api';
+import { getProxiedUrl } from '@/lib/proxy';
 import { DataTable } from '../../components/DataTable';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 
@@ -43,10 +44,11 @@ export default function TriagePage() {
   }, []);
 
   const playPreview = (track: Track) => {
-    if (!track.preview_url) return;
+    const url = getProxiedUrl(track.preview_url);
+    if (!url) return;
     if (audioRef.current) audioRef.current.pause();
     if (audioPlayingId === track.id) { setAudioPlayingId(null); return; }
-    const audio = new Audio(track.preview_url);
+    const audio = new Audio(url);
     audio.volume = 0.5;
     audio.play().catch(() => {});
     audio.addEventListener('ended', () => setAudioPlayingId(null));
