@@ -18,7 +18,7 @@ export function updateRichPresence(sdk: DiscordSDK | null, gameState: GameState 
   if (!sdk || !gameState) return;
 
   const payload: ActivityPayload = {
-    type: 2,
+    type: 0,
     instance: true,
     assets: {
       large_image: 'blindtest_logo',
