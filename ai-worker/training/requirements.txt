@@ -1,0 +1,8 @@
+unsloth
+xformers
+trl
+peft
+accelerate
+bitsandbytes
+psycopg2-binary
+datasets
