@@ -184,6 +184,7 @@ export async function authenticateDiscordActivity(): Promise<{ token: string; us
 
     const sdk = new DiscordSDK(clientId);
     await sdk.ready();
+    _sdk = sdk;
     _instanceId = sdk.instanceId ?? null;
     _channelId = sdk.channelId ?? null;
     _guildId = sdk.guildId ?? null;
@@ -224,8 +225,8 @@ export async function authenticateDiscordActivity(): Promise<{ token: string; us
 
 export async function isDiscordMobile(): Promise<boolean> {
   if (IS_MOCK_DISCORD) return false;
-  if (!_sdk) return false;
-  return _sdk.platform === 'mobile';
+  if (_sdk) return _sdk.platform === 'mobile';
+  return /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
 
 export type LayoutMode = -1 | 0 | 1 | 2;

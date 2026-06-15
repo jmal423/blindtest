@@ -27,6 +27,8 @@
 body {
   background: radial-gradient(ellipse at 50% 0%, #1a0e14 0%, #0a0808 70%, #060506 100%) no-repeat fixed;
   color: var(--foreground);
+  padding-top: var(--discord-top-inset, 0px);
+  transition: padding-top 0.2s ease;
 }
 
 [data-theme="light"] {
