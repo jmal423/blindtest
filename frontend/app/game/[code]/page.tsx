@@ -580,6 +580,8 @@ onSkipVote={handleSkipVote}
                 skipVotes={gameState.state === 'playing' || gameState.state === 'round_preparing' ? (gameState as any).skipVotes ?? 0 : 0}
                skipVotesNeeded={gameState.state === 'playing' || gameState.state === 'round_preparing' ? (gameState as any).skipVotesNeeded ?? 1 : 1}
                hostId={gameState.hostId}
+               currentTrackId={gameState.state === 'playing' ? (gameState as any).trackId : null}
+               onFlagSong={(id) => socketRef.current?.emit('flag_song', id)}
             />
           )}
 
@@ -1681,6 +1683,8 @@ function PlayingPhase({
   smoothTime,
   roundTime,
   hostId,
+  currentTrackId,
+  onFlagSong,
 }: {
   state: string;
   currentRound: number;
@@ -1706,6 +1710,8 @@ function PlayingPhase({
   skipVotesNeeded: number;
   roundTime?: number;
   hostId?: string | null;
+  currentTrackId?: string | null;
+  onFlagSong?: (id: string) => void;
 }) {
   const { t } = useTranslation();
   const roundDuration = roundTime || 15;
@@ -1721,6 +1727,24 @@ function PlayingPhase({
 
   const me = players.find(p => p.id === playerId);
   const isAdmin = me?.role === 'admin' || playerId === hostId;
+  const [showSkipReasons, setShowSkipReasons] = useState(false);
+
+  const handleSkipClick = () => {
+    if (hasVotedSkip || skipCooldown) return;
+    if (state === 'playing') {
+      setShowSkipReasons(true);
+    } else {
+      onSkipVote();
+    }
+  };
+
+  const handleSkipWithReason = (reason: string) => {
+    setShowSkipReasons(false);
+    if (reason === 'wrong_song' && currentTrackId && onFlagSong) {
+      onFlagSong(currentTrackId);
+    }
+    onSkipVote();
+  };
 
   const playerStatus = (p: any) => {
     if (p.foundBoth) return 'found';
@@ -1747,12 +1771,12 @@ function PlayingPhase({
             {timeLeft ?? '--'}
           </motion.span>
           {isAdmin ? (
-            <button onClick={onSkipVote} disabled={skipCooldown} className="px-3 py-1.5 text-xs bg-surface-light hover:bg-surface-light text-foreground/80 rounded-lg border border-surface-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            <button onClick={handleSkipClick} disabled={skipCooldown} className="px-3 py-1.5 text-xs bg-surface-light hover:bg-surface-light text-foreground/80 rounded-lg border border-surface-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
               {t('skip')}
             </button>
           ) : (
             <button
-              onClick={hasVotedSkip ? undefined : onSkipVote}
+              onClick={hasVotedSkip || skipCooldown ? undefined : handleSkipClick}
               disabled={hasVotedSkip || skipCooldown}
               className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
                 hasVotedSkip || skipCooldown
@@ -1762,6 +1786,35 @@ function PlayingPhase({
             >
               {hasVotedSkip ? `${t('voted')} ${skipVotes}/${skipVotesNeeded}` : `${t('vote_skip')} ${skipVotes}/${skipVotesNeeded}`}
             </button>
+          )}
+
+          {showSkipReasons && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setShowSkipReasons(false)}>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-background border border-white/10 rounded-2xl p-5 w-full max-w-xs shadow-2xl flex flex-col gap-2"
+                onClick={e => e.stopPropagation()}
+              >
+                <p className="text-xs font-bold text-foreground/70 uppercase tracking-wider mb-1">Why skip?</p>
+                <button onClick={() => handleSkipWithReason('wrong_song')} className="w-full text-left px-3.5 py-2.5 bg-white/[0.02] hover:bg-red-500/10 border border-white/5 hover:border-red-500/30 rounded-xl text-xs font-semibold text-foreground/80 hover:text-red-400 transition-all cursor-pointer flex items-center gap-2.5">
+                  <span className="text-base">🚩</span>
+                  <div><span className="block">Wrong Song</span><span className="text-[10px] text-foreground/40 font-normal">Flag as incorrect &amp; skip</span></div>
+                </button>
+                <button onClick={() => handleSkipWithReason('bad_audio')} className="w-full text-left px-3.5 py-2.5 bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 rounded-xl text-xs font-semibold text-foreground/80 hover:text-foreground transition-all cursor-pointer flex items-center gap-2.5">
+                  <span className="text-base">🔇</span>
+                  <div><span className="block">Bad Audio</span><span className="text-[10px] text-foreground/40 font-normal">Audio glitch or too quiet</span></div>
+                </button>
+                <button onClick={() => handleSkipWithReason('not_playing')} className="w-full text-left px-3.5 py-2.5 bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 rounded-xl text-xs font-semibold text-foreground/80 hover:text-foreground transition-all cursor-pointer flex items-center gap-2.5">
+                  <span className="text-base">⏹</span>
+                  <div><span className="block">Not Playing</span><span className="text-[10px] text-foreground/40 font-normal">No sound coming through</span></div>
+                </button>
+                <button onClick={() => handleSkipWithReason('just_skip')} className="w-full text-left px-3.5 py-2.5 bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 rounded-xl text-xs font-semibold text-foreground/80 hover:text-foreground transition-all cursor-pointer flex items-center gap-2.5">
+                  <span className="text-base">⏭</span>
+                  <div><span className="block">Just Skip</span><span className="text-[10px] text-foreground/40 font-normal">No reason</span></div>
+                </button>
+              </motion.div>
+            </div>
           )}
         </div>
       </div>
