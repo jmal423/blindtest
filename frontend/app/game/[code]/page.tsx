@@ -1457,6 +1457,7 @@ function PlayingPhase({
 }) {
   const { t } = useTranslation();
   const roundDuration = roundTime || 15;
+  const [showSkipReasons, setShowSkipReasons] = useState(false);
   const placeholder = bothFound
     ? t('complete_2')
     : artistFound
@@ -1469,7 +1470,6 @@ function PlayingPhase({
 
   const me = players.find(p => p.id === playerId);
   const isAdmin = me?.role === 'admin' || playerId === hostId;
-  const [showSkipReasons, setShowSkipReasons] = useState(false);
 
   const handleSkipClick = () => {
     if (hasVotedSkip || skipCooldown) return;
