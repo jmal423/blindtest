@@ -191,10 +191,7 @@ export async function authenticateDiscordActivity(): Promise<{ token: string; us
     }
 
     const sdk = new DiscordSDK(clientId);
-    await Promise.race([
-      sdk.ready(),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('SDK ready timeout')), 5000)),
-    ]);
+    await sdk.ready();
     _sdk = sdk;
     _instanceId = sdk.instanceId ?? null;
     _channelId = sdk.channelId ?? null;
@@ -221,7 +218,6 @@ export async function authenticateDiscordActivity(): Promise<{ token: string; us
 
     const data = await res.json();
 
-    // Finalize authentication with Discord client
     await sdk.commands.authenticate({ access_token: data.access_token });
 
     _sdk = sdk;

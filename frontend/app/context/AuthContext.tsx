@@ -47,7 +47,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async function init() {
       if (isDiscordEmbedded()) {
         setLoading(true);
-        const result = await authenticateDiscordActivity();
+        const result = await Promise.race([
+          authenticateDiscordActivity(),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), 15000)),
+        ]);
         if (cancelled) return;
         if (result) {
           localStorage.setItem('blindtest_token', result.token);
