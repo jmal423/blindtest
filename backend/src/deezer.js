@@ -390,9 +390,12 @@ async function getTracksByArtist(artistName, count = 10) {
   console.log(`[Deezer] Fetching tracks for artist "${artistName}"`);
   const tracks = [];
   const seen = new Set();
+  const lowerArtist = artistName.toLowerCase();
 
-  const addTrack = (t) => {
+  const addTrack = (t, rawTrack) => {
     if (!t.previewUrl || seen.has(t.id)) return;
+    // Only include tracks where the primary artist matches (skip features/collabs)
+    if (!rawTrack?.artist?.name?.toLowerCase().includes(lowerArtist)) return;
     seen.add(t.id);
     tracks.push(t);
   };
@@ -407,7 +410,7 @@ async function getTracksByArtist(artistName, count = 10) {
       if (topTracks?.data) {
         for (const t of topTracks.data) {
           if (tracks.length >= count) break;
-          addTrack(mapTrack(t, 'artist'));
+          addTrack(mapTrack(t, 'artist'), t);
         }
       }
     }
@@ -418,8 +421,8 @@ async function getTracksByArtist(artistName, count = 10) {
       if (searchData?.data) {
         for (const t of searchData.data) {
           if (tracks.length >= count) break;
-          if (t.artist?.name?.toLowerCase().includes(artistName.toLowerCase())) {
-            addTrack(mapTrack(t, 'artist'));
+          if (t.artist?.name?.toLowerCase().includes(lowerArtist)) {
+            addTrack(mapTrack(t, 'artist'), t);
           }
         }
       }
