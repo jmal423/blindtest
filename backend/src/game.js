@@ -479,7 +479,7 @@ export class GameRoom {
       pointsThisGuess += 3;
     }
 
-    const bothNow = player.foundArtist && player.foundTitle;
+    const bothNow = this.settings.gameMode === 'artist' ? player.foundArtist : (player.foundArtist && player.foundTitle);
     if (bothNow && !player.foundBoth) {
       player.foundBoth = true;
       pointsThisGuess += 4;
@@ -789,7 +789,7 @@ export class GameRoom {
         id: p.id, name: p.name, avatarUrl: p.avatarUrl, role: p.role, score: p.score,
         foundArtist: !!p.foundArtist,
         foundTitle: !!p.foundTitle,
-        foundBoth: !!p.foundBoth,
+        foundBoth: this.settings.gameMode === 'artist' ? !!p.foundArtist : !!p.foundBoth,
       })),
       currentRound: this.tracksPlayed + 1,
       totalRounds: this.totalRounds,
