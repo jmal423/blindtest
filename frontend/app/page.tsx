@@ -190,7 +190,7 @@ function Dashboard() {
   const redirectingRef = useRef(false);
 
   useEffect(() => {
-    if (!discordContext || authLoading || redirectingRef.current) return;
+    if (!discordContext || authLoading || !user || redirectingRef.current) return;
     redirectingRef.current = true;
     const channelId = getChannelId();
     (async () => {
@@ -203,7 +203,14 @@ function Dashboard() {
           return;
         }
       }
-      const { code, playerId } = await createRoom([], undefined, undefined, channelId || undefined);
+      let allGenreIds: string[] = [];
+      try {
+        const groups = await fetchGenreGroups();
+        allGenreIds = groups.genres.map(g => g.id);
+      } catch {
+        try { allGenreIds = (await fetchGenres()).map(g => g.id); } catch {}
+      }
+      const { code, playerId } = await createRoom(allGenreIds, undefined, undefined, channelId || undefined);
       localStorage.setItem(`blindtest_player_${code}`, playerId);
       router.replace(`/game/${code}`);
     })();

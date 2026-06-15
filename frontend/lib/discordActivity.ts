@@ -159,14 +159,16 @@ export function subscribeToParticipants(callback: ParticipantUpdateCallback): ()
     return () => {
       try {
         _sdk.unsubscribe('ACTIVITY_INSTANCE_PARTICIPANTS_UPDATE', handler);
-      } catch { /* ignore */ }
+      } catch {
+        // ignore unsubscribe errors
+      }
     };
   } catch {
     return () => {};
   }
 }
 
-const SCOPES = ['identify', 'rpc.activities.write', 'activities.write', 'relationships.read'] as const;
+const SCOPES = ['identify', 'rpc.activities.write'] as const;
 
 export async function authenticateDiscordActivity(): Promise<{ token: string; user: any } | null> {
   if (IS_MOCK) {
@@ -208,6 +210,7 @@ export async function authenticateDiscordActivity(): Promise<{ token: string; us
 
     const data = await res.json();
 
+    // Finalize authentication with Discord client
     await sdk.commands.authenticate({ access_token: data.access_token });
 
     _sdk = sdk;
