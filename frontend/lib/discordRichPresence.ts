@@ -63,7 +63,7 @@ export function updateRichPresence(sdk: DiscordSDK | null, gameState: GameState 
   }
 
   try {
-    sdk.commands.setActivity(payload);
+    sdk.commands.setActivity({ activity: payload });
   } catch {
     // Rich Presence is non-critical
   }
@@ -72,7 +72,7 @@ export function updateRichPresence(sdk: DiscordSDK | null, gameState: GameState 
 export function clearRichPresence(sdk: DiscordSDK | null) {
   if (!sdk) return;
   try {
-    sdk.commands.setActivity({});
+    sdk.commands.setActivity({ activity: {} });
   } catch {
     // Rich Presence is non-critical
   }

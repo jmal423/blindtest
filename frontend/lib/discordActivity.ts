@@ -56,7 +56,7 @@ export type ParticipantUpdateCallback = (participants: DiscordParticipant[]) => 
 export async function getConnectedParticipants(): Promise<DiscordParticipant[]> {
   if (!_sdk) return [];
   try {
-    const result = await _sdk.commands.getInstanceConnectedParticipants();
+    const result = await _sdk.commands.getActivityInstanceConnectedParticipants();
     return result?.participants ?? [];
   } catch {
     return [];
@@ -66,13 +66,13 @@ export async function getConnectedParticipants(): Promise<DiscordParticipant[]> 
 export function subscribeToParticipants(callback: ParticipantUpdateCallback): () => void {
   if (!_sdk) return () => {};
   try {
-    const handler = (data: { participants: DiscordParticipant[] }) => {
+    const handler = (data: any) => {
       callback(data?.participants ?? []);
     };
-    _sdk.commands.subscribe('ACTIVITY_INSTANCE_PARTICIPANTS_UPDATE', handler);
+    _sdk.subscribe('ACTIVITY_INSTANCE_PARTICIPANTS_UPDATE', handler);
     return () => {
       try {
-        _sdk.commands.unsubscribe('ACTIVITY_INSTANCE_PARTICIPANTS_UPDATE', handler);
+        _sdk.unsubscribe('ACTIVITY_INSTANCE_PARTICIPANTS_UPDATE', handler);
       } catch {
         // ignore unsubscribe errors
       }
@@ -82,7 +82,7 @@ export function subscribeToParticipants(callback: ParticipantUpdateCallback): ()
   }
 }
 
-const SCOPES = ['identify'] as const;
+const SCOPES = ['identify', 'rpc.activities.write'] as const;
 
 export async function authenticateDiscordActivity(): Promise<{ token: string; user: any } | null> {
   if (IS_MOCK) {
@@ -97,10 +97,10 @@ export async function authenticateDiscordActivity(): Promise<{ token: string; us
     }
 
     const sdk = new DiscordSDK(clientId);
-    const readyPayload: any = await sdk.ready();
-    _instanceId = readyPayload?.instanceId ?? null;
-    _channelId = readyPayload?.channelId ?? null;
-    _guildId = readyPayload?.guildId ?? null;
+    await sdk.ready();
+    _instanceId = sdk.instanceId ?? null;
+    _channelId = sdk.channelId ?? null;
+    _guildId = sdk.guildId ?? null;
 
     const { code } = await sdk.commands.authorize({
       client_id: clientId,
