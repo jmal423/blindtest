@@ -46,15 +46,14 @@ export default function TriagePage() {
   }, []);
 
   const playPreview = (track: Track) => {
-    const rawUrl = track.preview_url?.replace(/\.+$/, '');
-    if (!rawUrl) { console.warn('[Triage] No preview_url for', track.name); return; }
+    if (!track.id) { console.warn('[Triage] No id for', track.name); return; }
     if (audioRef.current) audioRef.current.pause();
     if (audioPlayingId === track.id) { setAudioPlayingId(null); return; }
-    const audio = new Audio(rawUrl);
-    audio.crossOrigin = 'anonymous';
+    const proxyUrl = `/api/proxy/audio/${track.id}`;
+    const audio = new Audio(proxyUrl);
     audio.volume = settings.masterVolume ?? 0.5;
     audio.addEventListener('error', () => {
-      console.error('[Triage] Audio load failed:', audio.error?.code, audio.error?.message, 'url:', rawUrl);
+      console.error('[Triage] Audio error:', audio.error?.code, audio.error?.message, 'url:', proxyUrl);
       setAudioPlayingId(null);
     });
     audio.addEventListener('ended', () => setAudioPlayingId(null));
@@ -62,7 +61,7 @@ export default function TriagePage() {
       audioRef.current = audio;
       setAudioPlayingId(track.id);
     }).catch(err => {
-      console.error('[Triage] Play rejected:', err.message || err, 'url:', rawUrl);
+      console.error('[Triage] Play rejected:', err.message || err, 'url:', proxyUrl);
       setAudioPlayingId(null);
     });
   };

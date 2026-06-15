@@ -761,27 +761,29 @@ app.delete('/api/friends/:userId', authenticate, async (req, res) => {
   res.json({ ok: true });
 });
 
-// Audio proxy (bypass CORS for Deezer previews)
-app.get('/api/proxy/audio', async (req, res) => {
-  const url = req.query.url;
-  if (!url) return res.status(400).json({ error: 'Missing url' });
+// Fresh audio preview from Deezer (refreshes expired tokens)
+app.get('/api/proxy/audio/:trackId', async (req, res) => {
   try {
-    const response = await fetch(url, {
+    const deezerId = req.params.trackId.replace('deezer:', '');
+    const trackRes = await fetch(`https://api.deezer.com/track/${deezerId}`);
+    if (!trackRes.ok) return res.status(404).json({ error: 'Track not found on Deezer' });
+    const trackData = await trackRes.json();
+    const previewUrl = trackData.preview;
+    if (!previewUrl) return res.status(404).json({ error: 'No preview available' });
+
+    const audioRes = await fetch(previewUrl, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         'Referer': 'https://www.deezer.com/',
         'Accept': 'audio/mpeg, audio/*, */*',
       },
     });
-    if (!response.ok) {
-      const text = await response.text().catch(() => '');
-      return res.status(response.status).json({ error: response.statusText, body: text.slice(0, 200) });
-    }
-    const contentType = response.headers.get('content-type') || 'audio/mpeg';
+    if (!audioRes.ok) return res.status(audioRes.status).json({ error: audioRes.statusText });
+    const contentType = audioRes.headers.get('content-type') || 'audio/mpeg';
     res.setHeader('Content-Type', contentType);
     res.setHeader('Cache-Control', 'public, max-age=31536000');
     res.setHeader('Access-Control-Allow-Origin', '*');
-    const buffer = Buffer.from(await response.arrayBuffer());
+    const buffer = Buffer.from(await audioRes.arrayBuffer());
     res.send(buffer);
   } catch (err) {
     res.status(500).json({ error: err.message });
