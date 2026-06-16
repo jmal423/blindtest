@@ -961,14 +961,14 @@ function WaitingRoom({
         </div>
 
         {/* Right Column: Settings & Genres */}
-        <div className="w-full bg-[var(--surface)] rounded-2xl p-5 border border-white/5 space-y-5 shadow-xl backdrop-blur-md">
-          <div className="pb-2 border-b border-white/5">
-            <h3 className="text-sm font-semibold text-foreground/90">{t('settings')}</h3>
-          </div>
+        <div className="w-full bg-[var(--surface)] rounded-2xl p-5 border border-white/5 shadow-xl backdrop-blur-md flex flex-col xl:flex-row gap-6 xl:gap-8 items-start">
+          <div className="w-full xl:w-[280px] shrink-0">
+            <div className="pb-2 border-b border-white/5 mb-5">
+              <h3 className="text-sm font-semibold text-foreground/90">{t('settings')}</h3>
+            </div>
 
-          <div className="space-y-4">
-            <div>
-              <div className="flex items-center justify-between mb-4 bg-white/5 p-1 rounded-xl">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between bg-white/5 p-1 rounded-xl">
                 <button
                   onClick={() => isHost && onSettingsChange({ gameMode: 'genre' })}
                   className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${
@@ -990,6 +990,41 @@ function WaitingRoom({
                   Artists
                 </button>
               </div>
+
+              <div className="space-y-4 mt-6">
+<SliderSetting label={t('rounds')} value={settings.rounds} min={3} max={25} isHost={isHost} onChange={v => onSettingsChange({ rounds: v })} />
+            <SliderSetting label={t('time_per_round')} value={settings.roundTime} min={8} max={30} suffix="s" isHost={isHost} onChange={v => onSettingsChange({ roundTime: v })} />
+            <SliderSetting label={t('pause_between')} value={settings.pauseTime} min={2} max={15} suffix="s" isHost={isHost} onChange={v => onSettingsChange({ pauseTime: v })} />
+
+            {isHost && (
+              <div className="pt-2 border-t border-white/5">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-semibold text-foreground/80">{t('auto_start')}</span>
+                    <p className="text-[10px] text-foreground/40 max-w-[200px] leading-relaxed">{t('auto_start_desc')}</p>
+                  </div>
+                  <button
+                    onClick={() => onSettingsChange({ autoStart: !settings.autoStart })}
+                    className={`relative w-11 h-6 rounded-full flex-shrink-0 transition-all duration-300 ease-out focus:outline-none cursor-pointer ${
+                      settings.autoStart
+                        ? 'bg-gradient-to-r from-primary to-accent shadow-md shadow-primary/10'
+                        : 'bg-surface-light border border-white/5'
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-[3px] w-4 h-4 rounded-full bg-white shadow transition-all duration-300 ease-out ${
+                        settings.autoStart ? 'left-[23px] scale-110' : 'left-[3px] scale-100 bg-foreground/60'
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+            )}
+              </div>
+            </div>
+
+            <div className="flex-1 w-full min-w-0 space-y-4">
+
 
               {settings.gameMode === 'genre' ? (
                 <>
@@ -1031,7 +1066,7 @@ function WaitingRoom({
                   })}
                 </div>
               ) : (
-                <div className="space-y-2 max-h-[55vh] overflow-y-auto pr-1">
+                <div className="columns-1 md:columns-2 3xl:columns-3 gap-4">
                   {genreGroups.map(group => {
                     const groupGenres = group.genreIds.map(id => genreMap.get(id)).filter(Boolean) as { id: string; label: string; group?: string }[];
                     if (groupGenres.length === 0) return null;
@@ -1039,7 +1074,7 @@ function WaitingRoom({
                     const allSelected = groupGenres.every(g => genres.includes(g.id));
                     const someSelected = groupGenres.some(g => genres.includes(g.id));
                     return (
-                      <div key={group.id} className="border border-white/5 rounded-xl bg-white/[0.01] overflow-hidden transition-all duration-300 hover:border-white/10 hover:bg-white/[0.02]">
+                      <div key={group.id} className="break-inside-avoid mb-4 border border-white/5 rounded-xl bg-white/[0.01] overflow-hidden transition-all duration-300 hover:border-white/10 hover:bg-white/[0.02]">
                         <button
                           onClick={() => toggleGroup(group.id)}
                           className="w-full flex items-center justify-between px-3.5 py-2.5 text-xs font-semibold text-foreground/80 hover:text-foreground transition-colors cursor-pointer"
@@ -1211,14 +1246,14 @@ function WaitingRoom({
                   </div>
 
                   {isHost && (
-                    <div className="space-y-3 max-h-[55vh] overflow-y-auto pr-1">
+                    <div className="columns-1 md:columns-2 3xl:columns-3 gap-4">
                       {artistGroups.map(group => {
                         if (group.artists.length === 0) return null;
                         const isCollapsed = !expandedArtistGroups.has(group.id);
                         const allSelected = group.artists.every(a => artists.includes(a));
                         const someSelected = group.artists.some(a => artists.includes(a));
                         return (
-                          <div key={group.id} className="border border-white/5 rounded-xl bg-white/[0.01] overflow-hidden transition-all duration-300 hover:border-white/10 hover:bg-white/[0.02]">
+                          <div key={group.id} className="break-inside-avoid mb-4 border border-white/5 rounded-xl bg-white/[0.01] overflow-hidden transition-all duration-300 hover:border-white/10 hover:bg-white/[0.02]">
                             <button
                               onClick={() => toggleArtistGroup(group.id)}
                               className="w-full flex items-center justify-between px-3.5 py-2.5 text-xs font-semibold text-foreground/80 hover:text-foreground transition-colors cursor-pointer"
@@ -1341,34 +1376,7 @@ function WaitingRoom({
               )}
             </div>
 
-            <SliderSetting label={t('rounds')} value={settings.rounds} min={3} max={25} isHost={isHost} onChange={v => onSettingsChange({ rounds: v })} />
-            <SliderSetting label={t('time_per_round')} value={settings.roundTime} min={8} max={30} suffix="s" isHost={isHost} onChange={v => onSettingsChange({ roundTime: v })} />
-            <SliderSetting label={t('pause_between')} value={settings.pauseTime} min={2} max={15} suffix="s" isHost={isHost} onChange={v => onSettingsChange({ pauseTime: v })} />
-
-            {isHost && (
-              <div className="pt-2 border-t border-white/5">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <span className="text-xs font-semibold text-foreground/80">{t('auto_start')}</span>
-                    <p className="text-[10px] text-foreground/40 max-w-[200px] leading-relaxed">{t('auto_start_desc')}</p>
-                  </div>
-                  <button
-                    onClick={() => onSettingsChange({ autoStart: !settings.autoStart })}
-                    className={`relative w-11 h-6 rounded-full flex-shrink-0 transition-all duration-300 ease-out focus:outline-none cursor-pointer ${
-                      settings.autoStart
-                        ? 'bg-gradient-to-r from-primary to-accent shadow-md shadow-primary/10'
-                        : 'bg-surface-light border border-white/5'
-                    }`}
-                  >
-                    <span
-                      className={`absolute top-[3px] w-4 h-4 rounded-full bg-white shadow transition-all duration-300 ease-out ${
-                        settings.autoStart ? 'left-[23px] scale-110' : 'left-[3px] scale-100 bg-foreground/60'
-                      }`}
-                    />
-                  </button>
-                </div>
-              </div>
-            )}
+            
           </div>
         </div>
       </div>
