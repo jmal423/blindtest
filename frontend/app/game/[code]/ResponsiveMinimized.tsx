@@ -2,8 +2,8 @@
 
 import { useState, useEffect, ReactNode } from 'react';
 
-const MIN_WIDTH = 600;
-const MIN_HEIGHT = 400;
+const MIN_WIDTH = 320;
+const MIN_HEIGHT = 320;
 
 export default function ResponsiveMinimized({ children }: { children: ReactNode }) {
   const [tooSmall, setTooSmall] = useState(false);
