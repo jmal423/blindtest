@@ -1,0 +1,15 @@
+[Unit]
+Description=BlindTest Discord Bot
+After=network.target
+
+[Service]
+Type=simple
+User=jalfaiat
+WorkingDirectory=/home/jalfaiat/blindtest/discord-bot
+ExecStart=/usr/bin/node /home/jalfaiat/blindtest/discord-bot/index.js
+Restart=always
+RestartSec=10
+EnvironmentFile=/home/jalfaiat/blindtest/discord-bot/.env
+
+[Install]
+WantedBy=multi-user.target
