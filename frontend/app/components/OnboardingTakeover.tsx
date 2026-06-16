@@ -74,6 +74,10 @@ export default function OnboardingTakeover() {
     return () => stopAllAudio();
   }, [stopAllAudio]);
 
+  useEffect(() => {
+    stopAllAudio();
+  }, [step, stopAllAudio]);
+
   const dropBeat = async () => {
     stopAllAudio();
     if (!volumeSlider) setVolumeSlider(true);
