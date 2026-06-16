@@ -2,31 +2,31 @@
   {
     "id": "french_rap",
     "name": "French Rap",
-    "artists": ["Booba", "Ninho", "PNL", "Damso", "Orelsan", "Jul", "Gims", "Nekfeu"]
+    "artists": ["Booba", "Ninho", "PNL", "Damso", "Orelsan", "Jul", "Gims", "Nekfeu", "Suprême NTM", "La Fouine", "PLK", "IAM", "Werenoi", "Kery James", "SCH"]
   },
   {
     "id": "pop_queens",
     "name": "Pop Queens",
-    "artists": ["Lady Gaga", "Rihanna", "Beyoncé", "Ariana Grande", "Katy Perry", "Dua Lipa", "Taylor Swift"]
+    "artists": ["Lady Gaga", "Rihanna", "Beyoncé", "Ariana Grande", "Katy Perry", "Dua Lipa", "Taylor Swift", "Michael Jackson", "Billie Eilish", "Adele", "Madonna", "Shakira", "Britney Spears", "P!nk", "Miley Cyrus"]
   },
   {
     "id": "pt_tuga",
     "name": "Portuguese Tuga",
-    "artists": ["Bárbara Bandeira", "Ivandro", "Nininho Vaz Maia", "Plutónio", "Wet Bed Gang", "Slow J", "Piruka"]
+    "artists": ["Bárbara Bandeira", "Ivandro", "Nininho Vaz Maia", "Plutónio", "Wet Bed Gang", "Slow J", "Piruka", "Diogo Piçarra", "Fernando Daniel", "Calema", "D.a.M.A", "Nuno Ribeiro", "Carolina Deslandes", "Matias Damásio", "Royalistick"]
   },
   {
     "id": "br_funk_pagode",
     "name": "BR Funk & Pagode",
-    "artists": ["Anitta", "Ludmilla", "Pedro Sampaio", "Menos é Mais", "Luísa Sonza", "Kevin o Chris"]
+    "artists": ["Anitta", "Ludmilla", "Pedro Sampaio", "Menos é Mais", "Luísa Sonza", "Kevin o Chris", "Grupo Revelação", "Péricles", "Mc Poze do Rodo", "Arlindo Cruz", "Jorge Aragão", "Mc Tuto", "MC LUUKY", "Raça Negra", "Os Originais Do Samba"]
   },
   {
     "id": "rock_legends",
     "name": "Rock Legends",
-    "artists": ["Queen", "The Beatles", "AC/DC", "Nirvana", "Red Hot Chili Peppers", "Linkin Park", "Coldplay"]
+    "artists": ["Queen", "The Beatles", "AC/DC", "Nirvana", "Red Hot Chili Peppers", "Linkin Park", "Coldplay", "Pearl Jam", "Metallica", "Guns N' Roses", "Foo Fighters", "Radiohead", "Pink Floyd", "Rage Against the Machine", "Alice in Chains"]
   },
   {
     "id": "reggaeton",
     "name": "Reggaeton",
-    "artists": ["Bad Bunny", "J Balvin", "Daddy Yankee", "Maluma", "Ozuna", "Karol G"]
+    "artists": ["Bad Bunny", "J Balvin", "Daddy Yankee", "Maluma", "Ozuna", "Karol G", "Shakira", "ROSALÍA", "Enrique Iglesias", "Luis Fonsi", "Rauw Alejandro", "Pitbull", "Bizarrap", "Kapo", "FloyyMenor"]
   }
 ]

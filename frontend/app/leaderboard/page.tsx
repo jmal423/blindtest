@@ -142,7 +142,7 @@ export default function LeaderboardPage() {
   const listEntries = displayedEntries.slice(3);
 
   return (
-    <div className="flex-1 flex flex-col p-4 md:p-8 max-w-5xl mx-auto w-full gap-6">
+    <div className="flex-1 flex flex-col p-4 md:p-8 max-w-5xl mx-auto w-full gap-6 min-h-0 overflow-y-auto">
       {/* Header */}
       <div className="text-center space-y-3">
         <div className="space-y-1">

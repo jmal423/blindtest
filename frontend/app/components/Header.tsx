@@ -118,20 +118,11 @@ export default function Header() {
 
   useEffect(() => {
     if (!open) return;
-    const handleEvent = (e: MouseEvent | TouchEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        close();
-      }
-    };
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') close();
     };
-    document.addEventListener('mousedown', handleEvent);
-    document.addEventListener('touchstart', handleEvent);
     document.addEventListener('keydown', handleKey);
     return () => {
-      document.removeEventListener('mousedown', handleEvent);
-      document.removeEventListener('touchstart', handleEvent);
       document.removeEventListener('keydown', handleKey);
     };
   }, [open, close]);
@@ -173,12 +164,25 @@ export default function Header() {
         </Link>
 
         {showMenu && (
+          <div className="flex items-center gap-0.5">
+            {/* Settings Gear */}
+            <button
+              onClick={() => setShowSettings(true)}
+              className="w-9 h-9 rounded-full flex items-center justify-center text-foreground/50 hover:text-foreground/80 hover:bg-foreground/5 transition-all"
+              aria-label={t('settings_menu')}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+            </button>
+
           <div ref={menuRef} className="relative">
             {/* User Profile Avatar Trigger */}
             <button
               onClick={() => setOpen(!open)}
-              className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-transparent hover:ring-[var(--primary)] active:ring-[var(--primary)] transition-all duration-200 flex items-center justify-center bg-surface-light text-xs font-bold shadow-md cursor-pointer border border-foreground/10"
-              aria-label="Open menu"
+              className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-[var(--primary)]/40 hover:ring-[var(--primary)] active:ring-[var(--primary)] transition-all duration-200 flex items-center justify-center bg-surface-light text-xs font-bold shadow-md cursor-pointer border border-foreground/10"
+              aria-label={t('open_menu')}
             >
               {user?.avatar_url ? (
                 <img src={user.avatar_url} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
@@ -197,6 +201,7 @@ export default function Header() {
                   transition={{ duration: 0.15 }}
                   className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:bg-transparent"
                   onClick={close}
+                  onTouchStart={close}
                 />
               )}
             </AnimatePresence>
@@ -344,6 +349,7 @@ export default function Header() {
                 </motion.div>
               )}
             </AnimatePresence>
+          </div>
           </div>
         )}
       </header>

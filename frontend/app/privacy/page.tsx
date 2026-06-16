@@ -6,6 +6,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
+    <div className="flex-1 overflow-y-auto">
     <div className="max-w-2xl mx-auto px-4 py-12 text-sm text-foreground/80 space-y-6">
       <h1 className="text-2xl font-black text-foreground">Privacy Policy</h1>
 
@@ -59,6 +60,7 @@ export default function PrivacyPage() {
         <h2 className="text-lg font-bold text-foreground mt-6 mb-2">7. Changes to This Policy</h2>
         <p>We may update this policy. Continued use after changes constitutes acceptance of the updated policy.</p>
       </section>
+    </div>
     </div>
   );
 }

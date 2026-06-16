@@ -1,14 +1,27 @@
 'use client';
 
 import { useState, useEffect, ReactNode } from 'react';
+import { getDiscordSdk } from '@/lib/discordActivity';
 
-const MIN_WIDTH = 600;
-const MIN_HEIGHT = 400;
+const MIN_WIDTH = 500;
+const MIN_HEIGHT = 350;
+
+function inDiscord() {
+  if (typeof window === 'undefined') return false;
+  if (getDiscordSdk()) return true;
+  try {
+    return window.parent !== window;
+  } catch {
+    return true;
+  }
+}
 
 export default function ResponsiveMinimized({ children }: { children: ReactNode }) {
   const [tooSmall, setTooSmall] = useState(false);
 
   useEffect(() => {
+    if (!inDiscord()) return;
+
     const check = () => {
       const small = window.innerWidth < MIN_WIDTH || window.innerHeight < MIN_HEIGHT;
       setTooSmall(small);

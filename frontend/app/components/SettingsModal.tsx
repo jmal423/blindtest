@@ -145,7 +145,7 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
         <section className="space-y-3">
           <h3 className="text-[10px] font-black text-foreground/40 uppercase tracking-widest">{t('appearance_section')}</h3>
           <div className="grid grid-cols-2 gap-2">
-            {(['dark', 'light', 'noir', 'synthwave', 'terminal'] as const).map(theme => {
+            {(['dark', 'light', 'noir', 'synthwave', 'terminal', 'fire'] as const).map(theme => {
               const active = settings.theme === theme;
 
               let label = '';
@@ -154,6 +154,7 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
               else if (theme === 'noir') label = '🎸 Neon Noir';
               else if (theme === 'synthwave') label = '🌴 Retro';
               else if (theme === 'terminal') label = '💻 Terminal';
+              else if (theme === 'fire') label = '🔥 Fire';
 
               return (
                 <button

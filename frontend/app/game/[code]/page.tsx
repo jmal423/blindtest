@@ -404,8 +404,8 @@ export default function GamePage({
 
   return (
     <ResponsiveMinimized>
-    <div className="flex-1 flex flex-col p-3 md:p-6 max-w-6xl mx-auto w-full gap-4">
-      <div className="flex items-center justify-between">
+    <div className="flex-1 flex flex-col p-3 md:p-6 w-full gap-4 min-h-0">
+      <div className="flex items-center gap-3">
         <div className="flex items-center gap-3">
           <p className="text-xl font-bold tracking-[0.2em] text-[var(--primary)]">{code}</p>
           <button
@@ -429,7 +429,7 @@ export default function GamePage({
             <span className="text-xs text-foreground/30">Round {gameState.currentRound}/{gameState.totalRounds}</span>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 ml-auto">
           {gameState.state !== 'waiting' && gameState.state !== 'game_over' && (
             <>
               <div className="hidden md:flex items-center gap-1.5">
@@ -460,12 +460,39 @@ export default function GamePage({
                   className="w-14 accent-[var(--primary)] h-1 cursor-pointer"
                 />
               </div>
-              <button
-                onClick={() => setChatOpen(o => !o)}
-                className="md:hidden text-[10px] px-2 py-0.5 rounded bg-white/5 text-foreground/60 hover:text-foreground/80 transition-colors"
-              >
-                {chatOpen ? t('hide_chat') : t('chat')}
-              </button>
+              <div className="md:hidden flex items-center gap-1">
+                <button
+                  onClick={() => {
+                    if (userSettings.masterVolume >= 0.06) {
+                      prevVolumeRef.current = userSettings.masterVolume;
+                      updateLocalSettings({ masterVolume: 0.05 });
+                    } else {
+                      updateLocalSettings({ masterVolume: prevVolumeRef.current || 1 });
+                    }
+                  }}
+                  className="text-foreground/60 hover:text-foreground/90 transition-colors p-1"
+                >
+                  {userSettings.masterVolume <= 0.05 ? (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+                  ) : userSettings.masterVolume < 0.5 ? (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                  ) : (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+                  )}
+                </button>
+                <input
+                  type="range" min={0.05} max={1} step={0.05}
+                  value={userSettings.masterVolume}
+                  onChange={e => updateLocalSettings({ masterVolume: Number(e.target.value) })}
+                  className="w-12 accent-[var(--primary)] h-1 cursor-pointer"
+                />
+                <button
+                  onClick={() => setChatOpen(o => !o)}
+                  className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-foreground/60 hover:text-foreground/80 transition-colors"
+                >
+                  {chatOpen ? t('hide_chat') : t('chat')}
+                </button>
+              </div>
             </>
           )}
         </div>
@@ -522,7 +549,7 @@ export default function GamePage({
           </div>
         )}
 
-        <div className={`flex-1 flex flex-col gap-4 min-w-0 ${gameState.state === 'game_over' ? '' : 'max-w-2xl'}`}>
+        <div className="flex-1 flex flex-col gap-4 min-w-0 min-h-0">
           {gameState.state === 'waiting' && (
             <WaitingRoom
               gameCode={code}
@@ -722,7 +749,10 @@ function WaitingRoom({
 
   useEffect(() => {
     import('@/lib/api').then(({ getArtistGroups }) => {
-      getArtistGroups().then(setArtistGroups).catch(() => {});
+      getArtistGroups().then(data => {
+        setArtistGroups(data);
+        setExpandedArtistGroups(new Set(data.map(g => g.id)));
+      }).catch(() => {});
     });
   }, []);
 
@@ -730,6 +760,9 @@ function WaitingRoom({
     fetchGenreGroups().then(data => {
       setGenreGroups(data?.groups || []);
       setAllGenres(data?.genres || []);
+      if (data?.groups) {
+        setExpandedGroups(new Set(data.groups.map(g => g.id)));
+      }
     }).catch(() => {
       fetchGenres().then(genres => setAllGenres(genres || [])).catch(() => {});
     });
@@ -779,17 +812,29 @@ function WaitingRoom({
   const allGenreIds = allGenres.map(g => g.id);
   const genreMap = new Map(allGenres.map(g => [g.id, g]));
 
+  const GROUP_FLAGS: Record<string, { flag: string; color: string }> = {
+    portuguese:     { flag: '🇵🇹', color: '#E8003B' },
+    united_states:  { flag: '🇺🇸', color: '#3B82F6' },
+    united_kingdom: { flag: '🇬🇧', color: '#C8102E' },
+    french:         { flag: '🇫🇷', color: '#002395' },
+    spanish:        { flag: '🇪🇸', color: '#FFC400' },
+    brazilian:      { flag: '🇧🇷', color: '#009739' },
+    global_other:   { flag: '🌍', color: '#8B5CF6' },
+  };
+
   return (
-    <div className="flex-1 flex flex-col items-center gap-6 overflow-y-auto pb-24 md:pb-8 w-full max-w-4xl mx-auto px-4">
-      {/* Title Header */}
-      <div className="text-center space-y-1.5 mt-2 mb-1 flex flex-col items-center">
-        <h2 className="text-2xl font-bold tracking-tight text-foreground">
-          Game Lobby
-        </h2>
+    <div className="flex-1 flex flex-col w-full min-h-0">
+      {/* Scrollable content */}
+      <div className="flex-1 overflow-y-auto min-h-0 px-4 md:px-6 space-y-6 py-4">
+        {/* Title Header */}
+        <div className="text-center space-y-1.5 mt-2 mb-1 flex flex-col items-center">
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">
+            {t('game_lobby_title')}
+          </h2>
 
-      </div>
+        </div>
 
-      <div className="w-full grid grid-cols-1 md:grid-cols-[1fr_1.3fr] gap-6 md:gap-8 items-start">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-[minmax(300px,25%)_1fr] gap-6 md:gap-8 items-start">
         {/* Left Column: Players List */}
         <div className="w-full bg-[var(--surface)] border border-white/5 rounded-2xl p-5 space-y-4 shadow-xl backdrop-blur-md">
           <div className="flex items-center justify-between pb-2 border-b border-white/5">
@@ -801,7 +846,7 @@ function WaitingRoom({
               <span className="text-sm font-semibold text-foreground/90">{t('players')}</span>
             </div>
             <span className="text-xs text-foreground/40 font-medium bg-white/5 px-2.5 py-1 rounded-full tabular-nums">
-              {players.length} {players.length === 1 ? 'player' : 'players'}
+              {players.length} {players.length === 1 ? t('player_unit') : t('player_unit_plural')}
             </span>
           </div>
 
@@ -846,12 +891,12 @@ function WaitingRoom({
                     {p.name}
                     {p.role === 'admin' && (
                       <span className="rounded-full bg-[#00cec9]/15 px-2 py-0.5 text-[9px] font-bold tracking-wider text-[#00cec9] border border-[#00cec9]/30">
-                        ADMIN
+                        {t('admin_role')}
                       </span>
                     )}
                   </span>
                   <span className="text-[10px] text-foreground/40 font-medium">
-                    {p.id === playerId ? 'You' : p.id === hostId ? 'Host' : 'Ready'}
+                    {p.id === playerId ? t('you_label') : p.id === hostId ? t('host_label') : t('ready_label')}
                   </span>
                 </div>
 
@@ -862,7 +907,7 @@ function WaitingRoom({
                       onClick={() => onTransferHost(p.id)}
                       className="text-[10px] px-2.5 py-1 rounded bg-surface-light hover:bg-surface-light text-foreground/80 font-medium border border-white/5 transition-all cursor-pointer"
                     >
-                      Make Host
+                      {t('make_host_btn')}
                     </button>
                   )}
                   {(playerId === hostId || p.role === 'admin') && onKickPlayer && p.id !== playerId && (
@@ -870,7 +915,7 @@ function WaitingRoom({
                       onClick={() => onKickPlayer(p.id)}
                       className="text-[10px] px-2.5 py-1 rounded bg-red-500/10 hover:bg-red-500/20 text-red-400 font-medium border border-red-500/20 transition-all cursor-pointer"
                     >
-                      Kick
+                      {t('kick_btn')}
                     </button>
                   )}
                 </div>
@@ -896,7 +941,7 @@ function WaitingRoom({
                       : 'text-foreground/50 hover:text-foreground/80'
                   } ${!isHost && 'pointer-events-none'}`}
                 >
-                  Genres
+                  {t('tab_genres')}
                 </button>
                 <button
                   onClick={() => isHost && onSettingsChange({ gameMode: 'artist' })}
@@ -906,7 +951,7 @@ function WaitingRoom({
                       : 'text-foreground/50 hover:text-foreground/80'
                   } ${!isHost && 'pointer-events-none'}`}
                 >
-                  Artists
+                  {t('tab_artists')}
                 </button>
               </div>
 
@@ -931,7 +976,7 @@ function WaitingRoom({
                   </div>
 
               {genreGroups.length === 0 ? (
-                <div className="grid grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-1.5">
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(130px,1fr))] gap-1.5">
                   {allGenres.map(g => {
                     const selected = genres.includes(g.id);
                     return (
@@ -950,7 +995,7 @@ function WaitingRoom({
                   })}
                 </div>
               ) : (
-                <div className="space-y-2 max-h-[350px] overflow-y-auto pr-1">
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 auto-rows-min gap-2">
                   {genreGroups.map(group => {
                     const groupGenres = group.genreIds.map(id => genreMap.get(id)).filter(Boolean) as { id: string; label: string; group?: string }[];
                     if (groupGenres.length === 0) return null;
@@ -958,13 +1003,14 @@ function WaitingRoom({
                     const allSelected = groupGenres.every(g => genres.includes(g.id));
                     const someSelected = groupGenres.some(g => genres.includes(g.id));
                     return (
-                      <div key={group.id} className="border border-white/5 rounded-xl bg-white/[0.01] overflow-hidden transition-all duration-300 hover:border-white/10 hover:bg-white/[0.02]">
+                      <div key={group.id} className="border rounded-xl bg-white/[0.01] overflow-hidden transition-all duration-300 hover:bg-white/[0.02]" style={{ borderColor: someSelected ? GROUP_FLAGS[group.id]?.color + '60' : 'var(--border)' }}>
+                        <div className="h-1 w-full" style={{ background: `linear-gradient(90deg, ${GROUP_FLAGS[group.id]?.color || 'var(--primary)'}, transparent)` }} />
                         <button
                           onClick={() => toggleGroup(group.id)}
                           className="w-full flex items-center justify-between px-3.5 py-2.5 text-xs font-semibold text-foreground/80 hover:text-foreground transition-colors cursor-pointer"
                         >
                           <span className="flex items-center gap-2">
-                            <span className={`w-1.5 h-1.5 rounded-full ${someSelected ? 'bg-[var(--primary)]' : 'bg-foreground/30'} transition-all`} />
+                            <span>{GROUP_FLAGS[group.id]?.flag || '🎵'}</span>
                             {t(`group_${group.id}`)}
                           </span>
                           <div className="flex items-center gap-2.5">
@@ -998,14 +1044,14 @@ function WaitingRoom({
                           className="overflow-hidden"
                         >
                           <div className="px-3.5 pb-3.5 pt-1 border-t border-white/[0.03]">
-                            <div className="grid grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-1.5">
+                            <div className="flex flex-wrap gap-1.5">
                               {groupGenres.map(g => {
                                 const selected = genres.includes(g.id);
                                 return (
                                   <button
                                     key={g.id}
                                     onClick={() => isHost && toggleGenre(g.id)}
-                                    className={`px-2 py-1.5 rounded-full text-[11px] font-semibold transition-all border ${
+                                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all border ${
                                       selected
                                         ? 'bg-gradient-to-r from-primary to-accent text-foreground border-transparent shadow-md shadow-primary/10 scale-100 hover:brightness-110 active:scale-95'
                                         : 'bg-white/[0.02] text-foreground/60 border-white/5 hover:bg-white/[0.06] hover:text-foreground/90 hover:border-white/10 active:scale-95'
@@ -1024,90 +1070,24 @@ function WaitingRoom({
                 </div>
               )}
 
-              {/* Custom Genres Display & Input */}
-              {(() => {
-                const customSelectedGenres = genres.filter(g => !allGenreIds.includes(g));
-                return (
-                  <div className="space-y-3 pt-3.5 mt-3.5 border-t border-white/5">
-                    {customSelectedGenres.length > 0 && (
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-semibold tracking-wider uppercase text-foreground/40">Custom Selected Genres</label>
-                        <div className="flex flex-wrap gap-1.5">
-                          {customSelectedGenres.map(g => (
-                            <div
-                              key={g}
-                              className="flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-primary/10 to-accent/10 text-accent border border-accent/20 rounded-full text-[11px] font-semibold animate-slide-up"
-                            >
-                              <span className="truncate max-w-[150px]">{g}</span>
-                              {isHost && (
-                                <button
-                                  onClick={() => toggleGenre(g)}
-                                  className="hover:text-rose-400 p-0.5 rounded-full transition-colors cursor-pointer flex items-center justify-center"
-                                  title="Remove custom genre"
-                                >
-                                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-                                  </svg>
-                                </button>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {isHost && (
-                      <div className="space-y-1.5">
-                        <label htmlFor="custom-genre-input" className="text-[10px] font-semibold tracking-wider uppercase text-foreground/40">Add Custom Genre</label>
-                        <form
-                          onSubmit={(e) => {
-                            e.preventDefault();
-                            const form = e.currentTarget;
-                            const input = form.elements.namedItem('customGenre') as HTMLInputElement;
-                            const value = input?.value?.trim().toLowerCase();
-                            if (value && !genres.includes(value)) {
-                              onGenresChange([...genres, value]);
-                              input.value = '';
-                            }
-                          }}
-                          className="flex gap-2"
-                        >
-                          <input
-                            id="custom-genre-input"
-                            name="customGenre"
-                            type="text"
-                            placeholder="e.g. synthwave, lofi, anime..."
-                            maxLength={30}
-                            className="flex-1 px-3 py-2 bg-white/[0.02] border border-white/5 rounded-xl text-xs text-foreground placeholder-foreground/30 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors"
-                          />
-                          <button
-                            type="submit"
-                            className="px-3.5 py-2 bg-white/5 hover:bg-white/10 text-foreground/80 hover:text-foreground font-semibold rounded-xl border border-white/5 transition-all text-xs cursor-pointer active:scale-95 flex items-center justify-center shrink-0"
-                          >
-                            Add
-                          </button>
-                        </form>
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
+              {/* Custom Genres — disabled */}
+              {null}
               </>
               ) : (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-medium text-foreground/60">Selected Artists</label>
+                    <label className="text-xs font-medium text-foreground/60">{t('selected_artists')}</label>
                     {isHost && artists.length > 0 && (
                       <button
                         onClick={() => onArtistsChange([])}
                         className="text-[9px] font-bold uppercase tracking-wider text-foreground/40 hover:text-red-400 transition-colors px-2 py-0.5 rounded cursor-pointer"
                       >
-                        Clear All
+                        {t('clear_all_btn')}
                       </button>
                     )}
                   </div>
                   <div className="flex flex-wrap gap-1.5 min-h-[32px]">
-                    {artists.length === 0 && <span className="text-xs text-foreground/30 italic">No artists selected...</span>}
+                    {artists.length === 0 && <span className="text-xs text-foreground/30 italic">{t('no_artists_selected')}</span>}
                     {artists.map(a => (
                       <div
                         key={a}
@@ -1118,7 +1098,7 @@ function WaitingRoom({
                           <button
                             onClick={() => toggleArtist(a)}
                             className="hover:text-red-400 p-0.5 rounded-full transition-colors cursor-pointer flex items-center justify-center"
-                            title="Remove artist"
+                            title={t('remove_artist_tooltip')}
                           >
                             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
@@ -1130,7 +1110,7 @@ function WaitingRoom({
                   </div>
 
                   {isHost && (
-                    <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
+                    <div className="space-y-3 pr-1">
                       {artistGroups.map(group => {
                         if (group.artists.length === 0) return null;
                         const isCollapsed = !expandedArtistGroups.has(group.id);
@@ -1144,7 +1124,7 @@ function WaitingRoom({
                             >
                               <span className="flex items-center gap-2">
                                 <span className={`w-1.5 h-1.5 rounded-full ${someSelected ? 'bg-[var(--primary)]' : 'bg-foreground/30'} transition-all`} />
-                                {group.name}
+                                {t('artist_group_' + group.id)}
                               </span>
                               <div className="flex items-center gap-2.5">
                                 {isHost && (
@@ -1158,7 +1138,7 @@ function WaitingRoom({
                                           : 'bg-white/5 text-foreground/40 border border-transparent hover:bg-white/10'
                                     }`}
                                   >
-                                    {allSelected ? 'Clear' : 'All'}
+                                     {allSelected ? t('clear_btn') : t('all_btn')}
                                   </span>
                                 )}
                                 <svg
@@ -1203,59 +1183,7 @@ function WaitingRoom({
                     </div>
                   )}
 
-                  <div className="space-y-3 pt-3.5 mt-3.5 border-t border-white/5">
-                    {(() => {
-                      const allArtistList = artistGroups.flatMap(g => g.artists);
-                      const customSelectedArtists = artists.filter(a => !allArtistList.includes(a));
-                      return (
-                        <>
-                          {customSelectedArtists.length > 0 && (
-                            <div className="flex flex-wrap gap-1.5">
-                              {customSelectedArtists.map(a => (
-                                <div
-                                  key={a}
-                                  className="flex items-center gap-1.5 px-3 py-1 bg-white/[0.03] border border-dashed border-white/10 rounded-full text-[11px] font-semibold text-foreground/70"
-                                >
-                                  <span>{a}</span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                          {isHost && (
-                            <div className="space-y-1.5">
-                              <form
-                                onSubmit={(e) => {
-                                  e.preventDefault();
-                                  const form = e.currentTarget;
-                                  const input = form.elements.namedItem('customArtist') as HTMLInputElement;
-                                  const value = input?.value?.trim();
-                                  if (value && !artists.some(a => a.toLowerCase() === value.toLowerCase())) {
-                                    onArtistsChange([...artists, value]);
-                                    input.value = '';
-                                  }
-                                }}
-                                className="flex gap-2"
-                              >
-                                <input
-                                  name="customArtist"
-                                  type="text"
-                                  placeholder="e.g. Daft Punk, Taylor Swift..."
-                                  maxLength={50}
-                                  className="flex-1 px-3 py-2 bg-white/[0.02] border border-white/5 rounded-xl text-xs text-foreground placeholder-foreground/30 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors"
-                                />
-                                <button
-                                  type="submit"
-                                  className="px-3.5 py-2 bg-white/5 hover:bg-white/10 text-foreground/80 hover:text-foreground font-semibold rounded-xl border border-white/5 transition-all text-xs cursor-pointer active:scale-95 flex items-center justify-center shrink-0"
-                                >
-                                  Add
-                                </button>
-                              </form>
-                            </div>
-                          )}
-                        </>
-                      );
-                    })()}
-                  </div>
+                  {null}
                 </div>
               )}
             </div>
@@ -1291,9 +1219,10 @@ function WaitingRoom({
           </div>
         </div>
       </div>
+      </div>
 
       {/* Lobby CTA Area */}
-      <div className="w-full flex flex-col items-center gap-3 pt-4 pb-8 max-w-xl">
+      <div className="shrink-0 w-full flex flex-col items-center gap-3 py-4 px-4 border-t border-white/5 bg-[var(--background)] max-w-4xl mx-auto">
         {isHost ? (
           <button
             onClick={onStart}
@@ -1304,7 +1233,7 @@ function WaitingRoom({
                 : 'bg-surface-light text-foreground/40 border border-white/5 opacity-50 cursor-not-allowed'
             }`}
           >
-            {startLoading ? 'Starting...' : ((settings.gameMode === 'genre' && genres && genres.length > 0) || (settings.gameMode === 'artist' && artists && artists.length > 0)) ? t('start_game') : 'Select to start'}
+            {startLoading ? t('starting_btn') : ((settings.gameMode === 'genre' && genres && genres.length > 0) || (settings.gameMode === 'artist' && artists && artists.length > 0)) ? t('start_game') : t('select_to_start')}
           </button>
         ) : (
           <div className="flex items-center gap-2 text-foreground/60 text-sm font-medium bg-white/[0.02] border border-white/5 px-4 py-2.5 rounded-full shadow-inner animate-pulse">
@@ -1312,7 +1241,7 @@ function WaitingRoom({
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--primary)] opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--primary)]"></span>
             </span>
-            Waiting for the host to start...
+            {t('waiting_for_host')}
           </div>
         )}
       </div>
@@ -1360,9 +1289,9 @@ function PreparingCountdown({ currentRound, totalRounds, players, playerId, onSk
             <div key={p.id} className={`flex items-center gap-2 px-3 py-2 rounded-lg ${p.id === playerId ? 'bg-white/5 ring-1 ring-white/20' : ''}`}>
               <span className="text-sm flex-1 truncate flex items-center gap-1.5">
                 {p.name}
-                {p.role === 'admin' && (
+                  {p.role === 'admin' && (
                   <span className="rounded-full bg-[#00cec9]/15 px-2 py-0.5 text-[9px] font-bold tracking-wider text-[#00cec9] border border-[#00cec9]/30">
-                    ADMIN
+                    {t('admin_role')}
                   </span>
                 )}
               </span>

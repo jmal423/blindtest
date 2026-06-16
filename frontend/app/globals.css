@@ -8,6 +8,7 @@
   --accent: #00cec9;
   --surface: #1a1a2e;
   --surface-light: #25253e;
+  --discord: #5865F2;
   --blurple: #5865F2;
 }
 
@@ -19,6 +20,7 @@
   --accent: #f0c040;
   --surface: #121010;
   --surface-light: #1e1818;
+  --discord: #5865F2;
 }
 
 [data-theme="noir"] body {
@@ -27,6 +29,7 @@
 
 @theme inline {
   --color-blurple: var(--blurple);
+  --color-discord: var(--discord);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
@@ -53,6 +56,7 @@ body {
   --accent: #c9a030;
   --surface: #ffffff;
   --surface-light: #ece4dc;
+  --discord: #5865F2;
 }
 
 [data-theme="light"] body {
@@ -67,6 +71,7 @@ body {
   --accent: #00ffff;
   --surface: #181124;
   --surface-light: #261b38;
+  --discord: #5865F2;
 }
 
 [data-theme="synthwave"] body {
@@ -81,6 +86,7 @@ body {
   --accent: #00ff41;
   --surface: #0c0c0c;
   --surface-light: #161616;
+  --discord: #00cc00;
 }
 
 [data-theme="terminal"] body {
@@ -89,6 +95,39 @@ body {
 
 [data-theme="terminal"] * {
   font-family: var(--font-mono) !important;
+}
+
+[data-theme="fire"] {
+  --background: #1a0000;
+  --foreground: #ffd7b3;
+  --primary: #ff4500;
+  --primary-hover: #e03d00;
+  --accent: #ff6b00;
+  --surface: #2a0505;
+  --surface-light: #3a0a0a;
+  --discord: #5865F2;
+}
+
+[data-theme="fire"] body {
+  background: #1a0000;
+}
+
+[data-theme="fire"] body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background: radial-gradient(ellipse at 30% 80%, rgba(255, 69, 0, 0.12) 0%, transparent 50%),
+              radial-gradient(ellipse at 70% 20%, rgba(255, 107, 0, 0.08) 0%, transparent 40%),
+              radial-gradient(ellipse at 50% 50%, rgba(255, 30, 0, 0.05) 0%, transparent 60%);
+  will-change: opacity, transform;
+  animation: fire-ember 6s ease-in-out infinite;
+}
+
+@keyframes fire-ember {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.02); }
 }
 
 @keyframes pulse-glow {

@@ -20,6 +20,7 @@ const ALL_THEMES = [
   { id: 'noir' as const, label: 'Neon Noir', emoji: '🌃' },
   { id: 'synthwave' as const, label: 'Synthwave', emoji: '🌅' },
   { id: 'terminal' as const, label: 'Terminal', emoji: '💻' },
+  { id: 'fire' as const, label: 'Fire', emoji: '🔥' },
 ];
 
 function shuffle<T>(arr: T[]): T[] {
@@ -137,6 +138,7 @@ export default function OnboardingTakeover() {
             ? id === 'noir' ? 'linear-gradient(135deg, #6c5ce7, #00cec9)'
             : id === 'synthwave' ? 'linear-gradient(135deg, #ff6b6b, #feca57)'
             : id === 'terminal' ? 'linear-gradient(135deg, #10b981, #34d399)'
+            : id === 'fire' ? 'linear-gradient(135deg, #ff4500, #ff6b00)'
             : id === 'light' ? 'linear-gradient(135deg, #6366f1, #a78bfa)'
             : 'linear-gradient(135deg, var(--primary), var(--accent))'
             : undefined,

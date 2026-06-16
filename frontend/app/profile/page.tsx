@@ -196,7 +196,7 @@ export default function ProfilePage() {
   const averagePointsPerGame = stats?.gamesPlayed ? Math.round(stats.totalPoints / stats.gamesPlayed) : 0;
 
   return (
-    <div className="flex-1 min-h-screen bg-background text-foreground flex flex-col items-center py-6 px-4 md:py-10">
+    <div className="flex-1 overflow-y-auto bg-background text-foreground flex flex-col items-center py-6 px-4 md:py-10">
       <div className="max-w-4xl w-full flex flex-col gap-6 md:gap-8">
         
         {/* Profile Header */}
@@ -226,9 +226,9 @@ export default function ProfilePage() {
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 justify-center sm:justify-start">
               <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-foreground via-foreground/80 to-foreground/60 bg-clip-text text-transparent">{user.username}</h1>
               <div className="flex items-center gap-2 justify-center sm:justify-start">
-                {user.role === 'admin' && (
+                  {user.role === 'admin' && (
                   <span className="text-[10px] bg-red-500/10 text-red-400 border border-red-500/20 px-2 py-0.5 rounded-md font-bold tracking-wider uppercase">
-                    Admin
+                    {t('admin_role')}
                   </span>
                 )}
                 <span className="text-[10px] bg-white/5 border border-white/10 text-foreground/60 px-2 py-0.5 rounded-md font-semibold tracking-wider">
@@ -243,7 +243,7 @@ export default function ProfilePage() {
                 onClick={handleCopyId}
                 className="group flex items-center gap-2 bg-black/20 hover:bg-black/40 border border-white/5 hover:border-white/10 px-3 py-1.5 rounded-xl text-foreground/60 hover:text-foreground transition-all cursor-pointer text-xs"
               >
-                <span className="font-mono text-[11px] select-all">ID: {user.id}</span>
+                <span className="font-mono text-[11px] select-all">{t('user_id_label', { id: user.id })}</span>
                 <div className="w-4 h-4 flex items-center justify-center text-[var(--primary)] group-hover:scale-110 transition-transform">
                   {copied ? (
                     <svg className="w-3.5 h-3.5 text-green-400" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
@@ -255,7 +255,7 @@ export default function ProfilePage() {
                     </svg>
                   )}
                 </div>
-                {copied && <span className="text-[10px] text-green-400 font-semibold">Copied!</span>}
+                {copied && <span className="text-[10px] text-green-400 font-semibold">{t('copied_label')}</span>}
               </button>
             </div>
           </div>
@@ -280,7 +280,7 @@ export default function ProfilePage() {
                   transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                 />
               )}
-              <span className="capitalize">{tab === 'history' ? 'Match History' : tab}</span>
+              <span className="capitalize">{tab === 'overview' ? t('tab_overview') : tab === 'history' ? t('tab_history') : t('friends_title')}</span>
             </button>
           ))}
         </div>
@@ -323,7 +323,7 @@ export default function ProfilePage() {
                     </div>
                     <div className="space-y-0.5">
                       <p className="text-2xl font-black text-foreground tracking-tight tabular-nums">{stats?.gamesPlayed ?? 0}</p>
-                      <p className="text-[10px] font-semibold text-foreground/40 uppercase tracking-widest">Games Played</p>
+                      <p className="text-[10px] font-semibold text-foreground/40 uppercase tracking-widest">{t('games_played_label')}</p>
                     </div>
                   </div>
 
@@ -336,7 +336,7 @@ export default function ProfilePage() {
                     </div>
                     <div className="space-y-0.5">
                       <p className="text-2xl font-black text-foreground tracking-tight tabular-nums">{stats?.bestScore ?? 0}</p>
-                      <p className="text-[10px] font-semibold text-foreground/40 uppercase tracking-widest">Best Score</p>
+                      <p className="text-[10px] font-semibold text-foreground/40 uppercase tracking-widest">{t('best_score_label')}</p>
                     </div>
                   </div>
 
@@ -367,7 +367,7 @@ export default function ProfilePage() {
                     </div>
                     <div className="space-y-0.5 min-w-0">
                       <p className="text-lg font-black text-foreground tracking-tight truncate capitalize">{stats?.bestGenre ? stats.bestGenre.replace(/_/g, ' ') : 'None'}</p>
-                      <p className="text-[10px] font-semibold text-foreground/40 uppercase tracking-widest">Best Genre</p>
+                      <p className="text-[10px] font-semibold text-foreground/40 uppercase tracking-widest">{t('best_genre')}</p>
                     </div>
                   </div>
 
@@ -380,7 +380,7 @@ export default function ProfilePage() {
                     </div>
                     <div className="space-y-0.5">
                       <p className="text-2xl font-black text-foreground tracking-tight tabular-nums">{stats?.perfects ?? 0}</p>
-                      <p className="text-[10px] font-semibold text-foreground/40 uppercase tracking-widest">Perfect guesses</p>
+                      <p className="text-[10px] font-semibold text-foreground/40 uppercase tracking-widest">{t('perfect_guesses_label')}</p>
                     </div>
                   </div>
                 </div>
@@ -388,7 +388,7 @@ export default function ProfilePage() {
                 {/* Extended Insights Card */}
                 <div className="bg-gradient-to-br from-white/[0.02] to-transparent border border-white/5 rounded-3xl p-6 shadow-xl relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--primary)]/5 rounded-full blur-2xl" />
-                  <h3 className="text-sm font-bold text-foreground/90 mb-4 tracking-wider uppercase">Performance Summary</h3>
+                  <h3 className="text-sm font-bold text-foreground/90 mb-4 tracking-wider uppercase">{t('performance_summary')}</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <div className="flex justify-between text-xs text-foreground/60">
