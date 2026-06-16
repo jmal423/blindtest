@@ -42,7 +42,7 @@ function BackgroundOrbs() {
 
 function LoadingScreen() {
   return (
-    <div className="h-dvh flex items-center justify-center bg-background">
+    <div className="flex-1 w-full flex items-center justify-center bg-background">
       <div className="flex flex-col items-center gap-4">
         <div className="w-10 h-10 rounded-full border-2 border-[var(--primary)] border-t-transparent animate-spin" />
         <p className="text-sm text-foreground/40 font-semibold tracking-wide animate-pulse">
@@ -471,7 +471,7 @@ function LoginScreen() {
       : '/api/auth/discord';
 
   return (
-    <div className="h-dvh flex flex-col items-center justify-center p-6 relative bg-background">
+    <div className="flex-1 w-full flex flex-col items-center justify-center p-6 relative bg-background">
       <BackgroundOrbs />
 
       <motion.div
@@ -524,7 +524,7 @@ function Dashboard() {
 
   if (navigating) {
     return (
-      <div className="h-dvh flex items-center justify-center bg-background">
+      <div className="flex-1 w-full flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 rounded-full border-2 border-[var(--primary)] border-t-transparent animate-spin" />
         </div>
@@ -533,7 +533,7 @@ function Dashboard() {
   }
 
   return (
-    <div className="h-dvh flex items-center justify-center p-4 md:p-6 relative bg-background overflow-hidden">
+    <div className="flex-1 w-full flex items-center justify-center p-4 md:p-6 relative bg-background overflow-hidden">
       <BackgroundOrbs />
       <motion.div
         initial={{ opacity: 0 }}

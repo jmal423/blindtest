@@ -35,14 +35,14 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <meta name="color-scheme" content="dark" />
-      <body className="min-h-dvh flex flex-col">
+      <body className="h-dvh flex flex-col overflow-hidden">
         <SettingsProvider>
           <OnboardingTakeover />
           <LanguageInitializer />
           <AuthProvider>
             <Header />
-            <main className="flex-1 flex flex-col">{children}</main>
-            <footer className="border-t border-foreground/5 py-4 px-4 md:px-6 text-center text-[10px] text-foreground/40">
+            <main className="flex-1 flex flex-col min-h-0">{children}</main>
+            <footer className="shrink-0 border-t border-foreground/5 py-4 px-4 md:px-6 text-center text-[10px] text-foreground/40">
               <div className="flex items-center justify-center gap-4">
                 <Link href="/terms" className="hover:text-foreground/60 transition-colors">
                   Terms of Service
