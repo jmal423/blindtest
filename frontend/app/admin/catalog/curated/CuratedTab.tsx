@@ -282,6 +282,13 @@ export function CuratedTab() {
 
   const verifiedPct = stats?.total ? ((stats.verified / stats.total) * 100).toFixed(1) : '0';
 
+  const genreColor = (genre: string): string => {
+    if (!genre) return '#6366f1';
+    let hash = 0;
+    for (let i = 0; i < genre.length; i++) hash = genre.charCodeAt(i) + ((hash << 5) - hash);
+    return `hsl(${Math.abs(hash) % 360}, 65%, 55%)`;
+  };
+
   return (
     <div className="space-y-6">
       {/* Dynamic hidden audio tag and overlay player from hook */}
@@ -628,23 +635,35 @@ export function CuratedTab() {
           <p className="text-foreground/40 text-sm py-8 text-center italic">No curated songs. Use the discovery mode to import some!</p>
         ) : (
           <div className="space-y-2">
-            {byGenre.map((g: any) => (
+              {[...byGenre].sort((a: any, b: any) => b.total - a.total).map((g: any) => (
               <div key={g.genre} className="border border-white/5 rounded-xl overflow-hidden bg-black/10">
                 <button
                   onClick={() => loadGenreSongs(g.genre)}
                   className="w-full flex items-center gap-3 p-3 hover:bg-white/[0.02] transition-colors text-left"
                 >
-                  <span className="text-xs font-semibold text-foreground w-40 truncate">{g.genre.replace(/-/g, ' ')}</span>
-                  <div className="flex-1 h-2 bg-white/5 rounded-full overflow-hidden hidden sm:block">
-                    <div className="h-full bg-[var(--primary)] rounded-full" style={{ width: `${(g.total / stats.total) * 100}%` }} />
+                  <div className="flex items-center gap-2 w-36 sm:w-44 shrink-0">
+                    <div
+                      className="w-1.5 h-8 rounded-full shrink-0"
+                      style={{ backgroundColor: genreColor(g.genre) }}
+                    />
+                    <span className="text-xs font-semibold text-foreground truncate">{g.genre.replace(/-/g, ' ')}</span>
                   </div>
-                  <span className="text-xs text-foreground/60 tabular-nums w-12 text-right">{g.total}</span>
-                  <span className="text-[10px] text-foreground/40 w-24 text-right font-medium">
-                    {g.verified} / {g.total} verified
+                  <div className="flex-1 h-2.5 bg-white/5 rounded-full overflow-hidden hidden sm:block">
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: `${(g.total / stats.total) * 100}%`,
+                        backgroundColor: genreColor(g.genre),
+                      }}
+                    />
+                  </div>
+                  <span className="text-sm font-bold text-foreground/80 tabular-nums w-12 text-right">{g.total}</span>
+                  <span className="text-[10px] text-foreground/40 w-24 text-right font-medium hidden sm:block">
+                    {g.verified}/{g.total} verified
                   </span>
-                  <span className="text-[10px] text-foreground/40 w-16 text-right tabular-nums">{g.total_plays} plays</span>
+                  <span className="text-[10px] text-foreground/40 w-16 text-right tabular-nums hidden sm:block">{g.total_plays} plays</span>
                   <svg
-                    className={`w-3 h-3 text-foreground/40 transition-transform ${selectedGenre === g.genre ? 'rotate-90' : ''}`}
+                    className={`w-3 h-3 text-foreground/40 transition-transform shrink-0 ${selectedGenre === g.genre ? 'rotate-90' : ''}`}
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
