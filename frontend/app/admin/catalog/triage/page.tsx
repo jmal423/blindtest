@@ -59,6 +59,17 @@ function SpeedTriage({
     return () => clearInterval(timer);
   }, [startTime]);
 
+  useEffect(() => {
+    const handleVis = () => {
+      if (document.hidden && audioRef.current) {
+        audioRef.current.pause();
+        setPlaying(false);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVis);
+    return () => document.removeEventListener('visibilitychange', handleVis);
+  }, []);
+
   const playCurrent = useCallback(() => {
     if (!current?.id?.startsWith('deezer:')) return;
     if (audioRef.current) audioRef.current.pause();
@@ -274,6 +285,16 @@ export default function TriagePage() {
   const [collapsedArtists, setCollapsedArtists] = useState<Set<string>>(new Set());
   const [mode, setMode] = useState<'browse' | 'speed'>('browse');
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    const handleVis = () => {
+      if (document.hidden && audioRef.current) {
+        audioRef.current.pause();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVis);
+    return () => document.removeEventListener('visibilitychange', handleVis);
+  }, []);
 
   const loadData = async () => {
     setLoading(true);
