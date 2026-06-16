@@ -41,13 +41,12 @@ function BackgroundOrbs() {
 /* ------------------------------------------------------------------ */
 
 function LoadingScreen() {
-  const { t } = useTranslation();
   return (
-    <div className="h-dvh flex items-center justify-center bg-background">
+    <div className="flex-1 w-full flex items-center justify-center bg-background">
       <div className="flex flex-col items-center gap-4">
         <div className="w-10 h-10 rounded-full border-2 border-[var(--primary)] border-t-transparent animate-spin" />
         <p className="text-sm text-foreground/40 font-semibold tracking-wide animate-pulse">
-          {t('loading')}
+          Entering Lobbies...
         </p>
       </div>
     </div>
@@ -59,7 +58,6 @@ function LoadingScreen() {
 /* ------------------------------------------------------------------ */
 
 function Branding() {
-  const { t } = useTranslation();
   return (
     <motion.div
       initial={{ y: -30, opacity: 0 }}
@@ -82,7 +80,7 @@ function Branding() {
         transition={{ delay: 0.3, duration: 0.6 }}
         className="mt-2 md:mt-3 text-xs md:text-sm text-foreground/40 font-semibold tracking-[0.2em] uppercase"
       >
-        {t('tagline')}
+        Guess the Song — Drop the Beat
       </motion.p>
     </motion.div>
   );
@@ -122,14 +120,14 @@ function ActionArea({ onNavigate }: { onNavigate: () => void }) {
       onNavigate();
       router.push(`/game/${code}`);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : t('something_went_wrong'));
+      setError(err instanceof Error ? err.message : 'Something went wrong');
       setLoading(false);
     }
   };
 
   const handleJoin = async () => {
     if (joinCode.trim().length < 6) {
-      setError(t('enter_room_code'));
+      setError('Enter a valid 6-letter code');
       return;
     }
     setLoading(true);
@@ -140,7 +138,7 @@ function ActionArea({ onNavigate }: { onNavigate: () => void }) {
       onNavigate();
       router.push(`/game/${roomCode}`);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : t('something_went_wrong'));
+      setError(err instanceof Error ? err.message : 'Something went wrong');
       setLoading(false);
     }
   };
@@ -170,7 +168,7 @@ function ActionArea({ onNavigate }: { onNavigate: () => void }) {
       router.push(`/game/${code}`);
     } catch (err: unknown) {
       setDiscordError(
-        err instanceof Error ? err.message : t('something_went_wrong'),
+        err instanceof Error ? err.message : 'Failed to create room',
       );
       setDiscordLoading(false);
     }
@@ -186,20 +184,20 @@ function ActionArea({ onNavigate }: { onNavigate: () => void }) {
         className="w-full max-w-sm space-y-4"
       >
         <div className="bg-white/[0.02] backdrop-blur-xl border border-white/5 rounded-3xl p-5 md:p-6 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-[var(--discord)] to-[var(--accent)]" />
+          <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-[#5865F2] to-[var(--accent)]" />
 
           <div className="flex items-center gap-3 pb-3 mb-3 border-b border-white/5">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center border shrink-0" style={{ backgroundColor: 'color-mix(in srgb, var(--discord) 15%, transparent)', borderColor: 'color-mix(in srgb, var(--discord) 20%, transparent)' }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" style={{ fill: 'var(--discord)' }}>
+            <div className="w-9 h-9 rounded-xl bg-[#5865F2]/15 flex items-center justify-center border border-[#5865F2]/20 shrink-0">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="#5865F2">
                 <path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189z" />
               </svg>
             </div>
             <div className="min-w-0">
               <h3 className="text-sm font-bold text-foreground/90 truncate">
-                {channelName || t('discord_voice')}
+                {channelName || 'Discord Voice'}
               </h3>
               <p className="text-[10px] text-foreground/40 font-semibold">
-                {participants.length} {t('connected')}
+                {participants.length} connected
               </p>
             </div>
           </div>
@@ -209,10 +207,9 @@ function ActionArea({ onNavigate }: { onNavigate: () => void }) {
               {participants.map((p) => (
                 <div
                   key={p.id}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] text-foreground/80"
-                  style={{ backgroundColor: 'color-mix(in srgb, var(--discord) 10%, transparent)', borderColor: 'color-mix(in srgb, var(--discord) 20%, transparent)' }}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#5865F2]/10 border border-[#5865F2]/20 rounded-xl text-[11px] text-foreground/80"
                 >
-                  <span className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0" style={{ backgroundColor: 'color-mix(in srgb, var(--discord) 20%, transparent)' }}>
+                  <span className="w-5 h-5 rounded-full bg-[#5865F2]/20 flex items-center justify-center text-[9px] font-bold shrink-0">
                     {p.global_name?.[0] || p.username?.[0]?.toUpperCase() || '?'}
                   </span>
                   <span className="truncate max-w-[120px] font-medium">
@@ -248,15 +245,15 @@ function ActionArea({ onNavigate }: { onNavigate: () => void }) {
               <polygon points="5 3 19 12 5 21 5 3" />
             </svg>
             {discordLoading
-              ? t('joining')
-              : t('play_with_voice')}
+              ? 'Joining...'
+              : 'Play with Voice Channel'}
           </NeonButton>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="flex-1 h-px bg-white/5" />
           <span className="text-[10px] font-black uppercase tracking-widest text-foreground/30">
-            {t('or_join_with_code')}
+            OR JOIN WITH CODE
           </span>
           <div className="flex-1 h-px bg-white/5" />
         </div>
@@ -265,9 +262,10 @@ function ActionArea({ onNavigate }: { onNavigate: () => void }) {
           <NeonInput
             type="text"
             value={joinCode}
-            onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-            placeholder={t('room_code_placeholder')}
+            onChange={(e) => { setError(''); setJoinCode(e.target.value.toUpperCase()); }}
+            placeholder="CODE"
             maxLength={6}
+            error={!!error}
           />
           <NeonButton
             variant="secondary"
@@ -278,22 +276,15 @@ function ActionArea({ onNavigate }: { onNavigate: () => void }) {
               opacity: joinCode.trim().length >= 6 ? 1 : 0.4,
             }}
           >
-            {loading ? t('joining') : t('join_lobby')}
+            {loading ? '...' : 'JOIN'}
           </NeonButton>
         </div>
 
         {error && (
-          <p className="text-red-400 text-[11px] text-center font-medium">
+          <p className="text-red-400 text-[11px] text-center font-medium animate-pulse">
             {error}
           </p>
         )}
-
-        <Link
-          href="/leaderboard"
-          className="block w-full text-center py-3 rounded-2xl bg-gradient-to-r from-amber-500/10 to-amber-600/5 border border-amber-500/20 hover:border-amber-500/40 text-amber-400 hover:text-amber-300 text-xs font-extrabold tracking-wide uppercase transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-amber-500/5"
-        >
-          🏆 Leaderboard
-        </Link>
       </motion.div>
     );
   }
@@ -325,13 +316,13 @@ function ActionArea({ onNavigate }: { onNavigate: () => void }) {
           <line x1="12" y1="5" x2="12" y2="19" />
           <line x1="5" y1="12" x2="19" y2="12" />
         </svg>
-        {loading ? t('creating') : t('create_lobby')}
+        {loading ? 'Creating...' : 'Create Room'}
       </NeonButton>
 
       <div className="flex items-center gap-3">
         <div className="flex-1 h-px bg-white/5" />
         <span className="text-[10px] font-black uppercase tracking-widest text-foreground/30">
-          {t('or_join')}
+          OR JOIN
         </span>
         <div className="flex-1 h-px bg-white/5" />
       </div>
@@ -340,9 +331,10 @@ function ActionArea({ onNavigate }: { onNavigate: () => void }) {
         <NeonInput
           type="text"
           value={joinCode}
-          onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-          placeholder={t('room_code_placeholder')}
+          onChange={(e) => { setError(''); setJoinCode(e.target.value.toUpperCase()); }}
+          placeholder="Enter 6-letter Room Code"
           maxLength={6}
+          error={!!error}
         />
         <NeonButton
           variant="secondary"
@@ -353,22 +345,15 @@ function ActionArea({ onNavigate }: { onNavigate: () => void }) {
             opacity: joinCode.trim().length >= 6 ? 1 : 0.4,
           }}
         >
-          {loading ? t('joining') : t('join_lobby')}
+          {loading ? '...' : 'JOIN'}
         </NeonButton>
       </div>
 
       {error && (
-        <p className="text-red-400 text-[11px] text-center font-medium">
+        <p className="text-red-400 text-[11px] text-center font-medium animate-pulse">
           {error}
         </p>
       )}
-
-      <Link
-        href="/leaderboard"
-        className="block w-full text-center py-3 rounded-2xl bg-gradient-to-r from-amber-500/10 to-amber-600/5 border border-amber-500/20 hover:border-amber-500/40 text-amber-400 hover:text-amber-300 text-xs font-extrabold tracking-wide uppercase transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-amber-500/5"
-      >
-        🏆 Leaderboard
-      </Link>
     </motion.div>
   );
 }
@@ -378,7 +363,6 @@ function ActionArea({ onNavigate }: { onNavigate: () => void }) {
 /* ------------------------------------------------------------------ */
 
 function LeaderboardSidebar() {
-  const { t } = useTranslation();
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [lbLoading, setLbLoading] = useState(true);
 
@@ -395,13 +379,13 @@ function LeaderboardSidebar() {
 
       <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/5">
         <h2 className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-foreground/40 flex items-center gap-2">
-          <span>🏆</span> {t('leaderboard_title')}
+          <span>🏆</span> Leaderboard
         </h2>
         <Link
           href="/leaderboard"
           className="text-[9px] font-extrabold uppercase tracking-wider text-[var(--primary)] hover:text-[var(--accent)] transition-colors"
         >
-          {t('view_all')}
+          View all
         </Link>
       </div>
 
@@ -411,7 +395,7 @@ function LeaderboardSidebar() {
         </div>
       ) : leaderboard.length === 0 ? (
         <div className="flex-1 flex items-center justify-center py-10">
-          <p className="text-xs text-foreground/40 font-medium">{t('no_scores_yet')}</p>
+          <p className="text-xs text-foreground/40 font-medium">No scores yet</p>
         </div>
       ) : (
         <div className="space-y-1.5 flex-1 overflow-y-auto pr-1">
@@ -452,10 +436,10 @@ function LeaderboardSidebar() {
 
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-bold text-foreground/60 group-hover:text-foreground truncate transition-colors">
-                    {e.username || e.player_name || t('unknown_player')}
+                    {e.username || e.player_name || 'Unknown'}
                   </p>
                   <p className="text-[9px] text-foreground/40 font-semibold">
-                    {e.games_played} {t('games_label')}
+                    {e.games_played} games
                   </p>
                 </div>
 
@@ -464,7 +448,7 @@ function LeaderboardSidebar() {
                     {e.total_score.toLocaleString()}
                   </span>
                   <p className="text-[8px] font-bold text-foreground/40 uppercase tracking-wider">
-                    {t('pts_suffix')}
+                    pts
                   </p>
                 </div>
               </Link>
@@ -489,7 +473,7 @@ function LoginScreen() {
       : '/api/auth/discord';
 
   return (
-    <div className="h-dvh flex flex-col items-center justify-center p-6 relative bg-background">
+    <div className="flex-1 w-full flex flex-col items-center justify-center p-6 relative bg-background">
       <BackgroundOrbs />
 
       <motion.div
@@ -506,7 +490,7 @@ function LoginScreen() {
           transition={{ delay: 0.3, duration: 0.6 }}
           className="text-xs text-foreground/40 font-semibold tracking-wide text-center leading-relaxed"
         >
-          {t('login_desc')}
+          Connect your account to play and track stats
         </motion.p>
 
         <motion.a
@@ -516,7 +500,7 @@ function LoginScreen() {
           transition={{ delay: 0.5, duration: 0.5 }}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="flex items-center justify-center gap-3 w-full px-6 py-4 bg-[var(--discord)] hover:brightness-90 text-foreground font-black text-sm rounded-2xl transition-all cursor-pointer"
+          className="flex items-center justify-center gap-3 w-full px-6 py-4 bg-[#5865F2] hover:bg-[#4752C4] text-foreground font-black text-sm rounded-2xl transition-all shadow-lg shadow-[#5865F2]/20 cursor-pointer"
         >
           <svg
             width="20"
@@ -542,7 +526,7 @@ function Dashboard() {
 
   if (navigating) {
     return (
-      <div className="h-dvh flex items-center justify-center bg-background">
+      <div className="flex-1 w-full flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 rounded-full border-2 border-[var(--primary)] border-t-transparent animate-spin" />
         </div>
@@ -551,7 +535,7 @@ function Dashboard() {
   }
 
   return (
-    <div className="h-dvh flex items-center justify-center p-4 md:p-6 relative bg-background overflow-hidden">
+    <div className="flex-1 w-full flex items-center justify-center p-4 md:p-6 relative bg-background overflow-hidden">
       <BackgroundOrbs />
       <motion.div
         initial={{ opacity: 0 }}
