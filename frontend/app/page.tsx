@@ -67,7 +67,7 @@ function Branding() {
     >
       <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight uppercase leading-none">
         <span
-          className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--primary)] to-[var(--accent)]"
+          className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] pr-1 md:pr-2"
           style={{ filter: 'drop-shadow(0 0 20px color-mix(in srgb, var(--primary) 35%, transparent)) drop-shadow(0 0 60px color-mix(in srgb, var(--primary) 15%, transparent))' }}
         >
           Blind

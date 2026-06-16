@@ -1066,7 +1066,7 @@ function WaitingRoom({
                   })}
                 </div>
               ) : (
-                <div className="flex-1 overflow-y-auto min-h-0 columns-[220px] 2xl:columns-[280px] gap-4 pr-2 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto min-h-0 grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4 pr-2 custom-scrollbar items-start">
                   {genreGroups.map(group => {
                     const groupGenres = group.genreIds.map(id => genreMap.get(id)).filter(Boolean) as { id: string; label: string; group?: string }[];
                     if (groupGenres.length === 0) return null;
@@ -1246,7 +1246,7 @@ function WaitingRoom({
                   </div>
 
                   {isHost && (
-                    <div className="flex-1 overflow-y-auto min-h-0 columns-[220px] 2xl:columns-[280px] gap-4 pr-2 custom-scrollbar">
+                    <div className="flex-1 overflow-y-auto min-h-0 grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4 pr-2 custom-scrollbar items-start">
                       {artistGroups.map(group => {
                         if (group.artists.length === 0) return null;
                         const isCollapsed = !expandedArtistGroups.has(group.id);
