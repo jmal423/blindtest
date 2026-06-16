@@ -16,12 +16,14 @@ import ResponsiveMinimized from './ResponsiveMinimized';
 import { useSound } from '@/lib/useSound';
 import { getProxiedUrl } from '@/lib/proxy';
 import { isDiscordActivity, getDiscordSdk, subscribeToParticipants, getConnectedParticipants, getInstanceId } from '@/lib/discordActivity';
+import NeonTimer from './components/NeonTimer';
+import PlayerBoard from './components/PlayerBoard';
+import ActionArea from './components/ActionArea';
+import { Visualizer } from './components/Visualizer';
 import type { DiscordParticipant } from '@/lib/discordActivity';
 import { updateRichPresence, clearRichPresence } from '@/lib/discordRichPresence';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005';
-
-const PLAYER_COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#06b6d4', '#8b5cf6', '#84cc16'];
 
 export default function GamePage({
   params,
@@ -404,125 +406,178 @@ export default function GamePage({
 
   return (
     <ResponsiveMinimized>
-    <div className="flex-1 flex flex-col p-3 md:p-6 max-w-6xl mx-auto w-full gap-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <p className="text-xl font-bold tracking-[0.2em] text-[var(--primary)]">{code}</p>
-          <button
-            onClick={() => { navigator.clipboard.writeText(code); }}
-            className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-foreground/40 hover:text-foreground/80 transition-colors"
-          >
-            {t('copy')}
-          </button>
-          {gameState.state === 'waiting' && (
-            <div className="hidden md:flex items-center gap-2 text-[11px] text-foreground/40">
-              {(gameState as any).genres?.length > 0 && (
-                <span className="px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">
-                  {(gameState as any).genres?.slice(0, 3).join(', ')}{(gameState as any).genres?.length > 3 ? ` +${(gameState as any).genres.length - 3}` : ''}
-                </span>
-              )}
-<span>{(gameState as any).settings?.rounds ?? gameState.totalRounds} rounds</span>
-               <span>{(gameState as any).settings?.roundTime ?? 15}s</span>
-            </div>
-          )}
-          {gameState.state !== 'waiting' && gameState.state !== 'game_over' && (
-            <span className="text-xs text-foreground/30">Round {gameState.currentRound}/{gameState.totalRounds}</span>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          {gameState.state !== 'waiting' && gameState.state !== 'game_over' && (
-            <>
-              <div className="hidden md:flex items-center gap-1.5">
-                <button
-                  onClick={() => {
-                    if (userSettings.masterVolume >= 0.06) {
-                      prevVolumeRef.current = userSettings.masterVolume;
-                      updateLocalSettings({ masterVolume: 0.05 });
-                    } else {
-                      updateLocalSettings({ masterVolume: prevVolumeRef.current || 1 });
-                    }
-                  }}
-                  className="text-foreground/60 hover:text-foreground/90 transition-colors p-1"
-                  title={userSettings.masterVolume <= 0.05 ? 'Unmute (M)' : 'Mute (M)'}
-                >
-                  {userSettings.masterVolume <= 0.05 ? (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
-                  ) : userSettings.masterVolume < 0.5 ? (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-                  ) : (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
-                  )}
-                </button>
-                <input
-                  type="range" min={0.05} max={1} step={0.05}
-                  value={userSettings.masterVolume}
-                  onChange={e => updateLocalSettings({ masterVolume: Number(e.target.value) })}
-                  className="w-14 accent-[var(--primary)] h-1 cursor-pointer"
-                />
-              </div>
-              <button
-                onClick={() => setChatOpen(o => !o)}
-                className="md:hidden text-[10px] px-2 py-0.5 rounded bg-white/5 text-foreground/60 hover:text-foreground/80 transition-colors"
-              >
-                {chatOpen ? t('hide_chat') : t('chat')}
-              </button>
-            </>
-          )}
-        </div>
-      </div>
-
-<div className="flex gap-4 md:gap-6 min-h-0 flex-1">
+    <div data-theme="noir" className="h-dvh flex flex-col bg-background text-foreground overflow-hidden font-sans">
+      {/* ============================================================== */}
+      {/* Desktop Layout                                                */}
+      {/* ============================================================== */}
+      <div className="hidden md:flex h-full">
+        {/* PlayerBoard Sidebar */}
         {gameState.state !== 'waiting' && gameState.state !== 'game_over' && (
-          <div className="hidden md:flex flex-col w-52 shrink-0 gap-3 max-h-[calc(100vh-10rem)]">
-            <div>
-              <p className="text-[10px] text-foreground/40 uppercase tracking-wider mb-2">{t('players_label') || 'Players'}</p>
-              <div className="space-y-1">
-                {[...gameState.players].sort((a: any, b: any) => b.score - a.score).map((p: any) => (
-                  <div key={p.id} className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-[11px] ${p.id === playerId ? 'bg-[var(--primary)]/10 border border-[var(--primary)]/20' : 'bg-white/[0.03]'}`}>
-                    <div className="w-5 h-5 rounded-full shrink-0 overflow-hidden flex items-center justify-center text-[9px] font-bold" style={!p.avatarUrl ? { backgroundColor: PLAYER_COLORS[gameState.players.indexOf(p) % PLAYER_COLORS.length] } : undefined}>
-                      {p.avatarUrl ? (
-                        <img src={p.avatarUrl} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
-                      ) : (
-                        p.name?.[0]?.toUpperCase() || '?'
-                      )}
-                    </div>
-                    <span className="truncate flex-1 text-foreground/80">{p.name}</span>
-                    <span className="text-[var(--accent)] font-bold tabular-nums shrink-0">{p.score}</span>
-                  </div>
-                ))}
-              </div>
+          <PlayerBoard players={gameState.players} playerId={playerId} hostId={gameState.hostId} />
+        )}
+
+        {/* Main Area */}
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Top Bar */}
+          <div className="flex items-center justify-between px-5 py-3 border-b border-white/5 shrink-0">
+            <div className="flex items-center gap-3">
+              <p className="text-lg font-bold tracking-[0.2em] text-primary">{code}</p>
+              <button
+                onClick={() => { navigator.clipboard.writeText(code); }}
+                className="text-[9px] px-2 py-0.5 rounded bg-white/5 text-foreground/40 hover:text-foreground/80 transition-colors"
+              >
+                {t('copy')}
+              </button>
+              {gameState.state === 'waiting' && (
+                <div className="hidden md:flex items-center gap-2 text-[11px] text-foreground/40">
+                  {(gameState as any).genres?.length > 0 && (
+                    <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                      {(gameState as any).genres?.slice(0, 2).join(', ')}{(gameState as any).genres?.length > 2 ? ` +${(gameState as any).genres.length - 2}` : ''}
+                    </span>
+                  )}
+                  <span>{(gameState as any).settings?.rounds ?? gameState.totalRounds} rounds</span>
+                  <span>{(gameState as any).settings?.roundTime ?? 15}s</span>
+                </div>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {gameState.state !== 'waiting' && gameState.state !== 'game_over' && (
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => {
+                      if (userSettings.masterVolume >= 0.06) {
+                        prevVolumeRef.current = userSettings.masterVolume;
+                        updateLocalSettings({ masterVolume: 0.05 });
+                      } else {
+                        updateLocalSettings({ masterVolume: prevVolumeRef.current || 1 });
+                      }
+                    }}
+                    className="text-foreground/60 hover:text-foreground/90 transition-colors p-1"
+                    title={userSettings.masterVolume <= 0.05 ? 'Unmute' : 'Mute'}
+                  >
+                    {userSettings.masterVolume <= 0.05 ? (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+                    ) : userSettings.masterVolume < 0.5 ? (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                    ) : (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+                    )}
+                  </button>
+                  <input
+                    type="range" min={0.05} max={1} step={0.05}
+                    value={userSettings.masterVolume}
+                    onChange={e => updateLocalSettings({ masterVolume: Number(e.target.value) })}
+                    className="w-14 accent-primary h-1 cursor-pointer"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 flex gap-4 min-h-0">
+            <div className="flex-1 flex flex-col min-w-0">
+              {gameState.state === 'waiting' && (
+                <WaitingRoom
+                  gameCode={code}
+                  players={gameState.players}
+                  settings={gameState.settings}
+                  genres={gameState.genres}
+                  artists={'artists' in gameState ? gameState.artists : []}
+                  hostId={gameState.hostId}
+                  playerId={playerId}
+                  onStart={handleStart}
+                  onSettingsChange={handleSettingsUpdate}
+                  onGenresChange={handleGenresUpdate}
+                  onArtistsChange={handleArtistsUpdate}
+                  onKickPlayer={(pid) => socketRef.current?.emit('kick_player', pid)}
+                  onTransferHost={(pid) => socketRef.current?.emit('transfer_host', pid)}
+                  startLoading={startLoading}
+                  discordParticipants={discordParticipants}
+                />
+              )}
+
+              {(gameState.state === 'playing' || gameState.state === 'round_preparing') && (
+                <PlayingPhase
+                  state={gameState.state}
+                  currentRound={gameState.currentRound}
+                  totalRounds={gameState.totalRounds}
+                  timeLeft={localTimeLeft ?? (gameState as any).timeLeft}
+                  smoothTime={smoothTime}
+                  guess={guess}
+                  onGuessChange={setGuess}
+                  onSubmit={handleSubmit}
+                  guessResult={guessResult}
+                  guessMarkers={guessMarkers}
+                  inputRef={guessInputRef}
+                  artistFound={artistFound}
+                  titleFound={titleFound}
+                  bothFound={bothFound}
+                  players={gameState.players}
+                  playerId={playerId}
+                  encouragement={encouragement}
+                  roundTime={(gameState as any).settings?.roundTime || 15}
+                  onSkipVote={handleSkipVote}
+                  hasVotedSkip={hasVotedSkip}
+                  skipCooldown={skipCooldown}
+                  skipVotes={gameState.state === 'playing' || gameState.state === 'round_preparing' ? (gameState as any).skipVotes ?? 0 : 0}
+                  skipVotesNeeded={gameState.state === 'playing' || gameState.state === 'round_preparing' ? (gameState as any).skipVotesNeeded ?? 1 : 1}
+                  hostId={gameState.hostId}
+                  currentTrackId={gameState.state === 'playing' ? (gameState as any).trackId : null}
+                  onFlagSong={(id) => socketRef.current?.emit('flag_song', { songId: id, reason: 'wrong_song' })}
+                  gameMode={(gameState as any).settings?.gameMode}
+                  trackArtist={(gameState as any).trackArtist}
+                />
+              )}
+
+              {gameState.state === 'round_result' && (
+                <RoundResult data={gameState.roundResult} players={gameState.players} pauseTimeLeft={(gameState as any).pauseTimeLeft} trackHistory={(gameState as any).trackHistory} onFlag={(id) => socketRef.current?.emit('flag_song', id)} />
+              )}
+
+              {gameState.state === 'game_over' && (
+                <Podium code={code} rankings={gameState.rankings} playerId={playerId} onPlayAgain={handlePlayAgain} />
+              )}
             </div>
 
-            {((gameState as any)?.trackHistory?.length > 0) && (
-              <div className="flex-1 min-h-0 flex flex-col">
-                <p className="text-[10px] text-foreground/40 uppercase tracking-wider mb-2">{t('history_label')}</p>
-                <div className="flex-1 overflow-y-auto space-y-1">
-                  {[...((gameState as any)?.trackHistory || [])].reverse().map((t: any, idx: number) => (
-                    <div
-                      key={t.round}
-                      className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-[10px] ${t.skipped ? 'opacity-50' : ''} ${
-                        idx === 0 ? 'bg-[var(--primary)]/10 border border-[var(--primary)]/20' : 'bg-white/[0.03]'
-                      }`}
-                    >
-                      {t.skipped && <span className="text-foreground/40">⏭</span>}
-                      {t.albumImage && (
-                        <img src={getProxiedUrl(t.albumImage)} alt="" className="w-5 h-5 rounded object-cover shrink-0" />
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <p className={`font-medium truncate leading-tight ${t.skipped ? 'line-through text-foreground/40' : ''}`}>{t.name}</p>
-                        <p className="text-foreground/40 truncate leading-tight">
-                          {t.artist}{t.rank > 0 ? ` · #${t.rank.toLocaleString()}` : ''}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+            {/* Chat Sidebar */}
+            {gameState.state !== 'waiting' && gameState.state !== 'game_over' && (
+              <div className="hidden md:block w-64 shrink-0 border-l border-white/5 pt-3 px-3">
+                <Chat socket={socket} />
               </div>
             )}
           </div>
-        )}
+        </div>
+      </div>
 
-        <div className={`flex-1 flex flex-col gap-4 min-w-0 ${gameState.state === 'game_over' ? '' : 'max-w-2xl'}`}>
+      {/* ============================================================== */}
+      {/* Mobile Layout                                                 */}
+      {/* ============================================================== */}
+      <div className="flex md:hidden flex-col h-full">
+        {/* Mobile Top Bar */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 shrink-0">
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-bold tracking-[0.2em] text-primary">{code}</p>
+            <button
+              onClick={() => { navigator.clipboard.writeText(code); }}
+              className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-foreground/40"
+            >
+              {t('copy')}
+            </button>
+          </div>
+          <div className="flex items-center gap-2">
+            {gameState.state !== 'waiting' && gameState.state !== 'game_over' && (
+              <button
+                onClick={() => setChatOpen(o => !o)}
+                className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-foreground/60 hover:text-foreground/80"
+              >
+                {chatOpen ? t('hide_chat') : t('chat')}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Mobile Content */}
+        <div className="flex-1 flex flex-col min-h-0">
           {gameState.state === 'waiting' && (
             <WaitingRoom
               gameCode={code}
@@ -585,30 +640,33 @@ export default function GamePage({
           )}
         </div>
 
-        {gameState.state !== 'waiting' && gameState.state !== 'game_over' && (
-          <div className={`${chatOpen ? 'fixed inset-0 z-40 bg-black/80 md:bg-transparent md:static flex items-center md:block pb-4' : 'hidden md:block'} w-64 shrink-0`}>
-            <div className="w-full md:w-64 bg-[var(--surface)] md:bg-transparent rounded-2xl md:rounded-none md:h-auto max-h-[70vh] md:max-h-none overflow-y-auto mx-4 md:mx-0">
-              {chatOpen && (
-                <button onClick={() => setChatOpen(false)} className="md:hidden w-full text-center py-2 text-xs text-foreground/40 border-b border-white/5">
-                  Close
-                </button>
-              )}
+        {/* Mobile Chat Overlay */}
+        {chatOpen && gameState.state !== 'waiting' && gameState.state !== 'game_over' && (
+          <div className="fixed inset-0 z-40 bg-black/80 flex items-center pb-4">
+            <div className="w-full bg-surface/90 backdrop-blur-xl rounded-2xl max-h-[70vh] overflow-y-auto mx-4">
+              <button onClick={() => setChatOpen(false)} className="w-full text-center py-2 text-xs text-foreground/40 border-b border-white/5">
+                Close
+              </button>
               <Chat socket={socket} />
             </div>
           </div>
         )}
       </div>
 
+      {/* ============================================================== */}
+      {/* Shared overlays                                               */}
+      {/* ============================================================== */}
+
       {gameState.state !== 'game_over' && (
-<AudioPlayer
-            ref={audioPlayerRef}
-            previewUrl={(gameState as any).previewUrl || null}
-            audioOffset={(gameState as any).audioOffset || 0}
-            state={gameState.state}
-            onPlaying={handleAudioPlaying}
-            onTimeUpdate={handleAudioTimeUpdate}
-            onBlocked={handleAudioBlocked}
-          />
+        <AudioPlayer
+          ref={audioPlayerRef}
+          previewUrl={(gameState as any).previewUrl || null}
+          audioOffset={(gameState as any).audioOffset || 0}
+          state={gameState.state}
+          onPlaying={handleAudioPlaying}
+          onTimeUpdate={handleAudioTimeUpdate}
+          onBlocked={handleAudioBlocked}
+        />
       )}
 
       {debugOn && (
@@ -628,7 +686,7 @@ export default function GamePage({
           }}
         >
           <div className="flex flex-col items-center gap-4 p-8 text-center">
-            <div className="w-20 h-20 rounded-full bg-[var(--primary)]/20 flex items-center justify-center">
+            <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center">
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
                 <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
@@ -1503,155 +1561,205 @@ function PlayingPhase({
       ? 'bg-[var(--primary)] text-foreground border-[var(--primary)]'
       : 'bg-transparent text-foreground/30 border-surface-light';
 
+  const renderPills = () => {
+    if (isArtistMode) {
+      return (
+        <>
+          <div className="flex-1 text-center px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border border-[var(--accent)]/30 bg-[var(--accent)]/10 text-[var(--accent)] truncate">
+            {trackArtist || 'Artist'}
+          </div>
+          <div className={`flex-1 text-center px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all ${pillStyle(titleFound)}`}>
+            Title {!titleFound && <span className="text-foreground/30">?</span>}
+          </div>
+        </>
+      );
+    }
+    return (
+      <>
+        <div className={`flex-1 text-center px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all ${pillStyle(artistFound)}`}>
+          Artist {!artistFound && <span className="text-foreground/30">?</span>}
+        </div>
+        <div className={`flex-1 text-center px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all ${pillStyle(titleFound)}`}>
+          Title {!titleFound && <span className="text-foreground/30">?</span>}
+        </div>
+      </>
+    );
+  };
+
   return (
-    <div className="flex-1 flex flex-col gap-4 w-full max-w-lg mx-auto">
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-foreground/40 tabular-nums">{t('round_x_of_y', { current: currentRound, total: totalRounds })}</span>
-        <div className="flex items-center gap-3">
-          <motion.span
-            key={timeLeft}
-            initial={{ scale: 1.3 }}
-            animate={{ scale: 1 }}
-            className={`text-3xl font-bold tabular-nums ${timeLeft != null && timeLeft <= 5 ? 'text-red-400' : 'text-foreground'}`}
-          >
-            {timeLeft ?? '--'}
-          </motion.span>
-          {isAdmin ? (
-            <button onClick={handleSkipClick} disabled={skipCooldown} className="px-3 py-1.5 text-xs bg-surface-light hover:bg-surface-light text-foreground/80 rounded-lg border border-surface-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-              {t('skip')}
-            </button>
-          ) : (
-            <button
-              onClick={hasVotedSkip || skipCooldown ? undefined : handleSkipClick}
-              disabled={hasVotedSkip || skipCooldown}
-              className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
-                hasVotedSkip || skipCooldown
-                  ? 'bg-surface-light text-foreground/30 border-surface-light cursor-not-allowed'
-                  : 'bg-surface-light hover:bg-surface-light text-foreground/80 border-surface-light'
+    <>
+      {/* Desktop */}
+      <div className="hidden md:flex flex-1 flex-col items-center justify-center gap-10 px-8">
+        <NeonTimer
+          timeLeft={timeLeft ?? roundDuration}
+          totalTime={roundDuration}
+          currentRound={currentRound}
+          totalRounds={totalRounds}
+        />
+
+        <div className="w-full max-w-xl flex flex-col items-center gap-4">
+          <div className="flex gap-2 w-full max-w-sm">
+            {renderPills()}
+          </div>
+
+          <ActionArea
+            guess={guess}
+            onGuessChange={onGuessChange}
+            onSubmit={onSubmit}
+            inputRef={inputRef}
+            bothFound={bothFound}
+            placeholder={placeholder}
+          />
+        </div>
+
+        {guessResult && (() => {
+          const pts = guessResult.points_awarded_this_guess || 0;
+          const succeeded = pts > 0;
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`px-4 py-2 rounded-xl text-center text-xs ${
+                succeeded
+                  ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                  : 'bg-red-500/10 text-red-400 border border-red-500/20'
               }`}
             >
-              {hasVotedSkip ? `${t('voted')} ${skipVotes}/${skipVotesNeeded}` : `${t('vote_skip')} ${skipVotes}/${skipVotesNeeded}`}
-            </button>
-          )}
-
-          {showSkipReasons && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setShowSkipReasons(false)}>
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-background border border-white/10 rounded-2xl p-5 w-full max-w-xs shadow-2xl flex flex-col gap-2"
-                onClick={e => e.stopPropagation()}
-              >
-                <p className="text-xs font-bold text-foreground/70 uppercase tracking-wider mb-1">Why skip?</p>
-                <button onClick={() => handleSkipWithReason('wrong_song')} className="w-full text-left px-3.5 py-2.5 bg-white/[0.02] hover:bg-red-500/10 border border-white/5 hover:border-red-500/30 rounded-xl text-xs font-semibold text-foreground/80 hover:text-red-400 transition-all cursor-pointer flex items-center gap-2.5">
-                  <span className="text-base">🚩</span>
-                  <div><span className="block">Wrong Song</span><span className="text-[10px] text-foreground/40 font-normal">Flag as incorrect &amp; skip</span></div>
-                </button>
-                <button onClick={() => handleSkipWithReason('bad_audio')} className="w-full text-left px-3.5 py-2.5 bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 rounded-xl text-xs font-semibold text-foreground/80 hover:text-foreground transition-all cursor-pointer flex items-center gap-2.5">
-                  <span className="text-base">🔇</span>
-                  <div><span className="block">Bad Audio</span><span className="text-[10px] text-foreground/40 font-normal">Audio glitch or too quiet</span></div>
-                </button>
-                <button onClick={() => handleSkipWithReason('not_playing')} className="w-full text-left px-3.5 py-2.5 bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 rounded-xl text-xs font-semibold text-foreground/80 hover:text-foreground transition-all cursor-pointer flex items-center gap-2.5">
-                  <span className="text-base">⏹</span>
-                  <div><span className="block">Not Playing</span><span className="text-[10px] text-foreground/40 font-normal">No sound coming through</span></div>
-                </button>
-                <button onClick={() => handleSkipWithReason('just_skip')} className="w-full text-left px-3.5 py-2.5 bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 rounded-xl text-xs font-semibold text-foreground/80 hover:text-foreground transition-all cursor-pointer flex items-center gap-2.5">
-                  <span className="text-base">⏭</span>
-                  <div><span className="block">Just Skip</span><span className="text-[10px] text-foreground/40 font-normal">No reason</span></div>
-                </button>
-              </motion.div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <MiniViz progress={(smoothTime ?? 0) / (roundDuration || 15)} />
-
-      <div className="h-1 rounded-full bg-surface-light overflow-hidden">
-        <div
-          className="h-full rounded-full bg-[var(--primary)] transition-none"
-          style={{ width: `${roundDuration > 0 ? ((smoothTime ?? 0) / roundDuration) * 100 : 0}%` }}
-        />
-      </div>
-
-      <div className="flex gap-2">
-        {isArtistMode ? (
-          <>
-            <div className="flex-1 text-center px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border border-[var(--accent)]/30 bg-[var(--accent)]/10 text-[var(--accent)] truncate">
-              {trackArtist || 'Artist'}
-            </div>
-            <div className={`flex-1 text-center px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all ${pillStyle(titleFound)}`}>
-              Title {!titleFound && <span className="text-foreground/30">?</span>}
-            </div>
-          </>
-        ) : (
-          <>
-            <div className={`flex-1 text-center px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all ${pillStyle(artistFound)}`}>
-              Artist {!artistFound && <span className="text-foreground/30">?</span>}
-            </div>
-            <div className={`flex-1 text-center px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all ${pillStyle(titleFound)}`}>
-              Title {!titleFound && <span className="text-foreground/30">?</span>}
-            </div>
-          </>
+              <span className="font-semibold">{succeeded ? `+${pts} pts` : 'Wrong!'}</span>
+              {guessResult.artist_score != null && (
+                <span className="ml-2 text-foreground/40">A:{guessResult.artist_score}%</span>
+              )}
+              {guessResult.title_score != null && (
+                <span className="ml-1 text-foreground/40">T:{guessResult.title_score}%</span>
+              )}
+              {guessResult.guessTimeMs != null && (
+                <span className="ml-2 text-foreground/30">{(guessResult.guessTimeMs / 1000).toFixed(1)}s</span>
+              )}
+            </motion.div>
+          );
+        })()}
+        {encouragement && (
+          <motion.p
+            key={encouragement}
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="text-xs text-foreground/40 italic text-center"
+          >
+            {encouragement}
+          </motion.p>
         )}
       </div>
 
-      <div className="relative">
-        <div className={`absolute -inset-1 rounded-2xl ${bothFound ? 'bg-green-500/20' : 'bg-[var(--primary)]/10'} blur-lg transition-all duration-500`} />
-        <input
-          ref={inputRef}
-          type="text"
-          value={guess}
-          onChange={e => onGuessChange(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && !bothFound && onSubmit()}
-          placeholder={placeholder}
-          disabled={bothFound}
-          autoComplete="off"
-          className={`relative w-full px-5 py-4 bg-[var(--surface)] border-2 rounded-2xl text-foreground text-lg text-center placeholder-foreground/40 focus:outline-none transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${
-            bothFound
-              ? 'border-green-500/50'
-              : 'border-[var(--primary)]/30 focus:border-[var(--primary)]'
-          }`}
-        />
+      {/* Mobile */}
+      <div className="flex md:hidden flex-col h-full">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
+          <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-white/30">
+            <span>Round</span>
+            <span className="text-primary font-bold">{currentRound}</span>
+            <span className="text-white/15">/</span>
+            <span>{totalRounds}</span>
+          </div>
+          <NeonTimer timeLeft={timeLeft ?? roundDuration} totalTime={roundDuration} currentRound={currentRound} totalRounds={totalRounds} />
+          <div className="flex items-center gap-2">
+            {isAdmin ? (
+              <button onClick={handleSkipClick} disabled={skipCooldown} className="px-2 py-1 text-[10px] bg-white/10 text-foreground/70 rounded-lg border border-white/10 disabled:opacity-30">
+                {t('skip')}
+              </button>
+            ) : (
+              <button
+                onClick={hasVotedSkip || skipCooldown ? undefined : handleSkipClick}
+                disabled={hasVotedSkip || skipCooldown}
+                className={`px-2 py-1 text-[10px] rounded-lg border ${
+                  hasVotedSkip || skipCooldown
+                    ? 'bg-white/5 text-foreground/30 border-white/5'
+                    : 'bg-white/10 text-foreground/70 border-white/10'
+                }`}
+              >
+                {hasVotedSkip ? `${t('voted')}` : `${t('vote_skip')}`}
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="flex flex-col items-center justify-center py-6 gap-4">
+          <Visualizer />
+          <div className="flex gap-2 w-full max-w-xs px-4">
+            {renderPills()}
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-3 space-y-1.5 min-h-0 pb-2">
+          {guessResult && (() => {
+            const pts = guessResult.points_awarded_this_guess || 0;
+            const succeeded = pts > 0;
+            return (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`px-4 py-2 rounded-xl text-center text-xs ${
+                  succeeded
+                    ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                    : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                }`}
+              >
+                <span className="font-semibold">{succeeded ? `+${pts} pts` : 'Wrong!'}</span>
+              </motion.div>
+            );
+          })()}
+          {encouragement && (
+            <motion.p
+              key={encouragement}
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="text-xs text-foreground/40 italic text-center"
+            >
+              {encouragement}
+            </motion.p>
+          )}
+        </div>
+
+        <div className="sticky bottom-0 left-0 right-0 bg-background/90 backdrop-blur-lg border-t border-white/10 px-3 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+          <ActionArea
+            guess={guess}
+            onGuessChange={onGuessChange}
+            onSubmit={onSubmit}
+            inputRef={inputRef}
+            bothFound={bothFound}
+            placeholder={placeholder}
+          />
+        </div>
       </div>
 
-      {guessResult && (() => {
-        const pts = guessResult.points_awarded_this_guess || 0;
-        const succeeded = pts > 0;
-        return (
+      {/* Skip reasons modal (shared) */}
+      {showSkipReasons && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setShowSkipReasons(false)}>
           <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={`px-4 py-2 rounded-xl text-center text-xs ${
-              succeeded
-                ? 'bg-green-500/10 text-green-400 border border-green-500/20'
-                : 'bg-red-500/10 text-red-400 border border-red-500/20'
-            }`}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-background border border-white/10 rounded-2xl p-5 w-full max-w-xs shadow-2xl flex flex-col gap-2"
+            onClick={e => e.stopPropagation()}
           >
-            <span className="font-semibold">{succeeded ? `+${pts} pts` : 'Wrong!'}</span>
-            {guessResult.artist_score != null && (
-              <span className="ml-2 text-foreground/40">A:{guessResult.artist_score}%</span>
-            )}
-            {guessResult.title_score != null && (
-              <span className="ml-1 text-foreground/40">T:{guessResult.title_score}%</span>
-            )}
-            {guessResult.guessTimeMs != null && (
-              <span className="ml-2 text-foreground/30">{(guessResult.guessTimeMs / 1000).toFixed(1)}s</span>
-            )}
+            <p className="text-xs font-bold text-foreground/70 uppercase tracking-wider mb-1">Why skip?</p>
+            <button onClick={() => handleSkipWithReason('wrong_song')} className="w-full text-left px-3.5 py-2.5 bg-white/[0.02] hover:bg-red-500/10 border border-white/5 hover:border-red-500/30 rounded-xl text-xs font-semibold text-foreground/80 hover:text-red-400 transition-all cursor-pointer flex items-center gap-2.5">
+              <span className="text-base">🚩</span>
+              <div><span className="block">Wrong Song</span><span className="text-[10px] text-foreground/40 font-normal">Flag as incorrect &amp; skip</span></div>
+            </button>
+            <button onClick={() => handleSkipWithReason('bad_audio')} className="w-full text-left px-3.5 py-2.5 bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 rounded-xl text-xs font-semibold text-foreground/80 hover:text-foreground transition-all cursor-pointer flex items-center gap-2.5">
+              <span className="text-base">🔇</span>
+              <div><span className="block">Bad Audio</span><span className="text-[10px] text-foreground/40 font-normal">Audio glitch or too quiet</span></div>
+            </button>
+            <button onClick={() => handleSkipWithReason('not_playing')} className="w-full text-left px-3.5 py-2.5 bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 rounded-xl text-xs font-semibold text-foreground/80 hover:text-foreground transition-all cursor-pointer flex items-center gap-2.5">
+              <span className="text-base">⏹</span>
+              <div><span className="block">Not Playing</span><span className="text-[10px] text-foreground/40 font-normal">No sound coming through</span></div>
+            </button>
+            <button onClick={() => handleSkipWithReason('just_skip')} className="w-full text-left px-3.5 py-2.5 bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 rounded-xl text-xs font-semibold text-foreground/80 hover:text-foreground transition-all cursor-pointer flex items-center gap-2.5">
+              <span className="text-base">⏭</span>
+              <div><span className="block">Just Skip</span><span className="text-[10px] text-foreground/40 font-normal">No reason</span></div>
+            </button>
           </motion.div>
-        );
-      })()}
-      {encouragement && (
-        <motion.p
-          key={encouragement}
-          initial={{ opacity: 0, x: -8 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="text-xs text-foreground/40 italic text-center"
-        >
-          {encouragement}
-        </motion.p>
+        </div>
       )}
-    </div>
+    </>
   );
 }
 
