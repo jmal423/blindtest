@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { Client, GatewayIntentBits, REST, Routes, EmbedBuilder, ChannelType } from 'discord.js';
+import { Client, GatewayIntentBits, REST, Routes, EmbedBuilder, ChannelType, ActivityType } from 'discord.js';
 import pg from 'pg';
 
 const { Pool } = pg;
@@ -327,6 +327,11 @@ client.on('interactionCreate', async (interaction) => {
 // ────────────────────────────────────────
 //  Login
 // ────────────────────────────────────────
+
+client.once('clientReady', () => {
+  console.log(`Bot logged in as ${client.user?.tag}`);
+  client.user?.setActivity('BlindTest 🎵', { type: ActivityType.Playing });
+});
 
 client.login(TOKEN);
 console.log('Bot starting...');
