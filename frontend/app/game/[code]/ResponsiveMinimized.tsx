@@ -10,11 +10,16 @@ export default function ResponsiveMinimized({ children }: { children: ReactNode 
 
   useEffect(() => {
     const check = () => {
-      setTooSmall(window.innerWidth < MIN_WIDTH || window.innerHeight < MIN_HEIGHT);
+      const small = window.innerWidth < MIN_WIDTH || window.innerHeight < MIN_HEIGHT;
+      setTooSmall(small);
+      document.body.style.overflow = small ? 'hidden' : '';
     };
     check();
     window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
+    return () => {
+      window.removeEventListener('resize', check);
+      document.body.style.overflow = '';
+    };
   }, []);
 
   return (
