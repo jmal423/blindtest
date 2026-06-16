@@ -859,7 +859,7 @@ function WaitingRoom({
   const genreMap = new Map(allGenres.map(g => [g.id, g]));
 
   return (
-    <div className="flex-1 flex flex-col items-center gap-6 overflow-y-auto pb-8 w-full max-w-7xl mx-auto px-4 md:px-8">
+    <div className="w-[95vw] max-w-[2000px] h-full flex flex-col gap-6 mx-auto px-4 md:px-8 py-4 overflow-hidden">
       {/* Title Header */}
       <div className="text-center space-y-1.5 mt-4 md:mt-8 mb-1 flex flex-col items-center">
         <h2 className="text-3xl md:text-4xl font-black tracking-tight text-foreground">
@@ -870,9 +870,9 @@ function WaitingRoom({
         </p>
       </div>
 
-      <div className="w-full grid grid-cols-1 md:grid-cols-[320px_1fr] gap-6 md:gap-8 items-start">
+      <div className="w-full flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(350px,25%)_1fr] gap-6 md:gap-8 items-start">
         {/* Left Column: Players List */}
-        <div className="w-full bg-[var(--surface)] border border-white/5 rounded-2xl p-5 space-y-4 shadow-xl backdrop-blur-md md:sticky md:top-24 md:max-h-[calc(100vh-14rem)] md:overflow-y-auto">
+        <div className="w-full h-full flex flex-col min-h-0 bg-[var(--surface)] border border-white/5 rounded-2xl p-5 space-y-4 shadow-xl backdrop-blur-md">
           <div className="flex items-center justify-between pb-2 border-b border-white/5">
             <div className="flex items-center gap-2">
               <span className="relative flex h-2 w-2">
@@ -888,7 +888,7 @@ function WaitingRoom({
 
 
 
-          <div className="space-y-2.5">
+          <div className="flex-1 overflow-y-auto min-h-0 space-y-2.5 pr-2 custom-scrollbar">
             {players.map((p, i) => (
               <div
                 key={p.id}
@@ -961,8 +961,8 @@ function WaitingRoom({
         </div>
 
         {/* Right Column: Settings & Genres */}
-        <div className="w-full bg-[var(--surface)] rounded-2xl p-5 border border-white/5 shadow-xl backdrop-blur-md flex flex-col xl:flex-row gap-6 xl:gap-8 items-start">
-          <div className="w-full xl:w-[280px] shrink-0">
+        <div className="w-full h-full min-h-0 bg-[var(--surface)] rounded-2xl p-5 border border-white/5 shadow-xl backdrop-blur-md flex flex-col xl:flex-row gap-6 xl:gap-8 items-start relative">
+          <div className="w-full h-full overflow-y-auto min-h-0 xl:w-[280px] shrink-0 pr-2 custom-scrollbar">
             <div className="pb-2 border-b border-white/5 mb-5">
               <h3 className="text-sm font-semibold text-foreground/90">{t('settings')}</h3>
             </div>
@@ -1023,7 +1023,7 @@ function WaitingRoom({
               </div>
             </div>
 
-            <div className="flex-1 w-full min-w-0 space-y-4">
+            <div className="flex-1 h-full flex flex-col min-h-0 min-w-0 space-y-4">
 
 
               {settings.gameMode === 'genre' ? (
@@ -1066,7 +1066,7 @@ function WaitingRoom({
                   })}
                 </div>
               ) : (
-                <div className="columns-1 md:columns-2 3xl:columns-3 gap-4">
+                <div className="flex-1 overflow-y-auto min-h-0 columns-1 md:columns-2 3xl:columns-3 gap-4 pr-2 custom-scrollbar">
                   {genreGroups.map(group => {
                     const groupGenres = group.genreIds.map(id => genreMap.get(id)).filter(Boolean) as { id: string; label: string; group?: string }[];
                     if (groupGenres.length === 0) return null;
@@ -1246,7 +1246,7 @@ function WaitingRoom({
                   </div>
 
                   {isHost && (
-                    <div className="columns-1 md:columns-2 3xl:columns-3 gap-4">
+                    <div className="flex-1 overflow-y-auto min-h-0 columns-1 md:columns-2 3xl:columns-3 gap-4 pr-2 custom-scrollbar">
                       {artistGroups.map(group => {
                         if (group.artists.length === 0) return null;
                         const isCollapsed = !expandedArtistGroups.has(group.id);
@@ -1382,7 +1382,7 @@ function WaitingRoom({
       </div>
 
       {/* Lobby CTA Area */}
-      <div className="w-full flex flex-col items-center gap-3 pt-4 md:pt-6 pb-4 max-w-xl md:sticky md:bottom-0 md:bg-gradient-to-t md:from-background md:to-transparent md:pt-8 md:pb-6">
+      <div className="w-full shrink-0 flex flex-col items-center gap-3 py-4 md:py-6 relative z-10">
         {isHost ? (
           <button
             onClick={onStart}
