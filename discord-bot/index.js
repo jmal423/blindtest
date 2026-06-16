@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { Client, GatewayIntentBits, REST, Routes, EmbedBuilder } from 'discord.js';
+import { Client, GatewayIntentBits, REST, Routes, EmbedBuilder, ChannelType } from 'discord.js';
 import pg from 'pg';
 
 const { Pool } = pg;
@@ -20,6 +20,42 @@ if (!TOKEN || !CLIENT_ID) {
   console.error('Missing BOT_TOKEN or CLIENT_ID in environment');
   process.exit(1);
 }
+
+function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ────────────────────────────────────────
+//  Channel layout for /setup
+// ────────────────────────────────────────
+
+const RECOMMENDED_CHANNELS = [
+  {
+    name: '📢 INFORMATION',
+    channels: [
+      { name: 'roles', type: ChannelType.GuildText, topic: 'React to get roles! 🎵' },
+      { name: 'faq', type: ChannelType.GuildText, topic: 'Frequently asked questions about BlindTest.' },
+    ],
+  },
+  {
+    name: '🎮 GAMEPLAY',
+    channels: [
+      { name: 'matchmaking', type: ChannelType.GuildText, topic: 'Find players and schedule games here!' },
+    ],
+  },
+  {
+    name: '🏆 COMMUNITY',
+    channels: [
+      { name: 'off-topic', type: ChannelType.GuildText, topic: 'Chat about music, movies, memes, and anything else.' },
+      { name: 'music-share', type: ChannelType.GuildText, topic: 'Share what you\'re listening to! 🎶' },
+    ],
+  },
+  {
+    name: '🛠 STAFF',
+    channels: [
+      { name: 'mod-chat', type: ChannelType.GuildText, topic: 'Staff discussions.' },
+      { name: 'mod-logs', type: ChannelType.GuildText, topic: 'Moderation logs.' },
+    ],
+  },
+];
 
 // ────────────────────────────────────────
 //  Slash Command Definitions
@@ -49,6 +85,10 @@ const commands = [
     }],
   },
   {
+    name: 'setup',
+    description: 'Create recommended server channels (admin only)',
+  },
+  {
     name: 'help',
     description: 'Show BlindTest bot commands and info',
   },
@@ -75,6 +115,18 @@ const rest = new REST({ version: '10' }).setToken(TOKEN);
 })();
 
 // ────────────────────────────────────────
+//  Events
+// ────────────────────────────────────────
+
+// Welcome messages disabled — enable Server Members Intent in Developer Portal
+// to use this feature, then add GatewayIntentBits.GuildMembers and uncomment below:
+/*
+client.on('guildMemberAdd', async (member) => {
+  ...
+});
+*/
+
+// ────────────────────────────────────────
 //  Command Handlers
 // ────────────────────────────────────────
 
@@ -99,18 +151,17 @@ client.on('interactionCreate', async (interaction) => {
         return interaction.editReply('No scores yet. Play a game to get on the board! 🎵');
       }
 
-      const embed = new EmbedBuilder()
-        .setTitle('🏆 BlindTest Leaderboard')
-        .setColor(0x6c5ce7)
-        .setDescription(`Top **${rows.length}** players overall`)
-        .setTimestamp();
-
       const medals = ['🥇', '🥈', '🥉'];
       const desc = rows.map((r, i) =>
         `${medals[i] || `${i + 1}.`} **${r.username}** — ${r.total_score.toLocaleString()} pts (${r.games_played} games)`
       ).join('\n');
 
-      embed.setDescription(desc);
+      const embed = new EmbedBuilder()
+        .setTitle('🏆 BlindTest Leaderboard')
+        .setColor(0x6c5ce7)
+        .setDescription(desc)
+        .setTimestamp();
+
       await interaction.editReply({ embeds: [embed] });
     } catch (e) {
       console.error('Leaderboard error:', e.message);
@@ -131,8 +182,8 @@ client.on('interactionCreate', async (interaction) => {
 
       if (rows.length === 0) {
         return interaction.editReply(
-          `${target.id === interaction.user.id ? 'You haven\'t' : 'This user hasn\'t'} linked their Discord to BlindTest yet.\n` +
-          `Play a game at https://blindtest.jl423.xyz to get started!`
+          `${target.id === interaction.user.id ? "You haven't" : "This user hasn't"} linked their Discord to BlindTest yet.\n` +
+          'Play a game at https://blindtest.jl423.xyz to get started!'
         );
       }
 
@@ -160,6 +211,57 @@ client.on('interactionCreate', async (interaction) => {
     }
   }
 
+  else if (commandName === 'setup') {
+    if (!interaction.memberPermissions?.has('Administrator')) {
+      return interaction.reply({ content: '❌ You need **Administrator** permission to use this command.', ephemeral: true });
+    }
+
+    await interaction.deferReply({ ephemeral: true });
+    const guild = interaction.guild;
+    if (!guild) return;
+
+    let created = 0;
+
+    for (const cat of RECOMMENDED_CHANNELS) {
+      const existingCategory = guild.channels.cache.find(
+        c => c.type === ChannelType.GuildCategory && c.name === cat.name
+      );
+
+      let category;
+      if (existingCategory) {
+        category = existingCategory;
+      } else {
+        category = await guild.channels.create({
+          name: cat.name,
+          type: ChannelType.GuildCategory,
+        });
+        await wait(400);
+      }
+
+      for (const ch of cat.channels) {
+        const exists = guild.channels.cache.find(
+          c => c.name === ch.name && c.parentId === category.id
+        );
+        if (exists) continue;
+
+        await guild.channels.create({
+          name: ch.name,
+          type: ch.type,
+          parent: category.id,
+          topic: ch.topic,
+        });
+        created++;
+        await wait(400);
+      }
+    }
+
+    await interaction.editReply(
+      created > 0
+        ? `✅ Created **${created}** new channel${created !== 1 ? 's' : ''}!`
+        : '✅ All recommended channels already exist.'
+    );
+  }
+
   else if (commandName === 'help') {
     const embed = new EmbedBuilder()
       .setTitle('🎵 BlindTest Bot')
@@ -175,6 +277,7 @@ client.on('interactionCreate', async (interaction) => {
         '`/leaderboard` — Top players\n' +
         '`/stats` — Your stats\n' +
         '`/stats @user` — Someone else\'s stats\n' +
+        '`/setup` — Create recommended channels (admin)\n' +
         '`/help` — This menu\n\n' +
         'Play at **https://blindtest.jl423.xyz**'
       )
