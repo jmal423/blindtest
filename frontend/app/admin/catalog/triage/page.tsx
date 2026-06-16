@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { getUnclassifiedTracks, updateAiGenre, deleteAiTrack, fetchGenres } from '@/lib/api';
 import { useSettings } from '@/app/context/SettingsContext';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
@@ -23,17 +23,256 @@ const GROUP_LABELS: Record<string, string> = {
   global_other: '🌍 Mundo & Outros',
 };
 
+function SpeedTriage({
+  tracks,
+  genres,
+  groupedGenres,
+  onDone,
+  onBack,
+}: {
+  tracks: Track[];
+  genres: { id: string; label: string; group?: string }[];
+  groupedGenres: Record<string, typeof genres>;
+  onDone: (stats: { saved: number; deleted: number; skipped: number }) => void;
+  onBack: () => void;
+}) {
+  const { settings } = useSettings();
+  const [index, setIndex] = useState(0);
+  const [genre, setGenre] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [stats, setStats] = useState({ saved: 0, deleted: 0, skipped: 0 });
+  const [gameTracks, setGameTracks] = useState(tracks);
+  const [startTime] = useState(Date.now());
+  const [elapsed, setElapsed] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const selectRef = useRef<HTMLSelectElement>(null);
+  const [playing, setPlaying] = useState(false);
+  const [finished, setFinished] = useState(false);
+
+  const current = gameTracks[index];
+  const total = gameTracks.length;
+  const done = stats.saved + stats.deleted + stats.skipped;
+  const remaining = total - done;
+
+  useEffect(() => {
+    const timer = setInterval(() => setElapsed(Math.floor((Date.now() - startTime) / 1000)), 1000);
+    return () => clearInterval(timer);
+  }, [startTime]);
+
+  const playCurrent = useCallback(() => {
+    if (!current?.id?.startsWith('deezer:')) return;
+    if (audioRef.current) audioRef.current.pause();
+    const url = `/api/proxy/audio/${current.id}`;
+    const audio = new Audio(url);
+    audio.volume = settings.masterVolume ?? 0.5;
+    audio.addEventListener('ended', () => setPlaying(false));
+    audio.play().then(() => { audioRef.current = audio; setPlaying(true); }).catch(() => {});
+  }, [current, settings.masterVolume]);
+
+  useEffect(() => {
+    setGenre('');
+    setTimeout(() => playCurrent(), 100);
+    selectRef.current?.focus();
+  }, [index, playCurrent]);
+
+  const advance = () => {
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    setPlaying(false);
+    if (index + 1 >= gameTracks.length) {
+      setFinished(true);
+      return;
+    }
+    setIndex(i => i + 1);
+  };
+
+  const handleSave = async () => {
+    if (!genre || saving || !current) return;
+    setSaving(true);
+    try {
+      await updateAiGenre(current.id, genre);
+      setStats(s => ({ ...s, saved: s.saved + 1 }));
+      setGameTracks(prev => prev.filter(t => t.id !== current.id));
+      advance();
+    } catch {}
+    setSaving(false);
+  };
+
+  const handleDelete = async () => {
+    if (saving || !current) return;
+    setSaving(true);
+    try {
+      await deleteAiTrack(current.id);
+      setStats(s => ({ ...s, deleted: s.deleted + 1 }));
+      setGameTracks(prev => prev.filter(t => t.id !== current.id));
+      advance();
+    } catch {}
+    setSaving(false);
+  };
+
+  const handleSkip = () => {
+    if (saving) return;
+    setStats(s => ({ ...s, skipped: s.skipped + 1 }));
+    advance();
+  };
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (finished) return;
+      if (e.key === 'Enter' && genre) { e.preventDefault(); handleSave(); }
+      else if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); handleDelete(); }
+      else if (e.key === 'Escape') { e.preventDefault(); handleSkip(); }
+      else if (e.key === ' ') { e.preventDefault(); playCurrent(); }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  });
+
+  const formatTime = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${m}:${sec.toString().padStart(2, '0')}`;
+  };
+
+  if (finished) {
+    const totalTime = Math.floor((Date.now() - startTime) / 1000);
+    return (
+      <div className="flex flex-col items-center gap-6 py-16">
+        <span className="text-5xl">🏁</span>
+        <p className="text-2xl font-bold">Triage Complete!</p>
+        <div className="grid grid-cols-3 gap-6 text-center">
+          <div>
+            <p className="text-3xl font-bold text-green-400">{stats.saved}</p>
+            <p className="text-xs text-foreground/50">Saved</p>
+          </div>
+          <div>
+            <p className="text-3xl font-bold text-red-400">{stats.deleted}</p>
+            <p className="text-xs text-foreground/50">Deleted</p>
+          </div>
+          <div>
+            <p className="text-3xl font-bold text-foreground/50">{stats.skipped}</p>
+            <p className="text-xs text-foreground/50">Skipped</p>
+          </div>
+        </div>
+        <p className="text-sm text-foreground/40">{formatTime(totalTime)} total · {total > 0 ? (total / totalTime).toFixed(1) : '-'} tracks/s</p>
+        <div className="flex gap-3">
+          <button
+            onClick={onBack}
+            className="px-5 py-2 text-xs font-extrabold uppercase tracking-wider rounded-xl transition-all cursor-pointer text-foreground/60 hover:text-foreground"
+            style={{ backgroundColor: 'color-mix(in srgb, var(--foreground) 5%, transparent)' }}
+          >
+            ← Back to Browse
+          </button>
+          <button onClick={onDone.bind(null, stats)} className="px-5 py-2 text-xs font-extrabold uppercase tracking-wider rounded-xl transition-all cursor-pointer text-foreground/60 hover:text-foreground" style={{ backgroundColor: 'color-mix(in srgb, var(--foreground) 5%, transparent)' }}>
+            Done
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!current) return null;
+
+  return (
+    <div className="flex flex-col items-center gap-6 py-4 max-w-lg mx-auto">
+      {/* Progress bar */}
+      <div className="w-full flex items-center gap-3">
+        <div className="flex-1 h-1.5 rounded-full bg-white/5 overflow-hidden">
+          <div className="h-full rounded-full bg-gradient-to-r from-primary to-accent transition-all duration-300" style={{ width: `${(done / total) * 100}%` }} />
+        </div>
+        <span className="text-xs text-foreground/40 tabular-nums shrink-0">{done}/{total}</span>
+      </div>
+
+      {/* Track card */}
+      <div className="w-full rounded-2xl p-6 text-center space-y-3" style={{ backgroundColor: 'color-mix(in srgb, var(--surface) 60%, transparent)', border: '1px solid color-mix(in srgb, var(--foreground) 5%, transparent)' }}>
+        {current.album_image ? (
+          <img src={current.album_image} alt="" className="w-24 h-24 rounded-2xl object-cover mx-auto shadow-lg" />
+        ) : (
+          <div className="w-24 h-24 rounded-2xl mx-auto bg-white/5 flex items-center justify-center text-2xl">🎵</div>
+        )}
+
+        <div>
+          <p className="text-lg font-bold">{current.name}</p>
+          <p className="text-sm text-foreground/60">{current.artist}</p>
+        </div>
+
+        {/* Play / Pause mini button */}
+        <button
+          onClick={playCurrent}
+          className="text-xs text-foreground/40 hover:text-foreground/80 transition-colors cursor-pointer"
+        >
+          {playing ? '🔊 Playing' : '🔇 Tap to play'}
+        </button>
+      </div>
+
+      {/* Genre selector */}
+      <select
+        ref={selectRef}
+        value={genre}
+        onChange={e => setGenre(e.target.value)}
+        className="w-full px-4 py-3 rounded-xl text-sm border outline-none bg-surface/40 backdrop-blur-md"
+        style={{ borderColor: genre ? 'color-mix(in srgb, var(--primary) 30%, transparent)' : 'color-mix(in srgb, var(--foreground) 10%, transparent)', color: 'var(--foreground)' }}
+        autoFocus
+      >
+        <option value="">— Select genre —</option>
+        {Object.entries(groupedGenres).map(([groupKey, gs]) => (
+          <optgroup key={groupKey} label={GROUP_LABELS[groupKey] || groupKey}>
+            {gs.map(g => (
+              <option key={g.id} value={g.id}>{g.label}</option>
+            ))}
+          </optgroup>
+        ))}
+      </select>
+
+      {/* Action buttons */}
+      <div className="flex gap-2 w-full">
+        <button
+          onClick={handleSkip}
+          className="flex-1 py-3 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer text-foreground/40 hover:text-foreground/60"
+          style={{ backgroundColor: 'color-mix(in srgb, var(--foreground) 5%, transparent)' }}
+        >
+          ⏭ Skip
+        </button>
+        <button
+          onClick={handleSave}
+          disabled={!genre || saving}
+          className="flex-1 py-3 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+          style={{ backgroundColor: 'color-mix(in srgb, #00b894 20%, transparent)', color: '#00b894', border: '1px solid color-mix(in srgb, #00b894 30%, transparent)' }}
+        >
+          {saving ? '...' : '💾 Save'}
+        </button>
+        <button
+          onClick={handleDelete}
+          className="flex-1 py-3 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer text-red-400/70 hover:text-red-400"
+          style={{ backgroundColor: 'color-mix(in srgb, #ef4444 10%, transparent)' }}
+        >
+          🗑️ Delete
+        </button>
+      </div>
+
+      {/* Keyboard legend */}
+      <div className="flex gap-3 text-[10px] text-foreground/30">
+        <span>⏎ Save</span>
+        <span>⎋ Skip</span>
+        <span>⌫ Delete</span>
+        <span>␣ Play</span>
+      </div>
+
+      {/* Timer */}
+      <p className="text-[10px] text-foreground/20 tabular-nums">{formatTime(elapsed)}</p>
+    </div>
+  );
+}
+
 export default function TriagePage() {
   const { settings } = useSettings();
   const [tracks, setTracks] = useState<Track[]>([]);
   const [genres, setGenres] = useState<{ id: string; label: string; group?: string }[]>([]);
   const [loading, setLoading] = useState(true);
-  const [savingId, setSavingId] = useState<string | null>(null);
-  const [audioPlayingId, setAudioPlayingId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedGenre, setSelectedGenre] = useState<string>('');
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [collapsedArtists, setCollapsedArtists] = useState<Set<string>>(new Set());
+  const [mode, setMode] = useState<'browse' | 'speed'>('browse');
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const loadData = async () => {
@@ -86,6 +325,8 @@ export default function TriagePage() {
       .catch(() => setAudioPlayingId(null));
   };
 
+  const [audioPlayingId, setAudioPlayingId] = useState<string | null>(null);
+
   const handleSave = async (trackId: string) => {
     if (!selectedGenre) return;
     setSavingId(trackId);
@@ -97,6 +338,7 @@ export default function TriagePage() {
     } catch {}
     setSavingId(null);
   };
+  const [savingId, setSavingId] = useState<string | null>(null);
 
   const confirmDelete = async () => {
     if (!deleteTarget) return;
@@ -113,6 +355,10 @@ export default function TriagePage() {
       next.has(artist) ? next.delete(artist) : next.add(artist);
       return next;
     });
+  };
+
+  const handleSpeedDone = () => {
+    loadData();
   };
 
   if (loading) {
@@ -134,15 +380,36 @@ export default function TriagePage() {
     );
   }
 
+  if (mode === 'speed') {
+    return (
+      <SpeedTriage
+        tracks={tracks}
+        genres={genres}
+        groupedGenres={groupedGenres}
+        onDone={handleSpeedDone}
+        onBack={() => setMode('browse')}
+      />
+    );
+  }
+
   return (
     <>
       <div className="flex items-center justify-between mb-4">
         <p className="text-sm text-foreground/50">
           {tracks.length} track{tracks.length !== 1 ? 's' : ''} · {artistGroups.length} artist{artistGroups.length !== 1 ? 's' : ''}
         </p>
-        <button onClick={loadData} className="text-[10px] font-extrabold uppercase tracking-wider px-3 py-1.5 rounded-lg transition-colors cursor-pointer" style={{ backgroundColor: 'color-mix(in srgb, var(--foreground) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--foreground) 10%, transparent)', color: 'color-mix(in srgb, var(--foreground) 60%, transparent)' }}>
-          Refresh
-        </button>
+        <div className="flex gap-2">
+          <button onClick={loadData} className="text-[10px] font-extrabold uppercase tracking-wider px-3 py-1.5 rounded-lg transition-colors cursor-pointer" style={{ backgroundColor: 'color-mix(in srgb, var(--foreground) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--foreground) 10%, transparent)', color: 'color-mix(in srgb, var(--foreground) 60%, transparent)' }}>
+            Refresh
+          </button>
+          <button
+            onClick={() => setMode('speed')}
+            className="text-[10px] font-extrabold uppercase tracking-wider px-3 py-1.5 rounded-lg transition-all cursor-pointer"
+            style={{ backgroundColor: 'color-mix(in srgb, var(--accent) 15%, transparent)', color: 'var(--accent)', border: '1px solid color-mix(in srgb, var(--accent) 25%, transparent)' }}
+          >
+            ⚡ Speed Triage
+          </button>
+        </div>
       </div>
 
       <div className="space-y-3">
@@ -150,7 +417,6 @@ export default function TriagePage() {
           const collapsed = collapsedArtists.has(artist);
           return (
             <div key={artist} className="rounded-2xl overflow-hidden" style={{ backgroundColor: 'color-mix(in srgb, var(--surface) 60%, transparent)', border: '1px solid color-mix(in srgb, var(--foreground) 5%, transparent)' }}>
-              {/* Artist header */}
               <button
                 onClick={() => toggleArtist(artist)}
                 className="w-full flex items-center gap-3 px-4 py-3 transition-colors hover:bg-white/[0.02] cursor-pointer"
@@ -160,14 +426,12 @@ export default function TriagePage() {
                 <span className="text-[10px] text-foreground/40 bg-white/5 px-2 py-0.5 rounded-full">{songs.length}</span>
               </button>
 
-              {/* Track rows */}
               {!collapsed && (
                 <div className="divide-y" style={{ borderTop: '1px solid color-mix(in srgb, var(--foreground) 5%, transparent)' }}>
                   {songs.map(track => {
                     const isEditing = editingId === track.id;
                     return (
                       <div key={track.id} className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-white/[0.01]">
-                        {/* Play */}
                         <button
                           onClick={() => playPreview(track)}
                           disabled={!track.id?.startsWith('deezer:')}
@@ -177,26 +441,22 @@ export default function TriagePage() {
                           {audioPlayingId === track.id ? '⏹' : '▶️'}
                         </button>
 
-                        {/* Album art */}
                         {track.album_image ? (
                           <img src={track.album_image} alt="" className="w-7 h-7 rounded object-cover shrink-0" />
                         ) : (
                           <div className="w-7 h-7 rounded shrink-0" style={{ backgroundColor: 'color-mix(in srgb, var(--foreground) 5%, transparent)' }} />
                         )}
 
-                        {/* Track name */}
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold truncate">{track.name}</p>
                         </div>
 
-                        {/* UNCLASSIFIED pill */}
                         {!isEditing && (
                           <span className="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wider text-foreground/20 border shrink-0" style={{ borderColor: 'color-mix(in srgb, var(--foreground) 8%, transparent)' }}>
                             UNCLASSIFIED
                           </span>
                         )}
 
-                        {/* Assign / Save */}
                         {isEditing ? (
                           <div className="flex items-center gap-1.5 shrink-0">
                             <select
@@ -209,9 +469,7 @@ export default function TriagePage() {
                               <option value="">Genre...</option>
                               {Object.entries(groupedGenres).map(([groupKey, gs]) => (
                                 <optgroup key={groupKey} label={GROUP_LABELS[groupKey] || groupKey}>
-                                  {gs.map(g => (
-                                    <option key={g.id} value={g.id}>{g.label}</option>
-                                  ))}
+                                  {gs.map(g => <option key={g.id} value={g.id}>{g.label}</option>)}
                                 </optgroup>
                               ))}
                             </select>
