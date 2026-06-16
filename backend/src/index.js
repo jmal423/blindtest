@@ -236,6 +236,18 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
+app.get('/api/stats/active', (req, res) => {
+  let activeGames = 0;
+  let totalPlayers = 0;
+  for (const room of rooms.values()) {
+    if (room.state === 'waiting' || room.state === 'playing' || room.state === 'round_preparing') {
+      activeGames++;
+      totalPlayers += room.players.length;
+    }
+  }
+  res.json({ activeGames, totalPlayers });
+});
+
 app.get('/api/genres', (req, res) => {
   const genreGroupMap = {};
   for (const group of GENRE_GROUPS) {

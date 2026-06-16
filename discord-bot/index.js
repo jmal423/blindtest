@@ -8,6 +8,9 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
+const API_BASE = process.env.API_URL || 'http://localhost:3005';
+const STATS_CHANNEL_NAME = process.env.STATS_CHANNEL_NAME || '📊 Active Players: 0';
+
 const PLAYER_ROLE_ID = process.env.PLAYER_ROLE_ID || '1516588193573769226';
 
 const client = new Client({
@@ -331,6 +334,45 @@ client.on('interactionCreate', async (interaction) => {
 client.once('clientReady', () => {
   console.log(`Bot logged in as ${client.user?.tag}`);
   client.user?.setActivity('BlindTest 🎵', { type: ActivityType.Playing });
+
+  // Poll active player count and update stats channel every 30s
+  async function updateStatsChannel() {
+    if (!GUILD_ID) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/stats/active`);
+      if (!res.ok) return;
+      const data = await res.json();
+      const guild = client.guilds.cache.get(GUILD_ID);
+      if (!guild) return;
+
+      const newName = `📊 Active Players: ${data.totalPlayers}`;
+      const existing = guild.channels.cache.find(
+        c => c.name.startsWith('📊 Active Players') && c.type === ChannelType.GuildVoice
+      );
+
+      if (existing) {
+        if (existing.name !== newName) await existing.setName(newName);
+      } else {
+        // Create the stats channel
+        const category = guild.channels.cache.find(
+          c => c.name === '📢 INFORMATION' && c.type === ChannelType.GuildCategory
+        );
+        await guild.channels.create({
+          name: newName,
+          type: ChannelType.GuildVoice,
+          parent: category?.id || undefined,
+          permissionOverwrites: [
+            { id: guild.id, deny: ['Connect'], allow: ['ViewChannel', 'ReadMessageHistory'] },
+          ],
+        });
+      }
+    } catch (e) {
+      console.error('Stats channel update failed:', e.message);
+    }
+  }
+
+  updateStatsChannel();
+  setInterval(updateStatsChannel, 30000);
 });
 
 client.login(TOKEN);
