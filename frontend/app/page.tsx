@@ -41,12 +41,13 @@ function BackgroundOrbs() {
 /* ------------------------------------------------------------------ */
 
 function LoadingScreen() {
+  const { t } = useTranslation();
   return (
     <div className="flex-1 w-full flex items-center justify-center bg-background">
       <div className="flex flex-col items-center gap-4">
         <div className="w-10 h-10 rounded-full border-2 border-[var(--primary)] border-t-transparent animate-spin" />
         <p className="text-sm text-foreground/40 font-semibold tracking-wide animate-pulse">
-          Entering Lobbies...
+          {t('loading')}
         </p>
       </div>
     </div>
@@ -58,6 +59,7 @@ function LoadingScreen() {
 /* ------------------------------------------------------------------ */
 
 function Branding() {
+  const { t } = useTranslation();
   return (
     <motion.div
       initial={{ y: -30, opacity: 0 }}
@@ -80,7 +82,7 @@ function Branding() {
         transition={{ delay: 0.3, duration: 0.6 }}
         className="mt-2 md:mt-3 text-xs md:text-sm text-foreground/40 font-semibold tracking-[0.2em] uppercase"
       >
-        Guess the Song — Drop the Beat
+        {t('tagline')}
       </motion.p>
     </motion.div>
   );
@@ -120,14 +122,14 @@ function ActionArea({ onNavigate }: { onNavigate: () => void }) {
       onNavigate();
       router.push(`/game/${code}`);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      setError(err instanceof Error ? err.message : t('something_went_wrong'));
       setLoading(false);
     }
   };
 
   const handleJoin = async () => {
     if (joinCode.trim().length < 6) {
-      setError('Enter a valid 6-letter code');
+      setError(t('enter_room_code'));
       return;
     }
     setLoading(true);
@@ -138,7 +140,7 @@ function ActionArea({ onNavigate }: { onNavigate: () => void }) {
       onNavigate();
       router.push(`/game/${roomCode}`);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      setError(err instanceof Error ? err.message : t('something_went_wrong'));
       setLoading(false);
     }
   };
@@ -168,7 +170,7 @@ function ActionArea({ onNavigate }: { onNavigate: () => void }) {
       router.push(`/game/${code}`);
     } catch (err: unknown) {
       setDiscordError(
-        err instanceof Error ? err.message : 'Failed to create room',
+        err instanceof Error ? err.message : t('something_went_wrong'),
       );
       setDiscordLoading(false);
     }
@@ -194,10 +196,10 @@ function ActionArea({ onNavigate }: { onNavigate: () => void }) {
             </div>
             <div className="min-w-0">
               <h3 className="text-sm font-bold text-foreground/90 truncate">
-                {channelName || 'Discord Voice'}
+                {channelName || t('discord_voice')}
               </h3>
               <p className="text-[10px] text-foreground/40 font-semibold">
-                {participants.length} connected
+                {participants.length} {t('connected')}
               </p>
             </div>
           </div>
@@ -245,15 +247,15 @@ function ActionArea({ onNavigate }: { onNavigate: () => void }) {
               <polygon points="5 3 19 12 5 21 5 3" />
             </svg>
             {discordLoading
-              ? 'Joining...'
-              : 'Play with Voice Channel'}
+              ? t('joining')
+              : t('play_with_voice')}
           </NeonButton>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="flex-1 h-px bg-white/5" />
           <span className="text-[10px] font-black uppercase tracking-widest text-foreground/30">
-            OR JOIN WITH CODE
+            {t('or_join_with_code')}
           </span>
           <div className="flex-1 h-px bg-white/5" />
         </div>
@@ -263,7 +265,7 @@ function ActionArea({ onNavigate }: { onNavigate: () => void }) {
             type="text"
             value={joinCode}
             onChange={(e) => { setError(''); setJoinCode(e.target.value.toUpperCase()); }}
-            placeholder="CODE"
+            placeholder={t('room_code_placeholder')}
             maxLength={6}
             error={!!error}
           />
@@ -276,20 +278,27 @@ function ActionArea({ onNavigate }: { onNavigate: () => void }) {
               opacity: joinCode.trim().length >= 6 ? 1 : 0.4,
             }}
           >
-            {loading ? '...' : 'JOIN'}
+            {loading ? t('joining') : t('join_lobby')}
           </NeonButton>
         </div>
 
-        {error && (
-          <p className="text-red-400 text-[11px] text-center font-medium animate-pulse">
-            {error}
-          </p>
-        )}
-      </motion.div>
-    );
-  }
+      {error && (
+        <p className="text-red-400 text-[11px] text-center font-medium animate-pulse">
+          {error}
+        </p>
+      )}
 
-  /* ── Normal Web Path ── */
+      <Link
+        href="/leaderboard"
+        className="block w-full text-center py-3 rounded-2xl bg-gradient-to-r from-amber-500/10 to-amber-600/5 border border-amber-500/20 hover:border-amber-500/40 text-amber-400 hover:text-amber-300 text-xs font-extrabold tracking-wide uppercase transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-amber-500/5"
+      >
+        🏆 {t('leaderboard_title')}
+      </Link>
+    </motion.div>
+  );
+}
+
+/* ── Normal Web Path ── */
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -316,13 +325,13 @@ function ActionArea({ onNavigate }: { onNavigate: () => void }) {
           <line x1="12" y1="5" x2="12" y2="19" />
           <line x1="5" y1="12" x2="19" y2="12" />
         </svg>
-        {loading ? 'Creating...' : 'Create Room'}
+        {loading ? t('creating') : t('create_lobby')}
       </NeonButton>
 
       <div className="flex items-center gap-3">
         <div className="flex-1 h-px bg-white/5" />
         <span className="text-[10px] font-black uppercase tracking-widest text-foreground/30">
-          OR JOIN
+          {t('or_join')}
         </span>
         <div className="flex-1 h-px bg-white/5" />
       </div>
@@ -332,7 +341,7 @@ function ActionArea({ onNavigate }: { onNavigate: () => void }) {
           type="text"
           value={joinCode}
           onChange={(e) => { setError(''); setJoinCode(e.target.value.toUpperCase()); }}
-          placeholder="Enter 6-letter Room Code"
+          placeholder={t('room_code_placeholder')}
           maxLength={6}
           error={!!error}
         />
@@ -345,7 +354,7 @@ function ActionArea({ onNavigate }: { onNavigate: () => void }) {
             opacity: joinCode.trim().length >= 6 ? 1 : 0.4,
           }}
         >
-          {loading ? '...' : 'JOIN'}
+          {loading ? t('joining') : t('join_lobby')}
         </NeonButton>
       </div>
 
@@ -354,6 +363,13 @@ function ActionArea({ onNavigate }: { onNavigate: () => void }) {
           {error}
         </p>
       )}
+
+      <Link
+        href="/leaderboard"
+        className="block w-full text-center py-3 rounded-2xl bg-gradient-to-r from-amber-500/10 to-amber-600/5 border border-amber-500/20 hover:border-amber-500/40 text-amber-400 hover:text-amber-300 text-xs font-extrabold tracking-wide uppercase transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-amber-500/5"
+      >
+        🏆 {t('leaderboard_title')}
+      </Link>
     </motion.div>
   );
 }
@@ -490,7 +506,7 @@ function LoginScreen() {
           transition={{ delay: 0.3, duration: 0.6 }}
           className="text-xs text-foreground/40 font-semibold tracking-wide text-center leading-relaxed"
         >
-          Connect your account to play and track stats
+          {t('login_desc')}
         </motion.p>
 
         <motion.a
