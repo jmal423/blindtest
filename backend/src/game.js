@@ -391,6 +391,24 @@ export class GameRoom {
     }).catch(() => {});
 
     this.startRound();
+
+    // Post game start announcement to Discord webhook if configured
+    if (process.env.GAME_START_WEBHOOK_URL) {
+      const genreCount = this.genres?.length || 0;
+      const artistCount = this.artists?.length || 0;
+      const mode = this.settings.gameMode || 'genre';
+      const selection = mode === 'genre'
+        ? `${genreCount} genre${genreCount !== 1 ? 's' : ''}`
+        : `${artistCount} artist${artistCount !== 1 ? 's' : ''}`;
+      fetch(process.env.GAME_START_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: `🎵 **Game starting!** Room **${this.code}** • ${this.players.length} players • ${selection}`,
+        }),
+      }).catch(() => {});
+    }
+
     return null;
   }
 
