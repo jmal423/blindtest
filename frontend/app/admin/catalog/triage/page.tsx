@@ -67,6 +67,7 @@ function SpeedTriage({
     window.addEventListener('pagehide', stop);
     window.addEventListener('blur', stop);
     return () => {
+      stop();
       document.removeEventListener('visibilitychange', stop);
       window.removeEventListener('pagehide', stop);
       window.removeEventListener('blur', stop);
@@ -300,6 +301,7 @@ export default function TriagePage() {
     window.addEventListener('pagehide', stop);
     window.addEventListener('blur', stop);
     return () => {
+      stop();
       document.removeEventListener('visibilitychange', stop);
       window.removeEventListener('pagehide', stop);
       window.removeEventListener('blur', stop);
