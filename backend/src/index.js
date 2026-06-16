@@ -793,9 +793,10 @@ app.get('/api/onboarding/quiz', async (req, res) => {
     if (!correct) return res.status(404).json({ error: 'No track found' });
 
     const wrongArtists = await all(
-      `SELECT DISTINCT artist FROM songs_cache
-       WHERE artist != ? AND artist IS NOT NULL
-       ORDER BY RANDOM() LIMIT 3`,
+      `SELECT artist FROM (
+         SELECT DISTINCT artist FROM songs_cache
+         WHERE artist != ? AND artist IS NOT NULL
+       ) sub ORDER BY RANDOM() LIMIT 3`,
       [correct.artist]
     );
 
