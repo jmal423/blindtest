@@ -8,8 +8,13 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
+const PLAYER_ROLE_ID = process.env.PLAYER_ROLE_ID || '1516588193573769226';
+
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds],
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMembers,
+  ],
 });
 
 const TOKEN = process.env.BOT_TOKEN;
@@ -118,13 +123,45 @@ const rest = new REST({ version: '10' }).setToken(TOKEN);
 //  Events
 // ────────────────────────────────────────
 
-// Welcome messages disabled — enable Server Members Intent in Developer Portal
-// to use this feature, then add GatewayIntentBits.GuildMembers and uncomment below:
-/*
 client.on('guildMemberAdd', async (member) => {
-  ...
+  if (member.user.bot) return;
+  const guild = member.guild;
+
+  // Assign the Player role
+  try {
+    if (PLAYER_ROLE_ID) {
+      const role = guild.roles.cache.get(PLAYER_ROLE_ID);
+      if (role) await member.roles.add(role);
+    }
+  } catch (e) {
+    console.error('Role assignment failed:', e.message);
+  }
+
+  // Send welcome message
+  const welcomeChannel = guild.channels.cache.find(c => c.name === 'welcome' && c.type === ChannelType.GuildText);
+  if (!welcomeChannel) return;
+
+  const total = guild.memberCount;
+  const embed = new EmbedBuilder()
+    .setTitle(`Welcome ${member.displayName}! 🎵`)
+    .setColor(0x6c5ce7)
+    .setThumbnail(member.user.displayAvatarURL())
+    .setDescription(
+      `Welcome to **BlindTest**! You're player **#${total}**.\n\n` +
+      `**Quick Start:**\n` +
+      `1. Join the **🎵 Create Voice** voice channel\n` +
+      `2. Click the ⚡ Activities button (bottom left)\n` +
+      `3. Select **BlindTest** and play!\n\n` +
+      `Use \`/help\` to see all bot commands.`
+    )
+    .setTimestamp();
+
+  try {
+    await welcomeChannel.send({ embeds: [embed] });
+  } catch (e) {
+    console.error('Welcome message failed:', e.message);
+  }
 });
-*/
 
 // ────────────────────────────────────────
 //  Command Handlers
