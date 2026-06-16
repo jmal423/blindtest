@@ -60,14 +60,17 @@ function SpeedTriage({
   }, [startTime]);
 
   useEffect(() => {
-    const handleVis = () => {
-      if (document.hidden && audioRef.current) {
-        audioRef.current.pause();
-        setPlaying(false);
-      }
+    const stop = () => {
+      if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; setPlaying(false); }
     };
-    document.addEventListener('visibilitychange', handleVis);
-    return () => document.removeEventListener('visibilitychange', handleVis);
+    document.addEventListener('visibilitychange', stop);
+    window.addEventListener('pagehide', stop);
+    window.addEventListener('blur', stop);
+    return () => {
+      document.removeEventListener('visibilitychange', stop);
+      window.removeEventListener('pagehide', stop);
+      window.removeEventListener('blur', stop);
+    };
   }, []);
 
   const playCurrent = useCallback(() => {
@@ -100,11 +103,14 @@ function SpeedTriage({
     if (!genre || saving || !current) return;
     setSaving(true);
     try {
-      await updateAiGenre(current.id, genre);
+      const res = await updateAiGenre(current.id, genre);
+      if (!res.ok) { console.error('[Triage] Save failed:', res.error); setSaving(false); return; }
       setStats(s => ({ ...s, saved: s.saved + 1 }));
       setGameTracks(prev => prev.filter(t => t.id !== current.id));
       advance();
-    } catch {}
+    } catch (e: any) {
+      console.error('[Triage] Save error:', e.message || e);
+    }
     setSaving(false);
   };
 
@@ -287,13 +293,17 @@ export default function TriagePage() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    const handleVis = () => {
-      if (document.hidden && audioRef.current) {
-        audioRef.current.pause();
-      }
+    const stop = () => {
+      if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
     };
-    document.addEventListener('visibilitychange', handleVis);
-    return () => document.removeEventListener('visibilitychange', handleVis);
+    document.addEventListener('visibilitychange', stop);
+    window.addEventListener('pagehide', stop);
+    window.addEventListener('blur', stop);
+    return () => {
+      document.removeEventListener('visibilitychange', stop);
+      window.removeEventListener('pagehide', stop);
+      window.removeEventListener('blur', stop);
+    };
   }, []);
 
   const loadData = async () => {
@@ -352,11 +362,14 @@ export default function TriagePage() {
     if (!selectedGenre) return;
     setSavingId(trackId);
     try {
-      await updateAiGenre(trackId, selectedGenre);
+      const res = await updateAiGenre(trackId, selectedGenre);
+      if (!res.ok) { console.error('[Triage] Save failed:', res.error); setSavingId(null); return; }
       setTracks(prev => prev.filter(t => t.id !== trackId));
       setEditingId(null);
       setSelectedGenre('');
-    } catch {}
+    } catch (e: any) {
+      console.error('[Triage] Save error:', e.message || e);
+    }
     setSavingId(null);
   };
   const [savingId, setSavingId] = useState<string | null>(null);
