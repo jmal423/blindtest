@@ -870,7 +870,7 @@ function WaitingRoom({
         </p>
       </div>
 
-      <div className="w-full flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(350px,25%)_1fr] gap-6 md:gap-8 items-start">
+      <div className="w-full flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(350px,25%)_1fr] gap-6 md:gap-8 items-stretch">
         {/* Left Column: Players List */}
         <div className="w-full h-full flex flex-col min-h-0 bg-[var(--surface)] border border-white/5 rounded-2xl p-5 space-y-4 shadow-xl backdrop-blur-md">
           <div className="flex items-center justify-between pb-2 border-b border-white/5">
@@ -961,7 +961,7 @@ function WaitingRoom({
         </div>
 
         {/* Right Column: Settings & Genres */}
-        <div className="w-full h-full min-h-0 bg-[var(--surface)] rounded-2xl p-5 border border-white/5 shadow-xl backdrop-blur-md flex flex-col xl:flex-row gap-6 xl:gap-8 items-start relative">
+        <div className="w-full h-full min-h-0 bg-[var(--surface)] rounded-2xl p-5 border border-white/5 shadow-xl backdrop-blur-md flex flex-col xl:flex-row gap-6 xl:gap-8 items-stretch relative">
           <div className="w-full h-full overflow-y-auto min-h-0 xl:w-[280px] shrink-0 pr-2 custom-scrollbar">
             <div className="pb-2 border-b border-white/5 mb-5">
               <h3 className="text-sm font-semibold text-foreground/90">{t('settings')}</h3>
@@ -1047,7 +1047,7 @@ function WaitingRoom({
                   </div>
 
               {genreGroups.length === 0 ? (
-                <div className="grid grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-1.5">
+                <div className="flex-1 overflow-y-auto min-h-0 grid grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-1.5 custom-scrollbar pr-2">
                   {allGenres.map(g => {
                     const selected = genres.includes(g.id);
                     return (
@@ -1066,7 +1066,7 @@ function WaitingRoom({
                   })}
                 </div>
               ) : (
-                <div className="flex-1 overflow-y-auto min-h-0 columns-1 md:columns-2 3xl:columns-3 gap-4 pr-2 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto min-h-0 columns-[220px] 2xl:columns-[280px] gap-4 pr-2 custom-scrollbar">
                   {genreGroups.map(group => {
                     const groupGenres = group.genreIds.map(id => genreMap.get(id)).filter(Boolean) as { id: string; label: string; group?: string }[];
                     if (groupGenres.length === 0) return null;
@@ -1246,7 +1246,7 @@ function WaitingRoom({
                   </div>
 
                   {isHost && (
-                    <div className="flex-1 overflow-y-auto min-h-0 columns-1 md:columns-2 3xl:columns-3 gap-4 pr-2 custom-scrollbar">
+                    <div className="flex-1 overflow-y-auto min-h-0 columns-[220px] 2xl:columns-[280px] gap-4 pr-2 custom-scrollbar">
                       {artistGroups.map(group => {
                         if (group.artists.length === 0) return null;
                         const isCollapsed = !expandedArtistGroups.has(group.id);
