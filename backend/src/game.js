@@ -757,6 +757,7 @@ export class GameRoom {
         answers: p.answers,
       };
     });
+    this.trackHistory = [];
     this.broadcast();
 
     // Persist game results to database
