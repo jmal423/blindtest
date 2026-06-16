@@ -4,7 +4,7 @@ import Link from "next/link";
 import "./globals.css";
 import Header from "./components/Header";
 import LanguageInitializer from "./components/LanguageInitializer";
-import OnboardingWizard from "./components/OnboardingWizard";
+import OnboardingTakeover from "./components/OnboardingTakeover";
 import { SettingsProvider } from "./context/SettingsContext";
 import { AuthProvider } from "./context/AuthContext";
 
@@ -37,7 +37,7 @@ export default function RootLayout({
       <meta name="color-scheme" content="dark" />
       <body className="min-h-dvh flex flex-col">
         <SettingsProvider>
-          <OnboardingWizard />
+          <OnboardingTakeover />
           <LanguageInitializer />
           <AuthProvider>
             <Header />
