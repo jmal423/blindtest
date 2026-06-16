@@ -342,7 +342,7 @@ export default function TriagePage() {
     }
     return Array.from(map.entries())
       .map(([artist, songs]) => ({ artist, songs }))
-      .sort((a, b) => b.songs.length - a.songs.length);
+      .sort((a, b) => a.artist.localeCompare(b.artist));
   }, [tracks]);
 
   const playPreview = (track: Track) => {
