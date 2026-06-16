@@ -776,6 +776,28 @@ export class GameRoom {
         }
       }).catch(() => {});
     }
+
+    // Post game results to Discord webhook if configured
+    if (process.env.GAME_WEBHOOK_URL && this.rankings?.length > 0) {
+      const top = this.rankings.slice(0, 5);
+      const fields = top.map((r, i) => ({
+        name: `${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${r.rank}`} ${r.name}`,
+        value: `${r.score.toLocaleString()} pts • ${r.xp} XP`,
+        inline: true,
+      }));
+      fetch(process.env.GAME_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: `🎵 **Game Over!** ${this.players.length} players • ${this.code}`,
+          embeds: [{
+            color: 0x6c5ce7,
+            fields,
+            timestamp: new Date().toISOString(),
+          }],
+        }),
+      }).catch(() => {});
+    }
   }
 
   getSkipVoteInfo() {
