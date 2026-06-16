@@ -262,9 +262,10 @@ function ActionArea({ onNavigate }: { onNavigate: () => void }) {
           <NeonInput
             type="text"
             value={joinCode}
-            onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+            onChange={(e) => { setError(''); setJoinCode(e.target.value.toUpperCase()); }}
             placeholder="CODE"
             maxLength={6}
+            error={!!error}
           />
           <NeonButton
             variant="secondary"
@@ -280,7 +281,7 @@ function ActionArea({ onNavigate }: { onNavigate: () => void }) {
         </div>
 
         {error && (
-          <p className="text-red-400 text-[11px] text-center font-medium">
+          <p className="text-red-400 text-[11px] text-center font-medium animate-pulse">
             {error}
           </p>
         )}
@@ -330,9 +331,10 @@ function ActionArea({ onNavigate }: { onNavigate: () => void }) {
         <NeonInput
           type="text"
           value={joinCode}
-          onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+          onChange={(e) => { setError(''); setJoinCode(e.target.value.toUpperCase()); }}
           placeholder="Enter 6-letter Room Code"
           maxLength={6}
+          error={!!error}
         />
         <NeonButton
           variant="secondary"
@@ -348,7 +350,7 @@ function ActionArea({ onNavigate }: { onNavigate: () => void }) {
       </div>
 
       {error && (
-        <p className="text-red-400 text-[11px] text-center font-medium">
+        <p className="text-red-400 text-[11px] text-center font-medium animate-pulse">
           {error}
         </p>
       )}
