@@ -859,18 +859,20 @@ function WaitingRoom({
   const genreMap = new Map(allGenres.map(g => [g.id, g]));
 
   return (
-    <div className="flex-1 flex flex-col items-center gap-6 overflow-y-auto pb-24 md:pb-8 w-full max-w-4xl mx-auto px-4">
+    <div className="flex-1 flex flex-col items-center gap-6 overflow-y-auto pb-8 w-full max-w-7xl mx-auto px-4 md:px-8">
       {/* Title Header */}
-      <div className="text-center space-y-1.5 mt-2 mb-1 flex flex-col items-center">
-        <h2 className="text-2xl font-bold tracking-tight text-foreground">
+      <div className="text-center space-y-1.5 mt-4 md:mt-8 mb-1 flex flex-col items-center">
+        <h2 className="text-3xl md:text-4xl font-black tracking-tight text-foreground">
           Game Lobby
         </h2>
-
+        <p className="text-xs md:text-sm text-foreground/40 font-mono tracking-widest uppercase">
+          {gameCode}
+        </p>
       </div>
 
-      <div className="w-full grid grid-cols-1 md:grid-cols-[1fr_1.3fr] gap-6 md:gap-8 items-start">
+      <div className="w-full grid grid-cols-1 md:grid-cols-[320px_1fr] gap-6 md:gap-8 items-start">
         {/* Left Column: Players List */}
-        <div className="w-full bg-[var(--surface)] border border-white/5 rounded-2xl p-5 space-y-4 shadow-xl backdrop-blur-md">
+        <div className="w-full bg-[var(--surface)] border border-white/5 rounded-2xl p-5 space-y-4 shadow-xl backdrop-blur-md md:sticky md:top-24 md:max-h-[calc(100vh-14rem)] md:overflow-y-auto">
           <div className="flex items-center justify-between pb-2 border-b border-white/5">
             <div className="flex items-center gap-2">
               <span className="relative flex h-2 w-2">
@@ -1029,7 +1031,7 @@ function WaitingRoom({
                   })}
                 </div>
               ) : (
-                <div className="space-y-2 max-h-[350px] overflow-y-auto pr-1">
+                <div className="space-y-2 max-h-[55vh] overflow-y-auto pr-1">
                   {genreGroups.map(group => {
                     const groupGenres = group.genreIds.map(id => genreMap.get(id)).filter(Boolean) as { id: string; label: string; group?: string }[];
                     if (groupGenres.length === 0) return null;
@@ -1209,7 +1211,7 @@ function WaitingRoom({
                   </div>
 
                   {isHost && (
-                    <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
+                    <div className="space-y-3 max-h-[55vh] overflow-y-auto pr-1">
                       {artistGroups.map(group => {
                         if (group.artists.length === 0) return null;
                         const isCollapsed = !expandedArtistGroups.has(group.id);
@@ -1372,7 +1374,7 @@ function WaitingRoom({
       </div>
 
       {/* Lobby CTA Area */}
-      <div className="w-full flex flex-col items-center gap-3 pt-4 pb-8 max-w-xl">
+      <div className="w-full flex flex-col items-center gap-3 pt-4 md:pt-6 pb-4 max-w-xl md:sticky md:bottom-0 md:bg-gradient-to-t md:from-background md:to-transparent md:pt-8 md:pb-6">
         {isHost ? (
           <button
             onClick={onStart}
