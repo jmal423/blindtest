@@ -57,13 +57,11 @@ export default function OnboardingTakeover() {
   const dropBeat = () => {
     stopAllAudio();
     if (!volumeSlider) setVolumeSlider(true);
+    setTested(true);
     const audio = new Audio('/onboarding-test.mp3');
     audio.volume = settings.masterVolume;
     audio.loop = true;
-    audio.play().then(() => {
-      audioRef.current = audio;
-      setTested(true);
-    }).catch(() => {});
+    audio.play().then(() => { audioRef.current = audio; }).catch(() => {});
   };
 
   const handleVolume = (v: number) => {
