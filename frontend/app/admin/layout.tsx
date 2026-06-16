@@ -196,10 +196,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pageTitle = pageTitles[currentPage] || 'Admin';
 
   return (
-    <div className="flex-1 flex min-h-screen" style={{ backgroundColor: 'var(--background)', color: 'var(--foreground)' }}>
+    <div className="flex-1 flex h-full overflow-hidden" style={{ backgroundColor: 'var(--background)', color: 'var(--foreground)' }}>
       <Sidebar open={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
 
-      <div className={`flex-1 flex flex-col ${sidebarOpen ? 'md:pl-64' : 'md:pl-20'} transition-all duration-300 min-w-0`}>
+      <div className={`flex-1 flex flex-col h-full overflow-hidden ${sidebarOpen ? 'md:pl-64' : 'md:pl-20'} transition-all duration-300 min-w-0`}>
         <header className="h-16 flex items-center justify-between px-6 sticky top-0 z-30"
           style={{ backgroundColor: 'color-mix(in srgb, var(--surface) 40%, transparent)', backdropFilter: 'blur(12px)', borderBottom: '1px solid color-mix(in srgb, var(--foreground) 5%, transparent)' }}
         >
@@ -247,7 +247,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           })}
         </div>
 
-        <main className="flex-1 p-6 md:p-8 max-w-6xl w-full mx-auto space-y-6">
+        <main className="flex-1 overflow-y-auto min-h-0 p-6 md:p-8 max-w-6xl w-full mx-auto space-y-6">
           <motion.div
             key={pathname}
             initial={{ opacity: 0, y: 10 }}

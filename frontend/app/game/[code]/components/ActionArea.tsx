@@ -1,8 +1,8 @@
 'use client';
 
 import { type RefObject } from 'react';
-import { motion } from 'motion/react';
 import { Visualizer } from './Visualizer';
+import { NeonInput } from '@/app/components/ui/NeonInput';
 
 interface ActionAreaProps {
   guess: string;
@@ -28,32 +28,23 @@ export default function ActionArea({
       <div className="relative w-full">
         <div
           className={`absolute -inset-1 rounded-2xl blur-lg transition-all duration-500 ${
-            bothFound ? 'bg-green-500/20' : 'bg-primary/10'
+            bothFound ? 'bg-green-500/20' : 'bg-[var(--primary)]/10'
           }`}
         />
-        <input
+        <NeonInput
           ref={inputRef}
           type="text"
           value={guess}
           onChange={(e) => onGuessChange(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && !bothFound && onSubmit()}
+          onKeyDown={(e) => e.key === 'Enter' && !bothFound && guess.trim() && onSubmit()}
           placeholder={placeholder}
           disabled={bothFound}
           autoComplete="off"
-          style={{ WebkitAppearance: 'none' }}
-          className="relative w-full px-6 py-4 md:py-5 rounded-xl bg-black/50 border border-white/10 text-lg md:text-xl text-foreground placeholder-white/20 outline-none transition-shadow duration-200 focus:border-primary focus:shadow-[0_0_20px_var(--primary),0_0_60px_var(--primary)] disabled:opacity-50 disabled:cursor-not-allowed"
+          className={`relative z-10 w-full md:py-5 text-lg md:text-xl transition-shadow duration-200 disabled:opacity-80 disabled:cursor-not-allowed ${
+            bothFound ? '!border-green-500 !text-green-400 !shadow-[0_0_20px_rgba(34,197,94,0.6)]' : ''
+          }`}
         />
       </div>
-
-      <button
-        onClick={() => {
-          if (!bothFound) onSubmit();
-        }}
-        disabled={bothFound || !guess.trim()}
-        className="px-8 py-3 rounded-xl bg-primary text-white font-bold text-sm uppercase tracking-widest hover:bg-primary-hover active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-      >
-        Submit Guess
-      </button>
     </div>
   );
 }
