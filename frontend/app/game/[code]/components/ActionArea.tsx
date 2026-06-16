@@ -1,7 +1,6 @@
 'use client';
 
 import { type RefObject } from 'react';
-import { Visualizer } from './Visualizer';
 import { NeonInput } from '@/app/components/ui/NeonInput';
 
 interface ActionAreaProps {
@@ -23,7 +22,6 @@ export default function ActionArea({
 }: ActionAreaProps) {
   return (
     <div className="w-full max-w-xl flex flex-col items-center gap-4">
-      <Visualizer />
 
       <div className="relative w-full">
         <div

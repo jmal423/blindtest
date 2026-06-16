@@ -1620,16 +1620,22 @@ function PlayingPhase({
   return (
     <>
       {/* Desktop */}
-      <div className="hidden md:flex flex-1 flex-col items-center justify-center gap-10 px-8">
-        <NeonTimer
-          timeLeft={timeLeft ?? roundDuration}
-          totalTime={roundDuration}
-          currentRound={currentRound}
-          totalRounds={totalRounds}
-        />
+      <div className="hidden md:flex flex-1 flex-col items-center justify-between py-12 px-8 w-full max-w-[100vw] mx-auto overflow-hidden">
+        <div className="flex flex-col items-center">
+          <NeonTimer
+            timeLeft={timeLeft ?? roundDuration}
+            totalTime={roundDuration}
+            currentRound={currentRound}
+            totalRounds={totalRounds}
+          />
+        </div>
 
-        <div className="w-full max-w-xl flex flex-col items-center gap-4">
-          <div className="flex gap-2 w-full max-w-sm">
+        <div className="w-full flex items-center justify-center my-auto px-4 md:px-12">
+          <Visualizer barCount={45} className="flex items-end justify-center gap-1 md:gap-2 h-32 md:h-56 w-full" barClassName="w-2 md:w-4 rounded-full bg-primary" />
+        </div>
+
+        <div className="w-[80%] max-w-5xl flex flex-col items-center gap-6 mt-auto">
+          <div className="flex gap-4 w-full">
             {renderPills()}
           </div>
 
@@ -1641,44 +1647,44 @@ function PlayingPhase({
             bothFound={bothFound}
             placeholder={placeholder}
           />
-        </div>
 
-        {guessResult && (() => {
-          const pts = guessResult.points_awarded_this_guess || 0;
-          const succeeded = pts > 0;
-          return (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`px-4 py-2 rounded-xl text-center text-xs ${
-                succeeded
-                  ? 'bg-green-500/10 text-green-400 border border-green-500/20'
-                  : 'bg-red-500/10 text-red-400 border border-red-500/20'
-              }`}
+          {guessResult && (() => {
+            const pts = guessResult.points_awarded_this_guess || 0;
+            const succeeded = pts > 0;
+            return (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`px-4 py-2 rounded-xl text-center text-xs ${
+                  succeeded
+                    ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                    : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                }`}
+              >
+                <span className="font-semibold">{succeeded ? `+${pts} pts` : 'Wrong!'}</span>
+                {guessResult.artist_score != null && (
+                  <span className="ml-2 text-foreground/40">A:{guessResult.artist_score}%</span>
+                )}
+                {guessResult.title_score != null && (
+                  <span className="ml-1 text-foreground/40">T:{guessResult.title_score}%</span>
+                )}
+                {guessResult.guessTimeMs != null && (
+                  <span className="ml-2 text-foreground/30">{(guessResult.guessTimeMs / 1000).toFixed(1)}s</span>
+                )}
+              </motion.div>
+            );
+          })()}
+          {encouragement && (
+            <motion.p
+              key={encouragement}
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="text-xs text-foreground/40 italic text-center"
             >
-              <span className="font-semibold">{succeeded ? `+${pts} pts` : 'Wrong!'}</span>
-              {guessResult.artist_score != null && (
-                <span className="ml-2 text-foreground/40">A:{guessResult.artist_score}%</span>
-              )}
-              {guessResult.title_score != null && (
-                <span className="ml-1 text-foreground/40">T:{guessResult.title_score}%</span>
-              )}
-              {guessResult.guessTimeMs != null && (
-                <span className="ml-2 text-foreground/30">{(guessResult.guessTimeMs / 1000).toFixed(1)}s</span>
-              )}
-            </motion.div>
-          );
-        })()}
-        {encouragement && (
-          <motion.p
-            key={encouragement}
-            initial={{ opacity: 0, x: -8 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="text-xs text-foreground/40 italic text-center"
-          >
-            {encouragement}
-          </motion.p>
-        )}
+              {encouragement}
+            </motion.p>
+          )}
+        </div>
       </div>
 
       {/* Mobile */}
