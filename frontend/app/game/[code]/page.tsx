@@ -6,6 +6,7 @@ import { motion } from 'motion/react';
 import { io as socketIo, Socket } from 'socket.io-client';
 import { getToken, GameState, Player, RoomSettings, startGame, updateSettings, fetchGenres, fetchGenreGroups, joinRoom } from '@/lib/api';
 import { isDebugMode } from '@/lib/debug-context';
+import { IS_MOCK } from '@/lib/mock';
 import AudioPlayer, { AudioPlayerHandle } from '@/app/components/AudioPlayer';
 import { useSettings } from '@/app/context/SettingsContext';
 import { useTranslation } from '@/lib/useTranslation';
@@ -219,6 +220,25 @@ export default function GamePage({
 
   useEffect(() => {
     if (!playerId) return;
+
+    if (IS_MOCK) {
+      setGameState({
+        state: 'waiting',
+        players: [
+          { id: playerId, name: 'You', score: 0, role: 'admin', avatarUrl: null },
+          { id: 'mock-2', name: 'VinylQueen', score: 0, avatarUrl: null },
+          { id: 'mock-3', name: 'BeatMaster', score: 0, avatarUrl: null },
+        ],
+        currentRound: 0,
+        totalRounds: 10,
+        hostId: playerId,
+        settings: { rounds: 10, roundTime: 15, pauseTime: 5, autoStart: false, audioSource: 'deezer', gameMode: 'genre' } as any,
+        genres: [],
+        roundTime: 15,
+        timeLeft: 0,
+      } as any);
+      return;
+    }
 
     const connectionUrl = typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'
       ? window.location.origin
