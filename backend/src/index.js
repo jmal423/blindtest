@@ -16,7 +16,7 @@ app.use(express.json());
 
 const server = createServer(app);
 const io = new Server(server, {
-  cors: { origin: process.env.FRONTEND_URL || '*', credentials: true },
+  cors: { origin: process.env.FRONTEND_URL || true, credentials: true },
 });
 
 const rooms = new Map();

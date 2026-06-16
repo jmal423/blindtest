@@ -74,9 +74,11 @@ export default function GamePage({
   const { settings: userSettings, updateSettings: updateLocalSettings } = useSettings();
   const { t } = useTranslation();
   const playSoundRef = useRef(playSound);
+  const tRef = useRef(t);
   const activeRoundRef = useRef<string | null>(null);
   const prevPlayerCountRef = useRef(0);
   playSoundRef.current = playSound;
+  tRef.current = t;
 
   const handleAudioPlaying = useCallback(() => {
     socketRef.current?.emit('playback_started');
@@ -99,7 +101,7 @@ export default function GamePage({
       const timer = setTimeout(() => guessInputRef.current?.focus(), 350);
       return () => clearTimeout(timer);
     }
-  }, [gameState?.currentRound, gameState?.state, bothFound]);
+  }, [gameState?.currentRound, gameState?.state, bothFound, userSettings.autoFocusInput]);
 
   useEffect(() => {
     if (gameState?.state !== 'waiting') return;
@@ -124,7 +126,6 @@ export default function GamePage({
         setGuessResult(null);
         setEncouragement(null);
         setGuessMarkers([]);
-        setHasVotedSkip(false);
         setHasVotedSkip(false);
 
         if (localTimerRef.current) {
@@ -271,7 +272,7 @@ export default function GamePage({
       }
 
       if (state.state === 'waiting' && state.players.length > prevPlayerCountRef.current && prevPlayerCountRef.current > 0) {
-        playSound('playerJoin');
+        playSoundRef.current('playerJoin');
       }
       prevPlayerCountRef.current = state.players.length;
       applyGameState(state);
@@ -286,25 +287,25 @@ export default function GamePage({
         setBothFound(true);
         setArtistFound(true);
         setTitleFound(true);
-        playSound('complete');
+        playSoundRef.current('complete');
         const completeKeys = ['complete_1', 'complete_2', 'complete_3', 'complete_4', 'complete_5'];
-        setEncouragement(t(completeKeys[Math.floor(Math.random() * completeKeys.length)]));
+        setEncouragement(tRef.current(completeKeys[Math.floor(Math.random() * completeKeys.length)]));
       } else if (result.artist_result === 'Good' || result.title_result === 'Good') {
         if (result.artist_result === 'Good') setArtistFound(true);
         if (result.title_result === 'Good') setTitleFound(true);
-        playSound('correct');
+        playSoundRef.current('correct');
         const correctKeys = ['correct_1', 'correct_2', 'correct_3', 'correct_4', 'correct_5'];
-        setEncouragement(t(correctKeys[Math.floor(Math.random() * correctKeys.length)]));
+        setEncouragement(tRef.current(correctKeys[Math.floor(Math.random() * correctKeys.length)]));
       } else {
-        playSound('wrong');
+        playSoundRef.current('wrong');
         const wrongKeys = ['wrong_1', 'wrong_2', 'wrong_3', 'wrong_4', 'wrong_5'];
-        setEncouragement(t(wrongKeys[Math.floor(Math.random() * wrongKeys.length)]));
+        setEncouragement(tRef.current(wrongKeys[Math.floor(Math.random() * wrongKeys.length)]));
       }
       setGuessResult(result);
     });
 
     socket.on('connect_error', () => {
-      setError(t('lost_connection'));
+      setError(tRef.current('lost_connection'));
     });
 
     socket.on('kicked', (data: { reason: string }) => {
@@ -351,7 +352,7 @@ export default function GamePage({
     } finally {
       setStartLoading(false);
     }
-  }, [code, playerId]);
+  }, [code, playerId, t]);
 
   const handleSettingsUpdate = useCallback(async (settings: Partial<RoomSettings>) => {
     try {
@@ -359,7 +360,7 @@ export default function GamePage({
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t('settings_update_failed'));
     }
-  }, [code, playerId]);
+  }, [code, playerId, t]);
 
   const handleGenresUpdate = useCallback(async (genres: string[]) => {
     try {
@@ -367,7 +368,7 @@ export default function GamePage({
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t('genre_update_failed'));
     }
-  }, [code, playerId]);
+  }, [code, playerId, t]);
 
   const handleArtistsUpdate = useCallback(async (artists: string[]) => {
     try {
