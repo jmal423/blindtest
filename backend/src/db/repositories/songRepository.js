@@ -236,8 +236,7 @@ export async function getUnclassifiedTracks() {
     `SELECT id, name, artist, album_image, genre, ai_genres, ai_confidence, rank, preview_url
      FROM songs_cache
      WHERE ai_genres->>0 = 'UNCLASSIFIED'
-     ORDER BY rank DESC NULLS LAST
-     LIMIT 200`
+     ORDER BY rank DESC NULLS LAST`
   );
 }
 
