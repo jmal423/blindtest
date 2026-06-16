@@ -200,5 +200,22 @@
   "recent_games": "Recent Games",
   "room_game_prefix": "Room",
   "no_games_yet": "No games played yet.",
-  "open_menu": "Open menu"
+  "open_menu": "Open menu",
+  "back": "Back",
+  "next": "Next",
+  "theme": "Theme",
+  "language": "Language",
+  "onboarding_drop_title": "Drop the Beat",
+  "onboarding_drop_desc": "Test your audio before we begin",
+  "onboarding_drop_btn": "Drop the Beat",
+  "onboarding_playing": "Playing...",
+  "onboarding_volume_hint": "Adjust your volume. Can you hear the bass?",
+  "onboarding_identity_title": "Your Identity",
+  "onboarding_identity_desc": "Language & look",
+  "onboarding_quiz_title": "Ready?",
+  "onboarding_quiz_desc": "Guess the artist from the snippet",
+  "onboarding_play_preview": "Play Preview",
+  "onboarding_correct": "Correct!",
+  "onboarding_enter": "ENTER THE ARENA",
+  "onboarding_entering": "Entering the Arena..."
 }

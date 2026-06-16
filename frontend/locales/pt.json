@@ -201,5 +201,22 @@
   "recent_games": "Jogos Recentes",
   "room_game_prefix": "Sala",
   "no_games_yet": "Nenhuma partida jogada ainda.",
-  "open_menu": "Abrir menu"
+  "open_menu": "Abrir menu",
+  "back": "Voltar",
+  "next": "Seguinte",
+  "theme": "Tema",
+  "language": "Idioma",
+  "onboarding_drop_title": "Larga o Beat",
+  "onboarding_drop_desc": "Testa o teu áudio antes de começar",
+  "onboarding_drop_btn": "Largar o Beat",
+  "onboarding_playing": "A tocar...",
+  "onboarding_volume_hint": "Ajusta o volume. Consegues ouvir o baixo?",
+  "onboarding_identity_title": "A Tua Identidade",
+  "onboarding_identity_desc": "Idioma & visual",
+  "onboarding_quiz_title": "Pronto?",
+  "onboarding_quiz_desc": "Adivinha o artista pelo excerto",
+  "onboarding_play_preview": "Ouvir Pré-visualização",
+  "onboarding_correct": "Correto!",
+  "onboarding_enter": "ENTRAR NA ARENA",
+  "onboarding_entering": "A entrar na Arena..."
 }

@@ -143,7 +143,7 @@ function LoginScreen() {
         <div className="flex-1 max-w-sm w-full space-y-6">
           <div className="text-center lg:text-left space-y-3">
             <h1 className="text-5xl lg:text-6xl font-black tracking-tight leading-none uppercase">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] drop-shadow-[0_2px_10px_rgba(255,45,120,0.3)]">Blind</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--primary)] to-[var(--accent)]" style={{ filter: 'drop-shadow(0 2px 10px color-mix(in srgb, var(--primary) 25%, transparent))' }}>Blind</span>
               <span className="text-foreground">Test</span>
             </h1>
             <p className="text-foreground/40 text-sm font-semibold tracking-wide uppercase leading-relaxed">{t('subtitle')}</p>
@@ -280,7 +280,7 @@ function Dashboard() {
             animate={{ opacity: 1, y: 0 }}
             className="text-5xl md:text-6xl font-black tracking-tight uppercase"
           >
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] drop-shadow-[0_2px_10px_rgba(255,45,120,0.25)]">Blind</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--primary)] to-[var(--accent)]" style={{ filter: 'drop-shadow(0 2px 10px color-mix(in srgb, var(--primary) 25%, transparent))' }}>Blind</span>
             <span className="text-foreground">Test</span>
           </motion.h1>
           <p className="text-foreground/40 text-sm font-semibold tracking-wide uppercase leading-relaxed">{t('subtitle')}</p>
@@ -490,7 +490,7 @@ function Dashboard() {
           </div>
         ) : (
           <div className="space-y-2 flex-1 overflow-y-auto pr-1 select-none scrollbar-thin">
-            {leaderboard.slice(0, 8).map((e, i) => {
+            {leaderboard.slice(0, 50).map((e, i) => {
               const rankColor = i === 0 ? 'text-yellow-400 border-yellow-500/20 bg-yellow-500/5' : i === 1 ? 'text-foreground/80 border-foreground/20 bg-foreground/10' : i === 2 ? 'text-amber-600 border-amber-700/20 bg-amber-700/5' : 'text-foreground/40 border-white/5 bg-white/[0.01]';
 
               return (

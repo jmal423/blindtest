@@ -201,5 +201,22 @@
   "recent_games": "Parties Récentes",
   "room_game_prefix": "Salon",
   "no_games_yet": "Aucune partie jouée pour le moment.",
-  "open_menu": "Ouvrir le menu"
+  "open_menu": "Ouvrir le menu",
+  "back": "Retour",
+  "next": "Suivant",
+  "theme": "Thème",
+  "language": "Langue",
+  "onboarding_drop_title": "Lâche le Son",
+  "onboarding_drop_desc": "Teste ton audio avant de commencer",
+  "onboarding_drop_btn": "Lâcher le Son",
+  "onboarding_playing": "En cours...",
+  "onboarding_volume_hint": "Règle le volume. Tu entends la basse ?",
+  "onboarding_identity_title": "Ton Identité",
+  "onboarding_identity_desc": "Langue & apparence",
+  "onboarding_quiz_title": "Prêt ?",
+  "onboarding_quiz_desc": "Devine l'artiste à partir de l'extrait",
+  "onboarding_play_preview": "Écouter l'Aperçu",
+  "onboarding_correct": "Correct !",
+  "onboarding_enter": "ENTRER DANS L'ARÈNE",
+  "onboarding_entering": "Entrée dans l'Arène..."
 }

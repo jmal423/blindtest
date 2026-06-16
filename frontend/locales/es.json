@@ -201,5 +201,22 @@
   "recent_games": "Partidas Recientes",
   "room_game_prefix": "Sala",
   "no_games_yet": "Ninguna partida jugada aún.",
-  "open_menu": "Abrir menú"
+  "open_menu": "Abrir menú",
+  "back": "Atrás",
+  "next": "Siguiente",
+  "theme": "Tema",
+  "language": "Idioma",
+  "onboarding_drop_title": "Suelta el Ritmo",
+  "onboarding_drop_desc": "Prueba tu audio antes de empezar",
+  "onboarding_drop_btn": "Soltar el Ritmo",
+  "onboarding_playing": "Reproduciendo...",
+  "onboarding_volume_hint": "Ajusta el volumen. ¿Puedes oír el bajo?",
+  "onboarding_identity_title": "Tu Identidad",
+  "onboarding_identity_desc": "Idioma & apariencia",
+  "onboarding_quiz_title": "¿Listo?",
+  "onboarding_quiz_desc": "Adivina el artista por el fragmento",
+  "onboarding_play_preview": "Escuchar Vista Previa",
+  "onboarding_correct": "¡Correcto!",
+  "onboarding_enter": "ENTRAR EN LA ARENA",
+  "onboarding_entering": "Entrando en la Arena..."
 }

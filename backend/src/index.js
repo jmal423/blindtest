@@ -761,6 +761,60 @@ app.delete('/api/friends/:userId', authenticate, async (req, res) => {
   res.json({ ok: true });
 });
 
+// Onboarding preview (random track for sound check)
+app.get('/api/onboarding/preview', async (req, res) => {
+  try {
+    const { get } = await import('./db/connection.js');
+    const track = await get(
+      `SELECT preview_url FROM songs_cache
+       WHERE preview_url IS NOT NULL
+       ORDER BY RANDOM() LIMIT 1`
+    );
+    if (track?.preview_url) {
+      const url = track.preview_url.replace(/\.+$/, '');
+      res.json({ url: `/api/proxy/audio?url=${encodeURIComponent(url)}` });
+    } else {
+      res.status(404).json({ error: 'No track found' });
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Onboarding quiz (random track + 4 artist options)
+app.get('/api/onboarding/quiz', async (req, res) => {
+  try {
+    const { get, all } = await import('./db/connection.js');
+    const correct = await get(
+      `SELECT name, artist, preview_url FROM songs_cache
+       WHERE preview_url IS NOT NULL AND artist IS NOT NULL
+       ORDER BY RANDOM() LIMIT 1`
+    );
+    if (!correct) return res.status(404).json({ error: 'No track found' });
+
+    const wrongArtists = await all(
+      `SELECT DISTINCT artist FROM songs_cache
+       WHERE artist != ? AND artist IS NOT NULL
+       ORDER BY RANDOM() LIMIT 3`,
+      [correct.artist]
+    );
+
+    const options = [
+      { artist: correct.artist, correct: true },
+      ...wrongArtists.map(a => ({ artist: a.artist, correct: false })),
+    ].sort(() => Math.random() - 0.5);
+
+    const url = correct.preview_url.replace(/\.+$/, '');
+    res.json({
+      trackName: correct.name,
+      previewUrl: `/api/proxy/audio?url=${encodeURIComponent(url)}`,
+      options,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Generic audio proxy (for game page — passes through with headers)
 app.get('/api/proxy/audio', async (req, res) => {
   const url = req.query.url;
