@@ -13,10 +13,19 @@ const STATS_CHANNEL_NAME = process.env.STATS_CHANNEL_NAME || '📊 Active Player
 
 const PLAYER_ROLE_ID = process.env.PLAYER_ROLE_ID || '1516588193573769226';
 
+// Reaction role mapping: emoji → role ID
+const REACTION_ROLES = {
+  '🔔': '1516594034812911757',
+  '🎵': '1516594036876513411',
+  '🏆': '1516594038944305222',
+  '🆕': '1516594039900606464',
+};
+
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildMessageReactions,
   ],
 });
 
@@ -324,6 +333,42 @@ client.on('interactionCreate', async (interaction) => {
       .setTimestamp();
 
     await interaction.reply({ embeds: [embed] });
+  }
+});
+
+// ────────────────────────────────────────
+//  Reaction Roles
+// ────────────────────────────────────────
+
+client.on('messageReactionAdd', async (reaction, user) => {
+  if (user.bot) return;
+  const roleId = REACTION_ROLES[reaction.emoji.name];
+  if (!roleId) return;
+
+  try {
+    const guild = reaction.message.guild;
+    if (!guild) return;
+    const member = await guild.members.fetch(user.id);
+    const role = guild.roles.cache.get(roleId);
+    if (role && member) await member.roles.add(role);
+  } catch (e) {
+    console.error('Reaction add failed:', e.message);
+  }
+});
+
+client.on('messageReactionRemove', async (reaction, user) => {
+  if (user.bot) return;
+  const roleId = REACTION_ROLES[reaction.emoji.name];
+  if (!roleId) return;
+
+  try {
+    const guild = reaction.message.guild;
+    if (!guild) return;
+    const member = await guild.members.fetch(user.id);
+    const role = guild.roles.cache.get(roleId);
+    if (role && member) await member.roles.remove(role);
+  } catch (e) {
+    console.error('Reaction remove failed:', e.message);
   }
 });
 
