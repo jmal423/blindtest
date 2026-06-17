@@ -1,6 +1,11 @@
 import 'dotenv/config';
 import { Client, GatewayIntentBits, REST, Routes, EmbedBuilder, ChannelType, ActivityType } from 'discord.js';
 import pg from 'pg';
+import {
+  queues, handlePlay, handleSkip, handleStop, handleQueue,
+  handlePoll, handleServerInfo, handleSetBirthday, checkBirthdays,
+  handleCustomCommand, checkWeeklyLeaderboard, checkSocialAlerts,
+} from './features.js';
 
 const { Pool } = pg;
 
@@ -37,6 +42,8 @@ const CLIENT_ID = process.env.CLIENT_ID;
 const GUILD_ID = process.env.GUILD_ID;
 const TRIGGER_CHANNEL_ID = process.env.TRIGGER_CHANNEL_ID || '1516588221440721056';
 const TEMP_CATEGORY_ID = process.env.TEMP_CATEGORY_ID;
+
+// ── Music Queue (managed in features.js) ──
 
 if (!TOKEN || !CLIENT_ID) {
   console.error('Missing BOT_TOKEN or CLIENT_ID in environment');
@@ -273,6 +280,100 @@ const commands = [
       type: 6,
       required: false,
     }],
+  },
+  // ── Music Commands ──
+  {
+    name: 'play',
+    description: 'Play a song in your voice channel',
+    options: [{
+      name: 'query',
+      description: 'Song name or YouTube URL',
+      type: 3,
+      required: true,
+    }],
+  },
+  {
+    name: 'skip',
+    description: 'Skip the current song',
+  },
+  {
+    name: 'stop',
+    description: 'Stop playback and leave the voice channel',
+  },
+  {
+    name: 'queue',
+    description: 'Show the upcoming song queue',
+  },
+  // ── Info & Utility ──
+  {
+    name: 'serverinfo',
+    description: 'Show server stats and information',
+  },
+  {
+    name: 'poll',
+    description: 'Create a reaction poll',
+    options: [{
+      name: 'question',
+      description: 'Poll question',
+      type: 3,
+      required: true,
+    }, {
+      name: 'option1',
+      description: 'First option',
+      type: 3,
+      required: true,
+    }, {
+      name: 'option2',
+      description: 'Second option',
+      type: 3,
+      required: true,
+    }, {
+      name: 'option3',
+      description: 'Third option (optional)',
+      type: 3,
+      required: false,
+    }, {
+      name: 'option4',
+      description: 'Fourth option (optional)',
+      type: 3,
+      required: false,
+    }],
+  },
+  {
+    name: 'setbirthday',
+    description: 'Set your birthday for the birthday role (DD-MM)',
+    options: [{
+      name: 'date',
+      description: 'Your birthday (DD-MM format, e.g. 25-12)',
+      type: 3,
+      required: true,
+    }],
+  },
+  {
+    name: 'customcommand',
+    description: 'Create or manage custom commands (admin only)',
+    options: [{
+      name: 'action',
+      description: 'Action to perform',
+      type: 3,
+      required: true,
+      choices: [
+        { name: 'create', value: 'create' },
+        { name: 'delete', value: 'delete' },
+        { name: 'list', value: 'list' },
+      ],
+    }, {
+      name: 'trigger',
+      description: 'Command trigger word',
+      type: 3,
+      required: false,
+    }, {
+      name: 'response',
+      description: 'Response text',
+      type: 3,
+      required: false,
+    }],
+    default_member_permissions: String(16n), // Manage Channels
   },
 ];
 
@@ -534,10 +635,19 @@ client.on('interactionCreate', async (interaction) => {
         '`/slowmode <seconds>` — Set channel slowmode\n\n' +
         '**Utility**\n' +
         '`/ticket [reason]` — Open a support ticket\n' +
-        '`/rank [@user]` — Show chat level and XP\n\n' +
+        '`/rank [@user]` — Show chat level and XP\n' +
+        '`/serverinfo` — Server stats\n' +
+        '`/poll "Q?" "A" "B"` — Create a poll\n' +
+        '`/setbirthday DD-MM` — Set your birthday\n' +
+        '`/customcommand create/del/list` — Manage custom commands (admin)\n\n' +
+        '**🎵 Music**\n' +
+        '`/play <song>` — Play a song in VC\n' +
+        '`/skip` — Skip current song\n' +
+        '`/stop` — Stop and leave\n' +
+        '`/queue` — Show upcoming songs\n\n' +
         '**Auto-Mod**\n' +
         'Invite links and mass-mentions are auto-deleted.\n' +
-        'Earn XP by chatting — level up!\n\n' +
+        'Earn XP by chatting — level up! 🎉\n\n' +
         'Play at **https://blindtest.jl423.xyz**'
       )
       .setTimestamp();
@@ -645,6 +755,20 @@ client.on('interactionCreate', async (interaction) => {
       await interaction.editReply({ content: seconds === 0 ? '✅ Slowmode disabled.' : `✅ Slowmode set to ${seconds} seconds.` });
     }
   }
+
+  // ── Music Commands ──
+  else if (['play', 'skip', 'stop', 'queue'].includes(commandName)) {
+    if (commandName === 'play') await handlePlay(interaction, pool);
+    else if (commandName === 'skip') await handleSkip(interaction);
+    else if (commandName === 'stop') await handleStop(interaction);
+    else if (commandName === 'queue') await handleQueue(interaction);
+  }
+
+  // ── Utility Commands ──
+  else if (commandName === 'serverinfo') await handleServerInfo(interaction, pool);
+  else if (commandName === 'poll') await handlePoll(interaction);
+  else if (commandName === 'setbirthday') await handleSetBirthday(interaction, pool);
+  else if (commandName === 'customcommand') await handleCustomCommand(interaction, pool);
 });
 
 // ────────────────────────────────────────
@@ -1055,6 +1179,37 @@ client.once('clientReady', () => {
 
   updateStatsChannel();
   setInterval(updateStatsChannel, 30000);
+
+  // Schedule weekly leaderboard (every Sunday at 12:00 UTC)
+  const scheduleWeekly = () => {
+    const now = new Date();
+    const nextSun = new Date(now);
+    nextSun.setUTCDate(now.getUTCDate() + (7 - now.getUTCDay()) % 7);
+    nextSun.setUTCHours(12, 0, 0, 0);
+    if (nextSun <= now) nextSun.setUTCDate(nextSun.getUTCDate() + 7);
+    const msUntilSunday = nextSun.getTime() - now.getTime();
+    setTimeout(() => {
+      checkWeeklyLeaderboard(client, pool);
+      setInterval(() => checkWeeklyLeaderboard(client, pool), 7 * 24 * 60 * 60 * 1000);
+    }, msUntilSunday);
+  };
+  scheduleWeekly();
+
+  // Schedule daily birthday check (every day at 08:00 UTC)
+  const scheduleBirthday = () => {
+    const now = new Date();
+    const next8am = new Date(now);
+    next8am.setUTCHours(8, 0, 0, 0);
+    if (next8am <= now) next8am.setUTCDate(next8am.getUTCDate() + 1);
+    setTimeout(() => {
+      checkBirthdays(client, pool);
+      setInterval(() => checkBirthdays(client, pool), 24 * 60 * 60 * 1000);
+    }, next8am.getTime() - now.getTime());
+  };
+  scheduleBirthday();
+
+  // Schedule social alerts check (every 15 minutes)
+  setInterval(() => checkSocialAlerts(client, pool), 15 * 60 * 1000);
 });
 
 client.login(TOKEN);
