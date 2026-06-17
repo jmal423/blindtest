@@ -146,6 +146,111 @@ const commands = [
     name: 'claim',
     description: 'Take ownership of the voice channel if the host left',
   },
+  // ── Moderation Commands ──
+  {
+    name: 'warn',
+    description: 'Warn a user (moderator only)',
+    options: [{
+      name: 'user',
+      description: 'User to warn',
+      type: 6,
+      required: true,
+    }, {
+      name: 'reason',
+      description: 'Reason for the warning',
+      type: 3,
+      required: false,
+    }],
+    default_member_permissions: String(1n << 3n), // Kick Members
+  },
+  {
+    name: 'kick',
+    description: 'Kick a user from the server (moderator only)',
+    options: [{
+      name: 'user',
+      description: 'User to kick',
+      type: 6,
+      required: true,
+    }, {
+      name: 'reason',
+      description: 'Reason for the kick',
+      type: 3,
+      required: false,
+    }],
+    default_member_permissions: String(1n << 1n), // Kick Members
+  },
+  {
+    name: 'ban',
+    description: 'Ban a user from the server (moderator only)',
+    options: [{
+      name: 'user',
+      description: 'User to ban',
+      type: 6,
+      required: true,
+    }, {
+      name: 'reason',
+      description: 'Reason for the ban',
+      type: 3,
+      required: false,
+    }, {
+      name: 'delete_messages',
+      description: 'Delete recent messages (days 0-7)',
+      type: 4,
+      min_value: 0,
+      max_value: 7,
+      required: false,
+    }],
+    default_member_permissions: String(1n << 2n), // Ban Members
+  },
+  {
+    name: 'timeout',
+    description: 'Timeout a user (moderator only)',
+    options: [{
+      name: 'user',
+      description: 'User to timeout',
+      type: 6,
+      required: true,
+    }, {
+      name: 'duration',
+      description: 'Duration in minutes (default 10, max 10080)',
+      type: 4,
+      min_value: 1,
+      max_value: 10080,
+      required: false,
+    }, {
+      name: 'reason',
+      description: 'Reason for the timeout',
+      type: 3,
+      required: false,
+    }],
+    default_member_permissions: String(1n << 40n), // Moderate Members
+  },
+  {
+    name: 'clear',
+    description: 'Clear recent messages in this channel (moderator only)',
+    options: [{
+      name: 'count',
+      description: 'Number of messages to delete (1-100)',
+      type: 4,
+      min_value: 1,
+      max_value: 100,
+      required: true,
+    }],
+    default_member_permissions: String(8192n), // Manage Messages
+  },
+  {
+    name: 'slowmode',
+    description: 'Set slowmode in this channel (moderator only)',
+    options: [{
+      name: 'seconds',
+      description: 'Seconds between messages (0 = off, max 21600)',
+      type: 4,
+      min_value: 0,
+      max_value: 21600,
+      required: true,
+    }],
+    default_member_permissions: String(16n), // Manage Channels
+  },
 ];
 
 // ────────────────────────────────────────
@@ -397,6 +502,13 @@ client.on('interactionCreate', async (interaction) => {
         '`/limit <n>` — Set user limit\n' +
         '`/name <title>` — Rename your VC\n' +
         '`/claim` — Take host if owner left\n\n' +
+        '**Moderation Commands** (moderator only)\n' +
+        '`/warn @user [reason]` — Warn a user\n' +
+        '`/kick @user [reason]` — Kick a user\n' +
+        '`/ban @user [reason]` — Ban a user\n' +
+        '`/timeout @user [minutes]` — Timeout a user\n' +
+        '`/clear <count>` — Delete messages\n' +
+        '`/slowmode <seconds>` — Set channel slowmode\n\n' +
         'Play at **https://blindtest.jl423.xyz**'
       )
       .setTimestamp();
@@ -443,6 +555,65 @@ client.on('interactionCreate', async (interaction) => {
       const title = interaction.options.getString('title');
       await vc.setName(title);
       await interaction.editReply({ content: `✏️ Channel renamed to **${title}**.` });
+    }
+  }
+
+  // ── Moderation Commands ──
+
+  else if (['kick', 'ban', 'warn', 'timeout', 'clear', 'slowmode'].includes(commandName)) {
+    await interaction.deferReply({ ephemeral: true });
+    const member = interaction.member;
+    if (!member) return interaction.editReply({ content: 'Use this in a server.' });
+
+    const target = interaction.options.getMember('user');
+    const reason = interaction.options.getString('reason') || 'No reason provided';
+
+    if (commandName === 'kick') {
+      if (!target) return interaction.editReply({ content: '❌ User not found.' });
+      if (!target.kickable) return interaction.editReply({ content: '❌ I cannot kick this user.' });
+      await target.send({ content: `You have been kicked from **${interaction.guild.name}**.\nReason: ${reason}` }).catch(() => {});
+      await target.kick(reason);
+      const log = interaction.guild.channels.cache.find(c => c.name === 'mod-logs');
+      if (log) await log.send({ embeds: [{ color: 0xef4444, title: 'Kick', fields: [{ name: 'User', value: `${target.user.tag} (${target.id})`, inline: true }, { name: 'Moderator', value: member.displayName, inline: true }, { name: 'Reason', value: reason }], timestamp: new Date().toISOString() }] });
+      await interaction.editReply({ content: `✅ Kicked **${target.user.tag}**.` });
+    } else if (commandName === 'ban') {
+      if (!target) return interaction.editReply({ content: '❌ User not found.' });
+      if (!target.bannable) return interaction.editReply({ content: '❌ I cannot ban this user.' });
+      const days = interaction.options.getInteger('delete_messages') || 0;
+      await target.send({ content: `You have been banned from **${interaction.guild.name}**.\nReason: ${reason}` }).catch(() => {});
+      await target.ban({ deleteMessageDays: days, reason });
+      const log = interaction.guild.channels.cache.find(c => c.name === 'mod-logs');
+      if (log) await log.send({ embeds: [{ color: 0xdc2626, title: 'Ban', fields: [{ name: 'User', value: `${target.user.tag} (${target.id})`, inline: true }, { name: 'Moderator', value: member.displayName, inline: true }, { name: 'Reason', value: reason }, { name: 'Messages Deleted', value: `${days} days` }], timestamp: new Date().toISOString() }] });
+      await interaction.editReply({ content: `✅ Banned **${target.user.tag}**.` });
+    } else if (commandName === 'warn') {
+      const targetUser = interaction.options.getUser('user');
+      if (!targetUser) return interaction.editReply({ content: '❌ User not found.' });
+      await targetUser.send({ content: `⚠️ **Warning** from **${interaction.guild.name}**\nReason: ${reason}` }).catch(() => {});
+      const log = interaction.guild.channels.cache.find(c => c.name === 'mod-logs');
+      if (log) await log.send({ embeds: [{ color: 0xf59e0b, title: 'Warning', fields: [{ name: 'User', value: `${targetUser.tag} (${targetUser.id})`, inline: true }, { name: 'Moderator', value: member.displayName, inline: true }, { name: 'Reason', value: reason }], timestamp: new Date().toISOString() }] });
+      await interaction.editReply({ content: `⚠️ Warned **${targetUser.tag}**.` });
+    } else if (commandName === 'timeout') {
+      if (!target) return interaction.editReply({ content: '❌ User not found.' });
+      if (!target.moderatable) return interaction.editReply({ content: '❌ I cannot timeout this user.' });
+      const duration = interaction.options.getInteger('duration') || 10;
+      await target.timeout(duration * 60 * 1000, reason);
+      const log = interaction.guild.channels.cache.find(c => c.name === 'mod-logs');
+      if (log) await log.send({ embeds: [{ color: 0xf97316, title: 'Timeout', fields: [{ name: 'User', value: `${target.user.tag} (${target.id})`, inline: true }, { name: 'Moderator', value: member.displayName, inline: true }, { name: 'Duration', value: `${duration} minutes`, inline: true }, { name: 'Reason', value: reason }], timestamp: new Date().toISOString() }] });
+      await interaction.editReply({ content: `✅ Timed out **${target.user.tag}** for ${duration} minutes.` });
+    } else if (commandName === 'clear') {
+      const count = interaction.options.getInteger('count');
+      const channel = interaction.channel;
+      if (!channel || !channel.isTextBased()) return interaction.editReply({ content: '❌ This command only works in text channels.' });
+      const messages = await channel.messages.fetch({ limit: Math.min(count, 100) });
+      await channel.bulkDelete(messages, true);
+      await interaction.editReply({ content: `✅ Deleted ${messages.size} messages.` });
+      setTimeout(() => interaction.deleteReply().catch(() => {}), 3000);
+    } else if (commandName === 'slowmode') {
+      const seconds = interaction.options.getInteger('seconds');
+      const channel = interaction.channel;
+      if (!channel || !channel.isTextBased()) return interaction.editReply({ content: '❌ This command only works in text channels.' });
+      await channel.setRateLimitPerUser(seconds);
+      await interaction.editReply({ content: seconds === 0 ? '✅ Slowmode disabled.' : `✅ Slowmode set to ${seconds} seconds.` });
     }
   }
 });
