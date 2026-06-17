@@ -16,7 +16,7 @@ const pool = new Pool({
 const API_BASE = process.env.API_URL || 'http://localhost:3005';
 const STATS_CHANNEL_NAME = process.env.STATS_CHANNEL_NAME || '📊 Active Players: 0';
 
-const PLAYER_ROLE_ID = process.env.PLAYER_ROLE_ID || '1516588193573769226';
+const PLAYER_ROLE_ID = process.env.PLAYER_ROLE_ID || '1516587935565221990';
 
 // Reaction role mapping: emoji → role ID
 const REACTION_ROLES = {
