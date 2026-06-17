@@ -12,7 +12,6 @@ import { useTranslation } from '@/lib/useTranslation';
 import Chat from './Chat';
 import Podium from './Podium';
 import DebugOverlay from './DebugOverlay';
-import ResponsiveMinimized from './ResponsiveMinimized';
 import { useSound } from '@/lib/useSound';
 import { getProxiedUrl } from '@/lib/proxy';
 import { isDiscordActivity, getDiscordSdk, subscribeToParticipants, getConnectedParticipants, getInstanceId } from '@/lib/discordActivity';
@@ -66,6 +65,7 @@ export default function GamePage({
   const [chatOpen, setChatOpen] = useState(false);
   const [hasVotedSkip, setHasVotedSkip] = useState(false);
   const [skipCooldown, setSkipCooldown] = useState(false);
+  const [audioStarted, setAudioStarted] = useState(false);
   const prevVolumeRef = useRef(1);
   const playSound = useSound();
   const { settings: userSettings, updateSettings: updateLocalSettings } = useSettings();
@@ -76,6 +76,7 @@ export default function GamePage({
   playSoundRef.current = playSound;
 
   const handleAudioPlaying = useCallback(() => {
+    setAudioStarted(true);
     socketRef.current?.emit('playback_started');
     guessInputRef.current?.focus();
   }, []);
@@ -123,6 +124,7 @@ export default function GamePage({
         setGuessMarkers([]);
         setHasVotedSkip(false);
         setHasVotedSkip(false);
+        setAudioStarted(false);
 
         if (localTimerRef.current) {
           clearInterval(localTimerRef.current);
@@ -403,7 +405,6 @@ export default function GamePage({
   }
 
   return (
-    <ResponsiveMinimized>
     <div className="flex-1 flex flex-col p-3 md:p-6 w-full gap-4 min-h-0">
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-3">
@@ -549,7 +550,7 @@ export default function GamePage({
           </div>
         )}
 
-        <div className="flex-1 flex flex-col gap-4 min-w-0 min-h-0">
+        <div className="flex-1 overflow-y-auto min-h-0">
           {gameState.state === 'waiting' && (
             <WaitingRoom
               gameCode={code}
@@ -597,6 +598,7 @@ export default function GamePage({
               skipVotesNeeded={gameState.state === 'playing' || gameState.state === 'round_preparing' ? (gameState as any).skipVotesNeeded ?? 1 : 1}
               hostId={gameState.hostId}
               currentTrackId={gameState.state === 'playing' ? (gameState as any).trackId : null}
+              audioStarted={audioStarted}
               onFlagSong={(id) => socketRef.current?.emit('flag_song', { songId: id, reason: 'wrong_song' })}
               gameMode={(gameState as any).settings?.gameMode}
               trackArtist={(gameState as any).trackArtist}
@@ -668,7 +670,6 @@ export default function GamePage({
         </div>
       )}
     </div>
-    </ResponsiveMinimized>
   );
 }
 
@@ -1357,6 +1358,7 @@ function PlayingPhase({
   onFlagSong,
   gameMode = '',
   trackArtist = '',
+  audioStarted = false,
 }: {
   state: string;
   currentRound: number;
@@ -1386,6 +1388,7 @@ function PlayingPhase({
   onFlagSong?: (id: string) => void;
   gameMode?: string;
   trackArtist?: string;
+  audioStarted?: boolean;
 }) {
   const { t } = useTranslation();
   const isArtistMode = gameMode === 'artist';
@@ -1445,7 +1448,7 @@ function PlayingPhase({
           >
             {timeLeft ?? '--'}
           </motion.span>
-          {isAdmin ? (
+          {audioStarted && (isAdmin ? (
             <button onClick={handleSkipClick} disabled={skipCooldown} className="px-3 py-1.5 text-xs bg-surface-light hover:bg-surface-light text-foreground/80 rounded-lg border border-surface-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
               {t('skip')}
             </button>
@@ -1461,7 +1464,7 @@ function PlayingPhase({
             >
               {hasVotedSkip ? `${t('voted')} ${skipVotes}/${skipVotesNeeded}` : `${t('vote_skip')} ${skipVotes}/${skipVotesNeeded}`}
             </button>
-          )}
+          ))}
 
           {showSkipReasons && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setShowSkipReasons(false)}>

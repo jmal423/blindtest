@@ -180,7 +180,7 @@ export default function Header() {
           <div ref={menuRef} className="relative">
             {/* User Profile Avatar Trigger */}
             <button
-              onClick={() => setOpen(!open)}
+              onPointerDown={() => setOpen(!open)}
               className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-[var(--primary)]/40 hover:ring-[var(--primary)] active:ring-[var(--primary)] transition-all duration-200 flex items-center justify-center bg-surface-light text-xs font-bold shadow-md cursor-pointer border border-foreground/10"
               aria-label={t('open_menu')}
             >
@@ -192,19 +192,12 @@ export default function Header() {
             </button>
 
             {/* Overlay for mobile drawer */}
-            <AnimatePresence>
-              {open && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                  className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:bg-transparent"
-                  onClick={close}
-                  onTouchStart={close}
-                />
-              )}
-            </AnimatePresence>
+            {open && (
+              <div
+                className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:bg-transparent"
+                onPointerDown={(e) => { e.preventDefault(); close(); }}
+              />
+            )}
 
             {/* User Dropdown Panel */}
             <AnimatePresence>

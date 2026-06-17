@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useSettings } from '@/app/context/SettingsContext';
 import { useTranslation } from '@/lib/useTranslation';
+import { isDiscordActivity } from '@/lib/discordActivity';
 
 const ONBOARDING_KEY = 'blindtest_onboarding_done';
 
@@ -51,7 +52,13 @@ export default function OnboardingTakeover() {
 
   useEffect(() => {
     const done = localStorage.getItem(ONBOARDING_KEY);
-    if (!done) setShow(true);
+    if (!done) {
+      if (isDiscordActivity()) {
+        localStorage.setItem(ONBOARDING_KEY, '1');
+        return;
+      }
+      setShow(true);
+    }
   }, []);
 
   useEffect(() => {

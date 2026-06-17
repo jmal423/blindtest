@@ -109,17 +109,29 @@ export default function RoomsPage() {
               className="rounded-2xl p-4 transition-all"
               style={{ backgroundColor: 'color-mix(in srgb, var(--surface) 60%, transparent)', border: '1px solid color-mix(in srgb, var(--foreground) 5%, transparent)' }}
             >
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                 <div className="flex items-center gap-3">
                   <span className="text-lg">🎮</span>
                   <div>
                     <p className="font-bold text-sm">{room.code}</p>
                     <p className="text-[10px] text-foreground/40 font-medium uppercase tracking-wider">
-                      {room.state} · {room.players?.length || 0}/{room.maxPlayers || '—'} players
+                      {room.state} · {room.players?.length || 0} players
                     </p>
                   </div>
                 </div>
-                <div className="flex gap-1.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  {room.genres?.slice(0, 3).map((g: string) => (
+                    <span key={g} className="hidden md:inline px-1.5 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] text-[9px] font-semibold border border-[var(--primary)]/20">
+                      {g}
+                    </span>
+                  ))}
+                  {room.genres?.length > 3 && <span className="hidden md:inline text-[9px] text-foreground/40">+{room.genres.length - 3}</span>}
+                  {room.state !== 'waiting' && (
+                    <span className="text-[10px] text-foreground/40 font-semibold tabular-nums">R{room.currentRound}/{room.totalRounds}</span>
+                  )}
+                  <span className="text-[10px] text-foreground/30 tabular-nums">{room.settings?.roundTime || '?'}s</span>
+                  </div>
+                  <div className="flex gap-1.5">
                   <button
                     onClick={() => handleStart(room.code)}
                     className="px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider rounded-lg transition-all cursor-pointer text-foreground/40 hover:text-foreground"
@@ -150,7 +162,9 @@ export default function RoomsPage() {
                     room.players.map((p: any) => (
                       <div key={p.id} className="flex items-center justify-between px-3 py-2 rounded-lg" style={{ backgroundColor: 'color-mix(in srgb, var(--foreground) 3%, transparent)' }}>
                         <PlayerAvatar p={p} />
-                        <button
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs font-bold text-[var(--accent)] tabular-nums">{p.score || 0} pts</span>
+                          <button
                           onClick={() => handleKick(room.code, p.id)}
                           disabled={kickingId === p.id}
                           className="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-lg transition-all cursor-pointer disabled:opacity-30"
@@ -158,6 +172,7 @@ export default function RoomsPage() {
                         >
                           {kickingId === p.id ? '...' : 'Kick'}
                         </button>
+                        </div>
                       </div>
                     ))
                   ) : (

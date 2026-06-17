@@ -12,7 +12,7 @@ function inDiscord() {
   try {
     return window.parent !== window;
   } catch {
-    return true;
+    return false;
   }
 }
 
@@ -23,7 +23,9 @@ export default function ResponsiveMinimized({ children }: { children: ReactNode 
     if (!inDiscord()) return;
 
     const check = () => {
-      const small = window.innerWidth < MIN_WIDTH || window.innerHeight < MIN_HEIGHT;
+      const belowThreshold = window.innerWidth < MIN_WIDTH || window.innerHeight < MIN_HEIGHT;
+      const muchSmallerThanScreen = window.innerWidth < window.screen.width * 0.5;
+      const small = belowThreshold && muchSmallerThanScreen;
       setTooSmall(small);
       document.body.style.overflow = small ? 'hidden' : '';
     };
@@ -46,7 +48,7 @@ export default function ResponsiveMinimized({ children }: { children: ReactNode 
               <span className="text-primary">Blind</span>
               <span className="text-foreground">Test</span>
             </h1>
-            <p className="text-xs text-foreground/30">Game in progress — music continues</p>
+            <p className="text-xs text-foreground/30">Music continues</p>
           </div>
         </div>
       )}

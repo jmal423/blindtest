@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "./components/Header";
 import FooterLinks from "./components/FooterLinks";
+import ResponsiveMinimized from "./game/[code]/ResponsiveMinimized";
 import LanguageInitializer from "./components/LanguageInitializer";
 import OnboardingTakeover from "./components/OnboardingTakeover";
 import { SettingsProvider } from "./context/SettingsContext";
@@ -41,7 +42,9 @@ export default function RootLayout({
           <LanguageInitializer />
           <AuthProvider>
             <Header />
+            <ResponsiveMinimized>
             <main className="flex-1 flex flex-col min-h-0">{children}</main>
+            </ResponsiveMinimized>
             <footer className="shrink-0 border-t border-foreground/5 py-4 px-4 md:px-6 text-center text-[10px] text-foreground/40">
               <FooterLinks />
             </footer>
