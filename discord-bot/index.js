@@ -26,12 +26,15 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildMessageReactions,
+    GatewayIntentBits.GuildVoiceStates,
   ],
 });
 
 const TOKEN = process.env.BOT_TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID;
 const GUILD_ID = process.env.GUILD_ID;
+const TRIGGER_CHANNEL_ID = process.env.TRIGGER_CHANNEL_ID || '1516588221440721056';
+const TEMP_CATEGORY_ID = process.env.TEMP_CATEGORY_ID;
 
 if (!TOKEN || !CLIENT_ID) {
   console.error('Missing BOT_TOKEN or CLIENT_ID in environment');
@@ -108,6 +111,40 @@ const commands = [
   {
     name: 'help',
     description: 'Show BlindTest bot commands and info',
+  },
+  {
+    name: 'lock',
+    description: 'Lock your temporary voice channel',
+  },
+  {
+    name: 'unlock',
+    description: 'Unlock your temporary voice channel',
+  },
+  {
+    name: 'limit',
+    description: 'Set the user limit for your voice channel',
+    options: [{
+      name: 'slots',
+      description: 'Number of slots (1-99, 0 = unlimited)',
+      type: 4,
+      min_value: 0,
+      max_value: 99,
+      required: true,
+    }],
+  },
+  {
+    name: 'name',
+    description: 'Rename your temporary voice channel',
+    options: [{
+      name: 'title',
+      description: 'New channel name',
+      type: 3,
+      required: true,
+    }],
+  },
+  {
+    name: 'claim',
+    description: 'Take ownership of the voice channel if the host left',
   },
 ];
 
@@ -354,11 +391,66 @@ client.on('interactionCreate', async (interaction) => {
         '`/stats @user` — Someone else\'s stats\n' +
         '`/setup` — Create recommended channels (admin)\n' +
         '`/help` — This menu\n\n' +
+        '**Voice Channel Commands**\n' +
+        '`/lock` — Lock your temp VC\n' +
+        '`/unlock` — Unlock your temp VC\n' +
+        '`/limit <n>` — Set user limit\n' +
+        '`/name <title>` — Rename your VC\n' +
+        '`/claim` — Take host if owner left\n\n' +
         'Play at **https://blindtest.jl423.xyz**'
       )
       .setTimestamp();
 
     await interaction.reply({ embeds: [embed] });
+  }
+
+  // ── Temp Voice Channel Commands ──
+
+  else if (['lock', 'unlock', 'limit', 'name', 'claim'].includes(commandName)) {
+    await interaction.deferReply();
+
+    const member = interaction.member;
+    if (!member) return interaction.editReply({ content: 'Use this in a server.' });
+
+    const vc = member.voice.channel;
+    if (!vc) return interaction.editReply({ content: '❌ You must be in a voice channel.' });
+
+    const ownerId = voiceOwners.get(vc.id);
+    const myChannel = vc.parent?.name === '🔊 Player Channels';
+
+    if (commandName === 'claim') {
+      if (!myChannel) return interaction.editReply({ content: '❌ This is not a temporary channel.' });
+      if (ownerId && vc.members.has(ownerId)) return interaction.editReply({ content: '👑 The host is still here.' });
+      voiceOwners.set(vc.id, member.id);
+      const textChId = voiceTextLinks.get(vc.id);
+      if (textChId) {
+        const textCh = interaction.guild?.channels.cache.get(textChId);
+        if (textCh) {
+          await textCh.permissionOverwrites.create(member.id, { ManageChannels: true, MuteMembers: true, MoveMembers: true });
+          await textCh.send(`👑 **${member.displayName}** claimed host!`);
+        }
+      }
+      return interaction.editReply({ content: '👑 You are now the host!' });
+    }
+
+    if (!myChannel) return interaction.editReply({ content: '❌ This command only works in temporary channels.' });
+    if (ownerId !== member.id) return interaction.editReply({ content: '❌ Only the host can use this command.' });
+
+    if (commandName === 'lock') {
+      await vc.permissionOverwrites.create(interaction.guildId, { Connect: false });
+      await interaction.editReply({ content: '🔒 Voice channel locked.' });
+    } else if (commandName === 'unlock') {
+      await vc.permissionOverwrites.create(interaction.guildId, { Connect: null });
+      await interaction.editReply({ content: '🔓 Voice channel unlocked.' });
+    } else if (commandName === 'limit') {
+      const slots = interaction.options.getInteger('slots');
+      await vc.setUserLimit(slots);
+      await interaction.editReply({ content: slots === 0 ? '♾️ User limit removed.' : `👥 User limit set to ${slots}.` });
+    } else if (commandName === 'name') {
+      const title = interaction.options.getString('title');
+      await vc.setName(title);
+      await interaction.editReply({ content: `✏️ Channel renamed to **${title}**.` });
+    }
   }
 });
 
@@ -395,6 +487,128 @@ client.on('messageReactionRemove', async (reaction, user) => {
     if (role && member) await member.roles.remove(role);
   } catch (e) {
     console.error('Reaction remove failed:', e.message);
+  }
+});
+
+// ────────────────────────────────────────
+//  Temporary Voice Channels
+// ────────────────────────────────────────
+
+let channelCounter = 0;
+const voiceOwners = new Map(); // channelId → ownerId
+const voiceTextLinks = new Map(); // channelId → textChannelId
+
+async function getOrCreateTempCategory(guild) {
+  if (TEMP_CATEGORY_ID) {
+    const cat = guild.channels.cache.get(TEMP_CATEGORY_ID);
+    if (cat) return cat;
+  }
+  let cat = guild.channels.cache.find(c => c.name === '🔊 Player Channels' && c.type === ChannelType.GuildCategory);
+  if (!cat) {
+    cat = await guild.channels.create({
+      name: '🔊 Player Channels',
+      type: ChannelType.GuildCategory,
+    });
+  }
+  return cat;
+}
+
+client.on('voiceStateUpdate', async (oldState, newState) => {
+  const member = newState.member || oldState.member;
+  if (!member || member.user.bot) return;
+  const guild = member.guild;
+
+  // User joined the trigger channel → create a temp VC
+  if (newState.channelId === TRIGGER_CHANNEL_ID && oldState.channelId !== TRIGGER_CHANNEL_ID) {
+    try {
+      channelCounter++;
+      const category = await getOrCreateTempCategory(guild);
+      const vcName = `🎵 Game ${String(channelCounter).padStart(2, '0')}`;
+
+      const vc = await guild.channels.create({
+        name: vcName,
+        type: ChannelType.GuildVoice,
+        parent: category.id,
+        userLimit: 8,
+      });
+
+      voiceOwners.set(vc.id, member.id);
+      await member.voice.setChannel(vc.id);
+
+      // Create a linked text channel for commands
+      const textCh = await guild.channels.create({
+        name: `game-${String(channelCounter).padStart(2, '0')}`,
+        type: ChannelType.GuildText,
+        parent: category.id,
+        topic: `🎵 Game channel for ${member.displayName}. Type /lock, /unlock, /limit to control the voice channel.`,
+      });
+
+      await textCh.permissionOverwrites.create(guild.id, { ViewChannel: true, SendMessages: true });
+      await textCh.permissionOverwrites.create(member.id, { ManageChannels: true, MuteMembers: true, MoveMembers: true });
+
+      voiceTextLinks.set(vc.id, textCh.id);
+
+      await textCh.send({
+        embeds: [{
+          color: 0x6c5ce7,
+          title: `🎵 Game Room Created`,
+          description:
+            `**Voice:** ${vcName}\n` +
+            `**Host:** ${member.displayName}\n\n` +
+            `**Commands** (in this channel):\n` +
+            `\`/lock\` — Lock the voice channel\n` +
+            `\`/unlock\` — Unlock the voice channel\n` +
+            `\`/limit <number>\` — Set user limit\n` +
+            `\`/name <name>\` — Rename the channel\n` +
+            `\`/claim\` — Take ownership if host left`,
+        }],
+      });
+    } catch (e) {
+      console.error('Failed to create temp channel:', e.message);
+    }
+    return;
+  }
+
+  // User left a channel → check if temp VC is now empty
+  if (oldState.channelId && voiceOwners.has(oldState.channelId)) {
+    const vcId = oldState.channelId;
+    const vc = guild.channels.cache.get(vcId);
+    if (!vc) {
+      voiceOwners.delete(vcId);
+      voiceTextLinks.delete(vcId);
+      return;
+    }
+
+    const membersInVC = vc.members.size;
+
+    // If the owner left, transfer ownership
+    if (oldState.member?.id === voiceOwners.get(vcId) && membersInVC > 0) {
+      const newOwner = vc.members.first();
+      if (newOwner) {
+        voiceOwners.set(vcId, newOwner.id);
+        const textChId = voiceTextLinks.get(vcId);
+        if (textChId) {
+          const textCh = guild.channels.cache.get(textChId);
+          if (textCh) {
+            await textCh.permissionOverwrites.delete(oldState.member.id).catch(() => {});
+            await textCh.permissionOverwrites.create(newOwner.id, { ManageChannels: true, MuteMembers: true, MoveMembers: true });
+            await textCh.send(`👑 **${newOwner.displayName}** is now the host!`);
+          }
+        }
+      }
+    }
+
+    // If everyone left, delete the channels
+    if (membersInVC === 0) {
+      const textChId = voiceTextLinks.get(vcId);
+      if (textChId) {
+        const textCh = guild.channels.cache.get(textChId);
+        if (textCh) await textCh.delete().catch(() => {});
+      }
+      voiceOwners.delete(vcId);
+      voiceTextLinks.delete(vcId);
+      await vc.delete().catch(() => {});
+    }
   }
 });
 
