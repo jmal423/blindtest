@@ -571,7 +571,20 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     // If everyone left, delete the channel
     if (membersInVC === 0) {
       voiceOwners.delete(vcId);
+      const parentId = vc.parentId;
       await vc.delete().catch(() => {});
+
+      // If the parent category has no more voice channels, delete it and reset counter
+      if (parentId) {
+        const parent = guild.channels.cache.get(parentId);
+        if (parent) {
+          const voiceChannels = parent.children.cache.filter(c => c.type === ChannelType.GuildVoice);
+          if (voiceChannels.size === 0) {
+            await parent.delete().catch(() => {});
+            channelCounter = 0;
+          }
+        }
+      }
     }
   }
 });
