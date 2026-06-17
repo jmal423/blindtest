@@ -149,7 +149,33 @@ client.on('guildMemberAdd', async (member) => {
     console.error('Role assignment failed:', e.message);
   }
 
-  // Send welcome message
+  // Send DM to new member
+  try {
+    const dmEmbed = new EmbedBuilder()
+      .setTitle(`Welcome to BlindTest, ${member.displayName}! 🎵`)
+      .setColor(0x6c5ce7)
+      .setThumbnail(guild.iconURL())
+      .setDescription(
+        `You've been added to the **BlindTest** server!\n\n` +
+        `**How to play:**\n` +
+        `1. Join the **🎵 Create Voice** voice channel\n` +
+        `2. Click the ⚡ **Activities** button (bottom left of VC)\n` +
+        `3. Select **BlindTest** and start guessing!\n\n` +
+        `**Commands:**\n` +
+        `\`/leaderboard\` — Top players\n` +
+        `\`/stats\` — Your stats\n` +
+        `\`/help\` — All commands\n\n` +
+        `React to roles in **#roles** to get notified about games!`
+      )
+      .setTimestamp();
+
+    await member.send({ embeds: [dmEmbed] });
+  } catch (e) {
+    // DM might be disabled — that's fine, channel welcome still works
+    console.log('Could not DM ' + member.displayName + ' (DMs may be disabled)');
+  }
+
+  // Send welcome message in #welcome channel
   const welcomeChannel = guild.channels.cache.find(c => c.name === 'welcome' && c.type === ChannelType.GuildText);
   if (!welcomeChannel) return;
 
