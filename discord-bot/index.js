@@ -1139,7 +1139,22 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
 
 client.once('clientReady', () => {
   console.log(`Bot logged in as ${client.user?.tag}`);
-  client.user?.setActivity('BlindTest 🎵', { type: ActivityType.Playing });
+
+  // Rotating Rich Presence
+  const statuses = [
+    { text: 'BlindTest 🎵', type: ActivityType.Playing },
+    { text: 'music guessing 🎶', type: ActivityType.Playing },
+    { text: 'with friends 👥', type: ActivityType.Playing },
+    { text: 'blindtest.jl423.xyz 🌐', type: ActivityType.Watching },
+    { text: 'song snippets 🔍', type: ActivityType.Listening },
+    { text: 'the leaderboard 🏆', type: ActivityType.Watching },
+  ];
+  let i = 0;
+  client.user?.setActivity(statuses[i].text, { type: statuses[i].type });
+  setInterval(() => {
+    i = (i + 1) % statuses.length;
+    client.user?.setActivity(statuses[i].text, { type: statuses[i].type });
+  }, 15000);
 
   // Poll active player count and update stats channel every 30s
   async function updateStatsChannel() {
