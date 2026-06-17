@@ -422,14 +422,7 @@ client.on('interactionCreate', async (interaction) => {
       if (!myChannel) return interaction.editReply({ content: '❌ This is not a temporary channel.' });
       if (ownerId && vc.members.has(ownerId)) return interaction.editReply({ content: '👑 The host is still here.' });
       voiceOwners.set(vc.id, member.id);
-      const textChId = voiceTextLinks.get(vc.id);
-      if (textChId) {
-        const textCh = interaction.guild?.channels.cache.get(textChId);
-        if (textCh) {
-          await textCh.permissionOverwrites.create(member.id, { ManageChannels: true, MuteMembers: true, MoveMembers: true });
-          await textCh.send(`👑 **${member.displayName}** claimed host!`);
-        }
-      }
+      try { await vc.send(`👑 **${member.displayName}** claimed host!`); } catch {}
       return interaction.editReply({ content: '👑 You are now the host!' });
     }
 
@@ -496,7 +489,6 @@ client.on('messageReactionRemove', async (reaction, user) => {
 
 let channelCounter = 0;
 const voiceOwners = new Map(); // channelId → ownerId
-const voiceTextLinks = new Map(); // channelId → textChannelId
 
 async function getOrCreateTempCategory(guild) {
   if (TEMP_CATEGORY_ID) {
@@ -535,27 +527,14 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
       voiceOwners.set(vc.id, member.id);
       await member.voice.setChannel(vc.id);
 
-      // Create a linked text channel for commands
-      const textCh = await guild.channels.create({
-        name: `game-${String(channelCounter).padStart(2, '0')}`,
-        type: ChannelType.GuildText,
-        parent: category.id,
-        topic: `🎵 Game channel for ${member.displayName}. Type /lock, /unlock, /limit to control the voice channel.`,
-      });
-
-      await textCh.permissionOverwrites.create(guild.id, { ViewChannel: true, SendMessages: true });
-      await textCh.permissionOverwrites.create(member.id, { ManageChannels: true, MuteMembers: true, MoveMembers: true });
-
-      voiceTextLinks.set(vc.id, textCh.id);
-
-      await textCh.send({
+      // Send instructions to the voice channel's built-in text chat
+      await vc.send({
         embeds: [{
           color: 0x6c5ce7,
           title: `🎵 Game Room Created`,
           description:
-            `**Voice:** ${vcName}\n` +
             `**Host:** ${member.displayName}\n\n` +
-            `**Commands** (in this channel):\n` +
+            `**Commands** (type in this chat):\n` +
             `\`/lock\` — Lock the voice channel\n` +
             `\`/unlock\` — Unlock the voice channel\n` +
             `\`/limit <number>\` — Set user limit\n` +
@@ -575,38 +554,23 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     const vc = guild.channels.cache.get(vcId);
     if (!vc) {
       voiceOwners.delete(vcId);
-      voiceTextLinks.delete(vcId);
       return;
     }
 
     const membersInVC = vc.members.size;
 
-    // If the owner left, transfer ownership
+    // If the owner left and people remain, transfer ownership
     if (oldState.member?.id === voiceOwners.get(vcId) && membersInVC > 0) {
       const newOwner = vc.members.first();
       if (newOwner) {
         voiceOwners.set(vcId, newOwner.id);
-        const textChId = voiceTextLinks.get(vcId);
-        if (textChId) {
-          const textCh = guild.channels.cache.get(textChId);
-          if (textCh) {
-            await textCh.permissionOverwrites.delete(oldState.member.id).catch(() => {});
-            await textCh.permissionOverwrites.create(newOwner.id, { ManageChannels: true, MuteMembers: true, MoveMembers: true });
-            await textCh.send(`👑 **${newOwner.displayName}** is now the host!`);
-          }
-        }
+        try { await vc.send(`👑 **${newOwner.displayName}** is now the host!`); } catch {}
       }
     }
 
-    // If everyone left, delete the channels
+    // If everyone left, delete the channel
     if (membersInVC === 0) {
-      const textChId = voiceTextLinks.get(vcId);
-      if (textChId) {
-        const textCh = guild.channels.cache.get(textChId);
-        if (textCh) await textCh.delete().catch(() => {});
-      }
       voiceOwners.delete(vcId);
-      voiceTextLinks.delete(vcId);
       await vc.delete().catch(() => {});
     }
   }
