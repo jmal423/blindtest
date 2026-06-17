@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { Client, GatewayIntentBits, REST, Routes, EmbedBuilder, ChannelType, ActivityType } from 'discord.js';
+import { Client, GatewayIntentBits, REST, Routes, EmbedBuilder, ChannelType, ActivityType, Partials } from 'discord.js';
 import pg from 'pg';
 import {
   queues, handlePlay, handleSkip, handleStop, handleQueue,
@@ -34,6 +34,12 @@ const client = new Client({
     GatewayIntentBits.GuildVoiceStates,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
+    GatewayIntentBits.DirectMessages,
+  ],
+  partials: [
+    Partials.Message,
+    Partials.Channel,
+    Partials.Reaction,
   ],
 });
 
@@ -885,7 +891,28 @@ const xpCooldowns = new Map();
 
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
-  if (!message.guild) return;
+
+  // Handle DMs
+  if (!message.guild) {
+    const embed = new EmbedBuilder()
+      .setTitle('🎵 BlindTest Bot')
+      .setColor(0x6c5ce7)
+      .setDescription(
+        'Hey there! I\'m the BlindTest bot.\n\n' +
+        '**Commands (use in the server):**\n' +
+        '`/leaderboard` — Top players\n' +
+        '`/stats` — Your stats\n' +
+        '`/help` — All commands\n\n' +
+        '**How to play:**\n' +
+        '1. Join the **🎵 Create Voice** voice channel\n' +
+        '2. Click the ⚡ Activities button\n' +
+        '3. Select **BlindTest**\n\n' +
+        'Play at **https://blindtest.jl423.xyz**'
+      )
+      .setTimestamp();
+    await message.channel.send({ embeds: [embed] });
+    return;
+  }
 
   const content = message.content.toLowerCase();
   const member = message.member;
@@ -997,6 +1024,10 @@ client.on('interactionCreate', async (interaction) => {
 
 client.on('messageReactionAdd', async (reaction, user) => {
   if (user.bot) return;
+  // Handle partial reaction data
+  if (reaction.partial) await reaction.fetch();
+  if (reaction.message.partial) await reaction.message.fetch();
+
   const roleId = REACTION_ROLES[reaction.emoji.name];
   if (!roleId) return;
 
@@ -1013,6 +1044,9 @@ client.on('messageReactionAdd', async (reaction, user) => {
 
 client.on('messageReactionRemove', async (reaction, user) => {
   if (user.bot) return;
+  if (reaction.partial) await reaction.fetch();
+  if (reaction.message.partial) await reaction.message.fetch();
+
   const roleId = REACTION_ROLES[reaction.emoji.name];
   if (!roleId) return;
 
