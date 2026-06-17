@@ -27,6 +27,8 @@ const client = new Client({
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildMessageReactions,
     GatewayIntentBits.GuildVoiceStates,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
   ],
 });
 
@@ -250,6 +252,27 @@ const commands = [
       required: true,
     }],
     default_member_permissions: String(16n), // Manage Channels
+  },
+  // ── Utility Commands ──
+  {
+    name: 'ticket',
+    description: 'Open a support ticket',
+    options: [{
+      name: 'reason',
+      description: 'Brief description of your issue',
+      type: 3,
+      required: false,
+    }],
+  },
+  {
+    name: 'rank',
+    description: 'Show your chat level and XP',
+    options: [{
+      name: 'user',
+      description: 'User to check (leave empty for yourself)',
+      type: 6,
+      required: false,
+    }],
   },
 ];
 
@@ -509,6 +532,12 @@ client.on('interactionCreate', async (interaction) => {
         '`/timeout @user [minutes]` — Timeout a user\n' +
         '`/clear <count>` — Delete messages\n' +
         '`/slowmode <seconds>` — Set channel slowmode\n\n' +
+        '**Utility**\n' +
+        '`/ticket [reason]` — Open a support ticket\n' +
+        '`/rank [@user]` — Show chat level and XP\n\n' +
+        '**Auto-Mod**\n' +
+        'Invite links and mass-mentions are auto-deleted.\n' +
+        'Earn XP by chatting — level up!\n\n' +
         'Play at **https://blindtest.jl423.xyz**'
       )
       .setTimestamp();
@@ -616,6 +645,226 @@ client.on('interactionCreate', async (interaction) => {
       await interaction.editReply({ content: seconds === 0 ? '✅ Slowmode disabled.' : `✅ Slowmode set to ${seconds} seconds.` });
     }
   }
+});
+
+// ────────────────────────────────────────
+//  Ticket Command + Rank Command
+// ────────────────────────────────────────
+
+client.on('interactionCreate', async (interaction) => {
+  if (!interaction.isChatInputCommand()) return;
+  if (!['ticket', 'rank'].includes(interaction.commandName)) return;
+
+  const member = interaction.member;
+  if (!member) return;
+
+  if (interaction.commandName === 'ticket') {
+    await interaction.deferReply({ ephemeral: true });
+    const reason = interaction.options.getString('reason') || 'No reason provided';
+    const guild = interaction.guild;
+    if (!guild) return;
+
+    // Check for existing open ticket
+    const existing = guild.channels.cache.find(c =>
+      c.name.includes(interaction.user.id) && c.type === ChannelType.GuildText
+    );
+    if (existing) return interaction.editReply({ content: `❌ You already have an open ticket: ${existing}` });
+
+    // Find or create ticket category
+    let cat = guild.channels.cache.find(c => c.name === '🎫 TICKETS' && c.type === ChannelType.GuildCategory);
+    if (!cat) cat = await guild.channels.create({ name: '🎫 TICKETS', type: ChannelType.GuildCategory });
+
+    const ticketCh = await guild.channels.create({
+      name: `ticket-${interaction.user.username.toLowerCase().replace(/[^a-z0-9]/g, '')}-${interaction.user.id.slice(-4)}`,
+      type: ChannelType.GuildText,
+      parent: cat.id,
+      topic: `Ticket for ${interaction.user.id} — ${reason}`,
+      permissionOverwrites: [
+        { id: guild.id, deny: ['ViewChannel'] },
+        { id: interaction.user.id, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'] },
+        { id: client.user?.id || '', allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'] },
+      ],
+    });
+
+    const modRole = guild.roles.cache.find(r => r.name.includes('Moderator'));
+    if (modRole) {
+      await ticketCh.permissionOverwrites.create(modRole.id, {
+        ViewChannel: true, SendMessages: true, ReadMessageHistory: true,
+      });
+    }
+
+    const embed = {
+      color: 0x6c5ce7,
+      title: '🎫 Support Ticket',
+      description: `**User:** ${interaction.user}\n**Reason:** ${reason}\n\nA moderator will be with you shortly.`,
+    };
+
+    await ticketCh.send({ embeds: [embed], components: [{
+      type: 1,
+      components: [{
+        type: 2,
+        style: 4,
+        label: 'Close Ticket',
+        custom_id: 'close_ticket',
+        emoji: { name: '🔒' },
+      }],
+    }] });
+
+    await interaction.editReply({ content: `✅ Ticket created: ${ticketCh}` });
+  }
+
+  else if (interaction.commandName === 'rank') {
+    await interaction.deferReply();
+    const target = interaction.options.getUser('user') || interaction.user;
+
+    try {
+      const { rows } = await pool.query(
+        'SELECT chat_xp, chat_level FROM users WHERE discord_id = $1',
+        [target.id]
+      );
+
+      let xp = 0, level = 1;
+      if (rows.length > 0) {
+        xp = rows[0].chat_xp || 0;
+        level = rows[0].chat_level || 1;
+      }
+
+      const xpNeeded = level * 100;
+      const progress = Math.min(100, Math.floor((xp / xpNeeded) * 100));
+      const bar = '█'.repeat(Math.floor(progress / 10)) + '░'.repeat(10 - Math.floor(progress / 10));
+
+      const embed = {
+        color: 0x6c5ce7,
+        title: `${target.displayName}'s Chat Level`,
+        thumbnail: { url: target.displayAvatarURL() },
+        fields: [
+          { name: 'Level', value: String(level), inline: true },
+          { name: 'XP', value: `${xp} / ${xpNeeded}`, inline: true },
+          { name: 'Progress', value: `${bar} ${progress}%`, inline: false },
+        ],
+      };
+
+      await interaction.editReply({ embeds: [embed] });
+    } catch (e) {
+      console.error('Rank error:', e.message);
+      await interaction.editReply({ content: '❌ Failed to fetch rank.' });
+    }
+  }
+});
+
+// ────────────────────────────────────────
+//  Auto-Mod + Leveling (Message Events)
+// ────────────────────────────────────────
+
+const BAD_WORDS = ['discord\\.gg/', 'discord\\.com/invite', 'discord\\.me/'];
+const xpCooldowns = new Map();
+
+client.on('messageCreate', async (message) => {
+  if (message.author.bot) return;
+  if (!message.guild) return;
+
+  const content = message.content.toLowerCase();
+  const member = message.member;
+  if (!member) return;
+
+  // ── Auto-Mod ──
+  const modRole = message.guild.roles.cache.find(r => r.name.includes('Moderator'));
+  const isMod = modRole && member.roles.cache.has(modRole.id);
+
+  if (!isMod) {
+    // Check for invite links
+    if (/discord\.(gg|com|me|io)\/\S+/i.test(content)) {
+      await message.delete().catch(() => {});
+      const warnMsg = await message.channel.send({ content: `${message.author}, please don't post invite links here.` });
+      setTimeout(() => warnMsg.delete().catch(() => {}), 4000);
+
+      const log = message.guild.channels.cache.find(c => c.name === 'mod-logs');
+      if (log) await log.send({ embeds: [{
+        color: 0xf59e0b, title: 'Auto-Mod: Invite Link',
+        fields: [{ name: 'User', value: `${message.author.tag} (${message.author.id})`, inline: true }, { name: 'Channel', value: `${message.channel}`, inline: true }],
+        timestamp: new Date().toISOString(),
+      }] });
+      return;
+    }
+
+    // Check for excessive mentions (>5)
+    if (message.mentions.users.size > 5) {
+      await message.delete().catch(() => {});
+      const warnMsg = await message.channel.send({ content: `${message.author}, please don't mass-mention users.` });
+      setTimeout(() => warnMsg.delete().catch(() => {}), 4000);
+      return;
+    }
+  }
+
+  // ── Leveling/XP ──
+  const cooldownKey = `${message.author.id}:${message.guild.id}`;
+  const now = Date.now();
+  const lastXp = xpCooldowns.get(cooldownKey) || 0;
+
+  if (now - lastXp >= 30000) { // 30 second cooldown
+    xpCooldowns.set(cooldownKey, now);
+
+    try {
+      const gain = Math.floor(Math.random() * 10) + 5; // 5-15 XP per message
+      await pool.query(`
+        UPDATE users SET chat_xp = COALESCE(chat_xp, 0) + $1 WHERE discord_id = $2
+      `, [gain, message.author.id]);
+
+      // Check level-up
+      const { rows } = await pool.query(
+        'SELECT chat_xp, chat_level FROM users WHERE discord_id = $1',
+        [message.author.id]
+      );
+
+      if (rows.length > 0) {
+        let xp = rows[0].chat_xp || 0;
+        let level = rows[0].chat_level || 1;
+        const needed = level * 100;
+
+        if (xp >= needed) {
+          xp -= needed;
+          level++;
+          await pool.query(`
+            UPDATE users SET chat_xp = $1, chat_level = $2 WHERE discord_id = $3
+          `, [xp, level, message.author.id]);
+
+          const levelUpMsg = await message.channel.send({
+            content: `🎉 **${message.author.displayName}** reached **Level ${level}!**`,
+          });
+          setTimeout(() => levelUpMsg.delete().catch(() => {}), 5000);
+        }
+      }
+    } catch (e) {
+      console.error('XP error:', e.message);
+    }
+  }
+});
+
+// ────────────────────────────────────────
+//  Ticket Close Button
+// ────────────────────────────────────────
+
+client.on('interactionCreate', async (interaction) => {
+  if (!interaction.isButton()) return;
+  if (interaction.customId !== 'close_ticket') return;
+
+  const channel = interaction.channel;
+  if (!channel || !channel.name.startsWith('ticket-')) return;
+
+  const modRole = interaction.guild?.roles.cache.find(r => r.name.includes('Moderator'));
+  const isMod = modRole && interaction.member && 'roles' in interaction.member && interaction.member.roles.cache.has(modRole.id);
+  const isOwner = interaction.guild?.ownerId === interaction.user.id;
+
+  if (!isMod && !isOwner) {
+    return interaction.reply({ content: '❌ Only moderators can close tickets.', ephemeral: true });
+  }
+
+  await interaction.reply({ content: '🔒 Closing ticket in 3 seconds...' });
+  setTimeout(async () => {
+    try {
+      await channel.delete();
+    } catch {}
+  }, 3000);
 });
 
 // ────────────────────────────────────────
