@@ -45,17 +45,23 @@ export default function ProfilePage() {
     }
 
     try {
-      const [s, st, fr] = await Promise.all([
-        getMyScores(),
-        getMyStats(),
-        getFriends()
-      ]);
+      const s = await getMyScores();
       setScores(s);
+    } catch (err) {
+      console.error('Failed to load scores:', err);
+    }
+    try {
+      const st = await getMyStats();
       setStats(st);
+    } catch (err) {
+      console.error('Failed to load stats:', err);
+    }
+    try {
+      const fr = await getFriends();
       setFriends(fr.friends || []);
       setPending(fr.pending || []);
     } catch (err) {
-      console.error('Failed to load profile details:', err);
+      console.error('Failed to load friends:', err);
     }
   }, [router]);
 
