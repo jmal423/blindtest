@@ -39,6 +39,7 @@ const NAV_GROUPS = [
     label: 'System & Developer',
     items: [
       { href: '/admin/system/metrics', label: 'Metrics', icon: '📈' },
+      { href: '/admin/system/logs', label: 'Logs', icon: '📋' },
       { href: '/admin/system/api-tester', label: 'API Tester', icon: '⚡' },
     ],
   },
@@ -186,6 +187,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     '/admin/game/leaderboard': 'Leaderboard',
     '/admin/users': 'Users',
     '/admin/system/metrics': 'Metrics',
+    '/admin/system/logs': 'Logs',
     '/admin/system/api-tester': 'API Tester',
   };
 

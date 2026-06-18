@@ -1354,6 +1354,26 @@ app.get('/api/admin/system/info', requireAdmin, async (req, res) => {
   }
 });
 
+app.get('/api/admin/logs', requireAdmin, async (req, res) => {
+  try {
+    const lines = Math.min(parseInt(req.query.lines) || 100, 500);
+    const { execSync } = await import('node:child_process');
+    let output = '';
+    try {
+      if (process.platform === 'linux') {
+        output = execSync(`journalctl -u blindtest-backend.service --no-pager -n ${lines} 2>/dev/null || tail -n ${lines} /var/log/blindtest-backend.log 2>/dev/null || echo 'No log source found'`, { timeout: 5000 }).toString();
+      } else {
+        output = 'Verbose logs only available on Linux with systemd';
+      }
+    } catch {
+      output = 'Could not retrieve logs';
+    }
+    res.json({ ok: true, lines: output.split('\n').filter(Boolean).reverse() });
+  } catch (err) {
+    res.json({ ok: false, error: err.message, lines: [] });
+  }
+});
+
 const PORT = process.env.PORT || 3001;
 const HOST = process.env.HOST || '0.0.0.0';
 server.listen(PORT, HOST, () => {

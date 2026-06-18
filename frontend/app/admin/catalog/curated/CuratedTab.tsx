@@ -12,6 +12,7 @@ import {
   importToCurated,
   getUnverifiedSongs,
   getTrackPreviewUrl,
+  fillCuratedGenre,
 } from '@/lib/api';
 import { useAdminAudio } from '../../hooks/useAdminAudio';
 import { StatCard } from '../../components/StatCard';
@@ -61,6 +62,9 @@ export function CuratedTab() {
   // Use the custom audio hook
   const { playingTrackId, togglePreview, AudioPlayerOverlay, stopPreview } = useAdminAudio();
   const [fetchingPreview, setFetchingPreview] = useState<string | null>(null);
+  const [fillingGenre, setFillingGenre] = useState<string | null>(null);
+  const [fillMsg, setFillMsg] = useState<{ genre: string; msg: string } | null>(null);
+  const [fillDetails, setFillDetails] = useState<any[] | null>(null);
 
   const fetchPreview = async (songId: string) => {
     setFetchingPreview(songId);
@@ -128,6 +132,22 @@ export function CuratedTab() {
     if (showVerify) loadUnverified(0, unverifiedSearch);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showVerify]);
+
+  const handleFill = async (genre: string) => {
+    setFillingGenre(genre);
+    setFillMsg(null);
+    setFillDetails(null);
+    try {
+      const res = await fillCuratedGenre(genre);
+      setFillMsg({ genre, msg: res.message || `Added ${res.added} songs` });
+      if (res.details && res.details.length > 0) setFillDetails(res.details);
+      loadStats();
+    } catch (e: any) {
+      setFillMsg({ genre, msg: e.message || 'Failed' });
+    }
+    setFillingGenre(null);
+    setTimeout(() => setFillMsg(null), 8000);
+  };
 
   const handleUnverifiedSearchInput = (val: string) => {
     setUnverifiedSearchInput(val);
@@ -309,6 +329,29 @@ export function CuratedTab() {
       {AudioPlayerOverlay}
 
       {/* Curated status grid */}
+      {/* Fill verbose results */}
+      {fillDetails && fillDetails.length > 0 && (
+        <div className="rounded-2xl p-4" style={{ backgroundColor: 'color-mix(in srgb, var(--surface) 60%, transparent)', border: '1px solid color-mix(in srgb, var(--foreground) 5%, transparent)' }}>
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-foreground/60">Fill Results</h4>
+            <button onClick={() => setFillDetails(null)} className="text-[10px] text-foreground/40 hover:text-foreground">✕</button>
+          </div>
+          <div className="max-h-60 overflow-y-auto space-y-1 font-mono text-[10px]">
+            {fillDetails.map((d, i) => (
+              <div key={i} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-white/[0.02]"
+                style={{ color: d.curated ? '#34d399' : d.error ? '#ef4444' : '#a0a0b0' }}>
+                <span>{d.curated ? '✓' : d.error ? '✗' : '—'}</span>
+                <span className="truncate max-w-[120px]">{d.name}</span>
+                <span className="truncate max-w-[100px] text-foreground/40">{d.artist}</span>
+                <span className="ml-auto">
+                  {d.aiGenre ? `→ ${d.aiGenre}` : d.error ? d.error : 'UNCLASSIFIED'}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
         <StatCard value={stats?.total ?? '-'} label="Total Curated" color="var(--primary)" glowColor="rgba(108,92,231,0.15)" icon="✨" />
         <StatCard value={stats?.verified ?? '-'} label={`Verified (${verifiedPct}%)`} color="#10b981" glowColor="rgba(16,185,129,0.15)" icon="✓" />
@@ -683,6 +726,20 @@ export function CuratedTab() {
                     {g.verified}/{g.total} verified
                   </span>
                   <span className="text-[10px] text-foreground/40 w-16 text-right tabular-nums hidden sm:block">{g.total_plays} plays</span>
+                  {g.total < 50 && (
+                    <button onClick={() => handleFill(g.genre)} disabled={fillingGenre === g.genre}
+                      className="text-[9px] font-bold px-2 py-1 rounded-lg ml-2 shrink-0 transition-all disabled:opacity-30"
+                      style={{
+                        backgroundColor: fillMsg?.genre === g.genre ? 'color-mix(in srgb, #00b894 20%, transparent)' : 'color-mix(in srgb, var(--accent) 15%, transparent)',
+                        color: fillMsg?.genre === g.genre ? '#00b894' : 'var(--accent)',
+                        border: '1px solid color-mix(in srgb, var(--accent) 25%, transparent)',
+                      }}>
+                      {fillingGenre === g.genre ? '...' : fillMsg?.genre === g.genre ? fillMsg.msg : `Fill ${50 - g.total}`}
+                    </button>
+                  )}
+                  {fillMsg?.genre === g.genre && fillingGenre !== g.genre && (
+                    <span className="text-[9px] text-green-400 ml-1">{fillMsg.msg}</span>
+                  )}
                   <svg
                     className={`w-3 h-3 text-foreground/40 transition-transform shrink-0 ${selectedGenre === g.genre ? 'rotate-90' : ''}`}
                     fill="none"

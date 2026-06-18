@@ -519,7 +519,11 @@ export async function getSystemInfo(): Promise<{
   return fetchWithAuth(`${API_URL}/api/admin/system/info`);
 }
 
-export async function fillCuratedGenre(genre: string): Promise<{ ok: boolean; message?: string; added?: number; error?: string }> {
+export async function getBackendLogs(lines = 100): Promise<{ ok: boolean; lines: string[]; error?: string }> {
+  return fetchWithAuth(`${API_URL}/api/admin/logs?lines=${lines}`);
+}
+
+export async function fillCuratedGenre(genre: string): Promise<{ ok: boolean; message?: string; added?: number; total?: number; elapsed?: number; details?: any[]; error?: string }> {
   return fetchWithAuth(`${API_URL}/api/admin/curated/fill`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

@@ -29,27 +29,31 @@ const DEEZER_MAP = {
 };
 
 export async function fillGenre(genreId, db) {
+  const startTime = Date.now();
   const row = await db.get('SELECT COUNT(*)::int as c FROM curation WHERE genre_id = ?', [genreId]);
   const currentCount = row?.c || 0;
   const needed = TARGET - currentCount;
-  if (needed <= 0) return { ok: true, message: `${currentCount} songs (>= ${TARGET})`, added: 0 };
+  if (needed <= 0) return { ok: true, message: `Already ${currentCount} songs (>= ${TARGET})`, added: 0, details: [] };
 
-  console.log(`[Fill] ${genreId}: need ${needed} more`);
+  console.log(`[Fill] ${genreId}: have ${currentCount}, need ${needed} more`);
 
   // 1. Fetch from Deezer
-  const tracks = await getCustomGenreTracks(genreId, Math.min(needed * 2, 100));
-  if (tracks.length === 0) return { ok: false, message: `No tracks found for ${genreId}`, added: 0 };
+  const fetchLimit = Math.min(needed * 2, 100);
+  const tracks = await getCustomGenreTracks(genreId, fetchLimit);
+  if (tracks.length === 0) return { ok: false, message: `No Deezer tracks found for ${genreId}`, added: 0, details: [] };
 
-  // 2. Cache
+  // 2. Cache to tracks table
   const { cacheSongs } = await import('./db.js');
   await cacheSongs(tracks);
 
   // 3. Classify via Ollama and curate
   const OLLAMA_URL = process.env.OLLAMA_URL || 'http://127.0.0.1:11434';
   const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'blindtest-classifier';
-  let added = 0;
+  const details = [];
 
   for (const t of tracks) {
+    const entry = { name: t.name, artist: t.artist, deezerTags: t.genres || [], aiGenre: null, curated: false, error: null };
+
     try {
       const res = await fetch(`${OLLAMA_URL}/api/generate`, {
         method: 'POST',
@@ -63,20 +67,22 @@ export async function fillGenre(genreId, db) {
       });
       const data = await res.json();
       const raw = (data.response || '').trim();
+      entry.rawOutput = raw;
 
-      // Match genre from model output
       let matched = 'UNCLASSIFIED';
       for (const g of GENRE_LIST) {
         if (g !== 'UNCLASSIFIED' && raw.startsWith(g)) { matched = g; break; }
       }
 
-      // Override with Deezer tags if available
+      // Override with Deezer tags
       if (t.genres && t.genres.length) {
         for (const tag of t.genres) {
           const key = (tag || '').toLowerCase().trim();
           if (DEEZER_MAP[key]) { matched = DEEZER_MAP[key]; break; }
         }
       }
+
+      entry.aiGenre = matched;
 
       if (matched !== 'UNCLASSIFIED' && matched !== 'GL_other') {
         await db.run(
@@ -85,20 +91,31 @@ export async function fillGenre(genreId, db) {
           [t.id, matched]
         );
 
-        // Curate if matches target genre
         if (matched === genreId) {
           await db.run(
             `INSERT INTO curation (track_id, genre_id, verified, curated_by, curated_at)
              VALUES (?, ?, true, 'auto-fill', NOW()) ON CONFLICT (track_id) DO NOTHING`,
             [t.id, genreId]
           );
-          added++;
+          entry.curated = true;
         }
       }
     } catch (err) {
-      console.error(`[Fill] Error on ${t.name}:`, err.message);
+      entry.error = err.message;
     }
+    details.push(entry);
   }
 
-  return { ok: true, message: `Added ${added} songs to ${genreId}`, added };
+  const added = details.filter(d => d.curated).length;
+  const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+  console.log(`[Fill] ${genreId}: ${added}/${tracks.length} curated in ${elapsed}s`);
+
+  return {
+    ok: true,
+    message: `Added ${added}/${tracks.length} songs to ${genreId} in ${elapsed}s`,
+    added,
+    total: tracks.length,
+    elapsed: parseFloat(elapsed),
+    details,
+  };
 }
