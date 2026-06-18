@@ -1143,10 +1143,10 @@ app.post('/api/admin/curated/import', requireAdmin, async (req, res) => {
       const s = await getSongById(id);
       if (!s) continue;
       await addCuratedSong({
-        id: s.id, name: s.name, artist: s.artist,
-        preview_url: s.previewUrl, duration_ms: s.durationMs,
-        genre: genre || s.genre || 'other',
-        chart_source: s.chartSource,
+        id: s.id, name: s.name, artist: s.artist_name,
+        preview_url: s.preview_url, duration_ms: s.duration_ms,
+        genre: genre || s.ai_genre || 'other',
+        chart_source: s.chart_source,
         verified: false,
       });
       imported++;
@@ -1174,6 +1174,30 @@ app.post('/api/admin/curated/update-genre', requireAdmin, async (req, res) => {
     res.json({ ok: true });
   } catch (err) {
     res.json({ ok: false, error: err.message });
+  }
+});
+
+app.get('/api/admin/flags', requireAdmin, async (req, res) => {
+  try {
+    const { getFlaggedSongs } = await import('./db.js');
+    const limit = Math.min(parseInt(req.query.limit) || 50, 200);
+    const offset = parseInt(req.query.offset) || 0;
+    const songs = await getFlaggedSongs(limit, offset);
+    res.json({ ok: true, songs });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message, songs: [] });
+  }
+});
+
+app.post('/api/admin/flags/dismiss', requireAdmin, async (req, res) => {
+  try {
+    const { songId } = req.body;
+    if (!songId) return res.status(400).json({ ok: false, error: 'Missing songId' });
+    const { dismissSongFlags } = await import('./db.js');
+    await dismissSongFlags(songId);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
   }
 });
 

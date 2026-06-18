@@ -19,6 +19,7 @@ const NAV_GROUPS = [
       { href: '/admin/catalog/library', label: 'Library', icon: '💾' },
       { href: '/admin/catalog/triage', label: 'Triage', icon: '🔍' },
       { href: '/admin/catalog/curated', label: 'Curated', icon: '✨' },
+      { href: '/admin/catalog/flags', label: 'Reports', icon: '🚩' },
     ],
   },
   {

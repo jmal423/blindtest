@@ -488,6 +488,22 @@ export async function updateCuratedSongGenre(songId: string, genre: string): Pro
   });
 }
 
+export async function getFlaggedSongs(limit = 50, offset = 0): Promise<{
+  ok: boolean;
+  songs: { song_id: string; name: string; artist: string; genre: string; flag_count: number; reasons: Record<string, number> }[];
+  error?: string;
+}> {
+  return fetchWithAuth(`${API_URL}/api/admin/flags?limit=${limit}&offset=${offset}`);
+}
+
+export async function dismissSongFlags(songId: string): Promise<{ ok: boolean; error?: string }> {
+  return fetchWithAuth(`${API_URL}/api/admin/flags/dismiss`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ songId }),
+  });
+}
+
 export async function deleteCuratedSong(songId: string): Promise<{ ok: boolean }> {
   return fetchWithAuth(`${API_URL}/api/admin/curated/${songId}`, { method: 'DELETE' });
 }

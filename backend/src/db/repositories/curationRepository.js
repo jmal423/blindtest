@@ -90,7 +90,7 @@ export async function getUnverifiedCuratedSongs(limit, offset, search) {
          AND (t.name ILIKE ? OR t.artist_name ILIKE ?)`,
       [like, like]
     );
-    return { rows: mapRows(rows), count: countRow.count };
+    return { songs: mapRows(rows), total: countRow.count };
   }
 
   const rows = await all(
@@ -107,7 +107,7 @@ export async function getUnverifiedCuratedSongs(limit, offset, search) {
     [limit, offset]
   );
   const countRow = await get(`SELECT COUNT(*) as count FROM curation WHERE verified = FALSE`);
-  return { rows: mapRows(rows), count: countRow.count };
+  return { songs: mapRows(rows), total: countRow.count };
 }
 
 export async function countCuratedSongsByGenre(genre) {
