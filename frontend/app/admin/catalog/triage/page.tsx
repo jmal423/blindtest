@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { getUnclassifiedTracks, updateAiGenre, deleteAiTrack, fetchGenres } from '@/lib/api';
 import { useSettings } from '@/app/context/SettingsContext';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import GenreSelect from '../../components/GenreSelect';
 
 interface Track {
   id: string;
@@ -274,6 +275,8 @@ export default function TriagePage() {
   const [successMsg, setSuccessMsg] = useState('');
   const [collapsedArtists, setCollapsedArtists] = useState<Set<string>>(new Set());
   const [audioPlayingId, setAudioPlayingId] = useState<string | null>(null);
+  const [massAssignGenre, setMassAssignGenre] = useState<Record<string, string>>({});
+  const [massAssigning, setMassAssigning] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const loadData = async () => {
@@ -406,12 +409,32 @@ export default function TriagePage() {
           return (
             <div key={artist} className="rounded-2xl overflow-hidden"
               style={{ backgroundColor: 'color-mix(in srgb, var(--surface) 60%, transparent)', border: '1px solid color-mix(in srgb, var(--foreground) 5%, transparent)' }}>
-              <button onClick={() => setCollapsedArtists(prev => { const n = new Set(prev); n.has(artist) ? n.delete(artist) : n.add(artist); return n; })}
-                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/[0.01] transition-all text-left">
-                <span className={`text-xs text-foreground/30 transition-transform ${collapsed ? '' : 'rotate-90'}`}>▶</span>
-                <span className="font-bold text-sm text-foreground/90">{artist}</span>
-                <span className="text-[10px] text-foreground/40 bg-white/5 px-2 py-0.5 rounded-full">{songs.length}</span>
-              </button>
+              <div className="w-full flex items-center gap-3 px-4 py-3">
+                <button onClick={() => setCollapsedArtists(prev => { const n = new Set(prev); n.has(artist) ? n.delete(artist) : n.add(artist); return n; })}
+                  className="flex items-center gap-3 flex-1 text-left hover:bg-white/[0.01] transition-all">
+                  <span className={`text-xs text-foreground/30 transition-transform ${collapsed ? '' : 'rotate-90'}`}>▶</span>
+                  <span className="font-bold text-sm text-foreground/90">{artist}</span>
+                  <span className="text-[10px] text-foreground/40 bg-white/5 px-2 py-0.5 rounded-full">{songs.length}</span>
+                </button>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <GenreSelect value={massAssignGenre[artist] || ''} onChange={v => setMassAssignGenre(p => ({ ...p, [artist]: v }))}
+                    genres={genres} placeholder="Assign all..." compact />
+                  <button onClick={async () => {
+                    const g = massAssignGenre[artist];
+                    if (!g) return;
+                    setMassAssigning(artist);
+                    for (const t of songs) {
+                      await updateAiGenre(t.id, g).catch(() => {});
+                    }
+                    setTracks(prev => prev.filter(t => t.artist !== artist));
+                    setMassAssigning(null);
+                    setMassAssignGenre(p => { const n = { ...p }; delete n[artist]; return n; });
+                  }} disabled={!massAssignGenre[artist] || massAssigning === artist}
+                    className="text-[9px] font-bold px-2 py-1 rounded-lg bg-blue-500/15 text-blue-400 border border-blue-500/20 hover:bg-blue-500/35 transition-all disabled:opacity-30">
+                    {massAssigning === artist ? '...' : '✓ All'}
+                  </button>
+                </div>
+              </div>
 
               {!collapsed && (
                 <div className="divide-y" style={{ borderTop: '1px solid color-mix(in srgb, var(--foreground) 5%, transparent)' }}>
