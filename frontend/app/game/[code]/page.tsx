@@ -422,7 +422,7 @@ export default function GamePage({
                   {(gameState as any).genres?.slice(0, 3).join(', ')}{(gameState as any).genres?.length > 3 ? ` +${(gameState as any).genres.length - 3}` : ''}
                 </span>
               )}
-<span>{(gameState as any).settings?.rounds ?? gameState.totalRounds} rounds</span>
+<span>{(gameState as any).settings?.rounds ?? gameState.totalRounds} {t('rounds')}</span>
                <span>{(gameState as any).settings?.roundTime ?? 15}s</span>
             </div>
           )}
