@@ -89,14 +89,9 @@ export async function fillGenre(genreId, db) {
       }
     }
 
-    // 3. Fallback: track came from a Deezer playlist for this genre, trust it
-    if (matched === 'UNCLASSIFIED' && genreId !== 'UNCLASSIFIED' && genreId !== 'GL_other') {
-      matched = genreId;
-    }
-
     entry.aiGenre = matched;
 
-    // 4. Always insert classification + curation if we have a valid match
+    // 3. Always insert classification + curation if we have a valid match
     if (matched !== 'UNCLASSIFIED' && matched !== 'GL_other') {
       await db.run(
         `INSERT INTO classifications (track_id, genre_id, confidence, source, created_at)
