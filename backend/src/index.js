@@ -488,8 +488,18 @@ app.get('/api/users/me/history', authenticate, async (req, res) => {
 app.get('/api/users/me/stats', authenticate, async (req, res) => {
   const userId = req.user.userId;
   try {
-    const stats = await getPlayerStats(userId);
-    res.json(stats);
+    const s = await getPlayerStats(userId);
+    res.json({
+      totalPoints: s.total_points ?? s.totalPoints ?? 0,
+      averageSpeedMs: s.avg_speed ?? s.averageSpeedMs ?? null,
+      bestGenre: s.best_genre ?? s.bestGenre ?? null,
+      gamesPlayed: s.games ?? s.gamesPlayed ?? 0,
+      avgScore: s.avg_score ?? s.avgScore ?? 0,
+      bestScore: s.best_score ?? s.bestScore ?? 0,
+      totalRounds: s.total_rounds ?? s.totalRounds ?? 0,
+      roundPoints: s.round_points ?? s.roundPoints ?? 0,
+      perfects: s.perfects ?? 0,
+    });
   } catch (err) {
     // Fallback to old stats
     const [totalPoints, avgSpeed, bestGenre] = await Promise.all([
