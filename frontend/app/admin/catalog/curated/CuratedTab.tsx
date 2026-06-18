@@ -730,14 +730,14 @@ export function CuratedTab() {
                     <button onClick={() => handleFill(g.genre)} disabled={fillingGenre === g.genre}
                       className="text-[9px] font-bold px-2 py-1 rounded-lg ml-2 shrink-0 transition-all disabled:opacity-30"
                       style={{
-                        backgroundColor: fillMsg?.genre === g.genre ? 'color-mix(in srgb, #00b894 20%, transparent)' : 'color-mix(in srgb, var(--accent) 15%, transparent)',
-                        color: fillMsg?.genre === g.genre ? '#00b894' : 'var(--accent)',
+                        backgroundColor: (fillMsg && fillMsg.genre === g.genre) ? 'color-mix(in srgb, #00b894 20%, transparent)' : 'color-mix(in srgb, var(--accent) 15%, transparent)',
+                        color: (fillMsg && fillMsg.genre === g.genre) ? '#00b894' : 'var(--accent)',
                         border: '1px solid color-mix(in srgb, var(--accent) 25%, transparent)',
                       }}>
-                      {fillingGenre === g.genre ? '...' : fillMsg?.genre === g.genre ? fillMsg.msg : `Fill ${50 - g.total}`}
+                      {fillingGenre === g.genre ? '...' : (fillMsg && fillMsg.genre === g.genre) ? fillMsg.msg : `Fill ${50 - g.total}`}
                     </button>
                   )}
-                  {fillMsg?.genre === g.genre && fillingGenre !== g.genre && (
+                  {fillMsg && fillMsg.genre === g.genre && fillingGenre !== g.genre && (
                     <span className="text-[9px] text-green-400 ml-1">{fillMsg.msg}</span>
                   )}
                   <svg
