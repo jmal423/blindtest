@@ -10,7 +10,6 @@ const pool = new pg.Pool({
 export async function fetchUnprocessedTracks(limit = config.batchSize) {
   const client = await pool.connect();
   try {
-    await client.query('BEGIN');
     const { rows } = await client.query(`
       SELECT t.id, t.name, t.artist_name as artist, t.deezer_genres as genres,
              t.chart_source as "chartSource", t.rank
@@ -18,13 +17,8 @@ export async function fetchUnprocessedTracks(limit = config.batchSize) {
       WHERE NOT EXISTS (SELECT 1 FROM classifications c WHERE c.track_id = t.id)
       ORDER BY t.rank DESC
       LIMIT $1
-      FOR UPDATE SKIP LOCKED
     `, [limit]);
-    await client.query('COMMIT');
     return rows;
-  } catch (err) {
-    await client.query('ROLLBACK').catch(() => {});
-    throw err;
   } finally {
     client.release();
   }
