@@ -102,6 +102,7 @@ export async function fillGenre(genreId, db) {
       }
     } catch (err) {
       entry.error = err.message;
+      if (err.message) console.error(`[Fill] Ollama error for "${t.name}":`, err.message);
     }
     details.push(entry);
   }
