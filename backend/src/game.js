@@ -558,7 +558,7 @@ export class GameRoom {
 
     // Persist round result to database
     if (this.gameId) {
-      import('./db.js').then(({ addRoundResultV2, insertRoundResult }) => {
+      import('./db.js').then(({ addRoundResultV2, insertRoundResult, recordSongFound, recordSongPlayed }) => {
         addRoundResultV2(
           crypto.randomUUID(), this.gameId, player.userId || player.id, player.name,
           this.tracksPlayed + 1, track.name, track.artist, track.genre,
@@ -567,6 +567,11 @@ export class GameRoom {
         ).then(() => {
           console.log(`[DB] R${this.tracksPlayed + 1} ${player.name}: ${pointsThisGuess}pts (${answer})`);
         }).catch(err => console.error('[DB] Failed to save round result v2:', err.message));
+
+        // Track difficulty: if player found the song, increment found_count
+        if (bothNow && track.id) {
+          recordSongFound(track.id).catch(() => {});
+        }
 
         // Also save to old table for authenticated users
         if (player.userId) {
@@ -719,13 +724,14 @@ export class GameRoom {
     });
     if (this.trackHistory.length > 100) this.trackHistory = this.trackHistory.slice(-100);
 
-    // Record this song as played for recency weighting
+    // Record this song as played for recency weighting and difficulty
     if (this.gameId && track.id) {
-      import('./db.js').then(({ recordPlay, incrementCuratedPlayedCount }) => {
+      import('./db.js').then(({ recordPlay, incrementCuratedPlayedCount, recordSongPlayed }) => {
         recordPlay(track.id, this.gameId)
           .then(() => console.log(`[DB] Recorded play: ${track.name}`))
           .catch(err => console.error('[DB] Failed to record play:', err.message));
         incrementCuratedPlayedCount(track.id).catch(() => {});
+        recordSongPlayed(track.id).catch(() => {});
       }).catch(() => {});
     }
 
