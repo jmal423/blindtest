@@ -47,7 +47,7 @@ export async function getLeaderboardV2(limit) {
        u.avatar_url
      FROM game_players gp
      JOIN games g ON g.id = gp.game_id
-     LEFT JOIN users u ON u.id = gp.user_id
+     LEFT JOIN users u ON u.id = gp.player_id
      WHERE g.status = 'finished'
      GROUP BY gp.player_id, u.avatar_url
      ORDER BY total_score DESC

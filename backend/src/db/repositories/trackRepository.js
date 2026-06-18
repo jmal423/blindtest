@@ -61,8 +61,8 @@ export async function cacheSongsFromDeezer(tracks) {
   for (const t of tracks) {
     const genresJson = JSON.stringify(t.genres || []);
     await run(
-      `INSERT INTO tracks (id, name, artist_name, album_image, preview_url, duration_ms, rank, source, chart_source, deezer_genres)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb)
+      `INSERT INTO tracks (id, name, artist_name, album_image, preview_url, duration_ms, rank, chart_source, deezer_genres)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb)
        ON CONFLICT (id) DO UPDATE SET
          name = EXCLUDED.name,
          artist_name = EXCLUDED.artist_name,
@@ -73,7 +73,7 @@ export async function cacheSongsFromDeezer(tracks) {
          chart_source = EXCLUDED.chart_source,
          deezer_genres = EXCLUDED.deezer_genres,
          fetched_at = NOW()`,
-      [t.id, t.name, t.artist, t.albumImage, t.previewUrl, t.durationMs, t.rank || 0, 'deezer', t.chartSource || null, genresJson]
+      [t.id, t.name, t.artist, t.albumImage, t.previewUrl, t.durationMs, t.rank || 0, t.chartSource || null, genresJson]
     );
   }
 }
@@ -82,9 +82,9 @@ export async function cacheSongsFromDeezer(tracks) {
 
 export async function recordPlay(songId, gameId) {
   await run(
-    `INSERT INTO track_plays (id, track_id, game_id)
-     VALUES (gen_random_uuid()::text, ?, ?)
-     ON CONFLICT (id) DO NOTHING`,
+     `INSERT INTO track_plays (id, track_id, game_id)
+      VALUES (gen_random_uuid(), ?, ?)
+      ON CONFLICT (id) DO NOTHING`,
     [songId, gameId]
   );
 }

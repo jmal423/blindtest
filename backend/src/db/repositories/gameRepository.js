@@ -2,9 +2,9 @@ import { query, get, all, run } from '../connection.js';
 
 export async function insertRoundResult(userId, gameId, genre, trackId, guessTimeMs, pointsEarned, isCorrect) {
   await run(
-    `INSERT INTO round_answers (id, game_id, player_id, player_name, round_number, track_id, genre_id,
-                                guess_time_ms, points_earned, found_artist, found_title, found_both)
-     VALUES (gen_random_uuid()::text, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     `INSERT INTO round_answers (id, game_id, player_id, player_name, round_number, track_id, genre_id,
+                                 guess_time_ms, points_earned, found_artist, found_title, found_both)
+      VALUES (gen_random_uuid(), ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [gameId, userId, genre, trackId, guessTimeMs, pointsEarned, isCorrect ? 1 : 0, isCorrect ? 1 : 0, isCorrect ? 1 : 0]
   );
 }
