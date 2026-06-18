@@ -21,10 +21,20 @@ PROMPT = """Track: "{title}" by {artist}
 Genre:"""
 
 def load_data():
-    print("[Data] Loading curated songs...")
+    print("[Data] Loading classified tracks...")
     conn = psycopg2.connect(DB_URL)
     cur = conn.cursor()
-    cur.execute("SELECT name, artist, genre FROM curated_songs WHERE verified = TRUE AND genre IS NOT NULL")
+    cur.execute("""
+        SELECT DISTINCT ON (t.id)
+            t.name, t.artist_name,
+            COALESCE(cu.genre_id, c.genre_id) as genre
+        FROM tracks t
+        JOIN classifications c ON c.track_id = t.id
+        LEFT JOIN curation cu ON cu.track_id = t.id
+        WHERE COALESCE(cu.genre_id, c.genre_id) NOT IN ('UNCLASSIFIED', 'GL_other')
+          AND c.confidence >= 0.5
+        ORDER BY t.id, c.created_at DESC
+    """)
     rows = cur.fetchall()
     cur.close()
     conn.close()
