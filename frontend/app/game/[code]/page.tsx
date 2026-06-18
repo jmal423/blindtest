@@ -1193,6 +1193,9 @@ function WaitingRoom({
             <SliderSetting label={t('time_per_round')} value={settings.roundTime} min={8} max={30} suffix="s" isHost={isHost} onChange={v => onSettingsChange({ roundTime: v })} />
             <SliderSetting label={t('pause_between')} value={settings.pauseTime} min={2} max={15} suffix="s" isHost={isHost} onChange={v => onSettingsChange({ pauseTime: v })} />
             <SliderSetting label={t('difficulty')} value={settings.difficulty} min={0} max={10} isHost={isHost} onChange={v => onSettingsChange({ difficulty: v })} />
+            <p className="text-[10px] text-foreground/30 text-center -mt-1">
+              {settings.difficulty <= 3 ? t('difficulty_easy') : settings.difficulty <= 7 ? t('difficulty_normal') : t('difficulty_hard')}
+            </p>
 
             {isHost && (
               <div className="pt-2 border-t border-white/5">

@@ -130,6 +130,7 @@ export default function RoomsPage() {
                     <span className="text-[10px] text-foreground/40 font-semibold tabular-nums">R{room.currentRound}/{room.totalRounds}</span>
                   )}
                   <span className="text-[10px] text-foreground/30 tabular-nums">{room.settings?.roundTime || '?'}s</span>
+                  <span className="text-[10px] text-foreground/30 tabular-nums">diff:{room.settings?.difficulty ?? '?'}</span>
                   </div>
                   <div className="flex gap-1.5">
                   <button
