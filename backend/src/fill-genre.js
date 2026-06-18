@@ -54,6 +54,9 @@ export async function fillGenre(genreId, db) {
   for (const t of tracks) {
     const entry = { name: t.name, artist: t.artist, deezerTags: t.genres || [], aiGenre: null, curated: false, error: null };
 
+    let matched = 'UNCLASSIFIED';
+
+    // 1. Try Ollama classification (optional)
     try {
       const res = await fetch(`${OLLAMA_URL}/api/generate`, {
         method: 'POST',
@@ -69,40 +72,39 @@ export async function fillGenre(genreId, db) {
       const raw = (data.response || '').trim();
       entry.rawOutput = raw;
 
-      let matched = 'UNCLASSIFIED';
       for (const g of GENRE_LIST) {
         if (g !== 'UNCLASSIFIED' && raw.startsWith(g)) { matched = g; break; }
       }
-
-      // Override with Deezer tags
-      if (t.genres && t.genres.length) {
-        for (const tag of t.genres) {
-          const key = (tag || '').toLowerCase().trim();
-          if (DEEZER_MAP[key]) { matched = DEEZER_MAP[key]; break; }
-        }
-      }
-
-      entry.aiGenre = matched;
-
-      if (matched !== 'UNCLASSIFIED' && matched !== 'GL_other') {
-        await db.run(
-          `INSERT INTO classifications (track_id, genre_id, confidence, source, created_at)
-           VALUES (?, ?, 0.9, 'ai:blindtest-classifier-v5-fill', NOW()) ON CONFLICT DO NOTHING`,
-          [t.id, matched]
-        );
-
-        if (matched === genreId) {
-          await db.run(
-            `INSERT INTO curation (track_id, genre_id, verified, curated_by, curated_at)
-             VALUES (?, ?, true, 'auto-fill', NOW()) ON CONFLICT (track_id) DO NOTHING`,
-            [t.id, genreId]
-          );
-          entry.curated = true;
-        }
-      }
     } catch (err) {
       entry.error = err.message;
-      if (err.message) console.error(`[Fill] Ollama error for "${t.name}":`, err.message);
+    }
+
+    // 2. Override with Deezer tags (always runs, Ollama or not)
+    if (t.genres && t.genres.length) {
+      for (const tag of t.genres) {
+        const key = (tag || '').toLowerCase().trim();
+        if (DEEZER_MAP[key]) { matched = DEEZER_MAP[key]; break; }
+      }
+    }
+
+    entry.aiGenre = matched;
+
+    // 3. Always insert classification + curation if we have a valid match
+    if (matched !== 'UNCLASSIFIED' && matched !== 'GL_other') {
+      await db.run(
+        `INSERT INTO classifications (track_id, genre_id, confidence, source, created_at)
+         VALUES (?, ?, 0.9, 'ai:blindtest-classifier-v5-fill', NOW()) ON CONFLICT DO NOTHING`,
+        [t.id, matched]
+      );
+
+      if (matched === genreId) {
+        await db.run(
+          `INSERT INTO curation (track_id, genre_id, verified, curated_by, curated_at)
+           VALUES (?, ?, true, 'auto-fill', NOW()) ON CONFLICT (track_id) DO NOTHING`,
+          [t.id, genreId]
+        );
+        entry.curated = true;
+      }
     }
     details.push(entry);
   }
