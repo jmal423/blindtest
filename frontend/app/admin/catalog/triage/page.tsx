@@ -205,9 +205,9 @@ function SpeedTriage({ tracks, genres, groupedGenres, onDone, onBack }: {
         <p className="text-[10px] text-foreground/30 mb-2">#{current.rank?.toLocaleString() || '?'} on Deezer</p>
 
         {/* Deezer genre hints */}
-        {current.deezer_genres?.length > 0 && (
+        {current.deezer_genres && current.deezer_genres.length > 0 && (
           <div className="flex gap-1.5 justify-center flex-wrap mb-4">
-            {current.deezer_genres.map(g => (
+            {(current.deezer_genres || []).map(g => (
               <span key={g} className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-white/5 text-foreground/50 border border-white/[0.02]">
                 {g}
               </span>
@@ -446,9 +446,9 @@ export default function TriagePage() {
                         </span>
 
                         {/* Deezer tags */}
-                        {track.deezer_genres?.length > 0 && !isEditing && (
+                        {track.deezer_genres && track.deezer_genres.length > 0 && !isEditing && (
                           <div className="hidden sm:flex gap-1 shrink-0">
-                            {track.deezer_genres.slice(0, 2).map(g => (
+                            {(track.deezer_genres || []).slice(0, 2).map(g => (
                               <span key={g} className="px-1.5 py-0.2 rounded text-[8px] font-bold uppercase tracking-wider bg-white/5 text-foreground/40 border border-white/[0.02]">{g}</span>
                             ))}
                           </div>
