@@ -512,3 +512,9 @@ export async function getTrackPreviewUrl(trackId: string): Promise<{ ok: boolean
   return fetchWithAuth(`${API_URL}/api/admin/tracks/${encodeURIComponent(trackId)}/preview`);
 }
 
+export async function getSystemInfo(): Promise<{
+  ok: boolean; uptime: number; platform: string; nodeVersion: string; load: string; disk: string; cpuTemp: string; memory: string; error?: string;
+}> {
+  return fetchWithAuth(`${API_URL}/api/admin/system/info`);
+}
+

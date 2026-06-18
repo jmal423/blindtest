@@ -181,6 +181,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     '/admin/catalog/library': 'Library',
     '/admin/catalog/triage': 'Triage',
     '/admin/catalog/curated': 'Curated',
+    '/admin/catalog/flags': 'Reports',
     '/admin/game/rooms': 'Rooms',
     '/admin/game/leaderboard': 'Leaderboard',
     '/admin/users': 'Users',

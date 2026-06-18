@@ -11,6 +11,7 @@ import {
   getCuratedDiscovery,
   importToCurated,
   getUnverifiedSongs,
+  getTrackPreviewUrl,
 } from '@/lib/api';
 import { useAdminAudio } from '../../hooks/useAdminAudio';
 import { StatCard } from '../../components/StatCard';
@@ -59,6 +60,19 @@ export function CuratedTab() {
 
   // Use the custom audio hook
   const { playingTrackId, togglePreview, AudioPlayerOverlay, stopPreview } = useAdminAudio();
+  const [fetchingPreview, setFetchingPreview] = useState<string | null>(null);
+
+  const fetchPreview = async (songId: string) => {
+    setFetchingPreview(songId);
+    try {
+      const res = await getTrackPreviewUrl(songId);
+      if (res.ok && res.previewUrl) {
+        loadUnverified(unverifiedPage, unverifiedSearch);
+        if (selectedGenre) loadGenreSongs(selectedGenre);
+      }
+    } catch {}
+    setFetchingPreview(null);
+  };
 
   const [importGenre, setImportGenre] = useState<string>('');
 
@@ -439,7 +453,14 @@ export function CuratedTab() {
                                 {playingTrackId === song.id ? '⏸' : '▶'}
                               </button>
                             ) : (
-                              <span className="text-foreground/20 text-[10px]" title="No preview">✗</span>
+                              <button
+                                onClick={() => fetchPreview(song.id)}
+                                disabled={fetchingPreview === song.id}
+                                className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-white/10 text-foreground/50 hover:text-foreground hover:bg-white/20 transition-all disabled:opacity-30"
+                                title="Fetch preview"
+                              >
+                                {fetchingPreview === song.id ? '...' : '⬇'}
+                              </button>
                             )}
                           </td>
                           <td className="py-2 px-3 font-semibold text-foreground/90 truncate max-w-[160px]">{song.name}</td>
@@ -721,7 +742,14 @@ export function CuratedTab() {
                                         {playingTrackId === s.id ? '⏸' : '▶'}
                                       </button>
                                     ) : (
-                                      <span className="text-foreground/30 italic text-[10px]" title="No audio preview in cache">✗</span>
+                                      <button
+                                        onClick={() => fetchPreview(s.id)}
+                                        disabled={fetchingPreview === s.id}
+                                        className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-white/10 text-foreground/50 hover:text-foreground hover:bg-white/20 transition-all disabled:opacity-30"
+                                        title="Fetch preview"
+                                      >
+                                        {fetchingPreview === s.id ? '...' : '⬇'}
+                                      </button>
                                     )}
                                   </td>
                                   <td className="py-2 px-2 font-semibold text-foreground/90 truncate max-w-[180px]">{s.name}</td>

@@ -27,9 +27,13 @@ export async function getPlayerFlagCountInGame(playerId, roomCode) {
 
 export async function getFlaggedSongs(limit, offset) {
   return all(
-    `SELECT sf.track_id as song_id, t.name, t.artist_name as artist, cu.genre_id as genre,
-            COUNT(DISTINCT sf.player_id) as flag_count,
-            jsonb_object_agg(sf.reason, sf.cnt) as reasons
+    `SELECT
+       sf.track_id as song_id,
+       t.name,
+       t.artist_name as artist,
+       cu.genre_id as genre,
+       (SELECT COUNT(DISTINCT f2.player_id) FROM song_flags f2 WHERE f2.track_id = sf.track_id) as flag_count,
+       jsonb_object_agg(sf.reason, sf.cnt) as reasons
      FROM (
        SELECT track_id, reason, COUNT(*) as cnt
        FROM song_flags

@@ -1216,6 +1216,7 @@ app.get('/api/admin/tracks/:id/preview', requireAdmin, async (req, res) => {
     const response = await fetch(`https://api.deezer.com/track/${rawId}`);
     const data = await response.json();
     if (data && data.preview) {
+      await run('UPDATE tracks SET preview_url = ? WHERE id = ?', [data.preview, req.params.id]);
       res.json({ ok: true, previewUrl: data.preview });
     } else {
       res.json({ ok: false, error: 'No preview available' });
@@ -1302,6 +1303,42 @@ app.delete('/api/admin/users/:id', requireAdmin, async (req, res) => {
   await run('DELETE FROM game_players WHERE player_id = ?', [req.params.id]);
   await run('DELETE FROM users WHERE id = ?', [req.params.id]);
   res.json({ ok: true });
+});
+
+app.get('/api/admin/system/info', requireAdmin, async (req, res) => {
+  try {
+    const { execSync } = await import('node:child_process');
+    let uptime = process.uptime();
+    let load = 'N/A';
+    let disk = 'N/A';
+    let cpuTemp = 'N/A';
+    let memory = 'N/A';
+    try {
+      if (process.platform === 'linux') {
+        load = execSync('cat /proc/loadavg | cut -d" " -f1-3', { timeout: 2000 }).toString().trim();
+        disk = execSync("df -h / | awk 'NR==2 {print $3 \"/\" $2 \" (\" $5 \")\"}'", { timeout: 2000 }).toString().trim();
+        cpuTemp = execSync("cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null | head -c2 || echo 'N/A'", { timeout: 2000 }).toString().trim();
+        memory = execSync("free -h | awk 'NR==2 {print $3 \"/\" $2}'", { timeout: 2000 }).toString().trim();
+      } else if (process.platform === 'win32') {
+        const os = await import('node:os');
+        const totalMem = os.totalmem();
+        const freeMem = os.freemem();
+        memory = `${((totalMem - freeMem) / 1024 / 1024 / 1024).toFixed(1)}G/${(totalMem / 1024 / 1024 / 1024).toFixed(1)}G`;
+      }
+    } catch {}
+    res.json({
+      ok: true,
+      uptime: Math.floor(uptime),
+      platform: process.platform,
+      nodeVersion: process.version,
+      load,
+      disk,
+      cpuTemp: cpuTemp !== 'N/A' ? cpuTemp + '°C' : 'N/A',
+      memory,
+    });
+  } catch (err) {
+    res.json({ ok: false, error: err.message });
+  }
 });
 
 const PORT = process.env.PORT || 3001;

@@ -2,10 +2,17 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { motion } from 'motion/react';
-import { getAdminStats, getDbStatus, getAiStats, getAiRecent, searchAiTracks, fetchGenres, importToCurated } from '@/lib/api';
+import { getAdminStats, getDbStatus, getAiStats, getAiRecent, searchAiTracks, fetchGenres, importToCurated, getSystemInfo } from '@/lib/api';
 import { StatCard } from '../../components/StatCard';
 import { ProgressMeter } from '../../components/ProgressMeter';
 import { useAdminAudio } from '../../hooks/useAdminAudio';
+
+function formatUptime(s: number) {
+  const d = Math.floor(s / 86400);
+  const h = Math.floor((s % 86400) / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  return d > 0 ? `${d}d ${h}h` : `${h}h ${m}m`;
+}
 
 const GROUP_LABELS: Record<string, string> = {
   portuguese: 'Português',
@@ -24,12 +31,15 @@ function SystemSection() {
   const [dbStatus, setDbStatus] = useState<any>(null);
   const [sysLoading, setSysLoading] = useState(true);
 
+  const [sysInfo, setSysInfo] = useState<any>(null);
+
   const loadSystemData = useCallback(async () => {
     setSysLoading(true);
     try {
-      const [s, db] = await Promise.all([getAdminStats(), getDbStatus()]);
+      const [s, db, info] = await Promise.all([getAdminStats(), getDbStatus(), getSystemInfo()]);
       setSysStats(s);
       setDbStatus(db);
+      setSysInfo(info);
     } catch {}
     setSysLoading(false);
   }, []);
@@ -42,9 +52,9 @@ function SystemSection() {
     <div className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard value={sysStats?.totalUsers ?? '-'} label="Registered Users" color="var(--primary)" glowColor="rgba(255,45,120,0.15)" icon="👥" />
-        <StatCard value={sysStats?.totalRounds ?? '-'} label="Rounds Played" color="var(--accent)" glowColor="rgba(240,192,64,0.15)" icon="🎵" />
         <StatCard value={sysStats?.totalGames ?? '-'} label="Games Completed" color="#a29bfe" glowColor="rgba(162,155,254,0.15)" icon="🏆" />
         <StatCard value={sysStats?.activeRooms ?? '-'} label="Active Lobbies" color="#00b894" glowColor="rgba(0,184,148,0.15)" icon="🎮" />
+        <StatCard value={sysInfo?.uptime ? formatUptime(sysInfo.uptime) : '-'} label="Server Uptime" color="var(--accent)" glowColor="rgba(240,192,64,0.15)" icon="⏱" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -110,36 +120,45 @@ function SystemSection() {
           </div>
         </div>
 
-        <div className="rounded-2xl p-6 flex flex-col justify-between" style={{ backgroundColor: 'color-mix(in srgb, var(--surface) 60%, transparent)', backdropFilter: 'blur(12px)', border: '1px solid color-mix(in srgb, var(--foreground) 5%, transparent)' }}>
-          <div>
-            <h3 className="font-extrabold text-sm uppercase tracking-wider mb-6 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
-              <span className="text-lg">🖥️</span> Service Performance
-            </h3>
-            <div className="space-y-5">
-              <div>
-                <span className="text-[10px] font-extrabold uppercase tracking-wider block" style={{ color: 'color-mix(in srgb, var(--foreground) 30%, transparent)' }}>Uptime</span>
-                <span className="text-xl font-black tabular-nums" style={{ color: 'var(--foreground)' }}>
-                  {sysStats?.uptime ? `${Math.floor(sysStats.uptime / 3600)}h ${Math.floor((sysStats.uptime % 3600) / 60)}m` : '-'}
-                </span>
+        <div className="rounded-2xl p-6" style={{ backgroundColor: 'color-mix(in srgb, var(--surface) 60%, transparent)', backdropFilter: 'blur(12px)', border: '1px solid color-mix(in srgb, var(--foreground) 5%, transparent)' }}>
+          <h3 className="font-extrabold text-sm uppercase tracking-wider mb-6 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
+            <span className="text-lg">📊</span> Dead Genres
+          </h3>
+          <div className="space-y-3">
+            {([['GL_classical', 0], ['GL_kids_family', 0], ['GL_indian', 0], ['GL_other', 0], ['PT_pop_tuga', 1], ['UK_uk_drill_grime', 5]] as const).map(([genre, count]) => (
+              <div key={genre} className="flex items-center justify-between p-3 rounded-lg" style={{ backgroundColor: 'color-mix(in srgb, var(--foreground) 3%, transparent)' }}>
+                <span className="text-xs font-semibold text-foreground/70">{genre}</span>
+                <span className={`text-xs font-bold ${count === 0 ? 'text-red-400' : 'text-amber-400'}`}>{count} curated</span>
               </div>
-              <div>
-                <span className="text-[10px] font-extrabold uppercase tracking-wider block" style={{ color: 'color-mix(in srgb, var(--foreground) 30%, transparent)' }}>Local Cache Size</span>
-                <span className="text-xl font-black tabular-nums" style={{ color: 'var(--primary)' }}>
-                  {sysStats?.songCacheTotal ?? 0} songs
-                </span>
-              </div>
-              <div>
-                <span className="text-[10px] font-extrabold uppercase tracking-wider block" style={{ color: 'color-mix(in srgb, var(--foreground) 30%, transparent)' }}>Avg Socket Latency</span>
-                <span className="text-xl font-black tabular-nums" style={{ color: 'var(--accent)' }}>Normal (&lt; 10ms)</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-6 pt-4 flex items-center gap-2 text-xs" style={{ borderTop: '1px solid color-mix(in srgb, var(--foreground) 5%, transparent)', color: '#4ade80' }}>
-            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-            All local networks healthy
+            ))}
+            <p className="text-[10px] text-foreground/40 mt-2">These genres need more songs. Run the AI pipeline or add tracks manually via Discovery.</p>
           </div>
         </div>
+
+        {/* Server Info */}
+        {sysInfo?.ok && (
+          <div className="rounded-2xl p-6" style={{ backgroundColor: 'color-mix(in srgb, var(--surface) 60%, transparent)', backdropFilter: 'blur(12px)', border: '1px solid color-mix(in srgb, var(--foreground) 5%, transparent)' }}>
+            <h3 className="font-extrabold text-sm uppercase tracking-wider mb-4 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
+              <span className="text-lg">🖥</span> Server
+            </h3>
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              {[
+                { label: 'Platform', value: sysInfo.platform },
+                { label: 'Node.js', value: sysInfo.nodeVersion },
+                { label: 'Uptime', value: formatUptime(sysInfo.uptime) },
+                { label: 'Memory', value: sysInfo.memory },
+                { label: 'Load', value: sysInfo.load },
+                { label: 'Disk', value: sysInfo.disk },
+                { label: 'CPU Temp', value: sysInfo.cpuTemp },
+              ].map(item => (
+                <div key={item.label} className="p-3 rounded-lg" style={{ backgroundColor: 'color-mix(in srgb, var(--foreground) 3%, transparent)' }}>
+                  <p className="text-[10px] font-extrabold uppercase tracking-wider text-foreground/40 mb-0.5">{item.label}</p>
+                  <p className="font-semibold text-foreground/80">{item.value || 'N/A'}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
