@@ -28,6 +28,7 @@
 }
 
 @theme inline {
+  --breakpoint-xl: 64rem;
   --color-blurple: var(--blurple);
   --color-discord: var(--discord);
   --color-background: var(--background);
