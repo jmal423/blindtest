@@ -42,7 +42,7 @@ export async function getFlaggedSongs(limit, offset) {
      LEFT JOIN tracks t ON t.id = sf.track_id
      LEFT JOIN curation cu ON cu.track_id = sf.track_id
      GROUP BY sf.track_id, t.name, t.artist_name, cu.genre_id
-     ORDER BY flag_count DESC, MAX(sf.cnt) DESC
+     ORDER BY (SELECT MAX(created_at) FROM song_flags WHERE track_id = sf.track_id) DESC
      LIMIT ? OFFSET ?`,
     [limit, offset]
   );
