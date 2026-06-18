@@ -403,7 +403,7 @@ async function getTracksByGenre(genre, count = 10, difficulty = 5) {
   return tracks;
 }
 
-async function getTracksByArtist(artistName, count = 10) {
+async function getTracksByArtist(artistName, count = 10, difficulty = 5) {
   console.log(`[Deezer] Fetching tracks for artist "${artistName}"`);
   const tracks = [];
   const seen = new Set();
@@ -422,7 +422,7 @@ async function getTracksByArtist(artistName, count = 10) {
     const artistData = await deezerFetch(`/search/artist?q=${encodeURIComponent(artistName)}&limit=1`);
     if (artistData?.data?.length > 0) {
       const artistId = artistData.data[0].id;
-      // 2. Get top tracks
+      // 2. Get top tracks (Deezer returns these sorted by popularity)
       const topTracks = await deezerFetch(`/artist/${artistId}/top?limit=${count * 3}`);
       if (topTracks?.data) {
         for (const t of topTracks.data) {
@@ -465,6 +465,11 @@ async function getTracksByArtist(artistName, count = 10) {
     console.error(`[Deezer] Failed to fetch tracks for artist "${artistName}":`, err.message);
   }
 
+  if (difficulty >= 7) {
+    tracks.sort((a, b) => (a.rank || 0) - (b.rank || 0));
+  } else {
+    tracks.sort((a, b) => (b.rank || 0) - (a.rank || 0));
+  }
   return tracks.slice(0, count);
 }
 

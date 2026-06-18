@@ -281,7 +281,7 @@ export class GameRoom {
             if (tracks.length < Math.max(fetchLimitPerArtist / 2, 5)) {
               console.log(`[Game] Artist "${artist}" has only ${tracks.length} tracks in DB. Fetching from Deezer...`);
               const { getTracksByArtist } = await import('./deezer.js');
-              const deezerTracks = await getTracksByArtist(artist, fetchLimitPerArtist);
+              const deezerTracks = await getTracksByArtist(artist, fetchLimitPerArtist, this.settings.difficulty);
               
               // Cache them in background
               const { cacheSongs } = await import('./db.js');

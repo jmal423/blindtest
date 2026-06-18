@@ -151,7 +151,7 @@ export async function getSongsByArtist(artist, count) {
      FROM tracks t
      JOIN curation cu ON cu.track_id = t.id
      WHERE t.artist_name ILIKE ? AND cu.verified = TRUE AND t.preview_url IS NOT NULL
-     ORDER BY cu.played_count ASC, RANDOM()
+      ORDER BY RANDOM()
      LIMIT ?`,
     [`%${artist}%`, count]
   );
