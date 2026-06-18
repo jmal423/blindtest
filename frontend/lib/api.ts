@@ -62,7 +62,8 @@ export async function createRoom(
   genres?: string[],
   artists?: string[],
   gameMode?: 'genre' | 'artist',
-  discordChannelId?: string
+  discordChannelId?: string,
+  difficulty?: number
 ): Promise<{ code: string; playerId: string; settings: RoomSettings; genres: string[]; artists: string[] }> {
   const token = getToken();
   if (!token) throw new Error('Authentication required');
@@ -73,7 +74,7 @@ export async function createRoom(
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ genres, artists, gameMode, discordChannelId }),
+    body: JSON.stringify({ genres, artists, gameMode, discordChannelId, difficulty }),
   });
   if (!res.ok) {
     const data = await res.json();

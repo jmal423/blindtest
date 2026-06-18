@@ -263,7 +263,7 @@ app.get('/api/genres', (req, res) => {
 
 // Rooms (auth required)
 app.post('/api/rooms', authenticate, async (req, res) => {
-  const { genres = [], artists = [], gameMode = 'genre', rounds, roundTime, discordChannelId } = req.body;
+  const { genres = [], artists = [], gameMode = 'genre', rounds, roundTime, discordChannelId, difficulty } = req.body;
 
   const user = await get('SELECT id, username, avatar_url, role FROM users WHERE id = ?', [req.user.userId]);
   if (!user) return res.status(401).json({ error: 'User not found' });
@@ -293,6 +293,7 @@ app.post('/api/rooms', authenticate, async (req, res) => {
   room.discordChannelId = discordChannelId || null;
   room.updateSettings({ gameMode });
   if (rounds || roundTime) room.updateSettings({ rounds, roundTime });
+  if (difficulty !== undefined) room.difficulty = Math.max(0, Math.min(10, Number(difficulty)));
   const playerId = room.addPlayer(user.username, user.avatar_url, user.role, user.id);
   rooms.set(code, room);
 

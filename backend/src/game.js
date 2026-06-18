@@ -364,7 +364,8 @@ export class GameRoom {
         return (lastError || 'No tracks found. Try different genres.');
       }
 
-      this.tracks = weightedShuffle(allTracks.filter(t => !!t.previewUrl));
+      const diffFactor = (this.difficulty || 0) / 10;
+      this.tracks = weightedShuffle(allTracks.filter(t => !!t.previewUrl), diffFactor);
       this.totalRounds = Math.min(this.settings.rounds, this.tracks.length);
 
       console.log(`[Game] Room ${this.code}: ${this.tracks.length} tracks available (target: ${this.totalRounds} rounds)`);
