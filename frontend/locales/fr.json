@@ -58,7 +58,7 @@
   "difficulty": "Difficulté",
   "difficulty_easy": "Les chansons populaires apparaissent plus souvent",
   "difficulty_normal": "Mélange équilibré de chansons",
-  "difficulty_hard": "Toutes les chansons ont la même chance",
+  "difficulty_hard": "Les chansons rares et obscures apparaissent plus souvent",
   "audio_source": "Source audio",
   "auto_start": "Démarrage Automatique",
   "auto_start_desc": "Lancement automatique 5 secondes après l'arrivée d'au moins 2 joueurs",

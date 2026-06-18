@@ -81,7 +81,7 @@ function weightedShuffle(tracks, difficulty = 0) {
   const weights = tracks.map(t => {
     const rank = t.rank || 0;
     const base = Math.max(rank / maxRank, 0.05);
-    return base + (1 - base) * difficulty;
+    return base * (1 - difficulty) + (1 - base) * difficulty;
   });
   const totalWeight = weights.reduce((a, b) => a + b, 0);
   if (totalWeight <= 0) return shuffle(tracks);
