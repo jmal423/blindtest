@@ -1226,6 +1226,18 @@ app.get('/api/admin/tracks/:id/preview', requireAdmin, async (req, res) => {
   }
 });
 
+app.post('/api/admin/curated/fill', requireAdmin, async (req, res) => {
+  try {
+    const { genre } = req.body;
+    if (!genre) return res.status(400).json({ ok: false, error: 'Missing genre' });
+    const { fillGenre } = await import('./fill-genre.js');
+    const result = await fillGenre(genre, { get: get, run: run });
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 app.get('/api/admin/rooms', requireAdmin, (req, res) => {
   const list = [];
   for (const [code, room] of rooms) {

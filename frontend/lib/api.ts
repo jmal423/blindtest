@@ -518,3 +518,11 @@ export async function getSystemInfo(): Promise<{
   return fetchWithAuth(`${API_URL}/api/admin/system/info`);
 }
 
+export async function fillCuratedGenre(genre: string): Promise<{ ok: boolean; message?: string; added?: number; error?: string }> {
+  return fetchWithAuth(`${API_URL}/api/admin/curated/fill`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ genre }),
+  });
+}
+
