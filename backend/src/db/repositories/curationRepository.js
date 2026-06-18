@@ -42,7 +42,7 @@ export async function getCuratedSongsByGenre(genre, count) {
      FROM curation cu
      JOIN tracks t ON t.id = cu.track_id
      WHERE cu.genre_id = ? AND cu.verified = TRUE
-     ORDER BY cu.played_count ASC, RANDOM()
+     ORDER BY RANDOM()
      LIMIT ?`,
     [genre, count]
   );

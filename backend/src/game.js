@@ -318,7 +318,7 @@ export class GameRoom {
         for (const genre of shuffledGenres) {
           try {
             const { getTracksByGenre } = await import('./deezer.js');
-            const tracks = await getTracksByGenre(genre, fetchLimitPerGenre);
+            const tracks = await getTracksByGenre(genre, fetchLimitPerGenre, this.settings.difficulty);
             let addedForThisGenre = 0;
             for (const t of tracks) {
               if (!seenIds.has(t.id) && t.previewUrl) {
@@ -346,7 +346,7 @@ export class GameRoom {
         console.log(`[Game] No tracks from selected ${this.settings.gameMode}s, fetching global top chart as fallback`);
         try {
           const { getTracksByGenre } = await import('./deezer.js');
-          const fallback = await getTracksByGenre('pop', 50);
+          const fallback = await getTracksByGenre('pop', 50, this.settings.difficulty);
           for (const t of fallback) {
             if (!seenIds.has(t.id) && t.previewUrl) {
               if (!t.genre && t.genres?.length) t.genre = t.genres[0];

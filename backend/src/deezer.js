@@ -298,7 +298,7 @@ async function smartCustomSearch(genre, count) {
   return tracks.slice(0, count);
 }
 
-export async function getCustomGenreTracks(genre, count) {
+export async function getCustomGenreTracks(genre, count, difficulty = 5) {
   const playlistIds = CUSTOM_GENRE_PLAYLISTS[genre];
   let tracks = [];
   const seen = new Set();
@@ -338,15 +338,19 @@ export async function getCustomGenreTracks(genre, count) {
   }
 
   console.log(`[Deezer] Total ${tracks.length} tracks for "${genre}" (${tracks.filter(t => t.previewUrl).length} with preview)`);
-  tracks.sort((a, b) => (b.rank || 0) - (a.rank || 0));
+  if (difficulty >= 7) {
+    tracks.sort((a, b) => (a.rank || 0) - (b.rank || 0));
+  } else {
+    tracks.sort((a, b) => (b.rank || 0) - (a.rank || 0));
+  }
   return tracks.slice(0, count);
 }
 
-async function getTracksByGenre(genre, count = 10) {
+async function getTracksByGenre(genre, count = 10, difficulty = 5) {
   // 1. Try curated songs first — verified, genre-tagged, played-count tracked
   try {
     const { getCuratedSongsByGenre, addCuratedSong } = await import('./db.js');
-    const curated = await getCuratedSongsByGenre(genre, count * 2);
+    const curated = await getCuratedSongsByGenre(genre, count * 3);
 
     if (curated && curated.length > 0) {
       console.log(`[Curated] Found ${curated.length} curated tracks for "${genre}", refreshing previews`);
@@ -365,12 +369,16 @@ async function getTracksByGenre(genre, count = 10) {
             }
           } catch { /* skip */ }
         }));
-        if (valid.length >= count) break;
+        if (valid.length >= count * 2) break;
       }
 
       if (valid.length >= Math.min(count, 5)) {
         console.log(`[Curated] ${valid.length} curated tracks with fresh previews for "${genre}"`);
-        valid.sort((a, b) => (a.playedCount || 0) - (b.playedCount || 0));
+        if (difficulty <= 3) {
+          valid.sort((a, b) => (b.rank || 0) - (a.rank || 0));
+        } else if (difficulty >= 7) {
+          valid.sort((a, b) => (a.playedCount || 0) - (b.playedCount || 0));
+        }
         return valid.slice(0, count);
       }
       console.log(`[Curated] Only ${valid.length} with fresh previews, need more`);
@@ -381,7 +389,7 @@ async function getTracksByGenre(genre, count = 10) {
 
   // 2. Not enough curated — fetch from playlists/charts and cache to songs_cache (not curated directly)
   console.log(`[Deezer] Fetching fresh tracks for "${genre}"`);
-  const tracks = await getCustomGenreTracks(genre, count);
+  const tracks = await getCustomGenreTracks(genre, count, difficulty);
 
   // Cache fetched tracks to songs_cache for future AI processing / curation
   // NOTE: We do NOT add to curated_songs here — that goes through the Curated tab's Discovery panel
