@@ -1378,7 +1378,7 @@ app.get('/api/admin/logs', requireAdmin, async (req, res) => {
     } catch {
       output = 'Could not retrieve logs';
     }
-    res.json({ ok: true, lines: output.split('\n').filter(Boolean).reverse() });
+    res.json({ ok: true, lines: output.split('\n').filter(Boolean) });
   } catch (err) {
     res.json({ ok: false, error: err.message, lines: [] });
   }
