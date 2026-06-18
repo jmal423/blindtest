@@ -84,6 +84,8 @@ export async function fillGenre(genreId, db) {
       for (const tag of t.genres) {
         const key = (tag || '').toLowerCase().trim();
         if (DEEZER_MAP[key]) { matched = DEEZER_MAP[key]; break; }
+        const direct = GENRE_LIST.find(g => g.toLowerCase() === key);
+        if (direct) { matched = direct; break; }
       }
     }
 
