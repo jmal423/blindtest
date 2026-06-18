@@ -541,7 +541,7 @@ function Dashboard() {
       <BackgroundOrbs />
 
       {/* Grid Container */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] xl:grid-cols-[1fr_2fr_1fr] gap-6 px-4 md:px-6 pb-6 min-h-0 w-full pt-6 md:pt-8">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_1.5fr_1fr] xl:grid-cols-[1fr_2fr_1fr] gap-6 px-4 md:px-6 pb-6 min-h-0 w-full pt-6 md:pt-8">
         {/* Left: Discord Card (order-last on mobile) */}
         <div className="hidden lg:flex sticky top-0 self-stretch w-full flex items-center justify-center order-last lg:order-first">
           <button
