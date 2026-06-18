@@ -298,7 +298,7 @@ async function smartCustomSearch(genre, count) {
   return tracks.slice(0, count);
 }
 
-async function getCustomGenreTracks(genre, count) {
+export async function getCustomGenreTracks(genre, count) {
   const playlistIds = CUSTOM_GENRE_PLAYLISTS[genre];
   let tracks = [];
   const seen = new Set();
