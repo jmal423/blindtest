@@ -1227,7 +1227,7 @@ function WaitingRoom({
       </div>
 
       {/* Lobby CTA Area */}
-      <div className="shrink-0 w-full flex flex-col items-center gap-3 py-4 px-4 border-t border-white/5 bg-[var(--background)] max-w-4xl mx-auto">
+      <div className="shrink-0 w-full flex flex-col items-center gap-3 py-4 px-4 border-t border-white/5 bg-[var(--background)] max-w-auto mx-auto">
         {isHost ? (
           <button
             onClick={onStart}
