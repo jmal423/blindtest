@@ -31,7 +31,7 @@ const VALID_GENRES = new Set([
   "UK_uk_garage_dnb", "FR_chanson_francaise", "FR_pop_francaise", "FR_rap_francais", "FR_french_touch_electro",
   "ES_flamenco", "ES_reggaeton_urbano", "ES_musica_regional_latina", "BR_samba_pagode", "BR_bossa_nova",
   "BR_funk_brasileiro", "GL_reggae", "GL_kpop", "BR_pop_rock_brasileiro", "BR_pop", "GL_edm_dance", "GL_afrobeats_african",
-  "GL_metal", "GL_soundtracks", "GL_jazz_lounge", "GL_other"
+  "GL_metal", "GL_soundtracks", "GL_jazz_lounge", "GL_classical", "GL_kids_family", "GL_indian", "GL_other"
 ]);
 
 const VALID_REGIONS = new Set([
@@ -48,7 +48,7 @@ const GENRE_TO_REGION = {
   "FR_chanson_francaise": "french", "FR_pop_francaise": "french", "FR_rap_francais": "french", "FR_french_touch_electro": "french",
   "ES_flamenco": "spanish", "ES_reggaeton_urbano": "spanish", "ES_musica_regional_latina": "spanish",
   "GL_reggae": "global_other", "GL_kpop": "global_other", "GL_edm_dance": "global_other", "GL_afrobeats_african": "global_other",
-  "GL_metal": "global_other", "GL_soundtracks": "global_other", "GL_jazz_lounge": "global_other", "GL_other": "global_other"
+  "GL_metal": "global_other", "GL_soundtracks": "global_other", "GL_jazz_lounge": "global_other", "GL_classical": "global_other", "GL_kids_family": "global_other", "GL_indian": "global_other", "GL_other": "global_other"
 };
 
 const DEEZER_GENRE_MAP = {
@@ -69,6 +69,9 @@ const DEEZER_GENRE_MAP = {
   'metal': 'GL_metal', 'heavy metal': 'GL_metal', 'metalcore': 'GL_metal',
   'soundtrack': 'GL_soundtracks', 'musique de film': 'GL_soundtracks', 'score': 'GL_soundtracks', 'film score': 'GL_soundtracks',
   'jazz': 'GL_jazz_lounge', 'lounge': 'GL_jazz_lounge',
+  'classical': 'GL_classical', 'classique': 'GL_classical', 'opera': 'GL_classical', 'orchestral': 'GL_classical',
+  'children': 'GL_kids_family', 'kids': 'GL_kids_family', 'family': 'GL_kids_family', 'enfants': 'GL_kids_family',
+  'indian': 'GL_indian', 'bollywood': 'GL_indian', 'tamil': 'GL_indian', 'hindi': 'GL_indian', 'bhangra': 'GL_indian', 'musique-indienne': 'GL_indian',
   'reggae': 'GL_reggae', 'ska': 'GL_reggae',
   'dancehall': 'GL_reggae',
   'afrobeat': 'GL_afrobeats_african', 'afrobeats': 'GL_afrobeats_african', 'african': 'GL_afrobeats_african', 'musique-africaine': 'GL_afrobeats_african',

@@ -390,10 +390,9 @@ app.post('/api/game/:code/save', authenticate, async (req, res) => {
   const player = room.players.find(p => p.id === req.body.playerId);
   if (!player) return res.status(404).json({ error: 'Player not in game' });
 
-  const id = generateId();
   await run(
-    'INSERT INTO game_scores (id, user_id, game_code, score, total_rounds) VALUES (?, ?, ?, ?, ?)',
-    [id, req.user.userId, room.code, player.score, room.totalRounds]
+    'UPDATE game_players SET score = ? WHERE game_id = (SELECT id FROM games WHERE code = ?) AND player_id = ?',
+    [player.score, room.code, req.user.userId]
   );
 
   res.json({ saved: true, score: player.score, totalRounds: room.totalRounds });
@@ -458,7 +457,7 @@ app.get('/api/users/me/scores', authenticate, async (req, res) => {
     const limit = Math.min(parseInt(req.query.limit) || 50, 100);
     const games = await getGameHistory(req.user.userId, limit);
     
-    // Map to legacy game_scores format for the frontend
+    // Map to game_players format for the frontend
     const scores = games.map(g => ({
       id: g.id,
       user_id: req.user.userId,
@@ -493,9 +492,9 @@ app.get('/api/users/me/stats', authenticate, async (req, res) => {
   } catch (err) {
     // Fallback to old stats
     const [totalPoints, avgSpeed, bestGenre] = await Promise.all([
-      get('SELECT COALESCE(SUM(points_earned), 0) as total FROM round_results WHERE user_id = ?', [userId]),
-      get('SELECT AVG(guess_time_ms) as avg FROM round_results WHERE user_id = ? AND is_correct = true', [userId]),
-      get('SELECT genre FROM round_results WHERE user_id = ? AND is_correct = true GROUP BY genre ORDER BY COUNT(*) DESC LIMIT 1', [userId]),
+      get('SELECT COALESCE(SUM(points_earned), 0) as total FROM round_answers WHERE player_id = ?', [userId]),
+      get('SELECT AVG(guess_time_ms) as avg FROM round_answers WHERE player_id = ? AND found_both = true', [userId]),
+      get('SELECT genre_id as genre FROM round_answers WHERE player_id = ? AND found_both = true GROUP BY genre_id ORDER BY COUNT(*) DESC LIMIT 1', [userId]),
     ]);
     res.json({
       totalPoints: totalPoints?.total || 0,
@@ -529,12 +528,12 @@ app.get('/api/users/:id', async (req, res) => {
   if (!user) return res.status(404).json({ error: 'User not found' });
 
   const scores = await all(
-    'SELECT score, total_rounds, played_at FROM game_scores WHERE user_id = ? ORDER BY played_at DESC LIMIT 20',
+    'SELECT gp.score, gp.position, g.round_count as total_rounds, g.finished_at as played_at FROM game_players gp JOIN games g ON g.id = gp.game_id WHERE gp.player_id = ? ORDER BY g.finished_at DESC LIMIT 20',
     [req.params.id]
   );
 
   const bestScore = await get(
-    'SELECT MAX(score) as best FROM game_scores WHERE user_id = ?',
+    'SELECT MAX(score) as best FROM game_players WHERE player_id = ?',
     [req.params.id]
   );
 
@@ -778,8 +777,8 @@ app.get('/api/onboarding/preview', async (req, res) => {
   try {
     const { get } = await import('./db/connection.js');
     const track = await get(
-      `SELECT id FROM songs_cache
-       WHERE id LIKE 'deezer:%'
+      `SELECT id FROM tracks
+       WHERE preview_url IS NOT NULL
        ORDER BY RANDOM() LIMIT 1`
     );
     if (!track?.id) return res.status(404).json({ error: 'No track found' });
@@ -794,16 +793,16 @@ app.get('/api/onboarding/quiz', async (req, res) => {
   try {
     const { get, all } = await import('./db/connection.js');
     const correct = await get(
-      `SELECT id, name, artist FROM songs_cache
-       WHERE id LIKE 'deezer:%' AND artist IS NOT NULL
+      `SELECT id, name, artist_name as artist FROM tracks
+       WHERE artist_name IS NOT NULL
        ORDER BY RANDOM() LIMIT 1`
     );
     if (!correct) return res.status(404).json({ error: 'No track found' });
 
     const wrongArtists = await all(
-      `SELECT artist FROM (
-         SELECT DISTINCT artist FROM songs_cache
-         WHERE artist != ? AND artist IS NOT NULL
+      `SELECT artist_name as artist FROM (
+         SELECT DISTINCT artist_name FROM tracks
+         WHERE artist_name != ? AND artist_name IS NOT NULL
        ) sub ORDER BY RANDOM() LIMIT 3`,
       [correct.artist]
     );
@@ -1005,7 +1004,7 @@ app.get('/api/admin/ai/search', requireAdmin, async (req, res) => {
 
 app.get('/api/admin/ai/unclassified', requireAdmin, async (req, res) => {
   try {
-    const { getUnclassifiedTracks } = await import('./db/repositories/songRepository.js');
+    const { getUnclassifiedTracks } = await import('./db/repositories/trackRepository.js');
     const tracks = await getUnclassifiedTracks();
     res.json({ ok: true, tracks });
   } catch (err) {
@@ -1017,7 +1016,7 @@ app.post('/api/admin/ai/update-genre', requireAdmin, async (req, res) => {
   try {
     const { id, genre } = req.body;
     if (!id || !genre) return res.status(400).json({ ok: false, error: 'Missing id or genre' });
-    const { updateSongGenre } = await import('./db/repositories/songRepository.js');
+    const { updateSongGenre } = await import('./db/repositories/trackRepository.js');
     await updateSongGenre(id, genre);
     res.json({ ok: true });
   } catch (err) {
@@ -1028,7 +1027,7 @@ app.post('/api/admin/ai/update-genre', requireAdmin, async (req, res) => {
 app.delete('/api/admin/ai/track/:id', requireAdmin, async (req, res) => {
   try {
     const { run } = await import('./db/connection.js');
-    await run('DELETE FROM songs_cache WHERE id = ?', [req.params.id]);
+    await run('DELETE FROM tracks WHERE id = ?', [req.params.id]);
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
@@ -1062,7 +1061,7 @@ app.get('/api/admin/db-status', requireAdmin, async (req, res) => {
 app.get('/api/admin/stats', requireAdmin, async (req, res) => {
   const [userCount, roundCount, gameCount, songCache] = await Promise.all([
     get('SELECT COUNT(*) as count FROM users'),
-    get('SELECT COUNT(*) as count FROM round_results_v2'),
+    get('SELECT COUNT(*) as count FROM round_answers'),
     get('SELECT COUNT(*) as count FROM games WHERE status = \'finished\''),
     getSongCacheCounts().catch(() => ({ total: 0, genres: 0, plays: 0 })),
   ]);
@@ -1145,9 +1144,9 @@ app.post('/api/admin/curated/import', requireAdmin, async (req, res) => {
       if (!s) continue;
       await addCuratedSong({
         id: s.id, name: s.name, artist: s.artist,
-        previewUrl: s.preview_url, durationMs: s.duration_ms,
+        preview_url: s.previewUrl, duration_ms: s.durationMs,
         genre: genre || s.genre || 'other',
-        chartSource: s.chart_source,
+        chart_source: s.chartSource,
         verified: false,
       });
       imported++;
@@ -1180,7 +1179,7 @@ app.post('/api/admin/curated/update-genre', requireAdmin, async (req, res) => {
 
 app.delete('/api/admin/curated/:id', requireAdmin, async (req, res) => {
   try {
-    await pool.query('DELETE FROM curated_songs WHERE id = $1', [req.params.id]);
+    await run('DELETE FROM curation WHERE track_id = ?', [req.params.id]);
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
@@ -1254,9 +1253,7 @@ app.delete('/api/admin/rooms/:code', requireAdmin, (req, res) => {
 });
 
 app.delete('/api/admin/users/:id/scores', requireAdmin, async (req, res) => {
-  await run('DELETE FROM round_results WHERE user_id = ?', [req.params.id]);
-  await run('DELETE FROM game_scores WHERE user_id = ?', [req.params.id]);
-  await run('DELETE FROM round_results_v2 WHERE player_id = ?', [req.params.id]);
+  await run('DELETE FROM round_answers WHERE player_id = ?', [req.params.id]);
   await run('DELETE FROM game_players WHERE player_id = ?', [req.params.id]);
   res.json({ ok: true });
 });
@@ -1277,11 +1274,8 @@ app.put('/api/admin/users/:id/role', requireAdmin, async (req, res) => {
 });
 
 app.delete('/api/admin/users/:id', requireAdmin, async (req, res) => {
-  await run('DELETE FROM round_results WHERE user_id = ?', [req.params.id]);
-  await run('DELETE FROM round_results_v2 WHERE player_id = ?', [req.params.id]);
+  await run('DELETE FROM round_answers WHERE player_id = ?', [req.params.id]);
   await run('DELETE FROM game_players WHERE player_id = ?', [req.params.id]);
-  await run('DELETE FROM game_scores WHERE user_id = ?', [req.params.id]);
-  await run('DELETE FROM friendships WHERE user_id = ? OR friend_id = ?', [req.params.id, req.params.id]);
   await run('DELETE FROM users WHERE id = ?', [req.params.id]);
   res.json({ ok: true });
 });

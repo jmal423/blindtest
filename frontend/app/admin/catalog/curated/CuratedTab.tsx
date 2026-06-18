@@ -426,9 +426,9 @@ export function CuratedTab() {
                             />
                           </td>
                           <td className="py-2 px-3 text-center">
-                            {song.preview_url ? (
+                            {song.previewUrl ? (
                               <button
-                                onClick={() => togglePreview(song.id, song.preview_url)}
+                                onClick={() => togglePreview(song.id, song.previewUrl)}
                                 className={`w-6 h-6 rounded-full flex items-center justify-center transition-all text-[10px] ${
                                   playingTrackId === song.id
                                     ? 'bg-[var(--accent)] text-black shadow-md scale-105'
@@ -461,7 +461,7 @@ export function CuratedTab() {
                             </select>
                           </td>
                           <td className="py-2 px-3 text-right tabular-nums text-foreground/50 hidden sm:table-cell font-mono">
-                            {song.played_count}
+                            {song.playedCount}
                           </td>
                           <td className="py-2 px-3">
                             <div className="flex items-center justify-center gap-2">
@@ -618,8 +618,8 @@ export function CuratedTab() {
                           </button>
                         </td>
                         <td className="py-2 px-2 font-medium text-foreground/90 truncate max-w-[180px]">{t.name}</td>
-                        <td className="py-2 px-2 text-foreground/60 truncate max-w-[140px]">{t.artist}</td>
-                        <td className="py-2 px-2 hidden sm:table-cell text-foreground/40">{t.genre || t.genres?.[0] || '-'}</td>
+                        <td className="py-2 px-2 text-foreground/60 truncate max-w-[140px]">{t.artist_name}</td>
+                        <td className="py-2 px-2 hidden sm:table-cell text-foreground/40">{t.ai_genre || t.deezer_genres?.[0] || '-'}</td>
                         <td className="py-2 px-4 text-right tabular-nums text-foreground/40 font-mono">#{t.rank?.toLocaleString() || '-'}</td>
                       </tr>
                     ))}
@@ -705,13 +705,12 @@ export function CuratedTab() {
                           </thead>
                           <tbody>
                             {filteredGenreSongs.map((s: any) => {
-                              const hasAudio = !!s.preview_url || s.has_preview;
                               return (
                                 <tr key={s.id} className="border-b border-white/[0.01] hover:bg-white/[0.01] transition-colors">
                                   <td className="py-2 px-4 text-center">
-                                    {hasAudio && s.preview_url ? (
+                                    {s.previewUrl ? (
                                       <button
-                                        onClick={() => togglePreview(s.id, s.preview_url)}
+                                        onClick={() => togglePreview(s.id, s.previewUrl)}
                                         className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${
                                           playingTrackId === s.id
                                             ? 'bg-[var(--accent)] text-black shadow-lg scale-105'
@@ -743,7 +742,7 @@ export function CuratedTab() {
                                       ))}
                                     </select>
                                   </td>
-                                  <td className="py-2 px-2 text-right font-bold tabular-nums text-foreground/60 hidden sm:table-cell">{s.played_count}</td>
+                                  <td className="py-2 px-2 text-right font-bold tabular-nums text-foreground/60 hidden sm:table-cell">{s.playedCount}</td>
                                   <td className="py-2 px-2 text-center">
                                     <button
                                       onClick={() => toggleVerify(s.id, s.verified)}

@@ -12,14 +12,14 @@ export async function fetchUnprocessedTracks(limit = config.batchSize) {
   try {
     await client.query('BEGIN');
     const { rows } = await client.query(`
-      SELECT id, name, artist, album_image, genre, genres, chart_source, rank
-      FROM songs_cache
-      WHERE ai_processed_at IS NULL
-         OR ai_version IS DISTINCT FROM $1
-      ORDER BY rank DESC
-      LIMIT $2
+      SELECT t.id, t.name, t.artist_name as artist, t.deezer_genres as genres,
+             t.chart_source as "chartSource", t.rank
+      FROM tracks t
+      WHERE NOT EXISTS (SELECT 1 FROM classifications c WHERE c.track_id = t.id)
+      ORDER BY t.rank DESC
+      LIMIT $1
       FOR UPDATE SKIP LOCKED
-    `, [config.aiVersion, limit]);
+    `, [limit]);
     await client.query('COMMIT');
     return rows;
   } catch (err) {
@@ -33,75 +33,70 @@ export async function fetchUnprocessedTracks(limit = config.batchSize) {
 export async function fetchUnprocessedCount() {
   const { rows } = await pool.query(`
     SELECT COUNT(*) as count
-    FROM songs_cache
-    WHERE ai_processed_at IS NULL
-       OR ai_version IS DISTINCT FROM $1
-  `, [config.aiVersion]);
+    FROM tracks t
+    WHERE NOT EXISTS (SELECT 1 FROM classifications c WHERE c.track_id = t.id)
+  `);
   return parseInt(rows[0].count, 10);
 }
 
 export async function updateAiClassification(id, result) {
+  const genreId = result.genres && result.genres.length > 0 ? result.genres[0] : 'UNCLASSIFIED';
+  const confidence = result.confidence && result.confidence[genreId] ? result.confidence[genreId] : 0;
   await pool.query(`
-    UPDATE songs_cache
-    SET ai_genres = $1::jsonb,
-        ai_tags = $2::jsonb,
-        ai_confidence = $3::jsonb,
-        ai_processed_at = NOW(),
-        ai_version = $4
-    WHERE id = $5
+    INSERT INTO classifications (track_id, genre_id, confidence, source, tags, audio_genres, created_at)
+    VALUES ($1, $2, $3, $4, $5::jsonb, $6::jsonb, NOW())
   `, [
-    JSON.stringify(result.genres),
-    JSON.stringify(result.tags),
-    JSON.stringify(result.confidence),
-    config.aiVersion,
     id,
+    genreId,
+    confidence,
+    'ai:' + config.aiVersion,
+    JSON.stringify(result.tags || []),
+    JSON.stringify(result.audio_genres || []),
   ]);
 }
 
 export async function updateAiAudioGenres(id, audioGenres) {
+  // Update the latest classification's audio_genres
   await pool.query(`
-    UPDATE songs_cache
-    SET ai_audio_genres = $1::jsonb,
-        ai_processed_at = NOW(),
-        ai_version = $2
-    WHERE id = $3
+    UPDATE classifications
+    SET audio_genres = $1::jsonb
+    WHERE id = (
+      SELECT id FROM classifications
+      WHERE track_id = $2
+      ORDER BY created_at DESC
+      LIMIT 1
+    )
   `, [
     JSON.stringify(audioGenres),
-    config.aiVersion,
     id,
   ]);
 }
 
 export async function markError(id, error) {
   await pool.query(`
-    UPDATE songs_cache
-    SET ai_processed_at = NOW(),
-        ai_version = $1
-    WHERE id = $2
-  `, ['error:' + config.aiVersion, id]);
+    INSERT INTO classifications (track_id, genre_id, confidence, source, created_at)
+    VALUES ($1, 'UNCLASSIFIED', 0, $2, NOW())
+  `, [id, 'error:' + config.aiVersion]);
   console.error(`[AI] Marked error for ${id}: ${error}`);
 }
 
 export async function getAiStats() {
   const { rows } = await pool.query(`
     SELECT
-      COUNT(*) as total,
-      COUNT(*) FILTER (WHERE ai_processed_at IS NULL) as unprocessed,
-      COUNT(*) FILTER (WHERE ai_processed_at IS NOT NULL AND ai_version LIKE 'error:%') as errors,
-      COUNT(*) FILTER (WHERE ai_processed_at IS NOT NULL AND ai_version NOT LIKE 'error:%') as processed,
-      MAX(ai_processed_at) as last_processed
-    FROM songs_cache
+      (SELECT COUNT(*) FROM tracks) as total,
+      (SELECT COUNT(*) FROM tracks t WHERE NOT EXISTS (SELECT 1 FROM classifications c WHERE c.track_id = t.id)) as unprocessed,
+      (SELECT COUNT(*) FROM classifications WHERE source LIKE 'error:%') as errors,
+      (SELECT COUNT(*) FROM classifications WHERE source NOT LIKE 'error:%') as processed,
+      (SELECT MAX(created_at) FROM classifications) as last_processed
   `);
   return rows[0];
 }
 
 export async function getAiGenreDistribution() {
   const { rows } = await pool.query(`
-    SELECT jsonb_array_elements_text(ai_genres) AS genre,
-           COUNT(*) as count
-    FROM songs_cache
-    WHERE ai_genres != '[]'::jsonb
-    GROUP BY genre
+    SELECT c.genre_id AS genre, COUNT(*) as count
+    FROM classifications c
+    GROUP BY c.genre_id
     ORDER BY count DESC
   `);
   return rows;

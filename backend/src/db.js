@@ -8,6 +8,6 @@ await runMigrations();
 export * from './db/connection.js';
 export * from './db/repositories/userRepository.js';
 export * from './db/repositories/gameRepository.js';
-export * from './db/repositories/songRepository.js';
-export * from './db/repositories/curatedRepository.js';
+export * from './db/repositories/trackRepository.js';
+export * from './db/repositories/curationRepository.js';
 export * from './db/repositories/flagRepository.js';

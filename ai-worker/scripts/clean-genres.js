@@ -53,6 +53,9 @@ const GENRES = [
   "GL_metal",
   "GL_soundtracks",
   "GL_jazz_lounge",
+  "GL_classical",
+  "GL_kids_family",
+  "GL_indian",
   "GL_other"
 ];
 
@@ -125,6 +128,9 @@ const GENRE_GROUPS = [
       "GL_metal",
       "GL_soundtracks",
       "GL_jazz_lounge",
+      "GL_classical",
+      "GL_kids_family",
+      "GL_indian",
       "GL_other"
     ]
   }

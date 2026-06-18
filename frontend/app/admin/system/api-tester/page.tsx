@@ -114,8 +114,8 @@ export default function ApiTesterPage() {
                     <span className="text-foreground/80 font-bold">{dbStatus.tables?.users ?? 0}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-foreground/40">Round Guesses</span>
-                    <span className="text-foreground/80 font-bold">{dbStatus.tables?.round_results_v2 ?? 0}</span>
+                    <span className="text-foreground/40">Classifications</span>
+                    <span className="text-foreground/80 font-bold">{dbStatus.tables?.classifications ?? 0}</span>
                   </div>
                 </div>
               ) : (

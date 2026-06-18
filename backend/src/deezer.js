@@ -71,6 +71,9 @@ const CUSTOM_GENRE_PLAYLISTS = {
   GL_metal: [1050179021, 8322139862, 7752014202],
   GL_soundtracks: [12729422541, 613860315, 1501014451],
   GL_jazz_lounge: [1311336155, 4040233102, 5898527324],
+  GL_classical: [1330286435, 1263898441, 9240620582, 15259069123],
+  GL_kids_family: [985417985, 515009671, 15208117963, 12637666591],
+  GL_indian: [1078410111, 14566124722, 9169400442, 12637675591],
 };
 
 const SEARCH_QUERY_MAP = {
@@ -109,6 +112,9 @@ const SEARCH_QUERY_MAP = {
   GL_metal: 'Metal Hard Rock',
   GL_soundtracks: 'Soundtrack Film Cinema Theme',
   GL_jazz_lounge: 'Jazz Lounge',
+  GL_classical: 'Classical Orchestral',
+  GL_kids_family: 'Kids Family Children',
+  GL_indian: 'Indian Bollywood',
   GL_other: 'Pop',
 };
 
@@ -124,10 +130,13 @@ const ALBUM_GENRE_ALIASES = {
   'musique-asiatique': 'GL_kpop',
   'musique-brésilienne': 'BR_bossa_nova',
   'musique-bresilienne': 'BR_bossa_nova',
-  'musique-indienne': 'indian',
+  'musique-indienne': 'GL_indian',
+  classique: 'GL_classical',
+  jeunesse: 'GL_kids_family',
+  enfants: 'GL_kids_family',
   latino: 'reggaeton-urbano',
   electro: 'french-touch-electro',
-  classique: 'classical',
+
   'rap/hip-hop': 'hip-hop-rap',
   'soul-funk': 'soul',
   'films/jeux-vidéo': 'soundtrack',
@@ -138,7 +147,7 @@ const ALBUM_GENRE_ALIASES = {
   'rap-français': 'rap-francais',
   'rap-francaise': 'rap-francais',
   'rap-francais': 'rap-francais',
-  jeunesse: 'children',
+
 };
 
 const REGIONAL_GENRES = ['chanson-francaise', 'rap-francais', 'african', 'arabic', 'asian', 'indian'];
@@ -497,6 +506,9 @@ function getGenreLabel(genre) {
     GL_metal: 'Metal & Hard Rock',
     GL_soundtracks: 'Soundtracks & Cinema',
     GL_jazz_lounge: 'Jazz & Lounge',
+    GL_classical: 'Classical & Orchestra',
+    GL_kids_family: 'Kids & Family',
+    GL_indian: 'Indian / Bollywood',
     GL_other: 'Outros',
   };
   return labels[genre] || genre.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');

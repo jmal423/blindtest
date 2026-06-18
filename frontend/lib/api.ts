@@ -362,7 +362,7 @@ export async function testDeezerGenre(genre: string, count: number = 10): Promis
   });
 }
 
-export async function getDbStatus(): Promise<{ ok: boolean; isPostgres: boolean; hasData: boolean; tables: { users: number; game_scores: number; round_results: number }; error?: string }> {
+export async function getDbStatus(): Promise<{ ok: boolean; isPostgres: boolean; hasData: boolean; tables: { users: number; tracks: number; classifications: number; curation: number; track_plays: number; genres: number }; error?: string }> {
   return fetchWithAuth(`${API_URL}/api/admin/db-status`);
 }
 
@@ -370,7 +370,7 @@ export async function deleteUser(userId: string): Promise<void> {
   await fetchWithAuth(`${API_URL}/api/admin/users/${userId}`, { method: 'DELETE' });
 }
 
-export async function getSongCache(): Promise<{ total: number; genreCount: number; plays: number; genres: { genre: string; count: number; last_fetched: string }[]; played: { id: string; name: string; artist: string; genre: string; genres: string[]; chartSource: string | null; rank: number; play_count: number; last_played: string }[] }> {
+export async function getSongCache(): Promise<{ total: number; plays: number; genres: { genre: string; count: number; last_fetched: string }[]; played: { id: string; name: string; artist_name: string; deezer_genres: string[]; chart_source: string | null; rank: number; play_count: number; last_played: string }[] }> {
   return fetchWithAuth(`${API_URL}/api/admin/song-cache`);
 }
 
@@ -382,14 +382,14 @@ export async function getAiStats(): Promise<{
   processed: number;
   last_processed: string | null;
   distribution: { genre: string; count: number }[];
-  unprocessedTracks: { id: string; name: string; artist: string; genre: string; genres: string[]; chart_source: string; rank: number }[];
+  unprocessedTracks: { id: string; name: string; artist: string; genres: string[]; chart_source: string; rank: number }[];
 }> {
   return fetchWithAuth(`${API_URL}/api/admin/ai/stats`);
 }
 
 export async function searchAiTracks(q: string, limit = 20): Promise<{
   ok: boolean;
-  tracks: { id: string; name: string; artist: string; genre: string; ai_genres: string[]; ai_tags: string[]; ai_confidence: Record<string, number>; ai_processed_at: string }[];
+  tracks: { id: string; name: string; artist: string; ai_genre: string; ai_tags: string[]; ai_confidence: number; ai_processed_at: string }[];
   error?: string;
 }> {
   return fetchWithAuth(`${API_URL}/api/admin/ai/search?q=${encodeURIComponent(q)}&limit=${limit}`);
@@ -397,7 +397,7 @@ export async function searchAiTracks(q: string, limit = 20): Promise<{
 
 export async function getAiRecent(limit = 50): Promise<{
   ok: boolean;
-  tracks: { id: string; name: string; artist: string; genre: string; ai_genres: string[]; ai_tags: string[]; ai_processed_at: string }[];
+  tracks: { id: string; name: string; artist: string; ai_genre: string; ai_tags: string[]; ai_processed_at: string }[];
   error?: string;
 }> {
   return fetchWithAuth(`${API_URL}/api/admin/ai/recent?limit=${limit}`);
@@ -405,7 +405,7 @@ export async function getAiRecent(limit = 50): Promise<{
 
 export async function getUnclassifiedTracks(): Promise<{
   ok: boolean;
-  tracks: { id: string; name: string; artist: string; album_image: string | null; genre: string; ai_genres: string[]; ai_confidence: any; rank: number; preview_url: string | null }[];
+  tracks: { id: string; name: string; artist: string; album_image: string | null; ai_genre: string; rank: number; preview_url: string | null }[];
   error?: string;
 }> {
   return fetchWithAuth(`${API_URL}/api/admin/ai/unclassified`);
@@ -433,8 +433,8 @@ export async function getCuratedStats(): Promise<{
 }
 
 export async function getCuratedByGenre(genre: string): Promise<{
-  id: string; name: string; artist: string; genre: string; played_count: number;
-  verified: boolean; curated_at: string; last_played_at: string | null; has_preview: boolean; preview_url: string | null;
+  id: string; name: string; artist: string; genre: string; playedCount: number;
+  verified: boolean; curatedAt: string; lastPlayed: string | null; previewUrl: string | null;
 }[]> {
   return fetchWithAuth(`${API_URL}/api/admin/curated/by-genre?genre=${encodeURIComponent(genre)}`);
 }
@@ -443,8 +443,8 @@ export async function getUnverifiedSongs(params: {
   limit?: number; offset?: number; search?: string;
 }): Promise<{
   songs: {
-    id: string; name: string; artist: string; genre: string; played_count: number;
-    verified: boolean; curated_at: string; has_preview: boolean; preview_url: string | null;
+    id: string; name: string; artist: string; genre: string; playedCount: number;
+    verified: boolean; curatedAt: string; previewUrl: string | null;
   }[];
   total: number;
 }> {
@@ -458,7 +458,7 @@ export async function getUnverifiedSongs(params: {
 
 
 export async function getCuratedDiscovery(genre?: string): Promise<{
-  id: string; name: string; artist: string; genre: string; genres: string[]; chart_source: string; rank: number;
+  id: string; name: string; artist_name: string; ai_genre: string; deezer_genres: string[]; chart_source: string; rank: number;
 }[]> {
   const params = genre ? `?genre=${encodeURIComponent(genre)}` : '';
   return fetchWithAuth(`${API_URL}/api/admin/curated/discovery${params}`);

@@ -6,7 +6,7 @@ export const GENRES = [
   "UK_pop_uk", "UK_uk_drill_grime", "UK_britpop_rock_uk", "UK_uk_garage_dnb",
   "FR_chanson_francaise", "FR_pop_francaise", "FR_rap_francais", "FR_french_touch_electro",
   "ES_flamenco", "ES_reggaeton_urbano", "ES_musica_regional_latina",
-  "GL_reggae", "GL_kpop", "GL_edm_dance", "GL_afrobeats_african", "GL_metal", "GL_soundtracks", "GL_jazz_lounge", "GL_other"
+  "GL_reggae", "GL_kpop", "GL_edm_dance", "GL_afrobeats_african", "GL_metal", "GL_soundtracks", "GL_jazz_lounge", "GL_classical", "GL_kids_family", "GL_indian", "GL_other"
 ];
 
 export function buildGenrePrompt(trackName, artist, rawGenres = []) {
@@ -63,6 +63,9 @@ You must map the track to exactly ONE "region" and ONE matching "genre_id" from 
    - genre_id: "GL_metal" (Heavy Metal, Hard Rock)
    - genre_id: "GL_soundtracks" (Movie soundtracks, film score, cinema themes)
    - genre_id: "GL_jazz_lounge" (Jazz, Lounge, smooth instruments)
+   - genre_id: "GL_classical" (Classical, orchestral, neoclassical, instrumental classical)
+   - genre_id: "GL_kids_family" (Children's music, nursery rhymes, family entertainment)
+   - genre_id: "GL_indian" (Indian subcontinent: Bollywood, Tollywood, Indian classical, bhangra)
    - genre_id: "GL_other" (Fallback for other unlisted regions)
 
 ### CLASSIFICATION DECISION TREE (Follow step-by-step from top to bottom)
@@ -77,6 +80,9 @@ You must map the track to exactly ONE "region" and ONE matching "genre_id" from 
 - If the array of raw genres ${JSON.stringify(rawGenres)} contains "dance" or "electro" or "techno/house" or "edm", and is NOT French Touch, you MUST immediately classify the track as region: "global_other" and genre_id: "GL_edm_dance".
 - If the array of raw genres ${JSON.stringify(rawGenres)} contains "african" or "musique-africaine", you MUST immediately classify the track as region: "global_other" and genre_id: "GL_afrobeats_african".
 - If the array of raw genres ${JSON.stringify(rawGenres)} contains "jazz", you MUST immediately classify the track as region: "global_other" and genre_id: "GL_jazz_lounge".
+- If the array of raw genres ${JSON.stringify(rawGenres)} contains "classical" or "classique" or "opera", you MUST immediately classify the track as region: "global_other" and genre_id: "GL_classical".
+- If the array of raw genres ${JSON.stringify(rawGenres)} contains "children" or "kids" or "family", you MUST immediately classify the track as region: "global_other" and genre_id: "GL_kids_family".
+- If the array of raw genres ${JSON.stringify(rawGenres)} contains "indian" or "bollywood" or "tamil" or "hindi", you MUST immediately classify the track as region: "global_other" and genre_id: "GL_indian".
 
 #### STEP 2: LEGENDARY ARTIST OVERRIDE DIRECTIVES (Second Priority - Forces BOTH Region and Genre)
 - If the artist is "Michael Jackson", you MUST map to region: "united_states" and genre_id: "US_pop_us".
@@ -91,7 +97,10 @@ You must map the track to exactly ONE "region" and ONE matching "genre_id" from 
 - If the artist is or contains "Rammstein", "Metallica", "Sepultura", "Angra", "Slipknot", "Jernblod", you MUST map to region: "global_other" and genre_id: "GL_metal".
 - If the artist is or contains "David Guetta", "Swedish House Mafia", "Martin Garrix", "Avicii", "Blasterjaxx", "Nadia Ali", "Cloonee", "HUGEL", "&ME", "Trinix", "Mosimann", "DJ Snake", you MUST map to region: "global_other" and genre_id: "GL_edm_dance".
 - If the artist is or contains "Calema", "Fally Ipupa", "CKay", "Master KG", "Magic System", "Burna Boy", "Chelsea Dinorath", "1t1", "Vanco", you MUST map to region: "global_other" and genre_id: "GL_afrobeats_african".
-- If the artist is or contains "Hans Zimmer", "Lisa Gerrard", "John Williams", "Disney", "James Newton Howard", "Gooseworx", you MUST map to region: "global_other" and genre_id: "GL_soundtracks".
+- If the artist is or contains "Hans Zimmer", "Lisa Gerrard", "John Williams", "Disney", "James Newton Howard", "Gooseworx", "Ramin Djawadi", "Kris Bowers", you MUST map to region: "global_other" and genre_id: "GL_soundtracks".
+- If the artist is or contains "Ludovico Einaudi", "Antonio Vivaldi", "Johann Sebastian Bach", "Wolfgang Amadeus Mozart", "Mstislav Rostropovich", "Khatia Buniatishvili", "André Rieu", "Wiener Philharmoniker", "Hariprasad Chaurasia", you MUST map to region: "global_other" and genre_id: "GL_classical".
+- If the artist is or contains "Caillou", "Kids Superstars", you MUST map to region: "global_other" and genre_id: "GL_kids_family".
+- If the artist is or contains "Anirudh Ravichander", "A.R. Rahman", "Lata Mangeshkar", "Sonu Nigam", "G. V. Prakash Kumar", "Hiphop Tamizha", "Dhanush", "Darshan Raval", "Jubin Nautiyal", "Aditya Rikhari", "Gajendra Verma", "Chamath Sangeeth", "Meditative Mind", "Buddha's Lounge", you MUST map to region: "global_other" and genre_id: "GL_indian".
 - If the artist is or contains "Laufey", "Acoustic Alchemy", "Jeff Lorber", "Yuko Mabuchi", "Roy Ayers", you MUST map to region: "global_other" and genre_id: "GL_jazz_lounge".
 - If the artist is or contains "Caetano Veloso", "Gilberto Gil", "Chico Buarque", "Djavan", "Elis Regina", "Gal Costa", "Maria Bethânia", "Marisa Monte", "Seu Jorge", "Rita Lee", "Cazuza", "Lulu Santos", "Kid Abelha", you MUST map to region: "brazilian" and genre_id: "BR_bossa_nova" (as they represent classic MPB/Bossa Nova).
 - If the artist is or contains "Tony Carreira", "Toy", "Quim Barreiros", "Emanuel", "Ágata", "Ruth Marlene", "Bandanda", "José Malhoa", you MUST map to region: "portuguese" and genre_id: "PT_tradicional_folklore_pimba".

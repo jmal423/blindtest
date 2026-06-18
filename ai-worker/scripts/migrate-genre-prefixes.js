@@ -61,6 +61,9 @@ const MIGRATION_MAP = {
   metal:                      'GL_metal',
   soundtracks:                'GL_soundtracks',
   jazz_lounge:                'GL_jazz_lounge',
+  classical:                  'GL_classical',
+  kids_family:                'GL_kids_family',
+  indian:                     'GL_indian',
   other:                      'GL_other',
 };
 
@@ -74,7 +77,7 @@ const VALID_GENRES = new Set([
   'FR_chanson_francaise', 'FR_pop_francaise', 'FR_rap_francais', 'FR_french_touch_electro',
   'ES_flamenco', 'ES_reggaeton_urbano', 'ES_musica_regional_latina',
   'GL_reggae', 'GL_kpop', 'GL_edm_dance', 'GL_afrobeats_african',
-  'GL_metal', 'GL_soundtracks', 'GL_jazz_lounge', 'GL_other',
+  'GL_metal', 'GL_soundtracks', 'GL_jazz_lounge', 'GL_classical', 'GL_kids_family', 'GL_indian', 'GL_other',
 ]);
 
 async function run() {

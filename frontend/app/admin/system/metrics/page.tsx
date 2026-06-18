@@ -74,8 +74,8 @@ function SystemSection() {
 
                   <div className="space-y-4">
                     <ProgressMeter
-                      label="Round Guesses (V2)"
-                      value={dbStatus.tables?.round_results_v2 ?? 0}
+                      label="Track Classifications"
+                      value={dbStatus.tables?.classifications ?? 0}
                       max={5000}
                       color="bg-[var(--accent)]"
                     />
@@ -328,11 +328,7 @@ function AiSection() {
                         <td className="py-2.5 px-2 font-semibold text-foreground/90 truncate max-w-[150px]">{t.name}</td>
                         <td className="py-2.5 px-2 text-foreground/60 truncate max-w-[120px]">{t.artist}</td>
                         <td className="py-2.5 px-2">
-                          <div className="flex gap-1 flex-wrap">
-                            {(t.ai_genres || []).map((g: string) => (
-                              <span key={g} className="px-1.5 py-0.2 rounded bg-[var(--accent)]/15 text-[var(--accent)] text-[9px] font-bold uppercase">{g}</span>
-                            ))}
-                          </div>
+                          <span className="px-1.5 py-0.2 rounded bg-[var(--accent)]/15 text-[var(--accent)] text-[9px] font-bold uppercase">{t.ai_genre || '—'}</span>
                         </td>
                         <td className="py-2.5 px-2">
                           <div className="flex gap-1 flex-wrap">

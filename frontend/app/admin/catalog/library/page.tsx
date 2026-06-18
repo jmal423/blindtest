@@ -26,7 +26,7 @@ export default function LibraryPage() {
   const total = data?.total ?? 0;
   const totalPlays = data?.plays ?? 0;
   const genreList = data?.genres ?? [];
-  const genreCount = data?.genreCount ?? 0;
+  const genreCount = data?.genres?.length ?? 0;
   const played = data?.played ?? [];
 
   return (
@@ -75,10 +75,10 @@ export default function LibraryPage() {
                 {played.map((p: any) => (
                   <tr key={p.id} className="border-b border-white/[0.02]">
                     <td className="py-2.5 pr-4 font-semibold text-foreground/90 truncate max-w-[200px]">{p.name}</td>
-                    <td className="py-2.5 pr-4 text-foreground/60 truncate max-w-[150px]">{p.artist}</td>
+                    <td className="py-2.5 pr-4 text-foreground/60 truncate max-w-[150px]">{p.artist_name}</td>
                     <td className="py-2.5 pr-4">
                       <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: 'color-mix(in srgb, var(--primary) 15%, transparent)', color: 'var(--primary)' }}>
-                        {p.genre}
+                        {Array.isArray(p.deezer_genres) ? (p.deezer_genres[0] || '-') : p.deezer_genres || '-'}
                       </span>
                     </td>
                     <td className="py-2.5 text-right font-bold tabular-nums">{p.play_count}</td>
