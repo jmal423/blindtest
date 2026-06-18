@@ -554,8 +554,18 @@ app.get('/api/users/:id', async (req, res) => {
 // Public user stats
 app.get('/api/users/:id/stats', async (req, res) => {
   try {
-    const stats = await getPlayerStats(req.params.id);
-    res.json(stats);
+    const s = await getPlayerStats(req.params.id);
+    res.json({
+      totalPoints: s.total_points ?? s.totalPoints ?? 0,
+      averageSpeedMs: s.avg_speed ?? s.averageSpeedMs ?? null,
+      bestGenre: s.best_genre ?? s.bestGenre ?? null,
+      gamesPlayed: s.games ?? s.gamesPlayed ?? 0,
+      avgScore: s.avg_score ?? s.avgScore ?? 0,
+      bestScore: s.best_score ?? s.bestScore ?? 0,
+      totalRounds: s.total_rounds ?? s.totalRounds ?? 0,
+      roundPoints: s.round_points ?? s.roundPoints ?? 0,
+      perfects: s.perfects ?? 0,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
