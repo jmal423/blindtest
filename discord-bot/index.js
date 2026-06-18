@@ -485,13 +485,9 @@ client.on('interactionCreate', async (interaction) => {
     await interaction.deferReply();
     const top = interaction.options.getInteger('top') || 10;
     try {
-      const { rows } = await pool.query(`
-        SELECT username, total_score, games_played, avatar_url
-        FROM users
-        WHERE total_score > 0
-        ORDER BY total_score DESC
-        LIMIT $1
-      `, [top]);
+      const res = await fetch(`${API_BASE}/api/leaderboard?limit=${top}`);
+      if (!res.ok) throw new Error(`API returned ${res.status}`);
+      const rows = await res.json();
 
       if (rows.length === 0) {
         return interaction.editReply('No scores yet. Play a game to get on the board! 🎵');
@@ -519,12 +515,10 @@ client.on('interactionCreate', async (interaction) => {
     await interaction.deferReply();
     const target = interaction.options.getUser('user') || interaction.user;
     try {
-      const { rows } = await pool.query(`
-        SELECT username, total_score, games_played, avg_score, best_score, wins,
-               perfects, total_rounds, best_genre, average_speed_ms
-        FROM users
-        WHERE discord_id = $1
-      `, [target.id]);
+      const { rows } = await pool.query(
+        'SELECT id, username FROM users WHERE discord_id = $1',
+        [target.id]
+      );
 
       if (rows.length === 0) {
         return interaction.editReply(
@@ -533,20 +527,23 @@ client.on('interactionCreate', async (interaction) => {
         );
       }
 
-      const s = rows[0];
+      const res = await fetch(`${API_BASE}/api/users/${rows[0].id}/stats`);
+      if (!res.ok) throw new Error(`API returned ${res.status}`);
+      const s = await res.json();
+
       const embed = new EmbedBuilder()
         .setTitle(`${target.displayName}'s Stats`)
         .setColor(0x6c5ce7)
         .setThumbnail(target.displayAvatarURL())
         .addFields(
-          { name: 'Total Score', value: s.total_score.toLocaleString(), inline: true },
-          { name: 'Games Played', value: String(s.games_played), inline: true },
-          { name: 'Best Score', value: s.best_score.toLocaleString(), inline: true },
-          { name: 'Avg Score/Game', value: Math.round(s.avg_score || 0).toLocaleString(), inline: true },
-          { name: 'Wins', value: String(s.wins || 0), inline: true },
-          { name: 'Perfect Rounds', value: String(s.perfects || 0), inline: true },
-          { name: 'Best Genre', value: s.best_genre ? s.best_genre.replace(/_/g, ' ') : 'N/A', inline: true },
-          { name: 'Avg Answer Speed', value: s.average_speed_ms ? `${(s.average_speed_ms / 1000).toFixed(1)}s` : 'N/A', inline: true },
+          { name: 'Total Score', value: s.totalPoints.toLocaleString(), inline: true },
+          { name: 'Games Played', value: String(s.gamesPlayed), inline: true },
+          { name: 'Best Score', value: s.bestScore.toLocaleString(), inline: true },
+          { name: 'Avg Score/Game', value: Math.round(s.avgScore || 0).toLocaleString(), inline: true },
+          { name: 'Wins', value: String(s.wins ?? 0), inline: true },
+          { name: 'Perfect Rounds', value: String(s.perfects ?? 0), inline: true },
+          { name: 'Best Genre', value: s.bestGenre ? s.bestGenre.replace(/_/g, ' ') : 'N/A', inline: true },
+          { name: 'Avg Answer Speed', value: s.averageSpeedMs ? `${(s.averageSpeedMs / 1000).toFixed(1)}s` : 'N/A', inline: true },
         )
         .setTimestamp();
 
@@ -1190,38 +1187,45 @@ client.once('clientReady', () => {
   }, 15000);
 
   // Poll active player count and update stats channel every 30s
-  async function updateStatsChannel() {
+  async function updateStatsChannel(retries = 3) {
     if (!GUILD_ID) return;
-    try {
-      const res = await fetch(`${API_BASE}/api/stats/active`);
-      if (!res.ok) return;
-      const data = await res.json();
-      const guild = client.guilds.cache.get(GUILD_ID);
-      if (!guild) return;
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        const res = await fetch(`${API_BASE}/api/stats/active`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const guild = client.guilds.cache.get(GUILD_ID);
+        if (!guild) return;
 
-      const newName = `📊 Active Players: ${data.totalPlayers}`;
-      const existing = guild.channels.cache.find(
-        c => c.name.startsWith('📊 Active Players') && c.type === ChannelType.GuildVoice
-      );
-
-      if (existing) {
-        if (existing.name !== newName) await existing.setName(newName);
-      } else {
-        // Create the stats channel
-        const category = guild.channels.cache.find(
-          c => c.name === '📢 INFORMATION' && c.type === ChannelType.GuildCategory
+        const newName = `📊 Active Players: ${data.totalPlayers}`;
+        const existing = guild.channels.cache.find(
+          c => c.name.startsWith('📊 Active Players') && c.type === ChannelType.GuildVoice
         );
-        await guild.channels.create({
-          name: newName,
-          type: ChannelType.GuildVoice,
-          parent: category?.id || undefined,
-          permissionOverwrites: [
-            { id: guild.id, deny: ['Connect'], allow: ['ViewChannel', 'ReadMessageHistory'] },
-          ],
-        });
+
+        if (existing) {
+          if (existing.name !== newName) await existing.setName(newName);
+        } else {
+          // Create the stats channel
+          const category = guild.channels.cache.find(
+            c => c.name === '📢 INFORMATION' && c.type === ChannelType.GuildCategory
+          );
+          await guild.channels.create({
+            name: newName,
+            type: ChannelType.GuildVoice,
+            parent: category?.id || undefined,
+            permissionOverwrites: [
+              { id: guild.id, deny: ['Connect'], allow: ['ViewChannel', 'ReadMessageHistory'] },
+            ],
+          });
+        }
+        return;
+      } catch (e) {
+        if (attempt < retries) {
+          await new Promise(r => setTimeout(r, 1000 * attempt));
+        } else {
+          console.error('Stats channel update failed:', e.message);
+        }
       }
-    } catch (e) {
-      console.error('Stats channel update failed:', e.message);
     }
   }
 
