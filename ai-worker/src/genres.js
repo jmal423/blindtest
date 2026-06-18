@@ -104,7 +104,7 @@ You must map the track to exactly ONE "region" and ONE matching "genre_id" from 
 - If the artist is or contains "Laufey", "Acoustic Alchemy", "Jeff Lorber", "Yuko Mabuchi", "Roy Ayers", you MUST map to region: "global_other" and genre_id: "GL_jazz_lounge".
 - If the artist is or contains "Caetano Veloso", "Gilberto Gil", "Chico Buarque", "Djavan", "Elis Regina", "Gal Costa", "Maria Bethânia", "Marisa Monte", "Seu Jorge", "Rita Lee", "Cazuza", "Lulu Santos", "Kid Abelha", you MUST map to region: "brazilian" and genre_id: "BR_bossa_nova" (as they represent classic MPB/Bossa Nova).
 - If the artist is or contains "Tony Carreira", "Toy", "Quim Barreiros", "Emanuel", "Ágata", "Ruth Marlene", "Bandanda", "José Malhoa", you MUST map to region: "portuguese" and genre_id: "PT_tradicional_folklore_pimba".
-- If the artist is or contains "Slow J", "Ivandro", "T-Rex", "Bárbara Bandeira", "Bárbara Tinoco", "Carolina Deslandes", "D.A.M.A", "Diogo Piçarra", "Fernando Daniel", "Matias Damásio", "Syro", "Nininho Vaz Maia", you MUST map to region: "portuguese" and genre_id: "PT_pop_urbano_nova_pop".
+- If the artist is or contains "Slow J", "Ivandro", "T-Rex", "Bárbara Bandeira", "Bárbara Tinoco", "Carolina Deslandes", "D.A.M.A", "Diogo Piçarra", "Fernando Daniel", "Matias Damásio", "Syro", "Nininho Vaz Maia", "Piruka", you MUST map to region: "portuguese" and genre_id: "PT_pop_urbano_nova_pop".
 
 #### STEP 3: LINGUISTIC TITLE ANALYSIS (Third Priority)
 - If the song title contains French words, you MUST classify the region as "french". If the artist is a franchise, map to genre_id: "FR_pop_francaise".

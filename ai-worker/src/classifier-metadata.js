@@ -203,8 +203,20 @@ export async function classifyTrack(track) {
   const artist = track.artist || '';
   const existingGenres = track.genres || [];
 
+  // Try fine-tuned model first
   if (config.ollamaModel === 'blindtest-classifier' || config.ollamaModel.includes('classifier')) {
-    return classifyWithFineTuned(trackName, artist, existingGenres);
+    const result = await classifyWithFineTuned(trackName, artist, existingGenres);
+    if (result.genres?.[0] !== 'UNCLASSIFIED' && (result.confidenceScore || 0) >= 0.5) {
+      return result;
+    }
+    // Fall back to llama3.2 for uncertain tracks
+    const fallbackModel = config.ollamaModel;
+    config.ollamaModel = 'llama3.2:3b';
+    const prompt = buildGenrePrompt(trackName, artist, existingGenres);
+    const raw = await ollamaGenerate(prompt);
+    config.ollamaModel = fallbackModel;
+    const result2 = parseResponse(raw);
+    return result2;
   }
 
   const prompt = buildGenrePrompt(trackName, artist, existingGenres);
@@ -237,6 +249,63 @@ async function classifyWithFineTuned(name, artist, existingGenres = []) {
       genreId = g;
       break;
     }
+  }
+
+  // Hardcoded artist overrides (run before Deezer override)
+  const artistL = artist.toLowerCase();
+  const nameL = name.toLowerCase();
+  if (artistL.includes('piruka') || artistL.includes('royalistick') || artistL.includes('clã da matarroa') || artistL.includes('matozoo') || artistL.includes('fidbek')) {
+    genreId = 'PT_hip_hop_tuga';
+  } else if (artistL.includes('conjunto primavera') || artistL.includes('los angeles azules')) {
+    genreId = 'ES_musica_regional_latina';
+  } else if (artistL.includes('xutos') || artistL.includes('gnr') || artistL.includes('rui veloso') || artistL.includes('uhf') || artistL.includes('ornatos violeta')) {
+    genreId = 'PT_pop_rock_tuga';
+  } else if (artistL.includes('tony carreira') || artistL.includes('quim barreiros') || artistL.includes('emanuel') || artistL.includes('toy')) {
+    genreId = 'PT_tradicional_folklore_pimba';
+  } else if (artistL.includes('d.a.m.a') || artistL.includes('dama')) {
+    genreId = 'PT_pop_urbano_nova_pop';
+  } else if (artistL.includes('engenheiros do hawaii') || artistL.includes('planet hemp') || artistL.includes('legião urbana')) {
+    genreId = 'BR_pop_rock_brasileiro';
+  } else if (artistL.includes('laufey')) {
+    genreId = 'GL_jazz_lounge';
+  } else if (artistL.includes('babymetal')) {
+    genreId = 'GL_metal';
+  } else if (artistL.includes('metronomy') || artistL.includes('gorillaz') || artistL.includes('clean bandit')) {
+    genreId = 'UK_britpop_rock_uk';
+  } else if (artistL.includes('juanes')) {
+    genreId = 'ES_reggaeton_urbano';
+  } else if (artistL.includes('daft punk')) {
+    genreId = 'FR_french_touch_electro';
+  } else if (artistL.includes('clean bandit')) {
+    genreId = 'UK_pop_uk';
+  } else if (artistL.includes('ultra vomit')) {
+    genreId = 'GL_metal';
+  } else if (artistL.includes('requiebros')) {
+    genreId = 'ES_reggaeton_urbano';
+  } else if (artistL.includes('malu') && nameL.includes('funk')) {
+    genreId = 'BR_funk_brasileiro';
+  } else if (artistL.includes('superbus')) {
+    genreId = 'FR_pop_francaise';
+  } else if (artistL.includes('ho99o9')) {
+    genreId = 'US_hip_hop_trap_us';
+  } else if (artistL.includes('french the kid')) {
+    genreId = 'UK_uk_drill_grime';
+  } else if (artistL.includes('sepultura')) {
+    genreId = 'GL_metal';
+  } else if (artistL.includes('icona pop')) {
+    genreId = 'GL_edm_dance';
+  } else if (artistL.includes('david palomar') || artistL.includes('perlita de huelva')) {
+    genreId = 'ES_flamenco';
+  } else if (artistL.includes('el de las r')) {
+    genreId = 'ES_musica_regional_latina';
+  } else if (artistL.includes('yasmim sensação') || artistL.includes('yasmin sensação')) {
+    genreId = 'BR_funk_brasileiro';
+  } else if (artistL.includes('oria') && nameL.includes('soirée')) {
+    genreId = 'FR_chanson_francaise';
+  } else if (artistL.includes('omi') && nameL.includes('cheerleader')) {
+    genreId = 'GL_reggae';
+  } else if (nameL.includes('techno mix')) {
+    genreId = 'GL_edm_dance';
   }
 
   const deezerOverride = findDeezerOverride(existingGenres);
