@@ -99,7 +99,6 @@ function ActionArea({ onNavigate }: { onNavigate: () => void }) {
   const [joinCode, setJoinCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [difficulty, setDifficulty] = useState(5);
   const discordContext = isDiscordActivity();
 
   /* Discord voice channel state */
@@ -119,7 +118,7 @@ function ActionArea({ onNavigate }: { onNavigate: () => void }) {
     setLoading(true);
     setError('');
     try {
-      const { code, playerId } = await createRoom([], undefined, 'genre', undefined, difficulty);
+      const { code, playerId } = await createRoom([], undefined, 'genre');
       localStorage.setItem(`blindtest_player_${code}`, playerId);
       onNavigate();
       router.push(`/game/${code}`);
@@ -308,28 +307,6 @@ function ActionArea({ onNavigate }: { onNavigate: () => void }) {
       transition={{ delay: 0.5, duration: 0.5 }}
       className="w-full max-w-sm space-y-4"
     >
-      {/* Difficulty selector */}
-      <div className="space-y-2 px-1">
-        <div className="flex justify-between text-xs text-foreground/50">
-          <span>Easy ←</span>
-          <span className="font-semibold text-foreground/80">
-            {difficulty <= 3 ? 'Easy' : difficulty <= 7 ? 'Normal' : 'Hard'}
-          </span>
-          <span>→ Hard</span>
-        </div>
-        <input type="range" min="0" max="10" value={difficulty} onChange={e => setDifficulty(Number(e.target.value))}
-          className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
-          style={{
-            background: `linear-gradient(to right, #00b894 ${difficulty * 10}%, rgba(255,255,255,0.1) ${difficulty * 10}%)`,
-            accentColor: difficulty <= 3 ? '#00b894' : difficulty <= 7 ? 'var(--accent)' : '#ef4444',
-          }} />
-        <p className="text-[10px] text-foreground/30 text-center">
-          {difficulty <= 3 ? 'Popular songs appear more often' :
-           difficulty <= 7 ? 'Balanced mix of songs' :
-           'All songs have equal chance'}
-        </p>
-      </div>
-
       <NeonButton
         variant="primary"
         onClick={handleCreate}

@@ -293,7 +293,7 @@ app.post('/api/rooms', authenticate, async (req, res) => {
   room.discordChannelId = discordChannelId || null;
   room.updateSettings({ gameMode });
   if (rounds || roundTime) room.updateSettings({ rounds, roundTime });
-  if (difficulty !== undefined) room.difficulty = Math.max(0, Math.min(10, Number(difficulty)));
+  if (difficulty !== undefined) room.updateSettings({ difficulty });
   const playerId = room.addPlayer(user.username, user.avatar_url, user.role, user.id);
   rooms.set(code, room);
 

@@ -55,6 +55,7 @@
   "rounds": "Manches",
   "time_per_round": "Temps par manche",
   "pause_between": "Pause entre les manches",
+  "difficulty": "Difficulté",
   "audio_source": "Source audio",
   "auto_start": "Démarrage Automatique",
   "auto_start_desc": "Lancement automatique 5 secondes après l'arrivée d'au moins 2 joueurs",

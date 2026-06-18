@@ -55,6 +55,7 @@
   "rounds": "Rondas",
   "time_per_round": "Tiempo por ronda",
   "pause_between": "Pausa entre rondas",
+  "difficulty": "Dificultad",
   "audio_source": "Fuente de audio",
   "auto_start": "Inicio Automático",
   "auto_start_desc": "Empieza automáticamente 5s después de que se unan 2 o más jugadores",

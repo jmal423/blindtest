@@ -13,6 +13,7 @@ export interface RoomSettings {
   autoStart: boolean;
   audioSource: 'deezer';
   gameMode: 'genre' | 'artist';
+  difficulty: number;
 }
 
 export type GameState =
@@ -67,7 +68,7 @@ export async function createRoom(
 ): Promise<{ code: string; playerId: string; settings: RoomSettings; genres: string[]; artists: string[] }> {
   const token = getToken();
   if (!token) throw new Error('Authentication required');
-  if (IS_MOCK) return { code: 'MOCK', playerId: 'mock-player-1', settings: { rounds: 10, roundTime: 15, pauseTime: 5, autoStart: false, audioSource: 'deezer', gameMode: gameMode || 'genre' }, genres: genres || [], artists: artists || [] };
+  if (IS_MOCK) return { code: 'MOCK', playerId: 'mock-player-1', settings: { rounds: 10, roundTime: 15, pauseTime: 5, autoStart: false, audioSource: 'deezer', gameMode: gameMode || 'genre', difficulty: 5 }, genres: genres || [], artists: artists || [] };
   const res = await fetch(`${API_URL}/api/rooms`, {
     method: 'POST',
     headers: {

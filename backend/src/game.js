@@ -109,10 +109,9 @@ export class GameRoom {
   constructor(code, genres, io) {
     this.code = code;
     this.genres = genres;
-    this.difficulty = 0;
     this.roundFoundRates = [];
     this.artists = [];
-    this.settings = { rounds: 10, roundTime: 15, pauseTime: 4, autoStart: false, audioSource: 'deezer', gameMode: 'genre' };
+    this.settings = { rounds: 10, roundTime: 15, pauseTime: 4, autoStart: false, audioSource: 'deezer', gameMode: 'genre', difficulty: 5 };
     this.tracks = [];
     this.trackHistory = [];
     this.players = [];
@@ -163,6 +162,7 @@ export class GameRoom {
     if (updates.gameMode) {
       this.settings.gameMode = updates.gameMode;
     }
+    if (updates.difficulty !== undefined) this.settings.difficulty = Math.max(0, Math.min(10, Math.round(updates.difficulty)));
     if (updates.autoStart !== undefined) {
       const wasAutoStart = this.settings.autoStart;
       this.settings.autoStart = !!updates.autoStart;
@@ -364,7 +364,7 @@ export class GameRoom {
         return (lastError || 'No tracks found. Try different genres.');
       }
 
-      const diffFactor = (this.difficulty || 0) / 10;
+      const diffFactor = (this.settings.difficulty ?? 5) / 10;
       this.tracks = weightedShuffle(allTracks.filter(t => !!t.previewUrl), diffFactor);
       this.totalRounds = Math.min(this.settings.rounds, this.tracks.length);
 
