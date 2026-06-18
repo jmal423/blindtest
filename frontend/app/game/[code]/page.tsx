@@ -1478,22 +1478,22 @@ function PlayingPhase({
                 className="bg-background border border-white/10 rounded-2xl p-5 w-full max-w-xs shadow-2xl flex flex-col gap-2"
                 onClick={e => e.stopPropagation()}
               >
-                <p className="text-xs font-bold text-foreground/70 uppercase tracking-wider mb-1">Why skip?</p>
+                <p className="text-xs font-bold text-foreground/70 uppercase tracking-wider mb-1">{t('skip_why_title')}</p>
                 <button onClick={() => handleSkipWithReason('wrong_song')} className="w-full text-left px-3.5 py-2.5 bg-white/[0.02] hover:bg-red-500/10 border border-white/5 hover:border-red-500/30 rounded-xl text-xs font-semibold text-foreground/80 hover:text-red-400 transition-all cursor-pointer flex items-center gap-2.5">
                   <span className="text-base">🚩</span>
-                  <div><span className="block">Wrong Song</span><span className="text-[10px] text-foreground/40 font-normal">Flag as incorrect &amp; skip</span></div>
+                  <div><span className="block">{t('skip_reason_wrong_song')}</span><span className="text-[10px] text-foreground/40 font-normal">{t('skip_reason_wrong_song_desc')}</span></div>
                 </button>
                 <button onClick={() => handleSkipWithReason('bad_audio')} className="w-full text-left px-3.5 py-2.5 bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 rounded-xl text-xs font-semibold text-foreground/80 hover:text-foreground transition-all cursor-pointer flex items-center gap-2.5">
                   <span className="text-base">🔇</span>
-                  <div><span className="block">Bad Audio</span><span className="text-[10px] text-foreground/40 font-normal">Audio glitch or too quiet</span></div>
+                  <div><span className="block">{t('skip_reason_bad_audio')}</span><span className="text-[10px] text-foreground/40 font-normal">{t('skip_reason_bad_audio_desc')}</span></div>
                 </button>
                 <button onClick={() => handleSkipWithReason('not_playing')} className="w-full text-left px-3.5 py-2.5 bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 rounded-xl text-xs font-semibold text-foreground/80 hover:text-foreground transition-all cursor-pointer flex items-center gap-2.5">
                   <span className="text-base">⏹</span>
-                  <div><span className="block">Not Playing</span><span className="text-[10px] text-foreground/40 font-normal">No sound coming through</span></div>
+                  <div><span className="block">{t('skip_reason_not_playing')}</span><span className="text-[10px] text-foreground/40 font-normal">{t('skip_reason_not_playing_desc')}</span></div>
                 </button>
                 <button onClick={() => handleSkipWithReason('just_skip')} className="w-full text-left px-3.5 py-2.5 bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 rounded-xl text-xs font-semibold text-foreground/80 hover:text-foreground transition-all cursor-pointer flex items-center gap-2.5">
                   <span className="text-base">⏭</span>
-                  <div><span className="block">Just Skip</span><span className="text-[10px] text-foreground/40 font-normal">No reason</span></div>
+                  <div><span className="block">{t('skip_reason_just_skip')}</span><span className="text-[10px] text-foreground/40 font-normal">{t('skip_reason_just_skip_desc')}</span></div>
                 </button>
               </motion.div>
             </div>
@@ -1653,9 +1653,9 @@ function RoundResult({ data, players = [], pauseTimeLeft, trackHistory = [], onF
   };
 
   const FLAG_REASONS = [
-    { id: 'wrong_genre', label: 'Wrong Genre', desc: 'Song does not fit this genre' },
-    { id: 'wrong_song', label: 'Wrong Song', desc: 'Track or artist is incorrect' },
-    { id: 'audio_issue', label: 'Audio Issue', desc: 'No preview or broken audio' },
+    { id: 'wrong_genre', label: t('flag_reason_wrong_genre'), desc: t('flag_reason_wrong_genre_desc') },
+    { id: 'wrong_song', label: t('flag_reason_wrong_song'), desc: t('flag_reason_wrong_song_desc') },
+    { id: 'audio_issue', label: t('flag_reason_audio_issue'), desc: t('flag_reason_audio_issue_desc') },
   ];
 
   return (
@@ -1668,7 +1668,7 @@ function RoundResult({ data, players = [], pauseTimeLeft, trackHistory = [], onF
       >
         {data?.skipped && (
           <span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
-            ⏭ Skipped
+            {t('round_skipped')}
           </span>
         )}
         {data?.albumImage && (
@@ -1679,8 +1679,8 @@ function RoundResult({ data, players = [], pauseTimeLeft, trackHistory = [], onF
           />
         )}
         <div className="text-center">
-          <h2 className="text-xl font-bold text-foreground">{data?.correctAnswer || 'Unknown Track'}</h2>
-          <p className="text-sm text-foreground/60 mt-1">{data?.artist || 'Unknown Artist'}</p>
+          <h2 className="text-xl font-bold text-foreground">{data?.correctAnswer || t('unknown_track')}</h2>
+          <p className="text-sm text-foreground/60 mt-1">{data?.artist || t('unknown_artist')}</p>
           {data?.id && flagState === 'idle' && (
             <button
               onClick={() => setFlagState('choosing')}
@@ -1705,7 +1705,7 @@ function RoundResult({ data, players = [], pauseTimeLeft, trackHistory = [], onF
                 onClick={() => setFlagState('idle')}
                 className="text-[10px] text-foreground/30 hover:text-foreground/60 transition-colors pt-1"
               >
-                Cancel
+                {t('cancel')}
               </button>
             </div>
           )}

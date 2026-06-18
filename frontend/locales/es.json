@@ -268,5 +268,22 @@
   "onboarding_play_preview": "Escuchar Vista Previa",
   "onboarding_correct": "¡Correcto!",
   "onboarding_enter": "ENTRAR EN LA ARENA",
-  "onboarding_entering": "Entrando en la Arena..."
+  "onboarding_entering": "Entrando en la Arena...",
+  "skip_why_title": "¿Por qué saltar?",
+  "skip_reason_wrong_song": "Canción incorrecta",
+  "skip_reason_wrong_song_desc": "Marcar como incorrecta y saltar",
+  "skip_reason_bad_audio": "Audio defectuoso",
+  "skip_reason_bad_audio_desc": "Fallo de audio o demasiado bajo",
+  "skip_reason_not_playing": "No suena",
+  "skip_reason_not_playing_desc": "No se escucha ningún sonido",
+  "skip_reason_just_skip": "Solo saltar",
+  "skip_reason_just_skip_desc": "Sin razón",
+  "round_skipped": "⏭ Saltada",
+  "flag_reason_wrong_genre": "Género incorrecto",
+  "flag_reason_wrong_genre_desc": "La canción no pertenece a este género",
+  "flag_reason_wrong_song": "Canción incorrecta",
+  "flag_reason_wrong_song_desc": "La pista o el artista es incorrecto",
+  "flag_reason_audio_issue": "Problema de audio",
+  "flag_reason_audio_issue_desc": "Sin vista previa o audio roto",
+  "cancel": "Cancelar"
 }

@@ -267,5 +267,22 @@
   "onboarding_play_preview": "Play Preview",
   "onboarding_correct": "Correct!",
   "onboarding_enter": "ENTER THE ARENA",
-  "onboarding_entering": "Entering the Arena..."
+  "onboarding_entering": "Entering the Arena...",
+  "skip_why_title": "Why skip?",
+  "skip_reason_wrong_song": "Wrong Song",
+  "skip_reason_wrong_song_desc": "Flag as incorrect & skip",
+  "skip_reason_bad_audio": "Bad Audio",
+  "skip_reason_bad_audio_desc": "Audio glitch or too quiet",
+  "skip_reason_not_playing": "Not Playing",
+  "skip_reason_not_playing_desc": "No sound coming through",
+  "skip_reason_just_skip": "Just Skip",
+  "skip_reason_just_skip_desc": "No reason",
+  "round_skipped": "⏭ Skipped",
+  "flag_reason_wrong_genre": "Wrong Genre",
+  "flag_reason_wrong_genre_desc": "Song does not fit this genre",
+  "flag_reason_wrong_song": "Wrong Song",
+  "flag_reason_wrong_song_desc": "Track or artist is incorrect",
+  "flag_reason_audio_issue": "Audio Issue",
+  "flag_reason_audio_issue_desc": "No preview or broken audio",
+  "cancel": "Cancel"
 }

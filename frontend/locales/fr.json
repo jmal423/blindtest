@@ -268,5 +268,22 @@
   "onboarding_play_preview": "Écouter l'Aperçu",
   "onboarding_correct": "Correct !",
   "onboarding_enter": "ENTRER DANS L'ARÈNE",
-  "onboarding_entering": "Entrée dans l'Arène..."
+  "onboarding_entering": "Entrée dans l'Arène...",
+  "skip_why_title": "Pourquoi passer ?",
+  "skip_reason_wrong_song": "Mauvaise chanson",
+  "skip_reason_wrong_song_desc": "Signaler comme incorrecte & passer",
+  "skip_reason_bad_audio": "Mauvaise qualité audio",
+  "skip_reason_bad_audio_desc": "Problème audio ou trop faible",
+  "skip_reason_not_playing": "Ne joue pas",
+  "skip_reason_not_playing_desc": "Aucun son ne sort",
+  "skip_reason_just_skip": "Passer simplement",
+  "skip_reason_just_skip_desc": "Aucune raison",
+  "round_skipped": "⏭ Passée",
+  "flag_reason_wrong_genre": "Mauvais genre",
+  "flag_reason_wrong_genre_desc": "La chanson ne correspond pas à ce genre",
+  "flag_reason_wrong_song": "Mauvaise chanson",
+  "flag_reason_wrong_song_desc": "Le titre ou l'artiste est incorrect",
+  "flag_reason_audio_issue": "Problème audio",
+  "flag_reason_audio_issue_desc": "Pas d'aperçu ou audio cassé",
+  "cancel": "Annuler"
 }
