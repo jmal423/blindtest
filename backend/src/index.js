@@ -1244,6 +1244,7 @@ app.post('/api/admin/curated/fill', requireAdmin, async (req, res) => {
     const result = await fillGenre(genre, { get: get, run: run });
     res.json(result);
   } catch (err) {
+    console.error('[Fill] Error:', err);
     res.status(500).json({ ok: false, error: err.message });
   }
 });
