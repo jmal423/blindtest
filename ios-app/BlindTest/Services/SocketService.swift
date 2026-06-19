@@ -14,6 +14,9 @@ final class SocketService: ObservableObject {
     @Published var guessMarkers: [GuessMarker] = []
     @Published var kicked = false
 
+    private var pendingRoomCode: String?
+    private var pendingPlayerId: String?
+
     private init() {
         let url = URL(string: "https://blindtest.jl423.xyz")!
         manager = SocketManager(socketURL: url, config: [.log(false), .compress])
@@ -23,7 +26,13 @@ final class SocketService: ObservableObject {
 
     private func setupListeners() {
         socket.on(clientEvent: .connect) { [weak self] _, _ in
-            Task { @MainActor in self?.isConnected = true }
+            Task { @MainActor in
+                self?.isConnected = true
+                // Rejoin room if we were in one
+                if let code = self?.pendingRoomCode, let pid = self?.pendingPlayerId {
+                    self?.socket.emit("join_room", code, pid)
+                }
+            }
         }
         socket.on(clientEvent: .disconnect) { [weak self] _, _ in
             Task { @MainActor in self?.isConnected = false }
@@ -60,6 +69,8 @@ final class SocketService: ObservableObject {
     func disconnect() { socket.disconnect() }
 
     func joinRoom(code: String, playerId: String) {
+        pendingRoomCode = code
+        pendingPlayerId = playerId
         socket.emit("join_room", code, playerId)
     }
 
@@ -79,5 +90,7 @@ final class SocketService: ObservableObject {
         guessResult = nil
         guessMarkers = []
         kicked = false
+        pendingRoomCode = nil
+        pendingPlayerId = nil
     }
 }

@@ -7,7 +7,6 @@ final class GameViewModel: ObservableObject {
     @Published var currentRound = 1
     @Published var totalRounds = 10
     @Published var timeLeft: Int?
-    @Published var smoothTime: Double = 0
     @Published var previewUrl: String?
     @Published var trackId: String?
     @Published var trackArtist: String?
@@ -27,10 +26,10 @@ final class GameViewModel: ObservableObject {
     @Published var titleFound = false
     @Published var bothFound = false
     @Published var roomCode: String?
+    @Published var roundStartTime: Date?
+    @Published var totalRoundsTime: Int = 15
 
     private var timer: Timer?
-    private var smoothTimer: Timer?
-    private var roundStartTime: Date?
 
     func setPlayerId(_ id: String) { playerId = id }
 
@@ -71,6 +70,7 @@ final class GameViewModel: ObservableObject {
             phase = .playing
             timeLeft = state.timeLeft
             previewUrl = state.previewUrl
+            totalRoundsTime = state.roundTime ?? state.settings?.roundTime ?? 15
             roundStartTime = Date()
             startTimers(initial: state.timeLeft ?? 15)
         case "round_result":
@@ -130,21 +130,13 @@ final class GameViewModel: ObservableObject {
                 if count <= 0 { self?.stopTimers() }
             }
         }
-        smoothTimer = Timer.scheduledTimer(withTimeInterval: 0.016, repeats: true) { [weak self] _ in
-            Task { @MainActor [weak self] in
-                guard let self, let start = self.roundStartTime else { return }
-                self.smoothTime = Date().timeIntervalSince(start)
-            }
-        }
     }
 
     private func stopTimers() {
         timer?.invalidate(); timer = nil
-        smoothTimer?.invalidate(); smoothTimer = nil
     }
 
     deinit {
-        let t = timer; t?.invalidate()
-        let s = smoothTimer; s?.invalidate()
+        timer?.invalidate()
     }
 }

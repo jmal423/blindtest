@@ -8,6 +8,7 @@ struct PlayingView: View {
     @State private var showSkipReason = false
     @State private var navigateToPodium = false
     @State private var navigateToResult = false
+    @State private var currentAudioURL: String?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -30,9 +31,22 @@ struct PlayingView: View {
             }
             .padding(.horizontal).padding(.top, 8)
 
-            // Progress bar - smooth 60fps
-            SmoothTimerBar(timeLeft: gameVM.timeLeft ?? 0, totalTime: 15, smoothTime: gameVM.smoothTime)
-                .frame(height: 8).padding(.horizontal).padding(.bottom, 8)
+            // Progress bar
+            TimelineView(.animation(minimumInterval: 0.016)) { timeline in
+                GeometryReader { geo in
+                    let elapsed = gameVM.roundStartTime.map { Date().timeIntervalSince($0) } ?? 0
+                    let total = Double(gameVM.totalRoundsTime)
+                    let progress = total > 0 ? min(elapsed / total, 1) : 0
+                    ZStack(alignment: .leading) {
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color.gray.opacity(0.15))
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(gameVM.timeLeft ?? 0 > 5 ? Color.indigo : Color.red)
+                            .frame(width: max(0, (1 - progress) * geo.size.width))
+                    }
+                }
+            }
+            .frame(height: 8).padding(.horizontal).padding(.bottom, 8)
 
             // Player markers with avatars
             ScrollView(.horizontal) {
@@ -160,49 +174,38 @@ struct PlayingView: View {
             if let r = r { gameVM.handleGuessResult(r) }
         }
         .onReceive(socket.$gameState) { state in
-            if let s = state {
-                gameVM.handleGameState(s)
-                handleAudio(state: s)
-            }
+            if let s = state { gameVM.handleGameState(s) }
         }
         .onChange(of: gameVM.phase) { _, phase in
+            if phase == .roundPreparing || phase == .playing {
+                startAudio()
+            }
+            if phase == .roundResult || phase == .gameOver {
+                currentAudioURL = nil
+            }
             if phase == .roundResult { navigateToResult = true }
             if phase == .gameOver { navigateToPodium = true }
         }
     }
 
-    private func handleAudio(state: GameState) {
-        if state.state == "round_preparing" || state.state == "playing" {
-            if let url = state.previewUrl.flatMap({ URL(string: $0) }) {
-                audio.play(url: url)
-            }
+    private func startAudio() {
+        guard let path = gameVM.previewUrl else { return }
+        guard path != currentAudioURL else { return }
+        currentAudioURL = path
+
+        let url = fullAudioURL(path)
+        audio.play(url: url)
+    }
+
+    private func fullAudioURL(_ path: String) -> URL {
+        if path.hasPrefix("http") {
+            return URL(string: path) ?? URL(string: "https://blindtest.jl423.xyz")!
         }
-        if state.state == "round_result" || state.state == "game_over" {
-            audio.stop()
-        }
+        return URL(string: "https://blindtest.jl423.xyz\(path)")!
     }
 
     private func playerColor(_ id: String) -> Color {
         let colors: [Color] = [.indigo, .green, .orange, .red, .pink, .cyan, .purple, .yellow]
         return colors[abs(id.hashValue) % colors.count]
-    }
-}
-
-struct SmoothTimerBar: View {
-    let timeLeft: Int
-    let totalTime: Int
-    let smoothTime: Double
-
-    var body: some View {
-        GeometryReader { geo in
-            ZStack(alignment: .leading) {
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(Color.gray.opacity(0.15))
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(timeLeft > 5 ? Color.indigo : Color.red)
-                    .frame(width: max(0, (CGFloat(totalTime - Int(smoothTime)) / CGFloat(totalTime)) * geo.size.width))
-                    .animation(.linear(duration: 0.016), value: smoothTime)
-            }
-        }
     }
 }
