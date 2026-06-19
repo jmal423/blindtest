@@ -42,11 +42,11 @@ struct PlayingView: View {
                                 .overlay(Text(player.name.prefix(1)).font(.caption2.weight(.bold)).foregroundColor(.white))
                             Text(player.name).font(.system(size: 8)).fontWeight(.bold)
                             if player.foundBoth == true {
-                                Text("BOTH").font(.system(size: 6)).weight(.black).foregroundColor(.green)
+                                Text("BOTH").font(.system(size: 6, weight: .black)).foregroundColor(.green)
                             } else if player.foundArtist == true {
-                                Text("ARTIST").font(.system(size: 6)).weight(.black).foregroundColor(.orange)
+                                Text("ARTIST").font(.system(size: 6, weight: .black)).foregroundColor(.orange)
                             } else if player.foundTitle == true {
-                                Text("TITLE").font(.system(size: 6)).weight(.black).foregroundColor(.blue)
+                                Text("TITLE").font(.system(size: 6, weight: .black)).foregroundColor(.blue)
                             }
                         }
                         .frame(width: 56)
