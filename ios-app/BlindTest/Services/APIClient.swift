@@ -12,7 +12,7 @@ actor APIClient {
     }
 
     // MARK: - Auth
-    func getDiscordAuthURL(redirect: String) -> URL {
+    nonisolated func getDiscordAuthURL(redirect: String) -> URL {
         var comps = URLComponents(url: base.appendingPathComponent("/api/auth/discord"), resolvingAgainstBaseURL: false)!
         comps.queryItems = [URLQueryItem(name: "redirect", value: redirect)]
         return comps.url!

@@ -12,8 +12,8 @@ final class AudioService: ObservableObject {
     }
 
     init() {
-        try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
         DispatchQueue.global(qos: .background).async {
+            try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
             try? AVAudioSession.sharedInstance().setActive(true)
         }
         setupRemoteCommands()
