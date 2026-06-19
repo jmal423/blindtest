@@ -9,4 +9,6 @@ backend/data.db-wal
 .DS_Store
 unsloth_compiled_cache/
 ai-worker/songs_cache_export*.csv
-scratch/
+scratch/ios-app/BlindTest.xcodeproj/xcuserdata/
+ios-app/BlindTest.xcodeproj/project.xcworkspace/xcuserdata/
+ios-app/BlindTest.xcodeproj/project.xcworkspace/xcshareddata/
