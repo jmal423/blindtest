@@ -13,14 +13,17 @@ struct LeaderboardView: View {
 
                     if let url = entry.avatarURL {
                         AsyncImage(url: url) { phase in
-                            Circle().fill(Color.gray.opacity(0.3))
-                                .overlay(phase.image?.resizable().scaledToFill())
+                            if let image = phase.image {
+                                image.resizable().scaledToFill()
+                            } else {
+                                Circle().fill(Color.gray.opacity(0.3))
+                            }
                         }
-                        .frame(width: 36, height: 36).clipShape(Circle())
+                        .frame(width: 40, height: 40).clipShape(Circle())
                     } else {
                         Circle()
                             .fill(Color.indigo.opacity(0.3))
-                            .frame(width: 36, height: 36)
+                            .frame(width: 40, height: 40)
                             .overlay(Text(entry.username.prefix(1)).fontWeight(.bold))
                     }
 
@@ -32,9 +35,13 @@ struct LeaderboardView: View {
 
                     Spacer()
 
-                    VStack(alignment: .trailing) {
-                        Text("\(entry.totalScore)").fontWeight(.black).monospacedDigit()
-                        Text("avg \(Int(entry.avgScore))").font(.caption2).foregroundColor(.secondary)
+                    VStack(alignment: .trailing, spacing: 1) {
+                        Text("\(entry.totalScore)")
+                            .font(.title3.weight(.black)).monospacedDigit()
+                        Text("avg \(Int(entry.avgScore))")
+                            .font(.caption2).foregroundColor(.secondary)
+                        Text("best \(entry.bestScore)")
+                            .font(.caption2).foregroundColor(.secondary)
                     }
                 }
                 .padding(.vertical, 4)
@@ -47,6 +54,11 @@ struct LeaderboardView: View {
     }
 
     private func medalColor(_ rank: Int) -> Color {
-        switch rank { case 1: .yellow; case 2: .gray; case 3: .orange; default: .secondary }
+        switch rank {
+        case 1: .yellow
+        case 2: .gray
+        case 3: .orange
+        default: .secondary
+        }
     }
 }

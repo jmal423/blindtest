@@ -27,6 +27,7 @@ struct GameState: Codable {
     let previewUrl: String?
     let timeLeft: Int?
     let trackId: String?
+    let trackArtist: String?
     let roundResult: RoundResult?
     let rankings: [Ranking]?
     let trackHistory: [TrackEntry]?

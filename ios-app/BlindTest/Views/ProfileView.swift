@@ -10,14 +10,32 @@ struct ProfileView: View {
                 if let user = profileVM.user {
                     Section {
                         HStack(spacing: 16) {
-                            Circle()
-                                .fill(Color.indigo.opacity(0.3))
-                                .frame(width: 60, height: 60)
-                                .overlay(Text(user.username.prefix(1)).font(.largeTitle.weight(.bold)))
-                            VStack(alignment: .leading) {
+                            if let url = user.avatarURL {
+                                AsyncImage(url: url) { phase in
+                                    if let image = phase.image {
+                                        image.resizable().scaledToFill()
+                                    } else {
+                                        Circle().fill(Color.indigo.opacity(0.3))
+                                    }
+                                }
+                                .frame(width: 60, height: 60).clipShape(Circle())
+                            } else {
+                                Circle()
+                                    .fill(Color.indigo.opacity(0.3))
+                                    .frame(width: 60, height: 60)
+                                    .overlay(Text(user.username.prefix(1)).font(.largeTitle.weight(.bold)))
+                            }
+                            VStack(alignment: .leading, spacing: 4) {
                                 Text(user.username).font(.title2.weight(.bold))
+                                Text("Joined \(user.createdAt.prefix(10))")
+                                    .font(.caption).foregroundColor(.secondary)
                                 if user.isAdmin {
-                                    Text("ADMIN").font(.caption.weight(.black)).foregroundColor(.orange)
+                                    Text("ADMIN").font(.caption2.weight(.black))
+                                        .foregroundColor(.orange)
+                                        .padding(.horizontal, 6)
+                                        .padding(.vertical, 2)
+                                        .background(Color.orange.opacity(0.15))
+                                        .clipShape(RoundedRectangle(cornerRadius: 4))
                                 }
                             }
                         }
@@ -32,7 +50,12 @@ struct ProfileView: View {
                         StatRow(label: "Best Score", value: "\(stats.bestScore)")
                         StatRow(label: "Perfect Rounds", value: "\(stats.perfects)")
                         StatRow(label: "Avg Score", value: String(format: "%.0f", stats.avgScore))
-                        if let g = stats.bestGenre { StatRow(label: "Best Genre", value: g) }
+                        if let g = stats.bestGenre {
+                            StatRow(label: "Best Genre", value: g)
+                        }
+                        if let speed = stats.averageSpeedMs {
+                            StatRow(label: "Avg Speed", value: String(format: "%.1fs", speed / 1000))
+                        }
                     }
                 }
 

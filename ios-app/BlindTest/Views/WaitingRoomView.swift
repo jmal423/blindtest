@@ -8,7 +8,8 @@ struct WaitingRoomView: View {
     @State private var showKicked = false
 
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 16) {
+            // Header
             VStack(spacing: 4) {
                 Text("Room \(gameVM.roomCode ?? "—")")
                     .font(.title.weight(.black))
@@ -20,15 +21,27 @@ struct WaitingRoomView: View {
             }
             .padding(.top)
 
+            // Players
             Text("Players (\(gameVM.players.count))")
                 .font(.headline)
 
             List(gameVM.players) { player in
-                HStack {
-                    Circle()
-                        .fill(Color.indigo.opacity(0.3))
-                        .frame(width: 36, height: 36)
-                        .overlay(Text(player.name.prefix(1)).fontWeight(.bold))
+                HStack(spacing: 12) {
+                    if let url = player.avatarUrl.flatMap({ URL(string: $0) }) {
+                        AsyncImage(url: url) { phase in
+                            if let image = phase.image {
+                                image.resizable().scaledToFill()
+                            } else {
+                                Circle().fill(Color.indigo.opacity(0.3))
+                            }
+                        }
+                        .frame(width: 40, height: 40).clipShape(Circle())
+                    } else {
+                        Circle()
+                            .fill(Color.indigo.opacity(0.3))
+                            .frame(width: 40, height: 40)
+                            .overlay(Text(player.name.prefix(1)).fontWeight(.bold))
+                    }
                     Text(player.name).fontWeight(.semibold)
                     if player.id == gameVM.hostId {
                         Spacer()
@@ -53,6 +66,7 @@ struct WaitingRoomView: View {
             } else {
                 Text("Waiting for host to start...")
                     .foregroundColor(.secondary)
+                    .font(.subheadline)
             }
 
             Button("Leave", role: .destructive) {

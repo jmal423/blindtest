@@ -68,9 +68,17 @@ actor APIClient {
         try await get("/api/users/me/stats", auth: true)
     }
 
+    func getMyScores() async throws -> [GameScore] {
+        try await get("/api/users/me/scores", auth: true)
+    }
+
+    func getGameHistory() async throws -> [[String: Any]] {
+        try await getJSON("/api/users/me/history", auth: true)
+    }
+
     // MARK: - Leaderboard
-    func fetchLeaderboard() async throws -> [[String: Any]] {
-        try await getJSON("/api/leaderboard")
+    func fetchLeaderboard() async throws -> [LeaderboardResponse] {
+        try await get("/api/leaderboard")
     }
 
     // MARK: - Onboarding
@@ -80,6 +88,15 @@ actor APIClient {
 
     func getOnboardingQuiz() async throws -> OnboardingQuiz {
         try await get("/api/onboarding/quiz")
+    }
+
+    // MARK: - Friends
+    func getFriends() async throws -> [String: Any] {
+        try await getJSON("/api/friends", auth: true)
+    }
+
+    func getInvites() async throws -> [[String: Any]] {
+        try await getJSON("/api/invites", auth: true)
     }
 
     // MARK: - Generic GET
@@ -93,11 +110,24 @@ actor APIClient {
         return try decoder.decode(T.self, from: data)
     }
 
-    private func getJSON(_ path: String) async throws -> [[String: Any]] {
+    private func getJSON(_ path: String, auth: Bool = false) async throws -> [[String: Any]] {
         var req = URLRequest(url: base.appendingPathComponent(path))
         req.timeoutInterval = 15
+        if auth, let token = KeychainService.shared.token {
+            req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
         let (data, _) = try await URLSession.shared.data(for: req)
         return try JSONSerialization.jsonObject(with: data) as? [[String: Any]] ?? []
+    }
+
+    private func getJSONDict(_ path: String, auth: Bool = false) async throws -> [String: Any] {
+        var req = URLRequest(url: base.appendingPathComponent(path))
+        req.timeoutInterval = 15
+        if auth, let token = KeychainService.shared.token {
+            req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        let (data, _) = try await URLSession.shared.data(for: req)
+        return try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
     }
 
     // MARK: - Generic POST

@@ -9,6 +9,8 @@ final class GameViewModel: ObservableObject {
     @Published var timeLeft: Int?
     @Published var smoothTime: Double = 0
     @Published var previewUrl: String?
+    @Published var trackId: String?
+    @Published var trackArtist: String?
     @Published var roundResult: RoundResult?
     @Published var rankings: [Ranking] = []
     @Published var trackHistory: [TrackEntry] = []
@@ -47,6 +49,8 @@ final class GameViewModel: ObservableObject {
         totalRounds = state.totalRounds ?? 10
         skipVotes = state.skipVotes ?? 0
         skipVotesNeeded = state.skipVotesNeeded ?? 0
+        trackId = state.trackId
+        trackArtist = state.trackArtist
 
         switch state.state {
         case "waiting":
@@ -119,7 +123,7 @@ final class GameViewModel: ObservableObject {
                 if count <= 0 { self?.stopTimers() }
             }
         }
-        smoothTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] _ in
+        smoothTimer = Timer.scheduledTimer(withTimeInterval: 0.016, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in
                 guard let self, let start = self.roundStartTime else { return }
                 self.smoothTime = Date().timeIntervalSince(start)

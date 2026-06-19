@@ -31,3 +31,16 @@ struct GameScore: Codable, Identifiable {
     let totalRounds: Int
     let playedAt: String
 }
+
+struct LeaderboardResponse: Codable, Identifiable {
+    let id: String
+    let username: String
+    let avatarUrl: String?
+    let totalScore: Int
+    let gamesPlayed: Int
+    let avgScore: Double
+    let bestScore: Int
+    let wins: Int
+
+    var avatarURL: URL? { avatarUrl.flatMap { URL(string: $0) } }
+}
