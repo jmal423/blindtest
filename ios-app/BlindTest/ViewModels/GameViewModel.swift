@@ -40,7 +40,7 @@ final class GameViewModel: ObservableObject {
     }
 
     func handleGameState(_ state: GameState) {
-        players = state.players ?? []
+        players = state.players
         hostId = state.hostId
         isHost = state.hostId == playerId
         currentRound = state.currentRound ?? 1

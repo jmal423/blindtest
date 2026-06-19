@@ -67,7 +67,7 @@ struct LobbyView: View {
             }
         }
         .onAppear { Task { await lobbyVM.loadGenres() } }
-        .onChange(of: lobbyVM.createdCode) { _ in navigateToGame = true }
+        .onChange(of: lobbyVM.createdCode) { _, _ in navigateToGame = true }
     }
 
     private func joinAction() {

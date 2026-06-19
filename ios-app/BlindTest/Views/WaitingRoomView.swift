@@ -68,7 +68,7 @@ struct WaitingRoomView: View {
         .onReceive(socket.$gameState) { state in
             if let s = state { gameVM.handleGameState(s) }
         }
-        .onChange(of: gameVM.phase) { phase in
+        .onChange(of: gameVM.phase) { _, phase in
             if phase != .waiting { navigateToGame = true }
         }
         .onReceive(socket.$kicked) { kicked in

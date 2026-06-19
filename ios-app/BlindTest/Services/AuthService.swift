@@ -2,7 +2,7 @@ import Foundation
 import AuthenticationServices
 
 @MainActor
-final class AuthService: NSObject, ObservableObject {
+final class AuthService: NSObject, ObservableObject, ASWebAuthenticationPresentationContextProviding {
     static let shared = AuthService()
     @Published var isAuthenticated = false
     @Published var currentUser: User?
@@ -13,24 +13,31 @@ final class AuthService: NSObject, ObservableObject {
     func login() async throws {
         let scheme = "blindtest"
         let redirect = "\(scheme)://callback"
-        let authURL = await await APIClient.shared.getDiscordAuthURL(redirect: redirect)
+        let authURL = APIClient.shared.getDiscordAuthURL(redirect: redirect)
 
         try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
             self.continuation = cont
-            Task { @MainActor in
-                self.authSession = ASWebAuthenticationSession(
-                    url: authURL,
-                    callbackURLScheme: scheme,
-                    completionHandler: self.handleCallback
-                )
-                self.authSession?.prefersEphemeralWebBrowserSession = true
-                self.authSession?.start()
-            }
+            let session = ASWebAuthenticationSession(
+                url: authURL,
+                callbackURLScheme: scheme,
+                completionHandler: self.handleCallback
+            )
+            session.prefersEphemeralWebBrowserSession = true
+            session.presentationContextProvider = self
+            session.start()
+            self.authSession = session
         }
 
         let user = try await APIClient.shared.getMe()
         self.currentUser = user
         self.isAuthenticated = true
+    }
+
+    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .first { $0.isKeyWindow } ?? UIWindow()
     }
 
     private func handleCallback(url: URL?, error: Error?) {
