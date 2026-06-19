@@ -92,7 +92,7 @@ actor APIClient {
 
     // MARK: - Friends
     func getFriends() async throws -> [String: Any] {
-        try await getJSON("/api/friends", auth: true)
+        try await getJSONDict("/api/friends", auth: true)
     }
 
     func getInvites() async throws -> [[String: Any]] {
