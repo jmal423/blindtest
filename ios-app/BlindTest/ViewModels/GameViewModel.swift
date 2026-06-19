@@ -120,9 +120,10 @@ final class GameViewModel: ObservableObject {
             }
         }
         smoothTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] _ in
-            guard let self = self, let start = self.roundStartTime else { return }
-            let elapsed = Date().timeIntervalSince(start)
-            Task { @MainActor in self.smoothTime = elapsed }
+            Task { @MainActor [weak self] in
+                guard let self, let start = self.roundStartTime else { return }
+                self.smoothTime = Date().timeIntervalSince(start)
+            }
         }
     }
 
@@ -131,5 +132,8 @@ final class GameViewModel: ObservableObject {
         smoothTimer?.invalidate(); smoothTimer = nil
     }
 
-    deinit { stopTimers() }
+    deinit {
+        let t = timer; t?.invalidate()
+        let s = smoothTimer; s?.invalidate()
+    }
 }

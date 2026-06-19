@@ -13,7 +13,7 @@ final class AuthService: NSObject, ObservableObject {
     func login() async throws {
         let scheme = "blindtest"
         let redirect = "\(scheme)://callback"
-        let authURL = APIClient.shared.getDiscordAuthURL(redirect: redirect)
+        let authURL = await await APIClient.shared.getDiscordAuthURL(redirect: redirect)
 
         try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
             self.continuation = cont
