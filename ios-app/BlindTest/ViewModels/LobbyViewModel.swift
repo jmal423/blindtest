@@ -28,13 +28,13 @@ final class LobbyViewModel: ObservableObject {
         }
     }
 
-    func createRoom(genres g: [String]? = nil, artists a: [String]? = nil, mode: String = "genre") async -> String? {
+    func createRoom(genres g: [String]? = nil, artists a: [String]? = nil, mode: String = "genre") async -> (code: String, playerId: String)? {
         isLoading = true
         defer { isLoading = false; error = nil }
         do {
             let r = try await APIClient.shared.createRoom(genres: g, artists: a, gameMode: mode)
             createdCode = r.code
-            return r.code
+            return (r.code, r.playerId)
         } catch {
             self.error = "Failed to create room"
             return nil

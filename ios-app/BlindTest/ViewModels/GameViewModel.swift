@@ -38,7 +38,14 @@ final class GameViewModel: ObservableObject {
         roomCode = code
         self.playerId = playerId
         SocketService.shared.reset()
-        SocketService.shared.joinRoom(code: code, playerId: playerId)
+        if !SocketService.shared.isConnected {
+            SocketService.shared.connect()
+        }
+        // Give socket a moment to connect before emitting
+        Task {
+            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s
+            SocketService.shared.joinRoom(code: code, playerId: playerId)
+        }
     }
 
     func handleGameState(_ state: GameState) {

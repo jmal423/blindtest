@@ -29,18 +29,18 @@ struct LeaderboardView: View {
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text(entry.username).fontWeight(.semibold)
-                        Text("\(entry.wins) wins · \(entry.gamesPlayed) games")
+                        Text("\(entry.wins.value) wins · \(entry.gamesPlayed.value) games")
                             .font(.caption).foregroundColor(.secondary)
                     }
 
                     Spacer()
 
                     VStack(alignment: .trailing, spacing: 1) {
-                        Text("\(entry.totalScore)")
+                        Text("\(entry.totalScore.value)")
                             .font(.title3.weight(.black)).monospacedDigit()
-                        Text("avg \(Int(entry.avgScore))")
+                        Text("avg \(Int(entry.avgScore.value))")
                             .font(.caption2).foregroundColor(.secondary)
-                        Text("best \(entry.bestScore)")
+                        Text("best \(entry.bestScore.value)")
                             .font(.caption2).foregroundColor(.secondary)
                     }
                 }

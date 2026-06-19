@@ -239,8 +239,8 @@ struct CreateRoomView: View {
         Task {
             let genres = gameMode == "genre" ? Array(selectedGenres) : nil
             let artists = gameMode == "artist" ? Array(selectedArtists) : nil
-            if let code = await lobbyVM.createRoom(genres: genres, artists: artists, mode: gameMode) {
-                gameVM.joinRoom(code: code, playerId: "")
+            if let result = await lobbyVM.createRoom(genres: genres, artists: artists, mode: gameMode) {
+                gameVM.joinRoom(code: result.code, playerId: result.playerId)
                 dismiss()
             }
         }

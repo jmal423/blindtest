@@ -5,7 +5,9 @@ struct SettingsView: View {
     @EnvironmentObject var authVM: AuthViewModel
     @AppStorage("masterVolume") private var masterVolume: Double = 0.5
     @AppStorage("sfxVolume") private var sfxVolume: Double = 0.8
-    @AppStorage("reducedMotion") private var reducedMotion = false
+    @AppStorage("reducedMotion") private var reducedMotion = false {
+        didSet { UIAccessibility.isReduceMotionEnabled = reducedMotion }
+    }
     @AppStorage("colorblindMode") private var colorblindMode = false
     @AppStorage("theme") private var theme = "dark"
     @AppStorage("language") private var language = "en"
@@ -26,7 +28,8 @@ struct SettingsView: View {
                                 Slider(value: $masterVolume, in: 0...1)
                                 Image(systemName: "speaker.wave.3.fill").foregroundColor(.secondary)
                             }
-                            Text("Music volume · Hardware buttons also work")
+                            .onChange(of: masterVolume) { _, v in audio.currentVolume = Float(v) }
+                            Text("Music volume \u{2022} Hardware buttons also work")
                                 .font(.caption2).foregroundColor(.secondary)
                         }
                         VStack(spacing: 4) {
@@ -47,6 +50,8 @@ struct SettingsView: View {
                             Text(themeNames[i]).tag(t)
                         }
                     }
+                    .onChange(of: theme) { _, _ in applyAppearance() }
+
                     Picker("Language", selection: $language) {
                         ForEach(Array(languages.enumerated()), id: \.element) { i, l in
                             Text(languageNames[i]).tag(l)
@@ -56,6 +61,9 @@ struct SettingsView: View {
 
                 Section("Accessibility") {
                     Toggle("Reduced Motion", isOn: $reducedMotion)
+                        .onChange(of: reducedMotion) { _, v in
+                            UIAccessibility.isReduceMotionEnabled = v
+                        }
                     Toggle("Colorblind Mode", isOn: $colorblindMode)
                 }
 
@@ -83,5 +91,12 @@ struct SettingsView: View {
             }
             .navigationTitle("Settings")
         }
+        .onAppear { applyAppearance() }
+    }
+
+    private func applyAppearance() {
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = windowScene.windows.first else { return }
+        window.overrideUserInterfaceStyle = theme == "light" ? .light : .dark
     }
 }

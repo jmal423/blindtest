@@ -32,8 +32,7 @@ struct ProfileView: View {
                                 if user.isAdmin {
                                     Text("ADMIN").font(.caption2.weight(.black))
                                         .foregroundColor(.orange)
-                                        .padding(.horizontal, 6)
-                                        .padding(.vertical, 2)
+                                        .padding(.horizontal, 6).padding(.vertical, 2)
                                         .background(Color.orange.opacity(0.15))
                                         .clipShape(RoundedRectangle(cornerRadius: 4))
                                 }
@@ -45,16 +44,32 @@ struct ProfileView: View {
 
                 if let stats = profileVM.stats {
                     Section("Stats") {
-                        StatRow(label: "Total Score", value: "\(stats.totalPoints)")
-                        StatRow(label: "Games Played", value: "\(stats.gamesPlayed)")
-                        StatRow(label: "Best Score", value: "\(stats.bestScore)")
-                        StatRow(label: "Perfect Rounds", value: "\(stats.perfects)")
-                        StatRow(label: "Avg Score", value: String(format: "%.0f", stats.avgScore))
+                        StatRow(label: "Total Score", value: "\(stats.totalPoints.value)")
+                        StatRow(label: "Games Played", value: "\(stats.gamesPlayed.value)")
+                        StatRow(label: "Best Score", value: "\(stats.bestScore.value)")
+                        StatRow(label: "Perfect Rounds", value: "\(stats.perfects.value)")
+                        StatRow(label: "Avg Score", value: String(format: "%.0f", stats.avgScore?.value ?? 0))
                         if let g = stats.bestGenre {
                             StatRow(label: "Best Genre", value: g)
                         }
                         if let speed = stats.averageSpeedMs {
-                            StatRow(label: "Avg Speed", value: String(format: "%.1fs", speed / 1000))
+                            StatRow(label: "Avg Speed", value: String(format: "%.1fs", Double(speed.value) / 1000))
+                        }
+                    }
+                }
+
+                Section("Game History") {
+                    if profileVM.isLoading {
+                        ProgressView()
+                    } else if profileVM.scores.isEmpty {
+                        Text("No games played yet").foregroundColor(.secondary).font(.caption)
+                    }
+                    ForEach(profileVM.scores.prefix(10)) { score in
+                        HStack {
+                            Text("Score: \(score.score.value)").fontWeight(.semibold)
+                            Spacer()
+                            Text("\(score.totalRounds.value) rounds")
+                                .font(.caption).foregroundColor(.secondary)
                         }
                     }
                 }
