@@ -5,9 +5,7 @@ struct SettingsView: View {
     @EnvironmentObject var authVM: AuthViewModel
     @AppStorage("masterVolume") private var masterVolume: Double = 0.5
     @AppStorage("sfxVolume") private var sfxVolume: Double = 0.8
-    @AppStorage("reducedMotion") private var reducedMotion = false {
-        didSet { UIAccessibility.isReduceMotionEnabled = reducedMotion }
-    }
+    @AppStorage("reducedMotion") private var reducedMotion = false
     @AppStorage("colorblindMode") private var colorblindMode = false
     @AppStorage("theme") private var theme = "dark"
     @AppStorage("language") private var language = "en"
@@ -61,9 +59,6 @@ struct SettingsView: View {
 
                 Section("Accessibility") {
                     Toggle("Reduced Motion", isOn: $reducedMotion)
-                        .onChange(of: reducedMotion) { _, v in
-                            UIAccessibility.isReduceMotionEnabled = v
-                        }
                     Toggle("Colorblind Mode", isOn: $colorblindMode)
                 }
 

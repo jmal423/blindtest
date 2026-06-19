@@ -44,7 +44,7 @@
 		0E28AD254B1B24DC4F8D9678 /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
 		1D5D8E462A79795360C6C1A8 /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
 		25FB42F8D75D671C674657D8 /* WaitingRoomView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaitingRoomView.swift; sourceTree = "<group>"; };
-		2B10FCBECF0229E7E729147A /* BlindTest.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = BlindTest.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2B10FCBECF0229E7E729147A /* BlindTest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BlindTest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2CE2FAAECC1FF10BA63DFB53 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		387CEC257928507F2ACCC897 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		3ECF78DD3B4F3ACB7284F96D /* LeaderboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaderboardViewModel.swift; sourceTree = "<group>"; };
@@ -212,7 +212,6 @@
 				LastUpgradeCheck = 1600;
 				TargetAttributes = {
 					8BB8BB8419D7D375E1D0CE7B = {
-						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -228,7 +227,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				404958FD81B495B1048ADB13 /* XCRemoteSwiftPackageReference "KeychainAccess" */,
-				5D4E6E32D09059A0565A11A2 /* XCRemoteSwiftPackageReference "socket.io-client-swift" */,
+				5D4E6E32D09059A0565A11A2 /* XCRemoteSwiftPackageReference "socket" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = F30556083CA538620F990012 /* Products */;
@@ -297,7 +296,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = PWU6XLKVQ7;
 				INFOPLIST_FILE = BlindTest/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -317,7 +316,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = PWU6XLKVQ7;
 				INFOPLIST_FILE = BlindTest/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -483,7 +482,7 @@
 				minimumVersion = 4.2.2;
 			};
 		};
-		5D4E6E32D09059A0565A11A2 /* XCRemoteSwiftPackageReference "socket.io-client-swift" */ = {
+		5D4E6E32D09059A0565A11A2 /* XCRemoteSwiftPackageReference "socket" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/socketio/socket.io-client-swift";
 			requirement = {
@@ -496,7 +495,7 @@
 /* Begin XCSwiftPackageProductDependency section */
 		644964D876F60CEAF067A53F /* SocketIO */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 5D4E6E32D09059A0565A11A2 /* XCRemoteSwiftPackageReference "socket.io-client-swift" */;
+			package = 5D4E6E32D09059A0565A11A2 /* XCRemoteSwiftPackageReference "socket" */;
 			productName = SocketIO;
 		};
 		D56969DB41CDAFB40F9D6345 /* KeychainAccess */ = {
